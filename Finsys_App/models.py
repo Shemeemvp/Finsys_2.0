@@ -123,4 +123,47 @@ class Fin_Staff_Details(models.Model):
     Company_approval_status = models.CharField(max_length=255,null=True,blank=True)  
      
        
+#----------------Shemeem --------------Items&ChartOfAccounts----------------
+    
+class Fin_Item_Units(models.Model):
+    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True)
+    unit_symbol = models.CharField(max_length=100,null=True)
+    name = models.CharField(max_length=100,null=True)
 
+class Fin_Items(models.Model):
+    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    name = models.CharField(max_length=100,null=True)
+    item_type = models.CharField(max_length=100,null=True)
+    unit = models.CharField(max_length=100,null=True)
+    hsn = models.BigIntegerField(null=True, blank = True)
+    tax_reference = models.CharField(max_length=100,null=True)
+    intra_state_tax = models.IntegerField(null=True, default=0)
+    inter_state_tax = models.IntegerField(null=True, default=0)
+    sales_account = models.CharField(max_length=100,null=True)
+    selling_price = models.FloatField(null=True, default=0.0)
+    sales_description = models.CharField(max_length=100,null=True)
+    purchase_account = models.CharField(max_length=100,null=True)
+    purchase_price = models.FloatField(null=True, default=0.0)
+    purchase_description = models.CharField(max_length=100,null=True)
+    item_created = models.DateField(auto_now_add = True, auto_now = False, null=True)
+    min_stock=models.IntegerField(null=True,default=0)
+    inventory_account = models.CharField(max_length=100, null=True, blank=True)
+    opening_stock = models.IntegerField(null=True, blank=True,default = 0)
+    current_stock = models.IntegerField(default=0,blank=True,null=True)
+    stock_in = models.IntegerField(default=0,blank=True,null=True)
+    stock_out = models.IntegerField(default=0,blank=True,null=True)
+    stock_unit_rate= models.FloatField(default=0.0,blank=True,null=True)
+    status = models.CharField(max_length=100,null=True, default='Active')
+    
+
+class Fin_Items_Transaction_History(models.Model):
+    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    item = models.ForeignKey(Fin_Items, on_delete=models.CASCADE, null=True)
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True)
+    action_choices = [
+        ('Created', 'Created'),
+        ('Edited', 'Edited'),
+    ]
+    action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)

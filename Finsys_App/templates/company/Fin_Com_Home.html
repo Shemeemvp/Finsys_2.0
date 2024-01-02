@@ -12,7 +12,7 @@
                                 {% csrf_token %}
 
                                     <center>
-                                        {% if  data.User_Type == Company %}
+                                        {% if  data.User_Type == 'Company' %}
                                             <label style="text-align: center; font-size: 30px;text-transform: uppercase;"><b>{{ com.Company_name }}</b></label>
                                         {% else %}    
                                             <label style="text-align: center; font-size: 30px;text-transform: uppercase;"><b>{{ com.company_id.Company_name }}</b></label>

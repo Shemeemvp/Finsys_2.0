@@ -7,7 +7,7 @@
                 <div class="card-title">
                     <center>
                         <h3 class="mb-0" style="font-weight: bolder;">MY PROFILE</h3>
-                    {% if  data.User_Type == Company %}    
+                    {% if  data.User_Type == 'Company' %}    
                         {% if com.Image %}
                         <img src="{{ com.Image.url }}"  class="img img-fluid m-3"
                         style="width: 150px; height: 150px; border-radius: 50%">
@@ -29,7 +29,7 @@
                     <div class="row">
                         <div class="col-md-4"></div>
                         <div class="col-md-4 col-md-offset-3">
-                            {% if  data.User_Type == Company %} 
+                            {% if  data.User_Type == 'Company' %} 
                             <label for="last_name">Company Code</label>
                             <input type="text" name="last_name" id="last_name" value="{{ com.Company_Code }}"
                            class="form-control" style="background-color: #2f516f;color: white;" readonly>
@@ -40,7 +40,7 @@
                     </div>
                     </center>
                     <hr>
-                    <form method="post" action="" class="needs-validation mb-5" novalidate>
+                    <form method="post" action="" class="mb-5" novalidate>
                         {% csrf_token %}
                         <h4 class="m-4">Personal Info</h4>
                         <div class="row m-3">
@@ -81,7 +81,7 @@
 
                         <h4 class="m-4">Company Info</h4>
 
-                        {% if  data.User_Type == Company %} 
+                        {% if  data.User_Type == 'Company' %} 
                         <div class="row m-3">
                             <div class="col-md-6">
                                 <label for="cname">Company Name</label>
@@ -161,14 +161,16 @@
                         <div class="row mt-5">
                             <div class="col-md-3"></div>
                             <div class="col-md-3">
-                                <button class="btn btn-outline-info rounded-pill w-100 h-100 text-light" type="submit">
+                                <button class="btn btn-outline-info rounded-pill w-100 h-100 text-light" type="button">
                                     Edit Profile
                                 </button>
                             </div>
                             <div class="col-md-3">
-                                <button class="btn btn-outline-danger rounded-pill w-100 h-100 text-light" type="submit">
-                                    Edit Modules
+                                <a href="{% url 'Fin_Edit_Modules' %}"> 
+                                <button class="btn btn-outline-danger rounded-pill w-100 h-100 text-light" type="button">
+                                     Edit Modules 
                                 </button>
+                            </a>
                             </div>
                             <div class="col-md-3"></div>
                         </div>

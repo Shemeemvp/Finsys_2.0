@@ -326,6 +326,16 @@ def Fin_DClients(request):
         return render(request,'Distributor/Fin_DClients.html',{'data':data,'data1':data1})
     else:
        return redirect('/')  
+    
+def Fin_DProfile(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Distributors_Details.objects.get(Login_Id = s_id)
+        data1 = Fin_Company_Details.objects.filter(Registration_Type = "distributor",Distributor_approval_status = "Accept",Distributor_id = data.id)
+        return render(request,'Distributor/Fin_DProfile.html',{'data':data,'data1':data1})
+    else:
+       return redirect('/')  
+
       
 # ---------------------------end distributor------------------------------------  
 
@@ -404,11 +414,11 @@ def Fin_Com_Home(request):
         data = Fin_Login_Details.objects.get(id = s_id)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id)
-            return render(request,'company/Fin_Com_Home.html',{'allmodules':allmodules,'com':com})
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            return render(request,'company/Fin_Com_Home.html',{'allmodules':allmodules,'com':com,'data':data})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             return render(request,'company/Fin_Com_Home.html',{'allmodules':allmodules,'com':com,'data':data})
     else:
        return redirect('/') 
@@ -593,14 +603,111 @@ def Fin_Add_Modules(request,id):
         return redirect('Fin_CompanyReg')
     return redirect('Fin_Modules',id)
 
+def Fin_Edit_Modules(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        return render(request,'company/Fin_Edit_Modules.html',{'allmodules':allmodules,'com':com})
+       
+    else:
+       return redirect('/') 
+def Fin_Edit_Modules_Action(request): 
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        
+        if request.method == 'POST':
+            data = Fin_Login_Details.objects.get(id = s_id)
+        
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+
+            # -----ITEMS----
+
+            Items = request.POST.get('c1')
+            Price_List = request.POST.get('c2')
+            Stock_Adjustment = request.POST.get('c3')
+
+
+            # --------- CASH & BANK-----
+            Cash_in_hand = request.POST.get('c4')
+            Offline_Banking = request.POST.get('c5')
+            Bank_Reconciliation = request.POST.get('c6')
+            UPI = request.POST.get('c7')
+            Bank_Holders = request.POST.get('c8')
+            Cheque = request.POST.get('c9')
+            Loan_Account = request.POST.get('c10')
+
+            #  ------SALES MODULE -------
+            Customers = request.POST.get('c11')
+            Invoice  = request.POST.get('c12')
+            Estimate = request.POST.get('c13')
+            Sales_Order = request.POST.get('c14')
+            Recurring_Invoice = request.POST.get('c15')
+            Retainer_Invoice = request.POST.get('c16')
+            Credit_Note = request.POST.get('c17')
+            Payment_Received = request.POST.get('c18')
+            Delivery_Challan = request.POST.get('c19')
+
+            #  ---------PURCHASE MODULE--------- 
+            Vendors = request.POST.get('c20') 
+            Bills  = request.POST.get('c21')
+            Recurring_Bills = request.POST.get('c22')
+            Debit_Note = request.POST.get('c23')
+            Purchase_Order = request.POST.get('c24')
+            Expenses = request.POST.get('c25')
+            Recurring_Expenses = request.POST.get('c26')
+            Payment_Made = request.POST.get('c27')
+            EWay_Bill = request.POST.get('c28')
+
+            #  -------ACCOUNTS--------- 
+            Chart_of_Accounts = request.POST.get('c29') 
+            Manual_Journal = request.POST.get('c30')
+            Reconcile  = request.POST.get('c36')
+
+
+            # -------PAYROLL------- 
+            Employees = request.POST.get('c31')
+            Employees_Loan = request.POST.get('c32')
+            Holiday = request.POST.get('c33') 
+            Attendance = request.POST.get('c34')
+            Salary_Details = request.POST.get('c35')
+
+            modules = Fin_Modules_List(Items = Items,Price_List = Price_List,Stock_Adjustment = Stock_Adjustment,
+                Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,Bank_Reconciliation = Bank_Reconciliation ,
+                UPI = UPI,Bank_Holders = Bank_Holders,Cheque = Cheque,Loan_Account = Loan_Account,
+                Customers = Customers,Invoice = Invoice,Estimate = Estimate,Sales_Order = Sales_Order,
+                Recurring_Invoice = Recurring_Invoice,Retainer_Invoice = Retainer_Invoice,Credit_Note = Credit_Note,
+                Payment_Received = Payment_Received,Delivery_Challan = Delivery_Challan,
+                Vendors = Vendors,Bills = Bills,Recurring_Bills = Recurring_Bills,Debit_Note = Debit_Note,
+                Purchase_Order = Purchase_Order,Expenses = Expenses,Recurring_Expenses = Recurring_Expenses,
+                Payment_Made = Payment_Made,EWay_Bill = EWay_Bill,
+                Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,Reconcile = Reconcile ,
+                Employees = Employees,Employees_Loan = Employees_Loan,Holiday = Holiday,
+                Attendance = Attendance,Salary_Details = Salary_Details,
+                Login_Id = data,company_id = com,status = 'pending')
+            
+            modules.save()
+            data1=Fin_Modules_List.objects.filter(company_id = com).update(update_action=1)
+
+            print("edit modules")
+            return redirect('Fin_Company_Profile')
+        return redirect('Fin_Edit_Modules')
+       
+    else:
+       return redirect('/')    
+    
+
+
 def Fin_Company_Profile(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id)
-            return render(request,'company/Fin_Company_Profile.html',{'allmodules':allmodules,'com':com})
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            return render(request,'company/Fin_Company_Profile.html',{'allmodules':allmodules,'com':com,'data':data})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id)
@@ -612,10 +719,11 @@ def Fin_Company_Profile(request):
 def Fin_Staff_Req(request): 
     if 's_id' in request.session:
         s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
         com = Fin_Company_Details.objects.get(Login_Id = s_id)
-        data = Fin_Staff_Details.objects.filter(company_id = com.id,Company_approval_status = "NULL")
-        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id)
-        return render(request,'company/Fin_Staff_Req.html',{'com':com,'data':data,'allmodules':allmodules})
+        data1 = Fin_Staff_Details.objects.filter(company_id = com.id,Company_approval_status = "NULL")
+        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        return render(request,'company/Fin_Staff_Req.html',{'com':com,'data':data,'allmodules':allmodules,'data1':data1})
     else:
        return redirect('/') 
 
@@ -634,12 +742,71 @@ def Fin_Staff_Req_Reject(request,id):
 def Fin_All_Staff(request): 
     if 's_id' in request.session:
         s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
         com = Fin_Company_Details.objects.get(Login_Id = s_id)
-        data = Fin_Staff_Details.objects.filter(company_id = com.id,Company_approval_status = "Accept")
-        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id)
-        return render(request,'company/Fin_All_Staff.html',{'com':com,'data':data,'allmodules':allmodules})
+        data1 = Fin_Staff_Details.objects.filter(company_id = com.id,Company_approval_status = "Accept")
+        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        return render(request,'company/Fin_All_Staff.html',{'com':com,'data':data,'allmodules':allmodules,'data1':data1})
     else:
        return redirect('/')      
     
     
 # ---------------------------end company------------------------------------     
+
+
+# ------------------shemeem-----Items&ChartOfAccounts-----------------------
+
+# def Fin_items(request):
+#     if 's_id' in request.session:
+#         s_id = request.session['s_id']
+#         data = Fin_Login_Details.objects.get(id = s_id)
+#         print('user===',data.User_Type)
+#         if data.User_Type == 'Company':
+#             print('cmp=====')
+#             com = Fin_Company_Details.objects.get(Login_Id = s_id)
+#             allmodules = Fin_Modules_List.objects.get(company_id = com)
+#             items = Fin_Items.objects.filter(company_id = com)
+#             context = {
+#                 'data':data,
+#                 'com':com,
+#                 'allmodules':allmodules,
+#                 'items':items,
+#             }
+#             print(context)
+#             return render(request,'company/Fin_Items.html',context)
+        
+#         else:
+#             print('stff=====')
+#             stf = Fin_Staff_Details.objects.get(Login_Id = s_id)
+#             com = Fin_Company_Details.objects.get(id = stf.company_id.id)
+#             allmodules = Fin_Modules_List.objects.get(company_id = com)
+#             items = Fin_Items.objects.filter(company_id = com)
+
+#             context = {
+#                 'data':data,
+#                 'com':com,
+#                 'allmodules':allmodules,
+#                 'items':items,
+#             }
+#             print(context)
+#             return render(request,'company/Fin_Items.html',context)
+#     else:
+#        return redirect('/')
+    
+
+def Fin_items(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            items = Fin_Items.objects.filter(company_id = com)
+            return render(request,'company/Fin_Items.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            items = Fin_Items.objects.filter(company_id = com.company_id)
+            return render(request,'company/Fin_Items.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
+    else:
+       return redirect('/')

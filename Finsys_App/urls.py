@@ -49,4 +49,11 @@ urlpatterns = [
     path('DClient_Req_Accept/<id>',views.Fin_DClient_Req_Accept,name='Fin_DClient_Req_Accept'),
     path('DClient_Req_Reject/<id>',views.Fin_DClient_Req_Reject,name='Fin_DClient_Req_Reject'), 
     path('DClients',views.Fin_DClients,name='Fin_DClients'),
+    path('DProfile',views.Fin_DProfile,name='Fin_DProfile'),
+    path('Edit_Modules',views.Fin_Edit_Modules,name='Fin_Edit_Modules'),
+    path('Edit_Modules_Action',views.Fin_Edit_Modules_Action,name='Fin_Edit_Modules_Action'),
+
+
+    #------shemeem----Items&ChartOfAccounts-----------------------
+    path('Fin_items',views.Fin_items, name='Fin_items'),
 ]
