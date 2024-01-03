@@ -9,6 +9,7 @@ from datetime import date
 from datetime import timedelta
 import random
 import string
+from django.http import JsonResponse, HttpResponse
 
 def Fin_index(request):
     return render(request,'Fin_index.html')
@@ -599,6 +600,11 @@ def Fin_Add_Modules(request,id):
         
         modules.save()
 
+        #Adding Default Units under company
+        Fin_Units.objects.create(company_id=com, name='BOX')
+        Fin_Units.objects.create(company_id=com, name='NUMBER')
+        Fin_Units.objects.create(company_id=com, name='PACK')
+
         print("add modules")
         return redirect('Fin_CompanyReg')
     return redirect('Fin_Modules',id)
@@ -756,44 +762,6 @@ def Fin_All_Staff(request):
 
 # ------------------shemeem-----Items&ChartOfAccounts-----------------------
 
-# def Fin_items(request):
-#     if 's_id' in request.session:
-#         s_id = request.session['s_id']
-#         data = Fin_Login_Details.objects.get(id = s_id)
-#         print('user===',data.User_Type)
-#         if data.User_Type == 'Company':
-#             print('cmp=====')
-#             com = Fin_Company_Details.objects.get(Login_Id = s_id)
-#             allmodules = Fin_Modules_List.objects.get(company_id = com)
-#             items = Fin_Items.objects.filter(company_id = com)
-#             context = {
-#                 'data':data,
-#                 'com':com,
-#                 'allmodules':allmodules,
-#                 'items':items,
-#             }
-#             print(context)
-#             return render(request,'company/Fin_Items.html',context)
-        
-#         else:
-#             print('stff=====')
-#             stf = Fin_Staff_Details.objects.get(Login_Id = s_id)
-#             com = Fin_Company_Details.objects.get(id = stf.company_id.id)
-#             allmodules = Fin_Modules_List.objects.get(company_id = com)
-#             items = Fin_Items.objects.filter(company_id = com)
-
-#             context = {
-#                 'data':data,
-#                 'com':com,
-#                 'allmodules':allmodules,
-#                 'items':items,
-#             }
-#             print(context)
-#             return render(request,'company/Fin_Items.html',context)
-#     else:
-#        return redirect('/')
-    
-
 def Fin_items(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
@@ -810,3 +778,161 @@ def Fin_items(request):
             return render(request,'company/Fin_Items.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
     else:
        return redirect('/')
+
+def Fin_createItem(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            units = Fin_Units.objects.filter(company_id = com)
+            return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            units = Fin_Units.objects.filter(company_id = com.company_id)
+            return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units})
+    else:
+       return redirect('/')
+
+def Fin_createNewItem(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            name = request.POST['name']
+            type = request.POST['type']
+            unit = request.POST.get('unit')
+            hsn = request.POST['hsn']
+            tax = request.POST['taxref']
+            gstTax = 0 if tax == 'non taxable' else request.POST['intra_st']
+            igstTax = 0 if tax == 'non taxable' else request.POST['inter_st']
+            purPrice = request.POST['pcost']
+            purAccount = None if request.POST['pur_account'] == "" else request.POST['pur_account']
+            purDesc = request.POST['pur_desc']
+            salePrice = request.POST['salesprice']
+            saleAccount = request.POST['sale_account']
+            saleDesc = request.POST['sale_desc']
+            inventory = request.POST.get('invacc')
+            stock = 0 if request.POST.get('stock') == "" else request.POST.get('stock')
+            stockUnitRate = 0 if request.POST.get('stock_rate') == "" else request.POST.get('stock_rate')
+            minStock = request.POST['min_stock']
+            createdDate = date.today()
+            
+            #save item and transaction if item or hsn doesn't exists already
+            if Fin_Items.objects.filter(company_id=com, name__iexact=name).exists():
+                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif Fin_Items.objects.filter(company_id = com, hsn__iexact = hsn).exists():
+                res = f'<script>alert("HSN - {hsn} already exists, try another.!");window.history.back();</script>'
+                return HttpResponse(res)
+            else:
+                item = Fin_Items(
+                    company_id = com,
+                    Login_Id = data,
+                    name = name,
+                    item_type = type,
+                    unit = unit,
+                    hsn = hsn,
+                    tax_reference = tax,
+                    intra_state_tax = gstTax,
+                    inter_state_tax = igstTax,
+                    sales_account = saleAccount,
+                    selling_price = salePrice,
+                    sales_description = saleDesc,
+                    purchase_account = purAccount,
+                    purchase_price = purPrice,
+                    purchase_description = purDesc,
+                    item_created = createdDate,
+                    min_stock = minStock,
+                    inventory_account = inventory,
+                    opening_stock = stock,
+                    current_stock = stock,
+                    stock_in = 0,
+                    stock_out = 0,
+                    stock_unit_rate = stockUnitRate,
+                    status = 'Active'
+                )
+                item.save()
+
+                #save transaction
+
+                Fin_Items_Transaction_History.objects.create(
+                    company_id = com,
+                    Login_Id = data,
+                    item = item,
+                    action = 'Created'
+                )
+                
+                return redirect(Fin_items)
+
+        return redirect(Fin_createItem)
+    else:
+       return redirect('/')
+
+def Fin_viewItem(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            item = Fin_Items.objects.get(id = id)
+            context = {'allmodules':allmodules,'com':com,'data':data,'item':item}
+            return render(request,'company/Fin_View_Item.html',context)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            item = Fin_Items.objects.get(id = id)
+            context = {'allmodules':allmodules,'com':com,'data':data,'item':item}
+            return render(request,'company/Fin_View_Item.html',context)
+    else:
+       return redirect('/')
+    
+def Fin_saveItemUnit(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == "POST":
+            name = request.POST['name'].upper()
+
+            if not Fin_Units.objects.filter(company_id = com, name__iexact = name).exists():
+                unit = Fin_Units(
+                    company_id = com,
+                    name = name
+                )
+                unit.save()
+                return JsonResponse({'status':True})
+            else:
+                return JsonResponse({'status':False, 'message':'Unit already exists.!'})
+
+def Fin_getItemUnits(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        list= []
+        option_objects = Fin_Units.objects.filter(company_id = com)
+
+        for item in option_objects:
+            itemUnitDict = {
+                'name': item.name,
+            }
+            list.append(itemUnitDict)
+
+        return JsonResponse({'units':list},safe=False)

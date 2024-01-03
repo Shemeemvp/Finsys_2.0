@@ -56,4 +56,9 @@ urlpatterns = [
 
     #------shemeem----Items&ChartOfAccounts-----------------------
     path('Fin_items',views.Fin_items, name='Fin_items'),
+    path('Fin_create_item',views.Fin_createItem, name = 'Fin_createItem'),
+    path('Fin_create_new_item',views.Fin_createNewItem, name='Fin_createNewItem'),
+    path('Fin_view_item/<int:id>',views.Fin_viewItem, name='Fin_viewItem'),
+    path('Fin_save_item_unit',views.Fin_saveItemUnit, name='Fin_saveItemUnit'),
+    path('Fin_get_item_units',views.Fin_getItemUnits, name='Fin_getItemUnits'),
 ]

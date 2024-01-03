@@ -125,9 +125,8 @@ class Fin_Staff_Details(models.Model):
        
 #----------------Shemeem --------------Items&ChartOfAccounts----------------
     
-class Fin_Item_Units(models.Model):
+class Fin_Units(models.Model):
     company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True)
-    unit_symbol = models.CharField(max_length=100,null=True)
     name = models.CharField(max_length=100,null=True)
 
 class Fin_Items(models.Model):
