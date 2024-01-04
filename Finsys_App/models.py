@@ -166,3 +166,33 @@ class Fin_Items_Transaction_History(models.Model):
         ('Edited', 'Edited'),
     ]
     action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
+
+
+class Fin_Chart_Of_Account(models.Model):
+    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    account_type = models.CharField(max_length=255,null=True,blank=True)
+    account_name = models.CharField(max_length=255,null=True,blank=True)
+    account_code = models.CharField(max_length=255,null=True,blank=True)
+    description = models.TextField(null=True,blank=True)
+    balance = models.FloatField(null=True, blank=True, default=0.0)
+    balance_type = models.CharField(max_length=100,null=True,blank=True)
+    credit_card_no = models.CharField(max_length=255,null=True,blank=True)
+    sub_account = models.BooleanField(null=True,blank=True, default=False)
+    parent_account = models.CharField(max_length=255,null=True,blank=True)
+    bank_account_no = models.BigIntegerField(null=True,blank=True)
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True, blank=True)
+    create_status=models.CharField(max_length=255,null=True,blank=True)
+    status = models.CharField(max_length=255,null=True,blank=True)
+
+
+class Fin_ChartOfAccount_History(models.Model):
+    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    account = models.ForeignKey(Fin_Chart_Of_Account, on_delete=models.CASCADE, null=True)
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True)
+    action_choices = [
+        ('Created', 'Created'),
+        ('Edited', 'Edited'),
+    ]
+    action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
