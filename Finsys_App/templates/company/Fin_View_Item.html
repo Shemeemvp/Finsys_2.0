@@ -1,113 +1,108 @@
 <!-- Created --shemeem  -->
 {% extends 'company/Fin_base.html' %}
 {% block body %}
-       
-        <style type="text/css">
-            form div{
-                width: 100%;
-            }
+    <style type="text/css">
+        form div{
+            width: 100%;
+        }
 
-            .top{
-                display: flex; 
-            }
-            .top .left1{
-                width: 50%;
-               
-                
-                display: flex;
-                flex-direction:left;
-                
-                padding: 30px;
-    
-            }
-            .top .right1{
-                width: 50%;
-                display: flex;
-                flex-direction: column;
-                align-items:center;
-                background-color: rgba(128, 128, 128, 0.09);
-                padding: 30px;
-                
-            }
+        .top{
+            display: flex; 
+        }
+        .top .left1{
+            width: 50%;
+            display: flex;
+            flex-direction:left;
+            padding: 30px;
+        }
+        .top .right1{
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items:center;
+            background-color: rgba(128, 128, 128, 0.09);
+            padding: 30px;
             
-            select.list-dt {
-                border: none;
-                outline: 0;
-                border-bottom: 1px solid #ccc;
-                padding: 2px 5px 3px 5px;
-                margin: 2px
-            }
-
-            select.list-dt:focus {
-                border-bottom: 2px solid skyblue
-            }
-
-            /* .card {
-                z-index: 0; 
-                border: none;
-                border-radius: 0.5rem;
-                position: relative
-            } */
-
-            .fs-title {
-                font-size: 25px;
-                color: #2C3E50;
-                margin-bottom: 10px;
-                font-weight: bold;
-                text-align: left
-            }
-           
-
-           /* Define CSS styles for print media */
-@media print {
-    /* Hide navigation and icons */
-    .navbar {
-        display: none !important;
-    }
-    .btn{
-        display: none !important;
-    }
-    .dropdown-item {
-        display: none !important;
-        white-space: nowrap !important;
-    }
-    /* Set all text color to black */
-    body {
-        color: black !important;
+        }
         
-    }
-    /* Hide "Overview" and "Transactions" text */
-    .page-content a {
-        display: none !important;
-    }
-    .nav-container{
-        display: none !important;
-    }
-    .blinking-text{
-        visibility: visible !important;
-       
-    }
- 
-} 
+        select.list-dt {
+            border: none;
+            outline: 0;
+            border-bottom: 1px solid #ccc;
+            padding: 2px 5px 3px 5px;
+            margin: 2px
+        }
 
-        </style>
-        <style>
-            @keyframes blink {
-              0% {
-                visibility: hidden;
-              }
-              50% {
-                visibility: visible;
-              }
-              100% {
-                visibility: hidden;
-              }
+        select.list-dt:focus {
+            border-bottom: 2px solid skyblue
+        }
+
+        /* .card {
+            z-index: 0; 
+            border: none;
+            border-radius: 0.5rem;
+            position: relative
+        } */
+
+        .fs-title {
+            font-size: 25px;
+            color: #2C3E50;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-align: left
+        }
+        
+
+        /* Define CSS styles for print media */
+        @media print {
+            /* Hide navigation and icons */
+            .navbar {
+                display: none !important;
+            }
+            .btn{
+                display: none !important;
+            }
+            .dropdown-item {
+                display: none !important;
+                white-space: nowrap !important;
+            }
+            /* Set all text color to black */
+            body {
+                color: black !important;
+                
+            }
+            /* Hide "Overview" and "Transactions" text */
+            .page-content a {
+                display: none !important;
+            }
+            .nav-container{
+                display: none !important;
+            }
+            .blinking-text{
+                visibility: visible !important;
+            
             }
         
-            .blinking-text {
-              animation: blink 3s step-start infinite;
+        } 
+
+    </style>
+    <style>
+        @keyframes blink {
+            0% {
+            visibility: hidden;
             }
-          </style>
+            50% {
+            visibility: visible;
+            }
+            100% {
+            visibility: hidden;
+            }
+        }
+    
+        .blinking-text {
+            animation: blink 3s step-start infinite;
+        }
+    </style>
         
     <div class="page-content">
         <div class="card radius-15">
@@ -143,7 +138,7 @@
                                         <button id="toggle-status" data-itemid="{{ item.id }}" data-status="{{ item.status }}" class="btn btn-outline-info" style="border-color: rgb(21, 148, 191); color: white;border-radius: 15px; "><span id="status">{{item.status}}</span></button>
                                      
                                      </div>
-                                    </form>&nbsp;&nbsp;&nbsp;&nbsp;
+                                </form>
                                 <div class="col  mt-3">
                                     
                                         <a href=""title="Edit{{a.name}}" class="btn btn-outline-info rounded-pill w-70 text-light"

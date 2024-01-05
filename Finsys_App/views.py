@@ -10,6 +10,7 @@ from datetime import timedelta
 import random
 import string
 from django.http import JsonResponse, HttpResponse
+from django.db.models import Q
 
 def Fin_index(request):
     return render(request,'Fin_index.html')
@@ -878,12 +879,12 @@ def Fin_items(request):
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            items = Fin_Items.objects.filter(company_id = com)
+            items = Fin_Items.objects.filter(Company = com)
             return render(request,'company/Fin_Items.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            items = Fin_Items.objects.filter(company_id = com.company_id)
+            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
+            items = Fin_Items.objects.filter(Company = com.Company)
             return render(request,'company/Fin_Items.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
     else:
        return redirect('/')
@@ -895,13 +896,15 @@ def Fin_createItem(request):
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            units = Fin_Units.objects.filter(company_id = com)
-            return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units})
+            units = Fin_Units.objects.filter(Company = com)
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+            return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            units = Fin_Units.objects.filter(company_id = com.company_id)
-            return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units})
+            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
+            units = Fin_Units.objects.filter(Company = com.Company)
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+            return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc})
     else:
        return redirect('/')
 
@@ -912,7 +915,7 @@ def Fin_createNewItem(request):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
 
         if request.method == 'POST':
             name = request.POST['name']
@@ -935,16 +938,16 @@ def Fin_createNewItem(request):
             createdDate = date.today()
             
             #save item and transaction if item or hsn doesn't exists already
-            if Fin_Items.objects.filter(company_id=com, name__iexact=name).exists():
+            if Fin_Items.objects.filter(Company=com, name__iexact=name).exists():
                 res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
                 return HttpResponse(res)
-            elif Fin_Items.objects.filter(company_id = com, hsn__iexact = hsn).exists():
+            elif Fin_Items.objects.filter(Company = com, hsn__iexact = hsn).exists():
                 res = f'<script>alert("HSN - {hsn} already exists, try another.!");window.history.back();</script>'
                 return HttpResponse(res)
             else:
                 item = Fin_Items(
-                    company_id = com,
-                    Login_Id = data,
+                    Company = com,
+                    LoginDetails = data,
                     name = name,
                     item_type = type,
                     unit = unit,
@@ -973,8 +976,8 @@ def Fin_createNewItem(request):
                 #save transaction
 
                 Fin_Items_Transaction_History.objects.create(
-                    company_id = com,
-                    Login_Id = data,
+                    Company = com,
+                    LoginDetails = data,
                     item = item,
                     action = 'Created'
                 )
@@ -997,7 +1000,7 @@ def Fin_viewItem(request,id):
             return render(request,'company/Fin_View_Item.html',context)
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
             item = Fin_Items.objects.get(id = id)
             context = {'allmodules':allmodules,'com':com,'data':data,'item':item}
             return render(request,'company/Fin_View_Item.html',context)
@@ -1011,14 +1014,14 @@ def Fin_saveItemUnit(request):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
 
         if request.method == "POST":
             name = request.POST['name'].upper()
 
-            if not Fin_Units.objects.filter(company_id = com, name__iexact = name).exists():
+            if not Fin_Units.objects.filter(Company = com, name__iexact = name).exists():
                 unit = Fin_Units(
-                    company_id = com,
+                    Company = com,
                     name = name
                 )
                 unit.save()
@@ -1033,10 +1036,10 @@ def Fin_getItemUnits(request):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
 
         list= []
-        option_objects = Fin_Units.objects.filter(company_id = com)
+        option_objects = Fin_Units.objects.filter(Company = com)
 
         for item in option_objects:
             itemUnitDict = {
@@ -1045,6 +1048,74 @@ def Fin_getItemUnits(request):
             list.append(itemUnitDict)
 
         return JsonResponse({'units':list},safe=False)
+    
+def Fin_createNewAccountFromItems(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+
+        if request.method == 'POST':
+            name = request.POST['account_name']
+            type = request.POST['account_type']
+            subAcc = True if request.POST['subAccountCheckBox'] == 'true' else False
+            parentAcc = request.POST['parent_account'] if subAcc == True else None
+            accCode = request.POST['account_code']
+            bankAccNum = None
+            desc = request.POST['description']
+            
+            createdDate = date.today()
+            
+            #save account and transaction if account doesn't exists already
+            if Fin_Chart_Of_Account.objects.filter(Company=com, account_name__iexact=name).exists():
+                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            else:
+                account = Fin_Chart_Of_Account(
+                    Company = com,
+                    LoginDetails = data,
+                    account_type = type,
+                    account_name = name,
+                    account_code = accCode,
+                    description = desc,
+                    balance = 0.0,
+                    balance_type = None,
+                    credit_card_no = None,
+                    sub_account = subAcc,
+                    parent_account = parentAcc,
+                    bank_account_no = bankAccNum,
+                    date = createdDate,
+                    create_status = 'added',
+                    status = 'active'
+                )
+                account.save()
+
+                #save transaction
+
+                Fin_ChartOfAccount_History.objects.create(
+                    Company = com,
+                    LoginDetails = data,
+                    account = account,
+                    action = 'Created'
+                )
+                
+                list= []
+                account_objects = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+
+                for account in account_objects:
+                    accounts = {
+                        'name': account.account_name,
+                    }
+                    list.append(accounts)
+
+                return JsonResponse({'status':True,'accounts':list},safe=False)
+
+        return JsonResponse({'status':False})
+    else:
+       return redirect('/')
     
 def Fin_addAccount(request):
     if 's_id' in request.session:
@@ -1056,7 +1127,90 @@ def Fin_addAccount(request):
             return render(request,'company/Fin_Add_Account.html',{'allmodules':allmodules,'com':com,'data':data})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
             return render(request,'company/Fin_Add_Account.html',{'allmodules':allmodules,'com':com,'data':data})
+    else:
+       return redirect('/')
+    
+def Fin_checkAccounts(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+
+        if Fin_Chart_Of_Account.objects.filter(Company = com, account_type = request.GET['type']).exists():
+            list= []
+            account_objects = Fin_Chart_Of_Account.objects.filter(Company = com, account_type = request.GET['type'])
+
+            for account in account_objects:
+                accounts = {
+                    'name': account.account_name,
+                }
+                list.append(accounts)
+
+            return JsonResponse({'status':True,'accounts':list},safe=False)
+        else:
+            return JsonResponse({'status':False})
+
+def Fin_createAccount(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+
+        if request.method == 'POST':
+            name = request.POST['account_name']
+            type = request.POST['account_type']
+            subAcc = True if 'subAccountCheckBox' in request.POST else False
+            parentAcc = request.POST['parent_account'] if 'subAccountCheckBox' in request.POST else None
+            accCode = request.POST['account_code']
+            bankAccNum = None if request.POST['account_number'] == "" else request.POST['account_number']
+            desc = request.POST['description']
+            
+            createdDate = date.today()
+            
+            #save account and transaction if account doesn't exists already
+            if Fin_Chart_Of_Account.objects.filter(Company=com, account_name__iexact=name).exists():
+                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            else:
+                account = Fin_Chart_Of_Account(
+                    Company = com,
+                    LoginDetails = data,
+                    account_type = type,
+                    account_name = name,
+                    account_code = accCode,
+                    description = desc,
+                    balance = 0.0,
+                    balance_type = None,
+                    credit_card_no = None,
+                    sub_account = subAcc,
+                    parent_account = parentAcc,
+                    bank_account_no = bankAccNum,
+                    date = createdDate,
+                    create_status = 'added',
+                    status = 'active'
+                )
+                account.save()
+
+                #save transaction
+
+                Fin_ChartOfAccount_History.objects.create(
+                    Company = com,
+                    LoginDetails = data,
+                    account = account,
+                    action = 'Created'
+                )
+                
+                # return redirect(Fin_chartOfAccounts)
+                return redirect(Fin_createAccount)
+
+        return redirect(Fin_createAccount)
     else:
        return redirect('/')

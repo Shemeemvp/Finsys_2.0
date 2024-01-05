@@ -126,12 +126,12 @@ class Fin_Staff_Details(models.Model):
 #----------------Shemeem --------------Items&ChartOfAccounts----------------
     
 class Fin_Units(models.Model):
-    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True)
     name = models.CharField(max_length=100,null=True)
 
 class Fin_Items(models.Model):
-    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
-    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=100,null=True)
     item_type = models.CharField(max_length=100,null=True)
     unit = models.CharField(max_length=100,null=True)
@@ -157,8 +157,8 @@ class Fin_Items(models.Model):
     
 
 class Fin_Items_Transaction_History(models.Model):
-    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
-    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
     item = models.ForeignKey(Fin_Items, on_delete=models.CASCADE, null=True)
     date = models.DateField(auto_now_add=True, auto_now=False, null=True)
     action_choices = [
@@ -169,8 +169,8 @@ class Fin_Items_Transaction_History(models.Model):
 
 
 class Fin_Chart_Of_Account(models.Model):
-    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
-    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
     account_type = models.CharField(max_length=255,null=True,blank=True)
     account_name = models.CharField(max_length=255,null=True,blank=True)
     account_code = models.CharField(max_length=255,null=True,blank=True)
@@ -187,8 +187,8 @@ class Fin_Chart_Of_Account(models.Model):
 
 
 class Fin_ChartOfAccount_History(models.Model):
-    company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
-    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
     account = models.ForeignKey(Fin_Chart_Of_Account, on_delete=models.CASCADE, null=True)
     date = models.DateField(auto_now_add=True, auto_now=False, null=True)
     action_choices = [
