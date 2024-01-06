@@ -62,6 +62,9 @@ urlpatterns = [
     path('Fin_save_item_unit',views.Fin_saveItemUnit, name='Fin_saveItemUnit'),
     path('Fin_get_item_units',views.Fin_getItemUnits, name='Fin_getItemUnits'),
     path('Fin_create_new_account_from_items',views.Fin_createNewAccountFromItems, name='Fin_createNewAccountFromItems'),
+    path('Fin_change_item_status/<int:id>/<str:status>',views.Fin_changeItemStatus, name='Fin_changeItemStatus'),
+    path('Fin_edit_item/<int:id>',views.Fin_editItem, name='Fin_editItem'),
+    path('Fin_update_item/<int:id>',views.Fin_updateItem, name='Fin_updateItem'),
 
     path('Fin_add_account',views.Fin_addAccount, name='Fin_addAccount'),
     path('Fin_check_accounts',views.Fin_checkAccounts, name='Fin_checkAccounts'),

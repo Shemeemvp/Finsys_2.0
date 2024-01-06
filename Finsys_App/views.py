@@ -1117,6 +1117,122 @@ def Fin_createNewAccountFromItems(request):
     else:
        return redirect('/')
     
+def Fin_changeItemStatus(request,id,status):
+    if 's_id' in request.session:
+        
+        item = Fin_Items.objects.get(id = id)
+        item.status = status
+        item.save()
+        return redirect(Fin_viewItem, id)
+
+def Fin_editItem(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        item = Fin_Items.objects.get(id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            units = Fin_Units.objects.filter(Company = com)
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+            return render(request,'company/Fin_Edit_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc, 'item':item})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
+            units = Fin_Units.objects.filter(Company = com.Company)
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+            return render(request,'company/Fin_Edit_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc, 'item':item})
+    else:
+       return redirect('/')
+    
+
+def Fin_updateItem(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+        item = Fin_Items.objects.get(id = id)
+        if request.method == 'POST':
+            name = request.POST['name']
+            type = request.POST['type']
+            unit = request.POST.get('unit')
+            hsn = int(request.POST['hsn'])
+            tax = request.POST['taxref']
+            gstTax = 0 if tax == 'non taxable' else request.POST['intra_st']
+            igstTax = 0 if tax == 'non taxable' else request.POST['inter_st']
+            purPrice = request.POST['pcost']
+            purAccount = None if request.POST['pur_account'] == "" else request.POST['pur_account']
+            purDesc = request.POST['pur_desc']
+            salePrice = request.POST['salesprice']
+            saleAccount = request.POST['sale_account']
+            saleDesc = request.POST['sale_desc']
+            inventory = request.POST.get('invacc')
+            stock = item.opening_stock if request.POST.get('stock') == "" else request.POST.get('stock')
+            stockUnitRate = 0 if request.POST.get('stock_rate') == "" else request.POST.get('stock_rate')
+            minStock = request.POST['min_stock']
+            createdDate = date.today()
+
+            oldOpen = int(item.opening_stock)
+            newOpen = int(stock)
+            diff = abs(oldOpen - newOpen)
+
+            
+            #save item and transaction if item or hsn doesn't exists already
+            if item.name != name and Fin_Items.objects.filter(Company=com, name__iexact=name).exists():
+                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif item.hsn != hsn and Fin_Items.objects.filter(Company = com, hsn__iexact = hsn).exists():
+                res = f'<script>alert("HSN - {hsn} already exists, try another.!");window.history.back();</script>'
+                return HttpResponse(res)
+            else:
+                item.Company = com
+                item.LoginDetails = data
+                item.name = name
+                item.item_type = type
+                item.unit = unit
+                item.hsn = hsn
+                item.tax_reference = tax
+                item.intra_state_tax = gstTax
+                item.inter_state_tax = igstTax
+                item.sales_account = saleAccount
+                item.selling_price = salePrice
+                item.sales_description = saleDesc
+                item.purchase_account = purAccount
+                item.purchase_price = purPrice
+                item.purchase_description = purDesc
+                item.item_created = createdDate
+                item.min_stock = minStock
+                item.inventory_account = inventory
+                
+                if item.opening_stock != int(stock) and oldOpen > newOpen:
+                    item.current_stock -= diff
+                elif item.opening_stock != int(stock) and oldOpen < newOpen:
+                    item.current_stock += diff
+                
+                item.opening_stock = stock
+                item.stock_unit_rate = stockUnitRate
+
+                item.save()
+
+                #save transaction
+
+                Fin_Items_Transaction_History.objects.create(
+                    Company = com,
+                    LoginDetails = data,
+                    item = item,
+                    action = 'Edited'
+                )
+                
+                return redirect(Fin_viewItem, item.id)
+
+        return redirect(Fin_editItem, item.id)
+    else:
+       return redirect('/')
+
+
 def Fin_addAccount(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
