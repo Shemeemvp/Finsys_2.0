@@ -43,6 +43,17 @@
         font-size: 1.2rem;
         font-weight: bold;
     }
+    .submitShareEmailBtn, #commentSaveBtn {
+        background: #192d3e;
+        border: 1px solid #3a4b5a;
+        border-radius: 4px;
+        color: white;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+    }
+    .submitShareEmailBtn:hover, #commentSaveBtn:hover {
+        background: #3a4b5a;
+    }
 </style>
 <div class="page-content " >
     <div class="card radius-15">
@@ -57,22 +68,23 @@
 
                         <div class="col-md-6 d-flex justify-content-end">
                             {% if item.status == 'Inactive' %}
-                            <a href="{% url 'Fin_changeItemStatus' item.id 'Active' %}" class="ml-2 fa fa-exchange btn btn-outline-secondary text-grey " role="button" >&nbsp;Active</a> 
+                            <a href="{% url 'Fin_changeItemStatus' item.id 'Active' %}" class="ml-2 fa fa-check-circle btn btn-outline-secondary text-grey " role="button" >&nbsp;Active</a> 
                             {% else %}
-                            <a href="{% url 'Fin_changeItemStatus' item.id 'Inactive' %}" class="ml-2 fa fa-exchange btn btn-outline-secondary text-grey" role="button" onclick="return confirm('Are you sure you want to make this item Inactive.?')">&nbsp;Inactive</a> 
+                            <a href="{% url 'Fin_changeItemStatus' item.id 'Inactive' %}" class="ml-2 fa fa-ban btn btn-outline-secondary text-grey" role="button" onclick="return confirm('Are you sure you want to make this item Inactive.?')">&nbsp;Inactive</a> 
                             {% endif %}
-                            <a  class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
+                            <a href="{% url 'Fin_itemTransactionPdf' item.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('printContent')">&nbsp;Print</a>
                             <div class="dropdown p-0 nav-item"  id="shareBtn" style="display: none;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-share-alt" data-toggle="dropdown">&nbsp;Share</li>
                                 <ul class="dropdown-menu" style="background-color: black;" id="listdiv">
                                     <li style="text-align: center;" >{% post_to_whatsapp object_or_url "WhatsApp" %}</li>
-                                    <li style="text-align: center;color: #e5e9ec; cursor: pointer;">Email</li>
+                                    <li style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</li>
                                 </ul>
                             </div>
                             <a href="{% url 'Fin_editItem' item.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
-                            <a href=""  class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" >&nbsp;Delete</a>
-                            <a href=""  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
+                            <a href="{% url 'Fin_deleteItem' item.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete item `{{item.name}}`.?')">&nbsp;Delete</a>
+                            <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
+                            <a href="{% url 'Fin_itemHistory' item.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                         </div>
                     </div> 
                 </div>
@@ -223,7 +235,16 @@
 
 
                     <div class="col-md-6" style="background-color: rgba(22,37,50,255); border-top-right-radius:2vh; border-bottom-right-radius: 2vh;">
-                        <div class="p-5">
+                        <div class="history_highlight px-4 py-3 d-flex">
+                            <div class="col-8 d-flex justify-content-start">
+                                {% if history.action == 'Created' %}<p class="text-success" style="font-size: 1.07rem; font-weight: 500;">Created by :</p>{% else %}<p class="text-warning" style="font-size: 1.07rem; font-weight: 500;">Last Edited by :</p>{% endif %}
+                                <span class="ml-2" style="font-size: 1.15rem; font-weight: 500;">{{history.LoginDetails.First_name}} {{history.LoginDetails.Last_name}}</span>
+                            </div>
+                            <div class="col-4 d-flex justify-content-end">
+                                <span>{{history.date}}</span>
+                            </div>
+                        </div>
+                        <div class="px-5">
                             <center><h4>PURCHASE INFORMATION </h4></center>
                             <hr>
 
@@ -360,6 +381,89 @@
 </div>
 <!-- <iframe id="printIframe"></iframe> -->
 
+
+<!-- Share To Email Modal -->
+<div class="modal fade" id="shareToEmail">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">Share Item Transactions</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form action="{% url 'Fin_shareItemTransactionsToEmail' item.id %}" method="post" class="needs-validation" id="share_to_email_form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="emailIds">Email IDs</label>
+                            <textarea class="form-control" name="email_ids" id="emailIds" rows="3" placeholder="Multiple emails can be added by separating with a comma(,)." required></textarea>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label for="item_unitname">Message(optional)</label>
+                            <textarea name="email_message" id="email_message" class="form-control" cols="" rows="4" placeholder="This message will be sent along with Bill details."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer d-flex justify-content-center" style="border-top: 1px solid #ffffff;">
+                    <button type="submit" id="share_with_email" class="submitShareEmailBtn w-50 text-uppercase">SEND MAIL</button>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
+<!-- Add Comments Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLabel">Add Comments</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form action="{% url 'Fin_addItemComment' item.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <textarea type="text" class="form-control" name="comment"></textarea>
+                    {% if not comments %}
+                    <span class="my-2 font-weight-bold d-flex justify-content-center">No Comments.!</span>
+                    {% else %}
+                    <div class="container-fluid">
+                        <table class="table mt-4">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">sl no.</th>
+                                    <th class="text-center">Comment</th>
+                                    <th class="text-center">Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in comments %}
+                                <tr class="table-row">
+                                    <td class="text-center">{{forloop.counter }}</td>
+                                    <td class="text-center">{{c.comments}}</td>
+                                    <td class="text-center"><a class="text-danger" href="{% url 'Fin_deleteItemComment' c.id %}" onclick="return confirm('Are you sure you want to delete.?')"><i class="fa fa-trash" style="font-size: 1.1rem;"></i></a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn" id="commentSaveBtn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 
     function overview() {
@@ -429,6 +533,41 @@
         
     
     }
+
+    $(document).ready(function(){
+        $('#share_with_email').on('click',function(){
+            var emailsInput = document.getElementById('emailIds');
+            var emailsString = emailsInput.value.trim();
+
+            var emails = emailsString.split(',').map(function(email) {
+                return email.trim();
+            });
+
+            var emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+
+            var invalidEmails = []
+            if(emailsString == ""){
+                alert('Enter valid email addresses..')
+            }
+            else{
+                for (var i = 0; i < emails.length; i++) {
+                    var currentEmail = emails[i];
+
+                    if (currentEmail!="" && !emailRegex.test(currentEmail)) {
+                        console.log(currentEmail + ' is invalid!');
+                        invalidEmails.push(currentEmail)
+                    }
+                }
+                
+                if(invalidEmails.length > 0){
+                    alert('Invalid emails..Please check!\n'+invalidEmails)
+                    // alert(invalidEmails)
+                }else{
+                    $('#share_to_email_form').submit();
+                }
+            }
+        })
+    });
 
 </script>
 {% endblock %}

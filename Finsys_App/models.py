@@ -168,6 +168,12 @@ class Fin_Items_Transaction_History(models.Model):
     action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
 
 
+class Fin_Items_Comments(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    item = models.ForeignKey(Fin_Items,on_delete=models.CASCADE,null=True,blank=True)
+    comments = models.CharField(max_length=500,null=True,blank=True)
+
+
 class Fin_Chart_Of_Account(models.Model):
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
     LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)

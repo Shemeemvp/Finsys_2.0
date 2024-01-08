@@ -11,6 +11,11 @@ import random
 import string
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from django.core.mail import send_mail, EmailMessage
+from io import BytesIO
+from django.conf import settings
 
 def Fin_index(request):
     return render(request,'Fin_index.html')
@@ -883,8 +888,8 @@ def Fin_items(request):
             return render(request,'company/Fin_Items.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
-            items = Fin_Items.objects.filter(Company = com.Company)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            items = Fin_Items.objects.filter(Company = com.company_id)
             return render(request,'company/Fin_Items.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
     else:
        return redirect('/')
@@ -901,9 +906,9 @@ def Fin_createItem(request):
             return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
-            units = Fin_Units.objects.filter(Company = com.Company)
-            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            units = Fin_Units.objects.filter(Company = com.company_id)
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com.company_id).order_by('account_name')
             return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc})
     else:
        return redirect('/')
@@ -915,7 +920,7 @@ def Fin_createNewItem(request):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         if request.method == 'POST':
             name = request.POST['name']
@@ -996,13 +1001,17 @@ def Fin_viewItem(request,id):
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
             item = Fin_Items.objects.get(id = id)
-            context = {'allmodules':allmodules,'com':com,'data':data,'item':item}
+            hist = Fin_Items_Transaction_History.objects.filter(Company = com, item = item).last()
+            cmt = Fin_Items_Comments.objects.filter(item = item)
+            context = {'allmodules':allmodules,'com':com,'data':data,'item':item, 'history': hist,'comments':cmt}
             return render(request,'company/Fin_View_Item.html',context)
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             item = Fin_Items.objects.get(id = id)
-            context = {'allmodules':allmodules,'com':com,'data':data,'item':item}
+            hist = Fin_Items_Transaction_History.objects.filter(Company = com.company_id, item = item).last()
+            cmt = Fin_Items_Comments.objects.filter(item = item)
+            context = {'allmodules':allmodules,'com':com,'data':data,'item':item, 'history': hist,'comments':cmt}
             return render(request,'company/Fin_View_Item.html',context)
     else:
        return redirect('/')
@@ -1014,7 +1023,7 @@ def Fin_saveItemUnit(request):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         if request.method == "POST":
             name = request.POST['name'].upper()
@@ -1036,7 +1045,7 @@ def Fin_getItemUnits(request):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         list= []
         option_objects = Fin_Units.objects.filter(Company = com)
@@ -1056,7 +1065,7 @@ def Fin_createNewAccountFromItems(request):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         if request.method == 'POST':
             name = request.POST['account_name']
@@ -1138,9 +1147,9 @@ def Fin_editItem(request, id):
             return render(request,'company/Fin_Edit_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc, 'item':item})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
-            units = Fin_Units.objects.filter(Company = com.Company)
-            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            units = Fin_Units.objects.filter(Company = com.company_id)
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com.company_id).order_by('account_name')
             return render(request,'company/Fin_Edit_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc, 'item':item})
     else:
        return redirect('/')
@@ -1153,7 +1162,7 @@ def Fin_updateItem(request,id):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
         item = Fin_Items.objects.get(id = id)
         if request.method == 'POST':
             name = request.POST['name']
@@ -1232,6 +1241,153 @@ def Fin_updateItem(request,id):
     else:
        return redirect('/')
 
+def Fin_deleteItem(request, id):
+    if 's_id' in request.session:
+        item = Fin_Items.objects.get(id = id)
+        #check whether any transaction are completed for the item(sales,purchase,estimate,bill etc.), if so, restrict deletion.
+
+        item.delete()
+        return redirect(Fin_items)
+
+def Fin_itemHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        itm = Fin_Items.objects.get(id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            his = Fin_Items_Transaction_History.objects.filter(Company = com , item = itm)
+            return render(request,'company/Fin_Item_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'item':itm})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            his = Fin_Items_Transaction_History.objects.filter(Company = com.company_id, item = itm)
+            return render(request,'company/Fin_Item_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'item':itm})
+    else:
+       return redirect('/')
+
+def Fin_itemTransactionPdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+        
+        item = Fin_Items.objects.get(id = id)
+        stock = int(item.current_stock)
+        rate = float(item.stock_unit_rate)
+        stockValue = float(stock * rate)
+    
+        context = {'item': item, 'stockValue':stockValue}
+        
+        template_path = 'company/Fin_Item_Transaction_Pdf.html'
+        fname = 'Item_transactions_'+item.name
+        # return render(request, 'company/Fin_Item_Transaction_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+    
+def Fin_shareItemTransactionsToEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        item = Fin_Items.objects.get(id = id)
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                stock = int(item.current_stock)
+                rate = float(item.stock_unit_rate)
+                stockValue = float(stock * rate)
+            
+                context = {'item': item, 'stockValue':stockValue}
+                template_path = 'company/Fin_Item_Transaction_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Item_transactions-{item.name}.pdf'
+                subject = f"Item_transactions_{item.name}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Transaction details - ITEM-{item.name}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Bill has been shared via email successfully..!')
+                return redirect(Fin_viewItem,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_viewItem, id)
+        
+def Fin_addItemComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        itm = Fin_Items.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_Items_Comments.objects.create(Company = com, item = itm, comments = cmt)
+            return redirect(Fin_viewItem, id)
+        return redirect(Fin_viewItem, id)
+    return redirect('/')
+
+def Fin_deleteItemComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_Items_Comments.objects.get(id = id)
+        itemId = cmt.item.id
+        cmt.delete()
+        return redirect(Fin_viewItem, itemId)
+
+def Fin_chartOfAccounts(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            acc = Fin_Chart_Of_Account.objects.filter(Company = com)
+            return render(request,'company/Fin_ChartOfAccounts.html',{'allmodules':allmodules,'com':com,'data':data,'accounts':acc})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            acc = Fin_Chart_Of_Account.objects.filter(Company = com.company_id)
+            return render(request,'company/Fin_ChartOfAccounts.html',{'allmodules':allmodules,'com':com,'data':data,'accounts':acc})
+    else:
+       return redirect('/')
 
 def Fin_addAccount(request):
     if 's_id' in request.session:
@@ -1243,7 +1399,7 @@ def Fin_addAccount(request):
             return render(request,'company/Fin_Add_Account.html',{'allmodules':allmodules,'com':com,'data':data})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Company = com.Company,status = 'New')
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             return render(request,'company/Fin_Add_Account.html',{'allmodules':allmodules,'com':com,'data':data})
     else:
        return redirect('/')
@@ -1255,7 +1411,7 @@ def Fin_checkAccounts(request):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         if Fin_Chart_Of_Account.objects.filter(Company = com, account_type = request.GET['type']).exists():
             list= []
@@ -1278,7 +1434,7 @@ def Fin_createAccount(request):
         if data.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).Company
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         if request.method == 'POST':
             name = request.POST['account_name']
