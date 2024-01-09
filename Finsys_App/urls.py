@@ -55,6 +55,7 @@ urlpatterns = [
 
 
     #------shemeem----Items&ChartOfAccounts-----------------------
+    # Items
     path('Fin_items',views.Fin_items, name='Fin_items'),
     path('Fin_create_item',views.Fin_createItem, name = 'Fin_createItem'),
     path('Fin_create_new_item',views.Fin_createNewItem, name='Fin_createNewItem'),
@@ -72,8 +73,13 @@ urlpatterns = [
     path('Fin_add_item_comment/<int:id>',views.Fin_addItemComment, name='Fin_addItemComment'),
     path('Fin_delete_item_comment/<int:id>',views.Fin_deleteItemComment, name='Fin_deleteItemComment'),
 
+    # Chart of accounts
     path('Fin_chart_of_accounts',views.Fin_chartOfAccounts, name='Fin_chartOfAccounts'),
     path('Fin_add_account',views.Fin_addAccount, name='Fin_addAccount'),
     path('Fin_check_accounts',views.Fin_checkAccounts, name='Fin_checkAccounts'),
     path('Fin_create_account',views.Fin_createAccount, name='Fin_createAccount'),
+    path('Fin_account_overview/<int:id>',views.Fin_accountOverview, name='Fin_accountOverview'),
+    path('Fin_change_acc_status/<int:id>/<str:status>',views.Fin_changeAccountStatus, name='Fin_changeAccountStatus'),
+    path('Fin_account_transaction_pdf/<int:id>',views.Fin_accountTransactionPdf, name='Fin_accountTransactionPdf'),
+    path('Fin_share_acc_transactions_to_email/<int:id>',views.Fin_shareAccountTransactionsToEmail, name='Fin_shareAccountTransactionsToEmail'),
 ]

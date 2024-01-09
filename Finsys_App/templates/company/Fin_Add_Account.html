@@ -333,6 +333,7 @@
     function clearForm() {
         const form = document.getElementById('accountForm');
         form.reset();
+        window.location.href=`{% url 'Fin_chartOfAccounts' %}`
     }
     </script>
 {% endblock %}
