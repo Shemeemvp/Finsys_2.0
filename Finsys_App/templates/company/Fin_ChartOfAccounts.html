@@ -18,7 +18,7 @@
                 <div class="col-md-5 d-flex justify-content-start">
                     <input class="form-control w-50 mr-1" type="text" id="search" placeholder="Search..">
 
-                    <select class="form-control btn btn-outline-secondary dropdown-toggle text-grey w-25" id="categoryid" aria-label=".form-select-lg example" name="type" onchange="filterAccounts()">
+                    <select class="form-control btn btn-outline-secondary dropdown-toggle text-grey w-25" id="categoryId" aria-label=".form-select-lg example" name="type" onchange="filterAccounts()">
                         <option value="" selected>All</option>
                         <option value="Asset">Asset</option>
                         <option value="Liability">Liability</option>
@@ -29,6 +29,14 @@
                 </div>
                 <div class="col-md-7 d-flex justify-content-end">
                     <!-- <a role="button" class="btn btn-outline-secondary" style="color: a#fff;" href=""><i class="fa fa-table"></i> Run Report</a> -->
+                    <div class="dropdown ml-1">
+                        <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown"><i class="fa fa-filter"></i> filter by</button>
+                        <div class="dropdown-menu" style="background-color: black">
+                          <a class="dropdown-item" style="color: white;cursor: pointer;" onclick="filterTable(3,'all')">All</a>
+                          <a class="dropdown-item" style="color: white;cursor: pointer;" onclick="filterTable(3,'active')">Active</a>
+                          <a class="dropdown-item" style="color: white;cursor: pointer;" onclick="filterTable(3,'inactive')">Inactive</a>
+                        </div>
+                      </div>
                     <a href="{% url 'Fin_addAccount' %}" style="color: #fff;" class="btn btn-outline-secondary ml-1" ><i class="fa fa-plus"></i> New Account</a>
                 </div>
             </div>
@@ -45,22 +53,26 @@
                     </thead>
                     <tbody>
                     {% for a in accounts %}
-                        <tr class="table-row cursor-pointer" data-href="{% url 'Fin_accountOverview' a.id %}">
-                            <td>{{ a.account_name }}</td>
-                            <td>{{ a.account_type }}</td>
-                            <td>{{ a.account_code }}</td>
-                            <td>{{ a.status }}</td>
-                            <!-- <td>
-                                <div class="dropdown">
-                                    <button type="button" class="btn btn-outline-info text-light dropdown-toggle" data-toggle="dropdown">Account History</button>
-                                    <div class="dropdown-menu bg-white">
-                                        <a class="dropdown-item" href="#" style="height: 40px; font-size: 15px; color: black;"><b>Edit</b></a>
-                                        <a class="dropdown-item" href="#" style="height: 40px; font-size: 15px; color: black;"><b>Make Inactive</b></a>
-                                        <a class="dropdown-item" href="#" style="height: 40px; font-size: 15px; color: black;"><b>Run Report</b></a>
-                                    </div>
-                                </div>
-                            </td> -->
+                        {% if not a.sub_account %}
+                            <tr class="table-row cursor-pointer" data-href="{% url 'Fin_accountOverview' a.id %}">
+                                    <td>{{ a.account_name }}</td>
+                                    <td>{{ a.account_type }}</td>
+                                    <td>{{ a.account_code }}</td>
+                                    <td class="text-uppercase">{{ a.status }}</td>
+                                </tr>
+                        {% endif %}
+                        
+                        {% for sub in accounts %}
+                        {% if sub.sub_account == True and sub.parent_account == a.account_name %}
+                        <tr class="table-row cursor-pointer" data-href="{% url 'Fin_accountOverview' sub.id %}">
+                            <td><i class="fa fa-arrow-right ml-3 mr-2"></i>{{ sub.account_name }}</td>
+                            <td>{{ sub.account_type }}</td>
+                            <td>{{ sub.account_code }}</td>
+                            <td class="text-uppercase">{{ sub.status }}</td>
                         </tr>
+                        {% endif %}
+                        {% endfor %}
+                        
                     {% endfor %}
                     </tbody>
                 </table>
@@ -87,10 +99,25 @@
         });
     });
 
+    function filterTable(row,filterValue) {
+        var table = document.getElementById("chartOfAccountsTable");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) {
+        var statusCell = rows[i].getElementsByTagName("td")[row];
+
+        if (filterValue == "all" || statusCell.textContent.toLowerCase() == filterValue) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+        }
+    }
+
     function categoryType() {
         debugger
         let input, filter, table, tr, td, i, j, txtValue;
-        var selectElement = document.getElementById("categoryid"); 
+        var selectElement = document.getElementById("categoryId"); 
         filter = selectElement.value.toLowerCase();
         table = document.getElementById("chartOfAccountsTable");
         tr = table.getElementsByTagName("tr");
@@ -131,7 +158,7 @@
 <script>
     function filterAccounts() {
         let input, table, tr, td, i, j, txtValue;
-        var selectElement = document.getElementById("categoryid");
+        var selectElement = document.getElementById("categoryId");
         var filter = selectElement.value.toLowerCase();
         var values = [];
 

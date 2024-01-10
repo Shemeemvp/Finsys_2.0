@@ -210,17 +210,20 @@
                     </div>
                   </a>
                   <div class="header-notifications-list">
+                    {% if stockAlert %}
+                    {% for item in stockLow %}
                     <a class="dropdown-item" href="javascript:;">
                       <div class="media align-items-center">
-                        <div class="notify bg-light-primary text-primary"><i class="bx bx-group"></i>
+                        <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i>
                         </div>
                         <div class="media-body">
-                          <h6 class="msg-name">New Customers<span class="msg-time float-right">14 Sec
-                              ago</span></h6>
-                          <p class="msg-info">5 new user registered</p>
+                          <h6 class="msg-name">Stock Alert.!!<span class="msg-time float-right"></span></h6>
+                          <p class="msg-info">'<b>{{item.name}}</b>' is below the minimum stock threshold..</p>
                         </div>
                       </div>
                     </a>
+                    {% endfor %}
+                    {% endif %}
                     <a class="dropdown-item" href="javascript:;">
                       <div class="media align-items-center">
                         <div class="notify bg-light-danger text-danger"><i class="bx bx-cart-alt"></i>

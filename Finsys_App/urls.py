@@ -82,4 +82,8 @@ urlpatterns = [
     path('Fin_change_acc_status/<int:id>/<str:status>',views.Fin_changeAccountStatus, name='Fin_changeAccountStatus'),
     path('Fin_account_transaction_pdf/<int:id>',views.Fin_accountTransactionPdf, name='Fin_accountTransactionPdf'),
     path('Fin_share_acc_transactions_to_email/<int:id>',views.Fin_shareAccountTransactionsToEmail, name='Fin_shareAccountTransactionsToEmail'),
+    path('Fin_delete_account/<int:id>',views.Fin_deleteAccount, name= 'Fin_deleteAccount'),
+    path('Fin_edit_account/<int:id>',views.Fin_editAccount, name='Fin_editAccount'),
+    path('Fin_update_account/<int:id>',views.Fin_updateAccount, name='Fin_updateAccount'),
+    path('Fin_account_history/<int:id>',views.Fin_accountHistory, name='Fin_accountHistory'),
 ]

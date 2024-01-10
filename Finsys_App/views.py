@@ -877,6 +877,7 @@ def Fin_All_Staff(request):
 
 # ------------------shemeem-----Items&ChartOfAccounts-----------------------
 
+# Items
 def Fin_items(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
@@ -1372,6 +1373,9 @@ def Fin_deleteItemComment(request,id):
         cmt.delete()
         return redirect(Fin_viewItem, itemId)
 
+
+# Chart of accounts
+
 def Fin_chartOfAccounts(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
@@ -1480,8 +1484,7 @@ def Fin_createAccount(request):
                     action = 'Created'
                 )
                 
-                # return redirect(Fin_chartOfAccounts)
-                return redirect(Fin_createAccount)
+                return redirect(Fin_chartOfAccounts)
 
         return redirect(Fin_createAccount)
     else:
@@ -1491,16 +1494,17 @@ def Fin_accountOverview(request,id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
+        acc = Fin_Chart_Of_Account.objects.get(id = id)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            acc = Fin_Chart_Of_Account.objects.get(id = id)
-            return render(request,'company/Fin_Account_Overview.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc})
+            hist = Fin_ChartOfAccount_History.objects.filter(Company = com, account = acc).last()
+            return render(request,'company/Fin_Account_Overview.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc, 'history':hist})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            acc = Fin_Chart_Of_Account.objects.get(id = id)
-            return render(request,'company/Fin_Account_Overview.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc})
+            hist = Fin_ChartOfAccount_History.objects.filter(Company = com.company_id, account = acc).last()
+            return render(request,'company/Fin_Account_Overview.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc, 'history':hist})
     else:
        return redirect('/')
     
@@ -1584,3 +1588,90 @@ def Fin_shareAccountTransactionsToEmail(request,id):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_accountOverview, id)
+
+def Fin_deleteAccount(request, id):
+    if 's_id' in request.session:
+        acc = Fin_Chart_Of_Account.objects.get( id = id)
+        acc.delete()
+        return redirect(Fin_chartOfAccounts)
+
+def Fin_editAccount(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            acc = Fin_Chart_Of_Account.objects.get(id = id)
+            return render(request,'company/Fin_Edit_Account.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            acc = Fin_Chart_Of_Account.objects.get(id = id)
+            return render(request,'company/Fin_Edit_Account.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc})
+    else:
+       return redirect('/')
+
+def Fin_updateAccount(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        acc = Fin_Chart_Of_Account.objects.get(id = id)
+        if request.method == 'POST':
+            name = request.POST['account_name']
+            subAcc = True if 'subAccountCheckBox' in request.POST else False
+            parentAcc = request.POST['parent_account'] if 'subAccountCheckBox' in request.POST else None
+            accCode = request.POST['account_code']
+            bankAccNum = None if request.POST['account_number'] == "" else request.POST['account_number']
+            desc = request.POST['description']
+            
+            #save account and transaction if account doesn't exists already
+            if acc.account_name != name and Fin_Chart_Of_Account.objects.filter(Company=com, account_name__iexact=name).exists():
+                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            else:
+                acc.account_name = name
+                acc.account_code = accCode
+                acc.description = desc
+                acc.sub_account = subAcc
+                acc.parent_account = parentAcc
+                acc.bank_account_no = bankAccNum
+                acc.save()
+
+                #save transaction
+                if acc.create_status == 'added':
+                    Fin_ChartOfAccount_History.objects.create(
+                        Company = com,
+                        LoginDetails = data,
+                        account = acc,
+                        action = 'Edited'
+                    )
+                
+                return redirect(Fin_accountOverview, id)
+
+        return redirect(Fin_editAccount, id)
+    else:
+       return redirect('/')
+    
+def Fin_accountHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        acc = Fin_Chart_Of_Account.objects.get(id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            his = Fin_ChartOfAccount_History.objects.filter(Company = com , account = acc)
+            return render(request,'company/Fin_Account_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'account':acc})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            his = Fin_ChartOfAccount_History.objects.filter(Company = com.company_id, account = acc)
+            return render(request,'company/Fin_Account_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'account':acc})
+    else:
+       return redirect('/')
