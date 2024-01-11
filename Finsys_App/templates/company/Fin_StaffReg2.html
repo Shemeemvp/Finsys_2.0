@@ -166,16 +166,22 @@
             <!-- fieldsets -->
             <fieldset>
                 <h2 class="mb-4">We're Happy you're Here!</h2>
-                <input type="text" name="" placeholder="First Name" value="{{dlog.First_name}}" readonly/>
-                <input type="text" name="" placeholder="last name" value="{{dlog.Last_name}}" readonly/>
+                <label for="" style="float: left;margin-top: 20px;">Name</label>
+                <input type="text" name="" placeholder="First Name" value="{{dlog.First_name}} {{dlog.Last_name}}" readonly/>
+                
+                <!-- <input type="text" name="" placeholder="last name" value="{{dlog.Last_name}}" readonly/> -->
+                <label for="" style="float: left;margin-top: 10px;">User Name</label>
                 <input type="text" name="" placeholder="username" value="{{dlog.User_name}}" readonly/>
                 
                 <!-- <input type="number" name="pincode" placeholder="Pincode"/> -->
+                <label for="" style="float: left;margin-top: 10px;">Email</label>
             <input type="email" name="cemail" placeholder="Email" value="{{ddata.Email}}" readonly/>
-                <input type="number" name="phone" placeholder="Phone Number"/>
-                <input type="text" name="Company_Code" placeholder="Company Code">
+            <label for="" style="float: left;margin-top: 10px;">Contact</label>
+                <input type="text" name="phone" placeholder="Phone Number" pattern="[0-9]{10}" required/>
+                <!-- <input type="text" name="Company_Code" placeholder="Company Code"> -->
+                <label for="" style="float: left;margin-top: 10px;">Image</label>
                 <input type="file" name="img" accept="image/*"/>
-                <input type="submit" name="submit" class="next action-button" style="margin-top: 30px;" value="Submit"/>
+                <input type="submit" name="submit" class="action-button" style="margin-top: 30px;" value="Submit"/>
             </fieldset>
            
         </form>

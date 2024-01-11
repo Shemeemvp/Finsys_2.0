@@ -43,7 +43,7 @@ class Fin_Company_Details(models.Model):
     Pincode = models.IntegerField(null=True,blank=True)
     Pan_NO = models.CharField(max_length=255,null=True,blank=True)
     GST_Type = models.CharField(max_length=255,null=True,blank=True)
-    GST_NO = models.IntegerField(null=True,blank=True)
+    GST_NO = models.CharField(max_length=255,null=True,blank=True)
     Image = models.ImageField(null=True,blank = True,upload_to = 'image/company') 
     Start_Date = models.DateField(auto_now_add=True,null=True)
     End_date = models.DateField(max_length=255,null=True,blank=True)
@@ -93,6 +93,8 @@ class Fin_Modules_List(models.Model):
     Expenses = models.IntegerField(null=True,default=0) 
     Recurring_Expenses = models.IntegerField(null=True,default=0) 
     Payment_Made = models.IntegerField(null=True,default=0) 
+
+    # --------EWay_Bill-----
     EWay_Bill = models.IntegerField(null=True,default=0) 
 
 
@@ -121,7 +123,44 @@ class Fin_Staff_Details(models.Model):
     Email = models.CharField(max_length=255,null=True,blank=True) 
     img = models.ImageField(null=True,blank = True,upload_to = 'image/staff')    
     Company_approval_status = models.CharField(max_length=255,null=True,blank=True)  
-     
+
+class Fin_Payment_Terms_updation(models.Model):
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Payment_Term = models.ForeignKey(Fin_Payment_Terms, on_delete=models.CASCADE,null=True,blank=True)
+
+    status = models.CharField(max_length=100,null=True,default='New') 
+
+
+class Fin_ANotification(models.Model): 
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Modules_List = models.ForeignKey(Fin_Modules_List, on_delete=models.CASCADE,null=True,blank=True)
+    PaymentTerms_updation = models.ForeignKey(Fin_Payment_Terms_updation, on_delete=models.CASCADE,null=True,blank=True)
+    
+    Title = models.CharField(max_length=255,null=True,blank=True)
+    Discription = models.CharField(max_length=255,null=True,blank=True) 
+    Noti_date = models.DateTimeField(auto_now_add=True,null=True)
+    status = models.CharField(max_length=100,null=True,default='New')  
+
+class Fin_DNotification(models.Model): 
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Distributor_id = models.ForeignKey(Fin_Distributors_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Modules_List = models.ForeignKey(Fin_Modules_List, on_delete=models.CASCADE,null=True,blank=True)
+    PaymentTerms_updation = models.ForeignKey(Fin_Payment_Terms_updation, on_delete=models.CASCADE,null=True,blank=True)
+    
+    Title = models.CharField(max_length=255,null=True,blank=True)
+    Discription = models.CharField(max_length=255,null=True,blank=True) 
+    Noti_date = models.DateTimeField(auto_now_add=True,null=True)
+    status = models.CharField(max_length=100,null=True,default='New')     
+
+class Fin_CNotification(models.Model): 
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+  
+    
+    Title = models.CharField(max_length=255,null=True,blank=True)
+    Discription = models.CharField(max_length=255,null=True,blank=True) 
+    Noti_date = models.DateTimeField(auto_now_add=True,null=True)
+    status = models.CharField(max_length=100,null=True,default='New')      
        
 #----------------Shemeem --------------Items&ChartOfAccounts----------------
     
@@ -202,3 +241,5 @@ class Fin_ChartOfAccount_History(models.Model):
         ('Edited', 'Edited'),
     ]
     action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
+
+#End

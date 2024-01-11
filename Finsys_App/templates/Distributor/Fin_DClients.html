@@ -26,14 +26,14 @@
                             {% for d in data1 %}
                             <tr>
                                 <td  style="text-align: center;">{{d.id}}</td>
-                                <td style="text-align: center;"><a href="">
+                                <td style="text-align: center;"><a href="{% url 'Fin_DClients_overview' d.id %}">
                                      {{d.Login_Id.First_name}} {{d.Login_Id.Last_name}} </a></td>
                                 <td  style="text-align: center;">{{d.Email}}</td>
                                 <td  style="text-align: center;">{{d.Contact}}</td>
                                 <td style="text-align: center;">{{d.Payment_Term.payment_terms_number}}  {{d.Payment_Term.payment_terms_value}}</td>
                                 <td  style="text-align: center;">{{d.End_date}}</td>
                                 <td style="text-align: center;">
-                                    <a href="" class="btn btn-danger m-1">Remove</a></td>
+                                    <a href="{% url 'Fin_DClient_remove' d.id %}" class="btn btn-danger m-1">Remove</a></td>
                                 
                             </tr>
                             {% endfor %}

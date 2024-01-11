@@ -39,7 +39,7 @@
   <!--Fa icon -->
  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
 
   <link rel="stylesheet" href="{% static 'assets/css/app.css' %}" />
   <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
@@ -197,6 +197,47 @@
           </div>
           <div class="right-topbar ml-auto">
             <ul class="navbar-nav">
+              {% if  data.User_Type == 'Company' %}
+              <li class="nav-item dropdown dropdown-lg">
+                <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="javascript:;"
+                  data-toggle="dropdown"> <i class="bx bx-bell vertical-align-middle"></i>
+                  <span class="msg-count">{{n}}</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a href="javascript:;">
+                    <div class="msg-header">
+                      <h6 class="msg-header-title">{{n}} New</h6>
+                      <p class="msg-header-subtitle">Application Notifications</p>
+                    </div>
+                  </a>
+                  <div class="header-notifications-list">
+                    {% if noti %}
+                    {% for i in noti %}
+                    <a class="dropdown-item" href="{% url 'Fin_Cnotification' %}">
+                      <div class="media align-items-center">
+                        <div class="notify bg-light-primary text-primary"><i class="bx bx-file"></i>
+                        </div>
+                        <div class="media-body">
+                          <h6 class="msg-name">{{i.Title}}<span class="msg-time float-right">{{i.Noti_date}}</span></h6>
+                          <p class="msg-info">{{i.Discription}}</p>
+                        </div>
+                      </div>
+                    </a>
+                    {% endfor %}
+                    
+                    
+                    
+                  </div>
+                  <a href="{% url 'Fin_Cnotification' %}">
+                    <div class="text-center msg-footer">View All Notifications</div>
+                  </a>
+                  {% else %}
+                
+                  <p class="msg-info text-center mt-5">Notifications is not found</p>
+                  {% endif %}
+                </div>
+              </li>
+              {% else %}
               <li class="nav-item dropdown dropdown-lg">
                 <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="javascript:;"
                   data-toggle="dropdown"> <i class="bx bx-bell vertical-align-middle"></i>
@@ -210,20 +251,17 @@
                     </div>
                   </a>
                   <div class="header-notifications-list">
-                    {% if stockAlert %}
-                    {% for item in stockLow %}
                     <a class="dropdown-item" href="javascript:;">
                       <div class="media align-items-center">
-                        <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i>
+                        <div class="notify bg-light-primary text-primary"><i class="bx bx-group"></i>
                         </div>
                         <div class="media-body">
-                          <h6 class="msg-name">Stock Alert.!!<span class="msg-time float-right"></span></h6>
-                          <p class="msg-info">'<b>{{item.name}}</b>' is below the minimum stock threshold..</p>
+                          <h6 class="msg-name">New Customers<span class="msg-time float-right">14 Sec
+                              ago</span></h6>
+                          <p class="msg-info">5 new user registered</p>
                         </div>
                       </div>
                     </a>
-                    {% endfor %}
-                    {% endif %}
                     <a class="dropdown-item" href="javascript:;">
                       <div class="media align-items-center">
                         <div class="notify bg-light-danger text-danger"><i class="bx bx-cart-alt"></i>
@@ -274,6 +312,7 @@
                   </a>
                 </div>
               </li>
+              {% endif %}
               <li class="nav-item dropdown dropdown-user-profile">
                 <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" href="javascript:;" data-toggle="dropdown">
                   
@@ -386,7 +425,7 @@
               <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-home-alt"></i>
                 </div>
-                <div class="menu-title">Cash&Bank</div>
+                <div class="menu-title" style="margin-right: 20px;">Cash&Bank</div>
               </a>
               <ul class="submenu">
                 
@@ -398,11 +437,7 @@
                 </li>
                 {% endif %}
 
-                {% if allmodules.Bank_Reconciliation == 1 %}
-                <li id="bankreconcilation"><a href=""><i class="bx bx-right-arrow-alt"></i>Bank
-                    Reconcilation</a>
-                </li>
-                {% endif %}
+                
 
                 {% if allmodules.Bank_Holders == 1 %}
                 <li id="bankholders"><a href=""><i class="bx bx-right-arrow-alt"></i>Bank
@@ -538,15 +573,9 @@
               </li>
               {% endif %}
 
-              {% if allmodules.Recurring_Expenses == 1 %}
-              <li id="RecurringExpenses"><a href=""><i class="bx bx-right-arrow-alt"></i>Recurring Expenses</a>
-              </li>
-              {% endif %}
+              
 
-              {% if allmodules.EWay_Bill == 1 %}
-              <li><a href=""><i class="bx bx-right-arrow-alt"></i>E-Way Bill</a>
-              </li>
-              {% endif %}
+              
             </ul>
           </li>
           
@@ -615,6 +644,18 @@
               <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i> Recurring Bill Report</a></li>
             </ul>
           </li>
+
+          {% if allmodules.EWay_Bill == 1 %}
+
+          <li>
+            <a href="javascript:;" class="has-arrow">
+              <div class="parent-icon"><i class="bx bx-file"></i>
+              </div>
+              <div class="menu-title">Eway Bill</div>
+            </a>
+            
+          </li>
+          {% endif %}
           
           <li>
             <a href="javascript:;" class="has-arrow">
@@ -637,10 +678,7 @@
               </li>
               {% endif %}
 
-              {% if allmodules.Reconcile == 1 %}
-              <li id="reconcile"><a href=""><i class="bx bx-right-arrow-alt"></i>Reconcile</a>
-              </li>
-              {% endif %}
+              
             </ul>
           </li>
          

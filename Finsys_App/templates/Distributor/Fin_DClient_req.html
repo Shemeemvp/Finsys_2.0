@@ -26,7 +26,7 @@
                             {% for d in data1 %}
                             <tr>
                                 <td  style="text-align: center;">{{d.id}}</td>
-                                <td style="text-align: center;"><a href="">
+                                <td style="text-align: center;"><a href="{% url 'Fin_DClient_req_overview' d.id %}">
                                      {{d.Login_Id.First_name}} {{d.Login_Id.Last_name}} </a></td>
                                 <td  style="text-align: center;">{{d.Email}}</td>
                                 <td  style="text-align: center;">{{d.Contact}}</td>

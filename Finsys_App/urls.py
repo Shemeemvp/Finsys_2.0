@@ -2,6 +2,8 @@ from . import views
 from django.urls import path,re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.views.static import serve
 
 urlpatterns = [
     path('',views.Fin_index,name='Fin_index'),
@@ -52,8 +54,36 @@ urlpatterns = [
     path('DProfile',views.Fin_DProfile,name='Fin_DProfile'),
     path('Edit_Modules',views.Fin_Edit_Modules,name='Fin_Edit_Modules'),
     path('Edit_Modules_Action',views.Fin_Edit_Modules_Action,name='Fin_Edit_Modules_Action'),
-
-
+    path('Anotification',views.Fin_Anotification,name='Fin_Anotification'),
+    path('Anoti_Overview/<id>',views.Fin_Anoti_Overview,name='Fin_Anoti_Overview'), 
+    path('Module_Updation_Accept/<id>',views.Fin_Module_Updation_Accept,name='Fin_Module_Updation_Accept'),
+    path('Module_Updation_Reject/<id>',views.Fin_Module_Updation_Reject,name='Fin_Module_Updation_Reject'),
+    path('Change_payment_terms',views.Fin_Change_payment_terms,name='Fin_Change_payment_terms'),
+    path('payment_terms_Updation_Accept/<id>',views.Fin_payment_terms_Updation_Accept,name='Fin_payment_terms_Updation_Accept'),
+    path('payment_terms_Updation_Reject/<id>',views.Fin_payment_terms_Updation_Reject,name='Fin_payment_terms_Updation_Reject'),
+    path('Dnotification',views.Fin_Dnotification,name='Fin_Dnotification'),
+    path('Dnoti_Overview/<id>',views.Fin_Dnoti_Overview,name='Fin_Dnoti_Overview'), 
+    path('DModule_Updation_Accept/<id>',views.Fin_DModule_Updation_Accept,name='Fin_DModule_Updation_Accept'),
+    path('DModule_Updation_Reject/<id>',views.Fin_DModule_Updation_Reject,name='Fin_DModule_Updation_Reject'),
+    path('ADpayment_terms_Updation_Accept/<id>',views.Fin_Dpayment_terms_Updation_Accept,name='Fin_Dpayment_terms_Updation_Accept'),
+    path('ADpayment_terms_Updation_Reject/<id>',views.Fin_ADpayment_terms_Updation_Reject,name='Fin_ADpayment_terms_Updation_Reject'),
+    path('Cnotification',views.Fin_Cnotification,name='Fin_Cnotification'),
+    path('Wrong',views.Fin_Wrong,name='Fin_Wrong'),
+    path('Wrong_Action',views.Fin_Wrong_Action,name='Fin_Wrong_Action'),
+    path('DChange_payment_terms',views.Fin_DChange_payment_terms,name='Fin_DChange_payment_terms'),
+    path('Client_delete/<id>',views.Fin_Client_delete,name='Fin_Client_delete'),
+    path('Distributor_delete/<id>',views.Fin_Distributor_delete,name='Fin_Distributor_delete'),
+    path('Staff_delete/<id>',views.Fin_Staff_delete,name='Fin_Staff_delete'),
+    path('Edit_Company_profile',views.Fin_Edit_Company_profile,name='Fin_Edit_Company_profile'),
+    path('Edit_Company_profile_Action',views.Fin_Edit_Company_profile_Action,name='Fin_Edit_Company_profile_Action'),
+    path('Edit_Staff_profile',views.Fin_Edit_Staff_profile,name='Fin_Edit_Staff_profile'),
+    path('Edit_Staff_profile_Action',views.Fin_Edit_Staff_profile_Action,name='Fin_Edit_Staff_profile_Action'),
+    path('Edit_Dprofile',views.Fin_Edit_Dprofile,name='Fin_Edit_Dprofile'),
+    path('Edit_Dprofile_Action',views.Fin_Edit_Dprofile_Action,name='Fin_Edit_Dprofile_Action'),
+    path('DClient_req_overview/<id>',views.Fin_DClient_req_overview,name='Fin_DClient_req_overview'),
+    path('DClients_overview/<id>',views.Fin_DClients_overview,name='Fin_DClients_overview'),
+    path('DClient_remove/<id>',views.Fin_DClient_remove,name='Fin_DClient_remove'),
+    
     #------shemeem----Items&ChartOfAccounts-----------------------
     # Items
     path('Fin_items',views.Fin_items, name='Fin_items'),
@@ -86,4 +116,9 @@ urlpatterns = [
     path('Fin_edit_account/<int:id>',views.Fin_editAccount, name='Fin_editAccount'),
     path('Fin_update_account/<int:id>',views.Fin_updateAccount, name='Fin_updateAccount'),
     path('Fin_account_history/<int:id>',views.Fin_accountHistory, name='Fin_accountHistory'),
+    #End
+    
+    re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 ]
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

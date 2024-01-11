@@ -33,7 +33,7 @@
                                 <td style="text-align: center;">{{d.Payment_Term.payment_terms_number}}  {{d.Payment_Term.payment_terms_value}}</td>
                                 <td  style="text-align: center;">{{d.End_date}}</td>
                                 
-                                <td style="text-align: center;"><a href="" class="btn btn-danger m-1">Cancel Contract</a></td>
+                                <td style="text-align: center;"><a href="{% url 'Fin_Client_delete' d.id %}" class="btn btn-danger m-1">Cancel Contract</a></td>
                                 
                             </tr>
                             {% endfor %}

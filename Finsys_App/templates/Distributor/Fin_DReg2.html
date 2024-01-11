@@ -172,7 +172,7 @@
                 
                 <!-- <input type="number" name="pincode" placeholder="Pincode"/> -->
             <input type="email" name="cemail" placeholder="Email" value="{{ddata.Email}}" readonly/>
-                <input type="number" name="phone" placeholder="Phone Number"/>
+                <input type="number" name="phone" placeholder="Phone Number" id="ph" oninput="validatePhoneNumber()"/>
                 <select name="payment_term" id="" style="
                     font-weight: 500;">
                         <option value="" >Choose Payment terms</option>
@@ -188,6 +188,16 @@
     </div>
 </div>
 <script>
+
+function validatePhoneNumber() {
+    var phoneNumberVal = $('#ph').val();
+    var regPhoneNumber = /^\d{10}$/; 
+    if (regPhoneNumber.test(phoneNumberVal)) {
+        $('#ph').css('border', '2px solid green'); 
+    } else {
+        $('#ph').css('border', '2px solid red'); 
+    }
+}
 
     //jQuery time
     var current_fs, next_fs, previous_fs; //fieldsets

@@ -292,12 +292,12 @@
         @media (max-width: 870px) {
             .container {
                 min-height: 800px;
-                height: 135vh;
+                height: 150vh;
             }
 
             .signin-signup {
                 width: 100%;
-                top: 95%;
+                top: 90%;
                 transform: translate(-50%, -100%);
                 transition: 1s 0.8s ease-in-out;
             }
@@ -391,6 +391,11 @@
                 top: 5%;
                 transform: translate(-50%, 0);
             }
+            .title{
+                font-size: 25px !important;
+                margin-top: 2px !important;
+            }
+            
         }
 
         @media (max-width: 570px) {
@@ -419,6 +424,7 @@
                 bottom: 28%;
                 left: 50%;
             }
+            
         }
 
         /* The alert message box */
@@ -508,6 +514,11 @@
                     <i class="fas fa-user"></i>
                     <input type="text" placeholder="Username" name="cusername" id="user" required/>
                 </div>
+                <div class="input-field">
+                    <i class="fa fa-codepen"></i>
+                    <input type="text" name="Company_Code" placeholder="Company Code" required/>
+                </div>
+                
                 <div class="input-field">
                     <i class="fas fa-lock"></i>
                     <input type="password" placeholder="Password" 

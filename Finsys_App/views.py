@@ -49,7 +49,15 @@ def Fin_login(request):
                         if request.session.has_key('s_id'):
                             s_id = request.session['s_id']
                             print(s_id)
-                            return redirect('Fin_DHome')
+                            
+                            current_day=date.today() 
+                            if current_day == did.End_date:
+                                print("wrong")
+                                   
+                                return redirect('Fin_Wrong')
+                            else:
+                                return redirect('Fin_DHome')
+                            
                     else:
                         return redirect('/')
                 else:
@@ -64,7 +72,16 @@ def Fin_login(request):
                         if request.session.has_key('s_id'):
                             s_id = request.session['s_id']
                             print(s_id)
-                            return redirect('Fin_Com_Home')
+                            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+                            
+
+                            current_day=date.today() 
+                            if current_day >= com.End_date:
+                                print("wrong")
+                                   
+                                return redirect('Fin_Wrong')
+                            else:
+                                return redirect('Fin_Com_Home')
                     else:
                         return redirect('/')
                 else:
@@ -78,18 +95,34 @@ def Fin_login(request):
                         if request.session.has_key('s_id'):
                             s_id = request.session['s_id']
                             print(s_id)
-                            return redirect('Fin_Com_Home')
+                            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+                            
+
+                            current_day=date.today() 
+                            if current_day >= com.company_id.End_date:
+                                print("wrong")
+                                messages.info(request, 'Your Account Temporary blocked')
+                                return redirect('Fin_StaffReg') 
+                            else:
+                                return redirect('Fin_Com_Home')
                     else:
                         return redirect('/')
                 else:
                     messages.info(request, 'Approval is Pending..')
                     return redirect('Fin_StaffReg') 
-
+        else:
+            messages.info(request, 'Invalid Username or Password. Try Again.')
+            return redirect('Fin_CompanyReg')  
+    else:  
+        return redirect('Fin_CompanyReg')   
+  
 
 def logout(request):
     request.session["uid"] = ""
     auth.logout(request)
-    return redirect('Fin_index')                      
+    return redirect('Fin_index')  
+
+                    
 
 
  
@@ -98,11 +131,19 @@ def logout(request):
 
 
 def Fin_Adminhome(request):
-    return render(request,'Admin/Fin_Adminhome.html')
+    noti = Fin_ANotification.objects.filter(status = 'New')
+    n = len(noti)
+    context = {
+        'noti':noti,
+        'n':n
+    }
+    return render(request,'Admin/Fin_Adminhome.html',context)
 
 def Fin_PaymentTerm(request):
     terms = Fin_Payment_Terms.objects.all()
-    return render(request,'Admin/Fin_Payment_Terms.html',{'terms':terms})
+    noti = Fin_ANotification.objects.filter(status = 'New')
+    n = len(noti)
+    return render(request,'Admin/Fin_Payment_Terms.html',{'terms':terms,'noti':noti,'n':n})
 
 def Fin_add_payment_terms(request):
   if request.method == 'POST':
@@ -126,16 +167,22 @@ def Fin_add_payment_terms(request):
   return redirect('Fin_PaymentTerm')
 
 def Fin_ADistributor(request):
-   return render(request,"Admin/Fin_ADistributor.html")
+    noti = Fin_ANotification.objects.filter(status = 'New')
+    n = len(noti)
+    return render(request,"Admin/Fin_ADistributor.html",{'noti':noti,'n':n})
 
 def Fin_Distributor_Request(request):
    data = Fin_Distributors_Details.objects.filter(Admin_approval_status = "NULL")
    print(data)
-   return render(request,"Admin/Fin_Distributor_Request.html",{'data':data})
+   noti = Fin_ANotification.objects.filter(status = 'New')
+   n = len(noti)
+   return render(request,"Admin/Fin_Distributor_Request.html",{'data':data,'noti':noti,'n':n})
 
 def Fin_Distributor_Req_overview(request,id):
-   data = Fin_Distributors_Details.objects.get(id=id)
-   return render(request,"Admin/Fin_Distributor_Req_overview.html",{'data':data})
+    data = Fin_Distributors_Details.objects.get(id=id)
+    noti = Fin_ANotification.objects.filter(status = 'New')
+    n = len(noti)
+    return render(request,"Admin/Fin_Distributor_Req_overview.html",{'data':data,'noti':noti,'n':n})
 
 def Fin_DReq_Accept(request,id):
    data = Fin_Distributors_Details.objects.get(id=id)
@@ -149,28 +196,44 @@ def Fin_DReq_Reject(request,id):
    data.delete()
    return redirect('Fin_Distributor_Request')
 
+def Fin_Distributor_delete(request,id):
+   data = Fin_Distributors_Details.objects.get(id=id)
+   data.Login_Id.delete()
+   data.delete()
+   return redirect('Fin_All_distributors')
+
 def Fin_All_distributors(request):
    data = Fin_Distributors_Details.objects.filter(Admin_approval_status = "Accept")
    print(data)
-   return render(request,"Admin/Fin_All_distributors.html",{'data':data})
+   noti = Fin_ANotification.objects.filter(status = 'New')
+   n = len(noti)
+   return render(request,"Admin/Fin_All_distributors.html",{'data':data,'noti':noti,'n':n})
 
 def Fin_All_Distributor_Overview(request,id):
    data = Fin_Distributors_Details.objects.get(id=id)
-   return render(request,"Admin/Fin_All_Distributor_Overview.html",{'data':data})  
+   noti = Fin_ANotification.objects.filter(status = 'New')
+   n = len(noti)
+   return render(request,"Admin/Fin_All_Distributor_Overview.html",{'data':data,'noti':noti,'n':n})  
 
 def Fin_AClients(request):
-   return render(request,"Admin/Fin_AClients.html")
+    noti = Fin_ANotification.objects.filter(status = 'New')
+    n = len(noti)
+    return render(request,"Admin/Fin_AClients.html",{'noti':noti,'n':n})
 
 
 def Fin_AClients_Request(request):
-   data = Fin_Company_Details.objects.filter(Registration_Type = "self", Admin_approval_status = "NULL")
-   print(data)
-   return render(request,"Admin/Fin_AClients_Request.html",{'data':data})
+    data = Fin_Company_Details.objects.filter(Registration_Type = "self", Admin_approval_status = "NULL")
+    print(data)
+    noti = Fin_ANotification.objects.filter(status = 'New')
+    n = len(noti)
+    return render(request,"Admin/Fin_AClients_Request.html",{'data':data,'noti':noti,'n':n})
 
 def Fin_AClients_Request_OverView(request,id):
     data = Fin_Company_Details.objects.get(id=id)
     allmodules = Fin_Modules_List.objects.get(company_id = id,status = "New")
-    return render(request,'Admin/Fin_AClients_Request_OverView.html',{'data':data,'allmodules':allmodules})
+    noti = Fin_ANotification.objects.filter(status = 'New')
+    n = len(noti)
+    return render(request,'Admin/Fin_AClients_Request_OverView.html',{'data':data,'allmodules':allmodules,'noti':noti,'n':n})
 
 def Fin_Client_Req_Accept(request,id):
    data = Fin_Company_Details.objects.get(id=id)
@@ -184,15 +247,180 @@ def Fin_Client_Req_Reject(request,id):
    data.delete()
    return redirect('Fin_AClients_Request')
 
+def Fin_Client_delete(request,id):
+   data = Fin_Company_Details.objects.get(id=id)
+   data.Login_Id.delete()
+   data.delete()
+   return redirect('Fin_Admin_clients')
+
 def Fin_Admin_clients(request):
    data = Fin_Company_Details.objects.filter(Admin_approval_status = "Accept")
    print(data)
-   return render(request,"Admin/Fin_Admin_clients.html",{'data':data})
+   noti = Fin_ANotification.objects.filter(status = 'New')
+   n = len(noti)
+   return render(request,"Admin/Fin_Admin_clients.html",{'data':data,'noti':noti,'n':n})
 
 def Fin_Admin_clients_overview(request,id):
    data = Fin_Company_Details.objects.get(id=id)
    allmodules = Fin_Modules_List.objects.get(company_id = id,status = "New")
-   return render(request,"Admin/Fin_Admin_clients_overview.html",{'data':data,'allmodules':allmodules})     
+   noti = Fin_ANotification.objects.filter(status = 'New')
+   n = len(noti)
+   return render(request,"Admin/Fin_Admin_clients_overview.html",{'data':data,'allmodules':allmodules,'noti':noti,'n':n})   
+
+def Fin_Anotification(request):
+    noti = Fin_ANotification.objects.filter(status = 'New')
+    n = len(noti)
+    context = {
+        'noti':noti,
+        'n':n
+    }
+    return render(request,'Admin/Fin_Anotification.html',context) 
+
+def  Fin_Anoti_Overview(request,id):
+    noti = Fin_ANotification.objects.filter(status = 'New')
+    n = len(noti)
+
+    
+
+    data = Fin_ANotification.objects.get(id=id)
+
+    if data.Login_Id.User_Type == "Company":
+
+        if data.Modules_List :
+            allmodules = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "New")
+            allmodules1 = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "pending")
+
+        
+            context = {
+                'noti':noti,
+                'n':n,
+                'data':data,
+                'allmodules':allmodules,
+                'allmodules1':allmodules1,
+            }
+            return render(request,'Admin/Fin_Anoti_Overview.html',context)
+        else:
+            data1 = Fin_Company_Details.objects.get(Login_Id = data.Login_Id)
+            context = {
+                'noti':noti,
+                'n':n,
+                'data1':data1,
+                'data':data,
+                
+            }
+            return render(request,'Admin/Fin_Anoti_Overview.html',context)
+    else:
+        data1 = Fin_Distributors_Details.objects.get(Login_Id = data.Login_Id)
+        context = {
+                'noti':noti,
+                'n':n,
+                'data1':data1,
+                'data':data,
+                
+            }
+
+        return render(request,'Admin/Fin_Anoti_Overview.html',context)
+
+
+def  Fin_Module_Updation_Accept(request,id):
+    data = Fin_ANotification.objects.get(id=id)
+    allmodules = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "New")
+    allmodules.delete()
+
+    allmodules1 = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "pending")
+    allmodules1.status = "New"
+    allmodules1.save()
+
+    data.status = 'old'
+    data.save()
+
+    return redirect('Fin_Anotification')
+
+def  Fin_Module_Updation_Reject(request,id):
+    data = Fin_ANotification.objects.get(id=id)
+    allmodules = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "pending")
+    allmodules.delete()
+
+    data.delete()
+
+    return redirect('Fin_Anotification')
+
+def  Fin_payment_terms_Updation_Accept(request,id):
+    data = Fin_ANotification.objects.get(id=id)
+    com = Fin_Company_Details.objects.get(Login_Id = data.Login_Id)
+    terms=Fin_Payment_Terms.objects.get(id=data.PaymentTerms_updation.Payment_Term.id)
+    
+    
+    com.Start_Date =date.today()
+    days=int(terms.days)
+
+    end= date.today() + timedelta(days=days)
+    com.End_date = end
+    com.Payment_Term = terms
+    com.save()
+
+    data.status = 'old'
+    data.save()
+
+    upt = Fin_Payment_Terms_updation.objects.get(id = data.PaymentTerms_updation.id)
+    upt.status = 'old'
+    upt.save()
+
+    cnoti = Fin_CNotification.objects.filter(Company_id = com)
+    for c in cnoti:
+        c.status = 'old'
+        c.save()    
+
+    return redirect('Fin_Anotification')
+
+def  Fin_payment_terms_Updation_Reject(request,id):
+    data = Fin_ANotification.objects.get(id=id)
+
+    upt = Fin_Payment_Terms_updation.objects.get(id = data.PaymentTerms_updation.id)
+
+    upt.delete()
+    data.delete()
+
+    return redirect('Fin_Anotification')
+
+
+def  Fin_ADpayment_terms_Updation_Accept(request,id):
+    data = Fin_ANotification.objects.get(id=id)
+    com = Fin_Distributors_Details.objects.get(Login_Id = data.Login_Id)
+    terms=Fin_Payment_Terms.objects.get(id=data.PaymentTerms_updation.Payment_Term.id)
+    
+    
+    com.Start_Date =date.today()
+    days=int(terms.days)
+
+    end= date.today() + timedelta(days=days)
+    com.End_date = end
+    com.Payment_Term = terms
+    com.save()
+
+    data.status = 'old'
+    data.save()
+
+    upt = Fin_Payment_Terms_updation.objects.get(id = data.PaymentTerms_updation.id)
+    upt.status = 'old'
+    upt.save()
+
+    cnoti = Fin_DNotification.objects.filter(Distributor_id = com)
+    for c in cnoti:
+        c.status = 'old'
+        c.save()    
+
+    return redirect('Fin_Anotification')
+
+def  Fin_ADpayment_terms_Updation_Reject(request,id):
+    data = Fin_ANotification.objects.get(id=id)
+
+    upt = Fin_Payment_Terms_updation.objects.get(id = data.PaymentTerms_updation.id)
+
+    upt.delete()
+    data.delete()
+
+    return redirect('Fin_Anotification')
 
  
 # ---------------------------end admin ------------------------------------ 
@@ -209,7 +437,22 @@ def Fin_DHome(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Distributors_Details.objects.get(Login_Id = s_id)
-        return render(request,'Distributor/Fin_DHome.html',{'data':data})
+        current_day=date.today() 
+        diff = (data.End_date - current_day).days
+        num = 20
+        print(diff)
+        if diff <= 20:
+            n=Fin_DNotification(Login_Id = data.Login_Id,Distributor_id = data,Title = "Payment Terms Alert",Discription = "Your Payment Terms End Soon")
+            n.save() 
+
+        noti = Fin_DNotification.objects.filter(status = 'New',Distributor_id = data.id)
+        n = len(noti)
+        context = {
+            'noti':noti,
+            'n':n,
+            'data':data
+        }
+        return render(request,'Distributor/Fin_DHome.html',context)
     else:
        return redirect('/')   
 
@@ -309,9 +552,18 @@ def Fin_DClient_req(request):
         s_id = request.session['s_id']
         data = Fin_Distributors_Details.objects.get(Login_Id = s_id)
         data1 = Fin_Company_Details.objects.filter(Registration_Type = "distributor",Distributor_approval_status = "NULL",Distributor_id = data.id)
-        return render(request,'Distributor/Fin_DClient_req.html',{'data':data,'data1':data1})
+        noti = Fin_DNotification.objects.filter(status = 'New',Distributor_id = data.id)
+        n = len(noti)
+        return render(request,'Distributor/Fin_DClient_req.html',{'data':data,'data1':data1,'noti':noti,'n':n})
     else:
        return redirect('/') 
+    
+def Fin_DClient_req_overview(request,id):
+    data = Fin_Company_Details.objects.get(id=id)
+    allmodules = Fin_Modules_List.objects.get(company_id = id,status = "New")
+    noti = Fin_DNotification.objects.filter(status = 'New',Distributor_id = data.id)
+    n = len(noti)
+    return render(request,'Distributor/Fin_DClient_req_overview.html',{'data':data,'allmodules':allmodules,'noti':noti,'n':n})    
     
 def Fin_DClient_Req_Accept(request,id):
    data = Fin_Company_Details.objects.get(id=id)
@@ -330,18 +582,212 @@ def Fin_DClients(request):
         s_id = request.session['s_id']
         data = Fin_Distributors_Details.objects.get(Login_Id = s_id)
         data1 = Fin_Company_Details.objects.filter(Registration_Type = "distributor",Distributor_approval_status = "Accept",Distributor_id = data.id)
-        return render(request,'Distributor/Fin_DClients.html',{'data':data,'data1':data1})
+        noti = Fin_DNotification.objects.filter(status = 'New',Distributor_id = data.id)
+        n = len(noti)
+        return render(request,'Distributor/Fin_DClients.html',{'data':data,'data1':data1,'noti':noti,'n':n})
     else:
        return redirect('/')  
+   
+def Fin_DClients_overview(request,id):
+    data = Fin_Company_Details.objects.get(id=id)
+    allmodules = Fin_Modules_List.objects.get(company_id = id,status = "New")
+    noti = Fin_DNotification.objects.filter(status = 'New',Distributor_id = data.id)
+    n = len(noti)
+    return render(request,'Distributor/Fin_DClients_overview.html',{'data':data,'allmodules':allmodules,'noti':noti,'n':n})
+
+def Fin_DClient_remove(request,id):
+   data = Fin_Company_Details.objects.get(id=id)
+   data.Login_Id.delete()
+   data.delete()
+   return redirect('Fin_DClients') 
     
 def Fin_DProfile(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Distributors_Details.objects.get(Login_Id = s_id)
         data1 = Fin_Company_Details.objects.filter(Registration_Type = "distributor",Distributor_approval_status = "Accept",Distributor_id = data.id)
-        return render(request,'Distributor/Fin_DProfile.html',{'data':data,'data1':data1})
+        terms = Fin_Payment_Terms.objects.all()
+        noti = Fin_DNotification.objects.filter(status = 'New',Distributor_id = data.id)
+        n = len(noti)
+        return render(request,'Distributor/Fin_DProfile.html',{'data':data,'data1':data1,'terms':terms,'noti':noti,'n':n})
     else:
        return redirect('/')  
+    
+def Fin_Dnotification(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Distributors_Details.objects.get(Login_Id = s_id)
+
+        noti = Fin_DNotification.objects.filter(status = 'New',Distributor_id = data.id)
+        n = len(noti)
+        context = {
+            'noti':noti,
+            'n':n,
+            'data':data
+        }
+        return render(request,'Distributor/Fin_Dnotification.html',context)  
+    else:
+       return redirect('/') 
+    
+def  Fin_Dnoti_Overview(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        d = Fin_Distributors_Details.objects.get(Login_Id = s_id)
+        noti = Fin_DNotification.objects.filter(status = 'New',Distributor_id = d.id)
+        n = len(noti)
+
+        
+
+        data = Fin_DNotification.objects.get(id=id)
+
+        if data.Modules_List :
+            allmodules = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "New")
+            allmodules1 = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "pending")
+
+        
+            context = {
+                'noti':noti,
+                'n':n,
+                'data':data,
+                'allmodules':allmodules,
+                'allmodules1':allmodules1,
+            }
+            return render(request,'Distributor/Fin_Dnoti_Overview.html',context)
+        else:
+            data1 = Fin_Company_Details.objects.get(Login_Id = data.Login_Id)
+            context = {
+                'noti':noti,
+                'n':n,
+                'data1':data1,
+                'data':data,
+                
+            }
+            return render(request,'Distributor/Fin_Dnoti_Overview.html',context)    
+    else:
+       return redirect('/') 
+    
+def  Fin_DModule_Updation_Accept(request,id):
+    data = Fin_DNotification.objects.get(id=id)
+    allmodules = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "New")
+    allmodules.delete()
+
+    allmodules1 = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "pending")
+    allmodules1.status = "New"
+    allmodules1.save()
+
+    data.status = 'old'
+    data.save()
+
+    return redirect('Fin_Dnotification')
+
+def  Fin_DModule_Updation_Reject(request,id):
+    data = Fin_DNotification.objects.get(id=id)
+    allmodules = Fin_Modules_List.objects.get(Login_Id = data.Login_Id,status = "pending")
+    allmodules.delete()
+
+    data.delete()
+
+    return redirect('Fin_Dnotification')
+
+def  Fin_Dpayment_terms_Updation_Accept(request,id):
+    data = Fin_DNotification.objects.get(id=id)
+    com = Fin_Company_Details.objects.get(Login_Id = data.Login_Id)
+    terms=Fin_Payment_Terms.objects.get(id=data.PaymentTerms_updation.Payment_Term.id)
+    
+    
+    com.Start_Date =date.today()
+    days=int(terms.days)
+
+    end= date.today() + timedelta(days=days)
+    com.End_date = end
+    com.Payment_Term = terms
+    com.save()
+
+    data.status = 'old'
+    data.save()
+
+    upt = Fin_Payment_Terms_updation.objects.get(id = data.PaymentTerms_updation.id)
+    upt.status = 'old'
+    upt.save()
+
+    return redirect('Fin_Dnotification')
+
+def  Fin_Dpayment_terms_Updation_Reject(request,id):
+    data = Fin_DNotification.objects.get(id=id)
+
+    upt = Fin_Payment_Terms_updation.objects.get(id = data.PaymentTerms_updation.id)
+
+    upt.delete()
+    data.delete()
+
+    return redirect('Fin_Dnotification')    
+
+def Fin_DChange_payment_terms(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        
+        if request.method == 'POST':
+            data = Fin_Login_Details.objects.get(id = s_id)
+            com = Fin_Distributors_Details.objects.get(Login_Id = s_id)
+            pt = request.POST['payment_term']
+
+            pay = Fin_Payment_Terms.objects.get(id=pt)
+
+            data1 = Fin_Payment_Terms_updation(Login_Id = data,Payment_Term = pay)
+            data1.save()
+
+            
+            noti = Fin_ANotification(Login_Id = data,PaymentTerms_updation = data1,Title = "Change Payment Terms",Discription = com.Login_Id.First_name + " is change Payment Terms")
+            noti.save()
+              
+
+
+        
+            return redirect('Fin_DProfile')
+    else:
+       return redirect('/') 
+    
+
+def Fin_Edit_Dprofile(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        com = Fin_Distributors_Details.objects.get(Login_Id = s_id)
+        data = Fin_Distributors_Details.objects.get(Login_Id = s_id)
+
+        noti = Fin_DNotification.objects.filter(status = 'New',Distributor_id = data.id)
+        n = len(noti)
+
+        context ={
+            'com':com,
+            'data':data,
+            'n':n,
+            'noti':noti
+        }
+
+        return render(request,"Distributor/Fin_Edit_Dprofile.html",context)    
+    else:
+       return redirect('/')    
+    
+def Fin_Edit_Dprofile_Action(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        com = Fin_Distributors_Details.objects.get(Login_Id = s_id)
+        if request.method == 'POST':
+            com.Login_Id.First_name = request.POST['first_name']
+            com.Login_Id.Last_name = request.POST['last_name']
+            com.Email = request.POST['email']
+            com.Contact = request.POST['contact']
+            
+            com.Image  = request.FILES.get('img')
+            
+
+            com.Login_Id.save()
+            com.save()
+
+            return redirect('Fin_DProfile')
+        return redirect('Fin_Edit_Dprofile')     
+    else:
+       return redirect('/')     
 
       
 # ---------------------------end distributor------------------------------------  
@@ -361,22 +807,33 @@ def Fin_staffReg_action(request):
         email = request.POST['email']
         user_name = request.POST['cusername']
         password = request.POST['cpassword'] 
-        if Fin_Login_Details.objects.filter(User_name=user_name).exists():
-            messages.info(request, 'This username already exists. Sign up again')
-            return redirect('Fin_StaffReg')
-      
-        elif Fin_Staff_Details.objects.filter(Email=email).exists():
-            messages.info(request, 'This email already exists. Sign up again')
-            return redirect('Fin_StaffReg')
-        else:
-            dlog = Fin_Login_Details(First_name = first_name,Last_name = last_name,
-                                User_name = user_name,password = password,
-                                User_Type = 'Staff')
-            dlog.save()
+        cid = request.POST['Company_Code']
+        if Fin_Company_Details.objects.filter(Company_Code = cid ).exists():
+            com =Fin_Company_Details.objects.get(Company_Code = cid )
 
-            ddata = Fin_Staff_Details(Email = email,Login_Id = dlog,Company_approval_status = "NULL")
-            ddata.save()
-            return redirect('Fin_StaffReg2',dlog.id)
+            if Fin_Staff_Details.objects.filter(company_id=com,Login_Id__User_name=user_name).exists():
+                messages.info(request, 'This username already exists. Sign up again')
+                return redirect('Fin_StaffReg')
+
+            if Fin_Login_Details.objects.filter(User_name=user_name,password = password).exists():
+                messages.info(request, 'This username and password already exists. Sign up again')
+                return redirect('Fin_StaffReg')
+        
+            elif Fin_Staff_Details.objects.filter(Email=email).exists():
+                messages.info(request, 'This email already exists. Sign up again')
+                return redirect('Fin_StaffReg')
+            else:
+                dlog = Fin_Login_Details(First_name = first_name,Last_name = last_name,
+                                    User_name = user_name,password = password,
+                                    User_Type = 'Staff')
+                dlog.save()
+
+                ddata = Fin_Staff_Details(Email = email,Login_Id = dlog,Company_approval_status = "NULL",company_id = com)
+                ddata.save()
+                return redirect('Fin_StaffReg2',dlog.id)
+        else:
+            messages.info(request, 'This company code  not exists. Sign up again')  
+            return redirect('Fin_StaffReg')    
         
 def Fin_StaffReg2(request,id):
     dlog = Fin_Login_Details.objects.get(id = id)
@@ -389,24 +846,20 @@ def Fin_StaffReg2(request,id):
 
 def Fin_StaffReg2_Action(request,id):
     if request.method == 'POST':
-        cid = request.POST['Company_Code']
-        if Fin_Company_Details.objects.filter(Company_Code = cid ).exists():
-            com = Fin_Company_Details.objects.get(Company_Code = cid )
-            staff = Fin_Staff_Details.objects.get(Login_Id = id)
-            log = Fin_Login_Details.objects.get(id = id)
+        
+        staff = Fin_Staff_Details.objects.get(Login_Id = id)
+        log = Fin_Login_Details.objects.get(id = id)
 
-            staff.Login_Id = log
-            staff.company_id = com
-            staff.contact = request.POST['phone']
-            staff.img=request.FILES.get('img')
-            staff.Company_approval_status = "Null"
-            staff.save()
-            print("Staff Registration Complete")
+        staff.Login_Id = log
+           
+        staff.contact = request.POST['phone']
+        staff.img=request.FILES.get('img')
+        staff.Company_approval_status = "Null"
+        staff.save()
+        print("Staff Registration Complete")
     
-            return redirect('Fin_StaffReg')
-        else:
-            messages.info(request, 'This company code  not exists. Sign up again')  
-            return redirect('Fin_StaffReg2',id)
+        return redirect('Fin_StaffReg')
+        
     else:
         return redirect('Fin_StaffReg2',id)
 # ---------------------------end staff------------------------------------ 
@@ -422,13 +875,64 @@ def Fin_Com_Home(request):
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            return render(request,'company/Fin_Com_Home.html',{'allmodules':allmodules,'com':com,'data':data})
+
+            current_day=date.today() 
+            diff = (com.End_date - current_day).days
+            num = 20
+            print(diff)
+            if diff <= 20:
+                n=Fin_CNotification(Login_Id = data,Company_id = com,Title = "Payment Terms Alert",Discription = "Your Payment Terms End Soon")
+                n.save()    
+
+            noti = Fin_CNotification.objects.filter(status = 'New',Company_id = com)
+            n = len(noti)
+
+            context = {
+                'allmodules':allmodules,
+                'com':com,
+                'data':data,
+                'noti':noti,
+                'n':n
+                }
+
+            return render(request,'company/Fin_Com_Home.html',context)
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             return render(request,'company/Fin_Com_Home.html',{'allmodules':allmodules,'com':com,'data':data})
     else:
        return redirect('/') 
+    
+def Fin_Cnotification(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+
+            noti = Fin_CNotification.objects.filter(status = 'New',Company_id = com)
+            n = len(noti)
+            context = {
+                'allmodules':allmodules,
+                'com':com,
+                'data':data,
+                'noti':noti,
+                'n':n
+            }
+            return render(request,'company/Fin_Cnotification.html',context)  
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            context = {
+                'allmodules':allmodules,
+                'com':com,
+                'data':data,
+                
+            }
+            return render(request,'company/Fin_Cnotification.html',context)
+    else:
+       return redirect('/')     
      
 
 def Fin_CompanyReg(request):
@@ -549,7 +1053,7 @@ def Fin_Add_Modules(request,id):
         # --------- CASH & BANK-----
         Cash_in_hand = request.POST.get('c4')
         Offline_Banking = request.POST.get('c5')
-        Bank_Reconciliation = request.POST.get('c6')
+        # Bank_Reconciliation = request.POST.get('c6')
         UPI = request.POST.get('c7')
         Bank_Holders = request.POST.get('c8')
         Cheque = request.POST.get('c9')
@@ -573,14 +1077,15 @@ def Fin_Add_Modules(request,id):
         Debit_Note = request.POST.get('c23')
         Purchase_Order = request.POST.get('c24')
         Expenses = request.POST.get('c25')
-        Recurring_Expenses = request.POST.get('c26')
         Payment_Made = request.POST.get('c27')
+
+        #  ---------EWay_Bill---------
         EWay_Bill = request.POST.get('c28')
 
         #  -------ACCOUNTS--------- 
         Chart_of_Accounts = request.POST.get('c29') 
         Manual_Journal = request.POST.get('c30')
-        Reconcile  = request.POST.get('c36')
+        # Reconcile  = request.POST.get('c36')
 
 
         # -------PAYROLL------- 
@@ -591,15 +1096,15 @@ def Fin_Add_Modules(request,id):
         Salary_Details = request.POST.get('c35')
 
         modules = Fin_Modules_List(Items = Items,Price_List = Price_List,Stock_Adjustment = Stock_Adjustment,
-            Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,Bank_Reconciliation = Bank_Reconciliation ,
+            Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,
             UPI = UPI,Bank_Holders = Bank_Holders,Cheque = Cheque,Loan_Account = Loan_Account,
             Customers = Customers,Invoice = Invoice,Estimate = Estimate,Sales_Order = Sales_Order,
             Recurring_Invoice = Recurring_Invoice,Retainer_Invoice = Retainer_Invoice,Credit_Note = Credit_Note,
             Payment_Received = Payment_Received,Delivery_Challan = Delivery_Challan,
             Vendors = Vendors,Bills = Bills,Recurring_Bills = Recurring_Bills,Debit_Note = Debit_Note,
-            Purchase_Order = Purchase_Order,Expenses = Expenses,Recurring_Expenses = Recurring_Expenses,
+            Purchase_Order = Purchase_Order,Expenses = Expenses,
             Payment_Made = Payment_Made,EWay_Bill = EWay_Bill,
-            Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,Reconcile = Reconcile ,
+            Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,
             Employees = Employees,Employees_Loan = Employees_Loan,Holiday = Holiday,
             Attendance = Attendance,Salary_Details = Salary_Details,
             Login_Id = data,company_id = com)
@@ -607,9 +1112,9 @@ def Fin_Add_Modules(request,id):
         modules.save()
 
         #Adding Default Units under company
-        Fin_Units.objects.create(company_id=com, name='BOX')
-        Fin_Units.objects.create(company_id=com, name='NUMBER')
-        Fin_Units.objects.create(company_id=com, name='PACK')
+        Fin_Units.objects.create(Company=com, name='BOX')
+        Fin_Units.objects.create(Company=com, name='NUMBER')
+        Fin_Units.objects.create(Company=com, name='PACK')
 
         # Adding default accounts for companies
 
@@ -716,8 +1221,8 @@ def Fin_Add_Modules(request,id):
         ]
 
         for account in account_info:
-            if not Fin_Chart_Of_Account.objects.filter(company_id = com,account_name=account['account_name']).exists():
-                new_account = Fin_Chart_Of_Account(company_id=account['company_id'],Login_Id=account['Login_Id'],account_name=account['account_name'],account_type=account['account_type'],credit_card_no=account['credit_card_no'],sub_account=account['sub_account'],parent_account=account['parent_account'],bank_account_no=account['bank_account_no'],account_code=account['account_code'],description=account['description'],balance=account['balance'],balance_type=account['balance_type'],create_status=account['create_status'],status=account['status'],date=account['date'])
+            if not Fin_Chart_Of_Account.objects.filter(Company = com,account_name=account['account_name']).exists():
+                new_account = Fin_Chart_Of_Account(Company=account['company_id'],LoginDetails=account['Login_Id'],account_name=account['account_name'],account_type=account['account_type'],credit_card_no=account['credit_card_no'],sub_account=account['sub_account'],parent_account=account['parent_account'],bank_account_no=account['bank_account_no'],account_code=account['account_code'],description=account['description'],balance=account['balance'],balance_type=account['balance_type'],create_status=account['create_status'],status=account['status'],date=account['date'])
                 new_account.save()
 
         print("add modules")
@@ -754,7 +1259,7 @@ def Fin_Edit_Modules_Action(request):
             # --------- CASH & BANK-----
             Cash_in_hand = request.POST.get('c4')
             Offline_Banking = request.POST.get('c5')
-            Bank_Reconciliation = request.POST.get('c6')
+            # Bank_Reconciliation = request.POST.get('c6')
             UPI = request.POST.get('c7')
             Bank_Holders = request.POST.get('c8')
             Cheque = request.POST.get('c9')
@@ -778,14 +1283,16 @@ def Fin_Edit_Modules_Action(request):
             Debit_Note = request.POST.get('c23')
             Purchase_Order = request.POST.get('c24')
             Expenses = request.POST.get('c25')
-            Recurring_Expenses = request.POST.get('c26')
+            
             Payment_Made = request.POST.get('c27')
+
+            # ----------EWay_Bill-----
             EWay_Bill = request.POST.get('c28')
 
             #  -------ACCOUNTS--------- 
             Chart_of_Accounts = request.POST.get('c29') 
             Manual_Journal = request.POST.get('c30')
-            Reconcile  = request.POST.get('c36')
+            # Reconcile  = request.POST.get('c36')
 
 
             # -------PAYROLL------- 
@@ -796,21 +1303,28 @@ def Fin_Edit_Modules_Action(request):
             Salary_Details = request.POST.get('c35')
 
             modules = Fin_Modules_List(Items = Items,Price_List = Price_List,Stock_Adjustment = Stock_Adjustment,
-                Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,Bank_Reconciliation = Bank_Reconciliation ,
+                Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,
                 UPI = UPI,Bank_Holders = Bank_Holders,Cheque = Cheque,Loan_Account = Loan_Account,
                 Customers = Customers,Invoice = Invoice,Estimate = Estimate,Sales_Order = Sales_Order,
                 Recurring_Invoice = Recurring_Invoice,Retainer_Invoice = Retainer_Invoice,Credit_Note = Credit_Note,
                 Payment_Received = Payment_Received,Delivery_Challan = Delivery_Challan,
                 Vendors = Vendors,Bills = Bills,Recurring_Bills = Recurring_Bills,Debit_Note = Debit_Note,
-                Purchase_Order = Purchase_Order,Expenses = Expenses,Recurring_Expenses = Recurring_Expenses,
+                Purchase_Order = Purchase_Order,Expenses = Expenses,
                 Payment_Made = Payment_Made,EWay_Bill = EWay_Bill,
-                Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,Reconcile = Reconcile ,
+                Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,
                 Employees = Employees,Employees_Loan = Employees_Loan,Holiday = Holiday,
                 Attendance = Attendance,Salary_Details = Salary_Details,
                 Login_Id = data,company_id = com,status = 'pending')
             
             modules.save()
             data1=Fin_Modules_List.objects.filter(company_id = com).update(update_action=1)
+
+            if com.Registration_Type == 'self':
+                noti = Fin_ANotification(Login_Id = data,Modules_List = modules,Title = "Module Updation",Discription = com.Company_name + " is change Modules")
+                noti.save()
+            else:
+                noti = Fin_DNotification(Distributor_id = com.Distributor_id,Login_Id = data,Modules_List = modules,Title = "Module Updation",Discription = com.Company_name + " is change Modules")
+                noti.save()   
 
             print("edit modules")
             return redirect('Fin_Company_Profile')
@@ -828,10 +1342,13 @@ def Fin_Company_Profile(request):
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            return render(request,'company/Fin_Company_Profile.html',{'allmodules':allmodules,'com':com,'data':data})
+            terms = Fin_Payment_Terms.objects.all()
+            noti = Fin_CNotification.objects.filter(status = 'New',Company_id = com)
+            n = len(noti)
+            return render(request,'company/Fin_Company_Profile.html',{'allmodules':allmodules,'com':com,'data':data,'terms':terms,'noti':noti,'n':n})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             return render(request,'company/Fin_Company_Profile.html',{'allmodules':allmodules,'com':com,'data':data})
         
     else:
@@ -844,7 +1361,9 @@ def Fin_Staff_Req(request):
         com = Fin_Company_Details.objects.get(Login_Id = s_id)
         data1 = Fin_Staff_Details.objects.filter(company_id = com.id,Company_approval_status = "NULL")
         allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-        return render(request,'company/Fin_Staff_Req.html',{'com':com,'data':data,'allmodules':allmodules,'data1':data1})
+        noti = Fin_CNotification.objects.filter(status = 'New',Company_id = com)
+        n = len(noti)
+        return render(request,'company/Fin_Staff_Req.html',{'com':com,'data':data,'allmodules':allmodules,'data1':data1,'noti':noti,'n':n})
     else:
        return redirect('/') 
 
@@ -860,6 +1379,12 @@ def Fin_Staff_Req_Reject(request,id):
    data.delete()
    return redirect('Fin_Staff_Req')  
 
+def Fin_Staff_delete(request,id):
+   data = Fin_Staff_Details.objects.get(id=id)
+   data.Login_Id.delete()
+   data.delete()
+   return redirect('Fin_All_Staff')  
+
 def Fin_All_Staff(request): 
     if 's_id' in request.session:
         s_id = request.session['s_id']
@@ -867,10 +1392,189 @@ def Fin_All_Staff(request):
         com = Fin_Company_Details.objects.get(Login_Id = s_id)
         data1 = Fin_Staff_Details.objects.filter(company_id = com.id,Company_approval_status = "Accept")
         allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-        return render(request,'company/Fin_All_Staff.html',{'com':com,'data':data,'allmodules':allmodules,'data1':data1})
+        noti = Fin_CNotification.objects.filter(status = 'New',Company_id = com)
+        n = len(noti)
+        return render(request,'company/Fin_All_Staff.html',{'com':com,'data':data,'allmodules':allmodules,'data1':data1,'noti':noti,'n':n})
     else:
-       return redirect('/')      
+       return redirect('/') 
+
+
+def Fin_Change_payment_terms(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        
+        if request.method == 'POST':
+            data = Fin_Login_Details.objects.get(id = s_id)
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            pt = request.POST['payment_term']
+
+            pay = Fin_Payment_Terms.objects.get(id=pt)
+
+            data1 = Fin_Payment_Terms_updation(Login_Id = data,Payment_Term = pay)
+            data1.save()
+
+            if com.Registration_Type == 'self':
+                noti = Fin_ANotification(Login_Id = data,PaymentTerms_updation = data1,Title = "Change Payment Terms",Discription = com.Company_name + " is change Payment Terms")
+                noti.save()
+            else:
+                noti = Fin_DNotification(Distributor_id = com.Distributor_id,Login_Id = data,PaymentTerms_updation = data1,Title = "Change Payment Terms",Discription = com.Company_name + " is change Payment Terms")
+                noti.save()    
+
+
+        
+            return redirect('Fin_Company_Profile')
+    else:
+       return redirect('/') 
     
+def Fin_Wrong(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+           com = Fin_Distributors_Details.objects.get(Login_Id = s_id)     
+        terms = Fin_Payment_Terms.objects.all()
+        context= {
+            'com':com,
+            'terms':terms
+        }
+        return render(request,"company/Fin_Wrong.html",context)    
+    else:
+       return redirect('/') 
+    
+def Fin_Wrong_Action(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        
+        if request.method == 'POST':
+            data = Fin_Login_Details.objects.get(id = s_id)
+
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id = s_id)
+                pt = request.POST['payment_term']
+
+                pay = Fin_Payment_Terms.objects.get(id=pt)
+
+                data1 = Fin_Payment_Terms_updation(Login_Id = data,Payment_Term = pay)
+                data1.save()
+
+                if com.Registration_Type == 'self':
+                    noti = Fin_ANotification(Login_Id = data,PaymentTerms_updation = data1,Title = "Change Payment Terms",Discription = com.Company_name + " is change Payment Terms")
+                    noti.save()
+                else:
+                    noti = Fin_DNotification(Distributor_id = com.Distributor_id,Login_Id = data,PaymentTerms_updation = data1,Title = "Change Payment Terms",Discription = com.Company_name + " is change Payment Terms")
+                    noti.save()    
+
+
+            
+                return redirect('Fin_CompanyReg')
+            else:
+                com = Fin_Distributors_Details.objects.get(Login_Id = s_id)
+                pt = request.POST['payment_term']
+
+                pay = Fin_Payment_Terms.objects.get(id=pt)
+
+                data1 = Fin_Payment_Terms_updation(Login_Id = data,Payment_Term = pay)
+                data1.save()
+
+                noti = Fin_ANotification(Login_Id = data,PaymentTerms_updation = data1,Title = "Change Payment Terms",Discription = com.Login_Id.First_name + com.Login_Id.Last_name + " is change Payment Terms")
+                noti.save()
+
+                return redirect('Fin_DistributorReg')
+
+
+
+    else:
+       return redirect('/')  
+
+def Fin_Edit_Company_profile(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        noti = Fin_CNotification.objects.filter(status = 'New',Company_id = com)
+        n = len(noti)
+
+        context ={
+            'com':com,
+            'data':data,
+            'n':n,
+            'noti':noti
+
+
+        }
+
+        return render(request,"company/Fin_Edit_Company_profile.html",context)    
+    else:
+       return redirect('/') 
+    
+
+def Fin_Edit_Company_profile_Action(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        if request.method == 'POST':
+            com.Login_Id.First_name = request.POST['first_name']
+            com.Login_Id.Last_name = request.POST['last_name']
+            com.Email = request.POST['email']
+            com.Contact = request.POST['contact']
+            com.Company_name = request.POST['cname']
+            com.Address = request.POST['caddress']
+            com.City = request.POST['city']
+            com.State = request.POST['state']
+            com.Pincode = request.POST['pincode']
+            com.Business_name = request.POST['bname']
+            com.Pan_NO = request.POST['pannum']
+            com.GST_Type = request.POST.get('gsttype')
+            com.GST_NO = request.POST['gstnum']
+            com.Industry = request.POST['industry']
+            com.Company_Type = request.POST['ctype']
+            com.Image = request.FILES.get('img')
+            
+
+            com.Login_Id.save()
+            com.save()
+
+            return redirect('Fin_Company_Profile')
+        return redirect('Fin_Edit_Company_profile')     
+    else:
+       return redirect('/') 
+    
+def Fin_Edit_Staff_profile(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+
+        context ={
+            'com':com
+        }
+
+        return render(request,"company/Fin_Edit_Staff_profile.html",context)    
+    else:
+       return redirect('/')    
+    
+def Fin_Edit_Staff_profile_Action(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+        if request.method == 'POST':
+            com.Login_Id.First_name = request.POST['first_name']
+            com.Login_Id.Last_name = request.POST['last_name']
+            com.Email = request.POST['email']
+            com.contact = request.POST['contact']
+            
+            com.img = request.FILES.get('img')
+            
+
+            com.Login_Id.save()
+            com.save()
+
+            return redirect('Fin_Company_Profile')
+        return redirect('Fin_Edit_Staff_profile')     
+    else:
+       return redirect('/')     
+      
     
 # ---------------------------end company------------------------------------     
 
@@ -1675,3 +2379,5 @@ def Fin_accountHistory(request,id):
             return render(request,'company/Fin_Account_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'account':acc})
     else:
        return redirect('/')
+       
+#End
