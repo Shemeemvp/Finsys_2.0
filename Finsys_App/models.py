@@ -152,15 +152,15 @@ class Fin_DNotification(models.Model):
     Noti_date = models.DateTimeField(auto_now_add=True,null=True)
     status = models.CharField(max_length=100,null=True,default='New')     
 
-class Fin_CNotification(models.Model): 
-    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
-    Company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
-  
+# class Fin_CNotification(models.Model): 
+#     Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+#     Company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+#     Item = models.ForeignKey(Fin_Items, on_delete = models.CASCADE, null=True, blank=True)
     
-    Title = models.CharField(max_length=255,null=True,blank=True)
-    Discription = models.CharField(max_length=255,null=True,blank=True) 
-    Noti_date = models.DateTimeField(auto_now_add=True,null=True)
-    status = models.CharField(max_length=100,null=True,default='New')      
+#     Title = models.CharField(max_length=255,null=True,blank=True)
+#     Discription = models.CharField(max_length=255,null=True,blank=True) 
+#     Noti_date = models.DateTimeField(auto_now_add=True,null=True)
+#     status = models.CharField(max_length=100,null=True,default='New')
        
 #----------------Shemeem --------------Items&ChartOfAccounts----------------
     
@@ -243,3 +243,13 @@ class Fin_ChartOfAccount_History(models.Model):
     action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
 
 #End
+    
+class Fin_CNotification(models.Model): 
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Item = models.ForeignKey(Fin_Items, on_delete = models.CASCADE, null=True, blank=True)
+    
+    Title = models.CharField(max_length=255,null=True,blank=True)
+    Discription = models.CharField(max_length=255,null=True,blank=True) 
+    Noti_date = models.DateTimeField(auto_now_add=True,null=True)
+    status = models.CharField(max_length=100,null=True,default='New')

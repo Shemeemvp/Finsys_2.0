@@ -223,34 +223,55 @@
                         </div>
                       </div>
                     </a>
-                    {% endfor %}
-                    
-                    
+                    {% endfor %}                    
                     
                   </div>
                   <a href="{% url 'Fin_Cnotification' %}">
                     <div class="text-center msg-footer">View All Notifications</div>
                   </a>
-                  {% else %}
-                
-                  <p class="msg-info text-center mt-5">Notifications is not found</p>
                   {% endif %}
+                  {% if stockAlert %}
+                    {% for data in stockLow %}
+                    <a class="dropdown-item" href="javascript:;">
+                      <div class="media align-items-center">
+                        <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i></div>
+                        <div class="media-body">
+                          <h6 class="msg-name">{{data.Title}}<span class="msg-time float-right">{{data.Noti_date|date:'Y-m-d'}}</span></h6>
+                          <p class="msg-info">'{{data.Discription}}'</p>
+                        </div>
+                      </div>
+                    </a>
+                    {% endfor %}
+                    {% endif %}
                 </div>
               </li>
               {% else %}
               <li class="nav-item dropdown dropdown-lg">
                 <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="javascript:;"
                   data-toggle="dropdown"> <i class="bx bx-bell vertical-align-middle"></i>
-                  <span class="msg-count">5</span>
+                  <span class="msg-count">{{n}}</span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right">
                   <a href="javascript:;">
                     <div class="msg-header">
-                      <h6 class="msg-header-title">5 New</h6>
+                      <h6 class="msg-header-title">{{n}} New</h6>
                       <p class="msg-header-subtitle">Application Notifications</p>
                     </div>
                   </a>
                   <div class="header-notifications-list">
+                    {% if stockAlert %}
+                    {% for data in stockLow %}
+                    <a class="dropdown-item" href="javascript:;">
+                      <div class="media align-items-center">
+                        <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i></div>
+                        <div class="media-body">
+                          <h6 class="msg-name">{{data.Title}}<span class="msg-time float-right">{{data.Noti_date|date:'Y-m-d'}}</span></h6>
+                          <p class="msg-info">'{{data.Discription}}'</p>
+                        </div>
+                      </div>
+                    </a>
+                    {% endfor %}
+                    {% endif %}
                     <a class="dropdown-item" href="javascript:;">
                       <div class="media align-items-center">
                         <div class="notify bg-light-primary text-primary"><i class="bx bx-group"></i>

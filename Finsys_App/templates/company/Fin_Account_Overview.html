@@ -80,6 +80,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
 
 <div class="page-content ">
+    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_chartOfAccounts' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
     <div class="card radius-15">
         <div class="card-body" style="width:100%;">
             <div class="card-title">
@@ -92,9 +93,9 @@
 
                         <div class="col-md-6 d-flex justify-content-end">
                             {% if account.status == 'inactive' %}
-                            <a href="{% url 'Fin_changeAccountStatus' account.id 'active' %}" id="activeBtn" class="ml-2 fa fa-check-circle btn btn-outline-secondary text-grey" role="button" >&nbsp;Active</a> 
+                            <a href="{% url 'Fin_changeAccountStatus' account.id 'active' %}" id="activeBtn" class="ml-2 fa fa-ban btn btn-outline-secondary text-grey" role="button" >&nbsp;Inactive</a> 
                             {% else %}
-                            <a href="{% url 'Fin_changeAccountStatus' account.id 'inactive' %}" id="inactiveBtn" class="ml-2 fa fa-ban btn btn-outline-secondary text-grey" role="button" onclick="return confirm('Are you sure you want to make this item Inactive.?')">&nbsp;Inactive</a> 
+                            <a href="{% url 'Fin_changeAccountStatus' account.id 'inactive' %}" id="inactiveBtn" class="ml-2 fa fa-check-circle btn btn-outline-secondary text-grey" role="button" >&nbsp;Active</a> 
                             {% endif %}
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-table" role="button" id="exportBtn" style="display: none;" onclick="ExportToExcel('xlsx')">&nbsp;Export</a>
                             <a href="{% url 'Fin_accountTransactionPdf' account.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
@@ -366,11 +367,11 @@
                     <ul>
                         <li>1.Tax to be paid</li>
                         <li>2.Loan to be Repaid</li>
-                        <li>3.Loan to be Repaid</li>
+                        <li>3.Accounts Payable etc</li>
                     </ul>`;
                 break;
             case "Overseas Tax Payable":
-                Acnt_desc.innerHTML=`<b>Liability</b> <br> To keep track of funds moving in and out via payment processors like Stripe, PayPal, etc.<br/>`;
+                Acnt_desc.innerHTML=`<b>Liability</b> <br> Track your taxes in this account if your business sells digital services to foreign customers.<br/>`;
                 break;
             case "Equity":
                 Acnt_desc.innerHTML=`<b>Equity</b> <br>Owners or stakeholders interest on the assets of the business after deducting all the liabilities<br/>`;
@@ -406,12 +407,7 @@
                 break;
             case "Other Expense":
                 Acnt_desc.innerHTML=`
-                    <b>Expense</b> <br>Reflects expenses incurred for activities unrelated to primary business operations like :<br/>
-                    <ul>
-                        <li>1.Bad debts</li>
-                        <li>2.Contributions Towards Charity</li>
-                        <li>3.Insurance</li>
-                    </ul>`;
+                <b>Expense</b> <br>Track miscellaneous expenses incurred for activities other than primary business operations or create additional accounts to track default expenses like insurance or contribution towards charity.<br/>`;
                 break;
 
             default:

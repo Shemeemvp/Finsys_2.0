@@ -114,15 +114,13 @@
                     </div>
                 </div>
                     
-                <div class="mt-3">
-                    <div class="row">
-                        <div class="col-md-4"></div>
-                        <div class="col-md-4 d-flex justify-content-center">
-                            <button type="submit" class="btn btn-outline-info mr-1">Save</button>
-                            <a type="submit" class="btn btn-outline-info" onclick="clearForm()">Close</a>
-                        </div>
-                        <div class="col-md-4"></div>
+                <div class="row mt-5 mb-3">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <button type="submit" class="btn btn-outline-secondary w-50 mr-1 text-light">SAVE</button>
+                        <a type="submit" class="btn btn-outline-secondary text-light" onclick="clearForm()">CANCEL</a>
                     </div>
+                    <div class="col-md-4"></div>
                 </div>
             </form>
         </div>
@@ -213,12 +211,12 @@
                     <ul>
                         <li>1.Tax to be paid</li>
                         <li>2.Loan to be Repaid</li>
-                        <li>3.Loan to be Repaid</li>
+                        <li>3.Accounts Payable etc</li>
                     </ul>`;
                     acctype.value="Liability"
                 break;
             case "Overseas Tax Payable":
-                Acnt_desc.innerHTML=`<b>Liability</b> <br> To keep track of funds moving in and out via payment processors like Stripe, PayPal, etc.<br/>`;
+                Acnt_desc.innerHTML=`<b>Liability</b> <br> Track your taxes in this account if your business sells digital services to foreign customers.<br/>`;
                 acctype.value="Liability"
                 break;
             case "Equity":
@@ -231,7 +229,7 @@
                 break;
             case "Other Income":
                 Acnt_desc.innerHTML=`
-                    <b>Income</b> <br>Income or revenue earned from activties not directly related to your business like :<br/>
+                    <b>Income</b> <br>Income or revenue earned from activities not directly related to your business like :<br/>
                     <ul>
                         <li>1.Interest Earned</li>
                         <li>2.Dividend Earned</li>
@@ -260,12 +258,7 @@
                 break;
             case "Other Expense":
                 Acnt_desc.innerHTML=`
-                    <b>Expense</b> <br>Reflects expenses incurred for activities unrelated to primary business operations like :<br/>
-                    <ul>
-                        <li>1.Bad debts</li>
-                        <li>2.Contributions Towards Charity</li>
-                        <li>3.Insurance</li>
-                    </ul>`;
+                    <b>Expense</b> <br>Track miscellaneous expenses incurred for activities other than primary business operations or create additional accounts to track default expenses like insurance or contribution towards charity.<br/>`;
                     acctype.value="Expense"
                 break;
 

@@ -1607,13 +1607,13 @@ def Fin_createItem(request):
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
             units = Fin_Units.objects.filter(Company = com)
-            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=com).order_by('account_name')
             return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             units = Fin_Units.objects.filter(Company = com.company_id)
-            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com.company_id).order_by('account_name')
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=com.company_id).order_by('account_name')
             return render(request,'company/Fin_Add_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc})
     else:
        return redirect('/')
@@ -1636,10 +1636,10 @@ def Fin_createNewItem(request):
             gstTax = 0 if tax == 'non taxable' else request.POST['intra_st']
             igstTax = 0 if tax == 'non taxable' else request.POST['inter_st']
             purPrice = request.POST['pcost']
-            purAccount = None if request.POST['pur_account'] == "" else request.POST['pur_account']
+            purAccount = None if not 'pur_account' in request.POST or request.POST['pur_account'] == "" else request.POST['pur_account']
             purDesc = request.POST['pur_desc']
             salePrice = request.POST['salesprice']
-            saleAccount = request.POST['sale_account']
+            saleAccount = None if not 'sale_account' in request.POST or request.POST['sale_account'] == "" else request.POST['sale_account']
             saleDesc = request.POST['sale_desc']
             inventory = request.POST.get('invacc')
             stock = 0 if request.POST.get('stock') == "" else request.POST.get('stock')
@@ -1848,13 +1848,13 @@ def Fin_editItem(request, id):
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
             units = Fin_Units.objects.filter(Company = com)
-            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=com).order_by('account_name')
             return render(request,'company/Fin_Edit_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc, 'item':item})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             units = Fin_Units.objects.filter(Company = com.company_id)
-            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com.company_id).order_by('account_name')
+            acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=com.company_id).order_by('account_name')
             return render(request,'company/Fin_Edit_Item.html',{'allmodules':allmodules,'com':com,'data':data,'units':units, 'accounts':acc, 'item':item})
     else:
        return redirect('/')
@@ -1878,10 +1878,10 @@ def Fin_updateItem(request,id):
             gstTax = 0 if tax == 'non taxable' else request.POST['intra_st']
             igstTax = 0 if tax == 'non taxable' else request.POST['inter_st']
             purPrice = request.POST['pcost']
-            purAccount = None if request.POST['pur_account'] == "" else request.POST['pur_account']
+            purAccount =  None if not 'pur_account' in request.POST or request.POST['pur_account'] == "" else request.POST['pur_account']
             purDesc = request.POST['pur_desc']
             salePrice = request.POST['salesprice']
-            saleAccount = request.POST['sale_account']
+            saleAccount = None if not 'sale_account' in request.POST or request.POST['sale_account'] == "" else request.POST['sale_account']
             saleDesc = request.POST['sale_desc']
             inventory = request.POST.get('invacc')
             stock = item.opening_stock if request.POST.get('stock') == "" else request.POST.get('stock')

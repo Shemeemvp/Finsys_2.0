@@ -217,10 +217,10 @@
                         
                         <div class="row mt-5 mb-5">
                             <div class="col-md-4">
-                                <a href="{% url 'Fin_items' %}"class="btn btn-outline-info rounded-pill w-25 text-light">BACK</a>
                             </div>
-                            <div class="col-md-4">
-                                <button class="btn btn-outline-info rounded-pill w-100 text-light" type="submit">SUBMIT</button>
+                            <div class="col-md-4 d-flex justify-content-center">
+                                <button class="btn btn-outline-secondary w-50 text-light" type="submit">SUBMIT</button>
+                                <a href="{% url 'Fin_items' %}"class="btn btn-outline-secondary w-25 ml-1 text-light">CANCEL</a>
                             </div>
                             <div class="col-md-4"></div>
                         </div>
@@ -316,7 +316,7 @@
                                         
                                             <optgroup label="Expense" style="background-color: rgb(47 81 111);">
                                                 <option value="Expense"> Expense </option>
-                                                <!-- <option value="Cost Of Goods Sold"> Cost Of Goods Sold </option> -->
+                                                <option value="Cost Of Goods Sold"> Cost Of Goods Sold </option>
                                                 <option value="Other Expense"> Other Expense </option>
                                             </optgroup>
                                         
@@ -547,12 +547,7 @@
                 break;
             case "Other Expense":
                 Acnt_desc.innerHTML=`
-                    <b>Expense</b> <br>Reflects expenses incurred for activities unrelated to primary business operations like :<br/>
-                    <ul>
-                        <li>1.Bad debts</li>
-                        <li>2.Contributions Towards Charity</li>
-                        <li>3.Insurance</li>
-                    </ul>`;
+                    <b>Expense</b> <br>Track miscellaneous expenses incurred for activities other than primary business operations or create additional accounts to track default expenses like insurance or contribution towards charity.<br/>`;
                     acctype.value="Expense"
                 break;
             
@@ -620,12 +615,12 @@
             //         <ul>
             //             <li>1.Tax to be paid</li>
             //             <li>2.Loan to be Repaid</li>
-            //             <li>3.Loan to be Repaid</li>
+            //             <li>3.Accounts Payable etc</li>
             //         </ul>`;
             //         acctype.value="Liability"
             //     break;
             // case "Overseas Tax Payable":
-            //     Acnt_desc.innerHTML=`<b>Liability</b> <br> To keep track of funds moving in and out via payment processors like Stripe, PayPal, etc.<br/>`;
+            //     Acnt_desc.innerHTML=`<b>Liability</b> <br> Track your taxes in this account if your business sells digital services to foreign customers.<br/>`;
             //     acctype.value="Liability"
             //     break;
             // case "Equity":
@@ -638,7 +633,7 @@
             //     break;
             // case "Other Income":
             //     Acnt_desc.innerHTML=`
-            //         <b>Income</b> <br>Income or revenue earned from activties not directly related to your business like :<br/>
+            //         <b>Income</b> <br>Income or revenue earned from activities not directly related to your business like :<br/>
             //         <ul>
             //             <li>1.Interest Earned</li>
             //             <li>2.Dividend Earned</li>

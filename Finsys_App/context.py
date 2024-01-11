@@ -9,16 +9,38 @@ def minStock(request):
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
         
-        items = Fin_Items.objects.filter(Company = com)
-        
-        stockLow = []
-        for item in items:
-            if item.min_stock > 0 and item.current_stock < item.min_stock:
-                stockLow.append({'name':item.name})
+        itemsAvailable = Fin_Items.objects.filter(Company = com)
 
-        context = {
-            'stockAlert': True, 'stockLow':stockLow
-        }    
-        return context
+        if Fin_CNotification.objects.filter(Company_id=com, Item__isnull=False).exists():
+            alertItems = Fin_CNotification.objects.filter(Company_id=com, Item__isnull=False)
+            for item in alertItems:
+                stockItem = Fin_Items.objects.get(id = item.Item.id)
+                if stockItem.current_stock > stockItem.min_stock:
+                    item.status = 'Old'
+                    item.save()
+                else:
+                    item.status = 'New'
+                    item.save()
+            
+            for itm in itemsAvailable:
+                if not Fin_CNotification.objects.filter(Item = itm).exists():
+                    if itm.min_stock > 0 and itm.current_stock < itm.min_stock:
+                        Fin_CNotification.objects.create(Company_id = com, Login_Id = data, Item = itm, Title = 'Stock Alert.!!', Discription = f'{itm.name} is below the minimum stock threshold..')
+
+        else:
+            for itm in itemsAvailable:
+                if itm.min_stock > 0 and itm.current_stock < itm.min_stock:
+                    Fin_CNotification.objects.create(Company_id = com, Login_Id = data, Item = itm, Title = 'Stock Alert.!!', Discription = f'{itm.name} is below the minimum stock threshold..')
+        
+        stockLow = Fin_CNotification.objects.filter(Company_id = com, Item__isnull=False, status = 'New')
+        if stockLow:
+            context = {
+                'stockAlert': True,
+                'stockLow': stockLow,
+                'n': Fin_CNotification.objects.filter(Company_id = com, status = 'New').count()
+            }    
+            return context
+        else:
+            return {'alert': False}
     else:
         return {'alert': False}

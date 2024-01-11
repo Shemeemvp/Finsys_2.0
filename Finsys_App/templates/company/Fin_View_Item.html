@@ -56,6 +56,7 @@
     }
 </style>
 <div class="page-content " >
+    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_items' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
     <div class="card radius-15">
         <div class="card-body" style="width:100%;">
             <div class="card-title">
@@ -68,9 +69,9 @@
 
                         <div class="col-md-6 d-flex justify-content-end">
                             {% if item.status == 'Inactive' %}
-                            <a href="{% url 'Fin_changeItemStatus' item.id 'Active' %}" class="ml-2 fa fa-check-circle btn btn-outline-secondary text-grey " role="button" >&nbsp;Active</a> 
+                            <a href="{% url 'Fin_changeItemStatus' item.id 'Active' %}" class="ml-2 fa fa-ban btn btn-outline-secondary text-grey " role="button" >&nbsp;Inactive</a> 
                             {% else %}
-                            <a href="{% url 'Fin_changeItemStatus' item.id 'Inactive' %}" class="ml-2 fa fa-ban btn btn-outline-secondary text-grey" role="button" onclick="return confirm('Are you sure you want to make this item Inactive.?')">&nbsp;Inactive</a> 
+                            <a href="{% url 'Fin_changeItemStatus' item.id 'Inactive' %}" class="ml-2 fa fa-check-circle btn btn-outline-secondary text-grey" role="button" >&nbsp;Active</a> 
                             {% endif %}
                             <a href="{% url 'Fin_itemTransactionPdf' item.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('printContent')">&nbsp;Print</a>
@@ -365,8 +366,8 @@
                                     <td style="text-align: center;"> - </td>
                                     <td style="text-align: center;">{{ item.item_created | date:'d-m-Y'  }}</td>
                                     <td style="text-align: center;"> {{ item.opening_stock  }} </td>
+                                    <td style="text-align: center;"> {{item.stock_unit_rate}} </td>
                                     <td style="text-align: center;"> - </td>
-                                    <td style="text-align: center;">{{item.status}} </td>
                                 </tr>
                                 {% endif %}
                             </tbody>
