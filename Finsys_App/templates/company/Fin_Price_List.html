@@ -1,11 +1,16 @@
 <!-- Created --shemeem  -->
 {% extends 'company/Fin_base.html' %}
 {% block body %}
+<style>
+  #priceListTable th, #priceListTable td {
+    text-align: center;
+  }
+</style>
 <div class="page-content">
   <div class="card radius-15 h-20">
     <div class="row">
       <div class="col-md-12">
-        <center><h2 class="mt-3">ALL ITEMS</h2></center>
+        <center><h2 class="mt-3">PRICE LIST</h2></center>
         <hr/>
       </div>
     </div>
@@ -21,9 +26,9 @@
               <div class="dropdown ml-1" style="justify-content: left">
                 <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown"><i class="fa fa-sort"></i> Sort by</button>
                 <div class="dropdown-menu" style="background-color: black">
-                  <a class="dropdown-item" href="{% url 'Fin_items' %}" style="height: 40px; font-size: 15px; color: white">All</a>
-                  <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortTable(1)">Name</a>
-                  <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortHsnAscending()">HSN</a>
+                  <a class="dropdown-item" href="{% url 'Fin_priceList' %}" style="height: 40px; font-size: 15px; color: white">All</a>
+                  <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortTable(2)">Name</a>
+                  <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortTable(4)">Type</a>
                 </div>
               </div>
             </div>
@@ -40,35 +45,37 @@
                 <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(7,'inactive')">Inactive</a>
               </div>
             </div>
-            <a href="{% url 'Fin_createItem' %}" class="ml-1"></i><button type="button" class="btn btn-outline-secondary text-grey"><i class="fa fa-plus font-weight-light"></i> Add Item</button></a>
+            <a href="{% url 'Fin_addPriceList' %}" class="ml-1"></i><button type="button" class="btn btn-outline-secondary text-grey"><i class="fa fa-plus font-weight-light"></i> Price List</button></a>
           </div>
         </div>
       </div>
     </div>
     <div class="table-responsive">
-      <table class="table table-responsive-md table-hover mt-4" id="itemsTable" style="text-align: center">
+      <table class="table table-responsive-md table-hover mt-4" id="priceListTable" style="text-align: center">
         <thead>
           <tr>
             <th>SL.NO.</th>
+            <th>DATE</th>
             <th>NAME</th>
-            <th>HSN</th>
-            <th>SALES RATE</th>
-            <th>PURCHASE RATE</th>
-            <th>STOCK ON INVENTORY</th>
-            <th>BALANCE STOCK</th>
+            <th>DESCRIPTION</th>
+            <th>TYPE</th>
+            <th>ROUNDING</th>
+            <th>DETAILS</th>
             <th>STATUS</th>
           </tr>
         </thead>
         <tbody>
-          {% for a in items %}
-          <tr class="clickable-row" data-href="Fin_view_item/{{ a.id }}" style="cursor: pointer;">
-            <td>{{ forloop.counter }}</td>
+          {% for a in list %}
+          <tr class="clickable-row" data-href="" style="cursor: pointer;">
+            <td></td>
+            <td>{{ a.created_date }}</td>
             <td>{{ a.name }}</td>
-            <td>{{ a.hsn }}</td>
-            <td>{{ a.selling_price }}</td>
-            <td>{{ a.purchase_price }}</td>
-            <td>{{ a.opening_stock }}</td>
-            <td>{{ a.current_stock }}</td>
+            <td>
+              <i class="fa fa-commenting" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="{{ a.description }}"></i>
+            </td>
+            <td>{{ a.type }}</td>
+            <td>-</td>
+            <td>-</td>
             <td>{{ a.status }}</td>
           </tr>
           {% endfor %}
@@ -83,7 +90,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 <script>
-  var $rows = $('#itemsTable tbody tr');
+  var $rows = $('#priceListTable tbody tr');
   $('#search').keyup(function() {
     var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
     
@@ -94,11 +101,11 @@
   });
   
   document.getElementById("exportBtn").addEventListener("click", function () {
-    const Table = document.getElementById("itemsTable");
+    const Table = document.getElementById("priceListTable");
     const ws = XLSX.utils.table_to_sheet(Table);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    XLSX.writeFile(wb, "items.xlsx");
+    XLSX.writeFile(wb, "Price_list.xlsx");
   });
   
 
@@ -108,7 +115,7 @@
     });
   });
 
-  var $rows = $("#itemsTable tbody tr");
+  var $rows = $("#priceListTable tbody tr");
   $("#search").keyup(function () {
     var val = $.trim($(this).val()).replace(/ +/g, " ").toLowerCase();
 
@@ -123,7 +130,7 @@
 
   function sortTable(columnIndex) {
     var table, rows, switching, i, x, y, shouldSwitch;
-    table = document.getElementById("itemsTable");
+    table = document.getElementById("priceListTable");
     switching = true;
 
     while (switching) {
@@ -149,7 +156,7 @@
   }
 
   function filterTable(row,filterValue) {
-    var table = document.getElementById("itemsTable");
+    var table = document.getElementById("priceListTable");
     var rows = table.getElementsByTagName("tr");
 
     for (var i = 1; i < rows.length; i++) {
@@ -164,7 +171,7 @@
   }
 
   function sortHsnAscending() {
-    var table = document.getElementById("itemsTable");
+    var table = document.getElementById("priceListTable");
     var rows = Array.from(table.rows).slice(1);
 
     rows.sort(function (a, b) {

@@ -117,6 +117,15 @@ urlpatterns = [
     path('Fin_update_account/<int:id>',views.Fin_updateAccount, name='Fin_updateAccount'),
     path('Fin_account_history/<int:id>',views.Fin_accountHistory, name='Fin_accountHistory'),
     #End
+
+    # -------------Shemeem--------Price List & Customers-------------------------------
+    
+    path('Fin_price_list',views.Fin_priceList, name='Fin_priceList'),
+    path('Fin_add_price_list',views.Fin_addPriceList, name='Fin_addPriceList'),
+    
+    
+    
+    # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 ]
