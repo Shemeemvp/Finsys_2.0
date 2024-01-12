@@ -33,14 +33,15 @@ def minStock(request):
                     Fin_CNotification.objects.create(Company_id = com, Login_Id = data, Item = itm, Title = 'Stock Alert.!!', Discription = f'{itm.name} is below the minimum stock threshold..')
         
         stockLow = Fin_CNotification.objects.filter(Company_id = com, Item__isnull=False, status = 'New')
+        nCount = Fin_CNotification.objects.filter(Company_id = com, status = 'New')
         if stockLow:
             context = {
                 'stockAlert': True,
                 'stockLow': stockLow,
-                'n': Fin_CNotification.objects.filter(Company_id = com, status = 'New').count()
+                'n': len(nCount)
             }    
             return context
         else:
-            return {'alert': False}
+            return {'alert': False,'n': len(nCount)}
     else:
         return {'alert': False}
