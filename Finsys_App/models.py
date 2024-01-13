@@ -291,4 +291,22 @@ class Fin_PriceList_Items(models.Model):
     custom_rate=models.FloatField(null=True,blank=True,default=0.0)
 
 
+class Fin_PriceList_Transaction_History(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    list = models.ForeignKey(Fin_Price_List,on_delete=models.CASCADE,null=True,blank=True)
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True)
+    action_choices = [
+        ('Created', 'Created'),
+        ('Edited', 'Edited'),
+    ]
+    action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
+
+
+class Fin_PriceList_Comments(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    list = models.ForeignKey(Fin_Price_List,on_delete=models.CASCADE,null=True,blank=True)
+    comments = models.CharField(max_length=500,null=True,blank=True)
+
+
 #End

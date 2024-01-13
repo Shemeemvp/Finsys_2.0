@@ -2409,15 +2409,171 @@ def Fin_addPriceList(request):
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            items = Fin_Items.objects.filter(Company = com, status = 'Active')
+            items = Fin_Items.objects.filter(Company = com, status = 'Active').order_by('name')
             return render(request,'company/Fin_Add_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            items = Fin_Items.objects.filter(Company = com, status = 'Active')
+            items = Fin_Items.objects.filter(Company = com, status = 'Active').order_by('name')
             return render(request,'company/Fin_Add_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
     else:
        return redirect('/')
 
+def Fin_createPriceList(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            name = request.POST['name']
+            type = request.POST['type']
+            itemRate = request.POST['item_rate']
+            description = request.POST['description']
+            upOrDown = request.POST['up_or_down']
+            percent = request.POST['percentage']
+            roundOff = request.POST['round_off']
+            currency = request.POST['currency']
+
+            if Fin_Price_List.objects.filter(Company = com, name__iexact = name).exists():
+                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            priceList = Fin_Price_List(
+                Company = com, LoginDetails = data, name = name, type = type, item_rate = itemRate, description = description, currency = currency, up_or_down = upOrDown, percentage = percent, round_off = roundOff, status = 'Active'
+            )
+            priceList.save()
+
+            #save transaction
+
+            Fin_PriceList_Transaction_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                list = priceList,
+                action = 'Created'
+            )
+
+            if itemRate == 'Customized individual rate':
+                itemName = request.POST.getlist('itemName[]')
+                stdRate = request.POST.getlist('itemRateSale[]') if type == 'Sales' else request.POST.getlist('itemRatePurchase[]')
+                customRate = request.POST.getlist('customRate[]')
+                
+                if len(itemName) == len(stdRate) == len(customRate):
+                    values = zip(itemName,stdRate,customRate)
+                    lis = list(values)
+
+                    for ele in lis:
+                        Fin_PriceList_Items.objects.get_or_create(Company = com, LoginDetails = data, list = priceList, item = Fin_Items.objects.get(id = int(ele[0])), standard_rate = float(ele[1]), custom_rate = float(ele[2]))
+
+                    return redirect(Fin_priceList)
+
+                return redirect(Fin_addPriceList)
+
+            return redirect(Fin_priceList)
+
+        else:
+                return redirect(Fin_addPriceList)
+    else:
+        return redirect('/')
+
+def Fin_viewPriceList(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            list = Fin_Price_List.objects.get(id = id)
+            plItems = Fin_PriceList_Items.objects.filter(list = list)
+            cmt = Fin_PriceList_Comments.objects.filter(list = list)
+            hist = Fin_PriceList_Transaction_History.objects.filter(Company = com, list = list).last()
+            return render(request,'company/Fin_View_PriceList.html',{'allmodules':allmodules,'com':com,'data':data,'plItems':plItems, 'list':list, 'comments':cmt, 'history': hist})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            list = Fin_Price_List.objects.get(id = id)
+            plItems = Fin_PriceList_Items.objects.filter(list = list)
+            cmt = Fin_PriceList_Comments.objects.filter(list = list)
+            hist = Fin_PriceList_Transaction_History.objects.filter(Company = com, list = list).last()
+            return render(request,'company/Fin_View_PriceList.html',{'allmodules':allmodules,'com':com,'data':data,'plItems':plItems, 'list':list, 'comments':cmt, 'history': hist})
+    else:
+       return redirect('/')
+    
+def Fin_changePriceListStatus(request,id,status):
+    if 's_id' in request.session:
+        list = Fin_Price_List.objects.get(id = id)
+        list.status = status
+        list.save()
+        return redirect(Fin_viewPriceList, id)
+    
+def Fin_deletePriceList(request, id):
+    if 's_id' in request.session:
+        list = Fin_Price_List.objects.get( id = id)
+        list.delete()
+        return redirect(Fin_priceList)
+    
+def Fin_addPriceListComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        list = Fin_Price_List.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_PriceList_Comments.objects.create(Company = com, list = list, comments = cmt)
+            return redirect(Fin_viewPriceList, id)
+        return redirect(Fin_viewPriceList, id)
+    return redirect('/')
+
+def Fin_deletePriceListComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_PriceList_Comments.objects.get(id = id)
+        listId = cmt.list.id
+        cmt.delete()
+        return redirect(Fin_viewPriceList, listId)
+
+def Fin_priceListHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        list = Fin_Price_List.objects.get(id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            his = Fin_PriceList_Transaction_History.objects.filter(Company = com , list = list)
+            return render(request,'company/Fin_PriceList_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'list':list})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            his = Fin_PriceList_Transaction_History.objects.filter(Company = com , list = list)
+            return render(request,'company/Fin_PriceList_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'list':list})
+    else:
+       return redirect('/')
+    
+def Fin_editPriceList(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        list = Fin_Price_List.objects.get(id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            items = Fin_PriceList_Items.objects.filter(Company = com, list = list)
+            return render(request,'company/Fin_Edit_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list, 'items':items })
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            items = Fin_PriceList_Items.objects.filter(Company = com, list = list)
+            return render(request,'company/Fin_Edit_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list, 'items':items })
+    else:
+       return redirect('/')
 
 # End

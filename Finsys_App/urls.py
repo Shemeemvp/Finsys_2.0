@@ -122,6 +122,14 @@ urlpatterns = [
     
     path('Fin_price_list',views.Fin_priceList, name='Fin_priceList'),
     path('Fin_add_price_list',views.Fin_addPriceList, name='Fin_addPriceList'),
+    path('Fin_create_price_list',views.Fin_createPriceList, name='Fin_createPriceList'),
+    path('Fin_view_price_list/<int:id>',views.Fin_viewPriceList, name='Fin_viewPriceList'),
+    path('Fin_change_price_list_status/<int:id>/<str:status>',views.Fin_changePriceListStatus, name='Fin_changePriceListStatus'),
+    path('Fin_delete_price_list/<int:id>',views.Fin_deletePriceList, name='Fin_deletePriceList'),
+    path('Fin_add_price_list_comment/<int:id>',views.Fin_addPriceListComment, name='Fin_addPriceListComment'),
+    path('Fin_delete_price_list_comment/<int:id>',views.Fin_deletePriceListComment, name='Fin_deletePriceListComment'),
+    path('Fin_price_list_history/<int:id>',views.Fin_priceListHistory, name='Fin_priceListHistory'),
+    path('Fin_edit_price_list/<int:id>',views.Fin_editPriceList, name='Fin_editPriceList'),
     
     
     
