@@ -2566,14 +2566,176 @@ def Fin_editPriceList(request, id):
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            items = Fin_PriceList_Items.objects.filter(Company = com, list = list)
-            return render(request,'company/Fin_Edit_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list, 'items':items })
+            plItems = Fin_PriceList_Items.objects.filter(Company = com, list = list)
+            items = Fin_Items.objects.filter(Company = com, status = 'Active').order_by('name')
+            return render(request,'company/Fin_Edit_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list, 'plItems':plItems, 'items':items })
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            items = Fin_PriceList_Items.objects.filter(Company = com, list = list)
-            return render(request,'company/Fin_Edit_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list, 'items':items })
+            plItems = Fin_PriceList_Items.objects.filter(Company = com, list = list)
+            items = Fin_Items.objects.filter(Company = com, status = 'Active').order_by('name')
+            return render(request,'company/Fin_Edit_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list, 'plItems':plItems, 'items':items })
     else:
        return redirect('/')
+
+def Fin_updatePriceList(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        lst = Fin_Price_List.objects.get(id = id)
+        if request.method == 'POST':
+            name = request.POST['name']
+            type = request.POST['type']
+            itemRate = request.POST['item_rate']
+            description = request.POST['description']
+            upOrDown = request.POST['up_or_down']
+            percent = request.POST['percentage']
+            roundOff = request.POST['round_off']
+            currency = request.POST['currency']
+
+            if lst.name != name and Fin_Price_List.objects.filter(Company = com, name__iexact = name).exists():
+                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            if lst.item_rate == 'Customized individual rate' and itemRate != 'Customized individual rate':
+                Fin_PriceList_Items.objects.filter(list = lst).delete()
+
+            lst.name = name
+            lst.type = type
+            lst.item_rate = itemRate
+            lst.description = description
+            lst.currency = currency
+            lst.up_or_down = upOrDown
+            if itemRate == 'Customized individual rate':
+                lst.percentage = None
+                lst.round_off = None
+            else:
+                lst.percentage = percent
+                lst.round_off = roundOff
+            lst.save()
+
+            #save transaction
+
+            Fin_PriceList_Transaction_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                list = lst,
+                action = 'Edited'
+            )
+
+            itemName = request.POST.getlist('itemName[]')
+            stdRate = request.POST.getlist('itemRateSale[]') if type == 'Sales' else request.POST.getlist('itemRatePurchase[]')
+            customRate = request.POST.getlist('customRate[]')
+            
+            if itemRate == 'Customized individual rate':
+                if Fin_PriceList_Items.objects.filter(list = lst).exists():
+                    ids = request.POST.getlist('plItemId[]')
+                    
+                    if len(ids) == len(itemName) == len(stdRate) == len(customRate):
+                        values = zip(ids, itemName,stdRate,customRate)
+                        lis = list(values)
+
+                        for ele in lis:
+                            Fin_PriceList_Items.objects.filter(id = ele[0]).update(Company = com, LoginDetails = data, list = lst, item = Fin_Items.objects.get(id = int(ele[1])), standard_rate = float(ele[2]), custom_rate = float(ele[3]))
+
+                        return redirect(Fin_viewPriceList,id)
+
+                    else:
+                        return redirect(Fin_editPriceList, id)
+                else:
+                    if len(itemName) == len(stdRate) == len(customRate):
+                        values = zip(itemName,stdRate,customRate)
+                        lis = list(values)
+                        for ele in lis:
+                            Fin_PriceList_Items.objects.create(Company = com, LoginDetails = data, list = lst, item = Fin_Items.objects.get(id = int(ele[0])), standard_rate = float(ele[1]), custom_rate = float(ele[2]))
+                        
+                        return redirect(Fin_viewPriceList,id)
+            else:
+                return redirect(Fin_viewPriceList,id)
+
+        else:
+            return redirect(Fin_editPriceList, id)
+    else:
+        return redirect('/')
+
+def Fin_priceListViewPdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+        
+        lst = Fin_Price_List.objects.get(id = id)
+        plItems = Fin_PriceList_Items.objects.filter(list = lst)
+    
+        context = {'list': lst, 'plItems':plItems}
+        
+        template_path = 'company/Fin_PriceListView_Pdf.html'
+        fname = 'Price_List_'+lst.name
+        # return render(request, 'company/Fin_PriceListView_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_sharePriceListViewToEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        lst = Fin_Price_List.objects.get(id = id)
+        plItems = Fin_PriceList_Items.objects.filter(list = lst)
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                context = {'list': lst, 'plItems':plItems}
+                template_path = 'company/Fin_PriceListView_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Price_list_{lst.name}.pdf'
+                subject = f"Price_list_{lst.name}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Price List details - Price List-{lst.name}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Price List details has been shared via email successfully..!')
+                return redirect(Fin_viewPriceList,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_viewPriceList, id)
 
 # End

@@ -141,8 +141,8 @@
                                                     <th>CUSTOM RATE(INR)</th>
                                                 </tr>
                                             </thead>
-                                            {% for i in items %}
                                             <tbody>
+                                                {% for i in items %}
                                                 <tr>
                                                     <td><input type="text" name="itemName[]" value="{{i.id}}" hidden>{{i.name}}</td>
                                                     <td>
@@ -151,8 +151,9 @@
                                                     </td>  
                                                     <td><input type="number" name="customRate[]" value="0" required></td>
                                                 </tr>
+                                                {% endfor %}
                                             </tbody>
-                                            {% endfor %}
+                                            
                                         </table>
                                     </div>
                                 </div>

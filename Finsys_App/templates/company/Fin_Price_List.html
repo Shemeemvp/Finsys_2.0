@@ -70,10 +70,13 @@
             <td></td>
             <td>{{ a.created_date }}</td>
             <td>{{ a.name }}</td>
-            <td><i class="fa fa-commenting" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="{{a.description | default:'None'}}"></i></td>
+            <td>
+              <span class="descTooltips" style="display: block;"><i class="fa fa-commenting" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="{{a.description | default:'None'}}"></i></span>
+              <span class="descExport" style="display: none;">{{a.description | default:'None'}}</span>
+            </td>
             <td>{{ a.type }}</td>
             <td>{% if a.item_rate == "Customized individual rate" %} - - {% else %}{{a.round_off}}{% endif %}</td>
-            <td>{% if a.item_rate == "Customized individual rate" %}Per Individual Rate{% else %}{{a.percentage}}%   {{a.up_or_down}}{% endif %}</td>
+            <td>{% if a.item_rate == "Customized individual rate" %}Per Individual Rate{% else %}{{a.percentage}} Perc. {{a.up_or_down}}{% endif %}</td>
             <td>{{ a.status }}</td>
           </tr>
           {% endfor %}
@@ -99,11 +102,15 @@
   });
   
   document.getElementById("exportBtn").addEventListener("click", function () {
+    $('.descTooltips').css('display','none');
+    $('.descExport').css('display','block');
     const Table = document.getElementById("priceListTable");
     const ws = XLSX.utils.table_to_sheet(Table);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     XLSX.writeFile(wb, "Price_list.xlsx");
+    $('.descTooltips').css('display','block');
+    $('.descExport').css('display','none');
   });
   
 

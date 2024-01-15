@@ -37,7 +37,7 @@
                     </div>
                 </div>
             </div>
-            <form action="{% url 'Fin_createPriceList' %}" method="post" class="needs-validation" validate>
+            <form action="{% url 'Fin_updatePriceList' list.id %}" method="post" class="needs-validation" validate>
                 {% csrf_token %}
                 <div class="row">
                     <div class="col-md-12 mx-0">
@@ -141,18 +141,35 @@
                                                     <th>CUSTOM RATE(INR)</th>
                                                 </tr>
                                             </thead>
-                                            {% for i in items %}
                                             <tbody>
+                                                {% if plItems %}
+                                                {% for i in plItems %}
                                                 <tr>
-                                                    <td><input type="text" name="itemName[]" value="{{i.item.id}}" hidden>{{i.item.name}}</td>
+                                                    <td>
+                                                        <input type="text" name="itemName[]" value="{{i.item.id}}" hidden>
+                                                        <input type="hidden" name="plItemId[]" value="{{i.id}}">
+                                                        {{i.item.name}}
+                                                    </td>
                                                     <td>
                                                         <input type="number" class="salesRates border-0 bg-transparent text-white" name="itemRateSale[]" value="{{i.item.selling_price}}" style="display: block;" readonly>
                                                         <input type="number" class="purchaseRates border-0 bg-transparent text-white" name="itemRatePurchase[]" value="{{i.item.purchase_price}}" style="display: none;" readonly>
                                                     </td>  
                                                     <td><input type="number" name="customRate[]" value="{{i.custom_rate}}" required></td>
                                                 </tr>
+                                                {% endfor %}
+                                                {% else %}
+                                                {% for itm in items %}
+                                                <tr>
+                                                    <td><input type="text" name="itemName[]" value="{{itm.id}}" hidden>{{itm.name}}</td>
+                                                    <td>
+                                                        <input type="number" class="salesRates border-0 bg-transparent text-white" name="itemRateSale[]" value="{{itm.selling_price}}" style="display: block;" readonly>
+                                                        <input type="number" class="purchaseRates border-0 bg-transparent text-white" name="itemRatePurchase[]" value="{{itm.purchase_price}}" style="display: none;" readonly>
+                                                    </td>  
+                                                    <td><input type="number" name="customRate[]" value="0" required></td>
+                                                </tr>
+                                                {% endfor %}
+                                                {% endif %}
                                             </tbody>
-                                            {% endfor %}
                                         </table>
                                     </div>
                                 </div>
