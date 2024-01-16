@@ -365,4 +365,10 @@ class Fin_Customers_Comments(models.Model):
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
     customer = models.ForeignKey(Fin_Customers,on_delete=models.CASCADE,null=True,blank=True)
     comments = models.CharField(max_length=500,null=True,blank=True)
+
+
+class Fin_Company_Payment_Terms(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    term_name = models.CharField(max_length=100, null=True)
+    days = models.IntegerField(null=True, default=0)
 #End

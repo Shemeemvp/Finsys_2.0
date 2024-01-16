@@ -134,6 +134,16 @@ urlpatterns = [
     path('Fin_price_list_view_pdf/<int:id>',views.Fin_priceListViewPdf, name='Fin_priceListViewPdf'),
     path('Fin_share_price_list_view_to_email/<int:id>',views.Fin_sharePriceListViewToEmail, name='Fin_sharePriceListViewToEmail'),
     
+    # Customers
+    path('Fin_customers',views.Fin_customers, name='Fin_customers'),
+    path('Fin_add_customer',views.Fin_addCustomer, name='Fin_addCustomer'),
+    path('Fin_check_customer_name',views.Fin_checkCustomerName, name='Fin_checkCustomerName'),
+    path('Fin_check_customer_GSTIN',views.Fin_checkCustomerGSTIN, name='Fin_checkCustomerGSTIN'),
+    path('Fin_check_customer_PAN',views.Fin_checkCustomerPAN, name='Fin_checkCustomerPAN'),
+    path('Fin_check_customer_phone',views.Fin_checkCustomerPhone, name='Fin_checkCustomerPhone'),
+    path('Fin_check_customer_email',views.Fin_checkCustomerEmail, name='Fin_checkCustomerEmail'),
+    path('Fin_create_customer',views.Fin_createCustomer, name='Fin_createCustomer'),
+    path('Fin_new_customer_payment_term',views.Fin_newCustomerPaymentTerm, name='Fin_newCustomerPaymentTerm'),
     
     # End
     
