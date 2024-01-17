@@ -144,6 +144,16 @@ urlpatterns = [
     path('Fin_check_customer_email',views.Fin_checkCustomerEmail, name='Fin_checkCustomerEmail'),
     path('Fin_create_customer',views.Fin_createCustomer, name='Fin_createCustomer'),
     path('Fin_new_customer_payment_term',views.Fin_newCustomerPaymentTerm, name='Fin_newCustomerPaymentTerm'),
+    path('Fin_view_customer/<int:id>',views.Fin_viewCustomer, name='Fin_viewCustomer'),
+    path('Fin_change_customer_status/<int:id>/<str:status>',views.Fin_changeCustomerStatus, name='Fin_changeCustomerStatus'),
+    path('Fin_delete_customer/<int:id>',views.Fin_deleteCustomer, name= 'Fin_deleteCustomer'),
+    path('Fin_edit_customer/<int:id>',views.Fin_editCustomer, name='Fin_editCustomer'),
+    path('Fin_update_customer/<int:id>',views.Fin_updateCustomer, name='Fin_updateCustomer'),
+    path('Fin_customer_history/<int:id>',views.Fin_customerHistory, name='Fin_customerHistory'),
+    path('Fin_customer_transactions_pdf/<int:id>',views.Fin_customerTransactionsPdf, name='Fin_customerTransactionsPdf'),
+    path('Fin_share_customer_transactions_to_email/<int:id>',views.Fin_shareCustomerTransactionsToEmail, name='Fin_shareCustomerTransactionsToEmail'),
+    path('Fin_add_customer_comment/<int:id>',views.Fin_addCustomerComment, name='Fin_addCustomerComment'),
+    path('Fin_delete_customer_comment/<int:id>',views.Fin_deleteCustomerComment, name='Fin_deleteCustomerComment'),
     
     # End
     

@@ -243,16 +243,6 @@ class Fin_ChartOfAccount_History(models.Model):
     action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
 
 #End
-    
-class Fin_CNotification(models.Model): 
-    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
-    Company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
-    Item = models.ForeignKey(Fin_Items, on_delete = models.CASCADE, null=True, blank=True)
-    
-    Title = models.CharField(max_length=255,null=True,blank=True)
-    Discription = models.CharField(max_length=255,null=True,blank=True) 
-    Noti_date = models.DateTimeField(auto_now_add=True,null=True)
-    status = models.CharField(max_length=100,null=True,default='New')
 
 
 # -------------Shemeem--------Price List & Customers-------------------------------
@@ -308,6 +298,10 @@ class Fin_PriceList_Comments(models.Model):
     list = models.ForeignKey(Fin_Price_List,on_delete=models.CASCADE,null=True,blank=True)
     comments = models.CharField(max_length=500,null=True,blank=True)
 
+class Fin_Company_Payment_Terms(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    term_name = models.CharField(max_length=100, null=True)
+    days = models.IntegerField(null=True, default=0)
 
 class Fin_Customers(models.Model):
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
@@ -325,7 +319,7 @@ class Fin_Customers(models.Model):
     website = models.CharField(max_length=100, default='',null=True,blank=True)
     mobile = models.CharField(max_length=20,null=True,blank=True)
     price_list = models.ForeignKey(Fin_Price_List, on_delete = models.CASCADE, null = True)
-    payment_terms = models.ForeignKey(Fin_Payment_Terms, on_delete = models.CASCADE,null=True)
+    payment_terms = models.ForeignKey(Fin_Company_Payment_Terms, on_delete = models.CASCADE,null=True)
     billing_street = models.CharField(max_length=100,null=True,blank=True)
     billing_city = models.CharField(max_length=100,null=True,blank=True)
     billing_state = models.CharField(max_length=100,null=True,blank=True)
@@ -366,9 +360,15 @@ class Fin_Customers_Comments(models.Model):
     customer = models.ForeignKey(Fin_Customers,on_delete=models.CASCADE,null=True,blank=True)
     comments = models.CharField(max_length=500,null=True,blank=True)
 
-
-class Fin_Company_Payment_Terms(models.Model):
-    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
-    term_name = models.CharField(max_length=100, null=True)
-    days = models.IntegerField(null=True, default=0)
 #End
+    
+class Fin_CNotification(models.Model): 
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Item = models.ForeignKey(Fin_Items, on_delete = models.CASCADE, null=True, blank=True) # Added - shemeem -> Handle Item's min stock alerts
+    Customers = models.ForeignKey(Fin_Customers, on_delete = models.CASCADE, null=True,blank=True) # Added - shemeem -> Handle customer's credit limit alerts
+    
+    Title = models.CharField(max_length=255,null=True,blank=True)
+    Discription = models.CharField(max_length=255,null=True,blank=True) 
+    Noti_date = models.DateTimeField(auto_now_add=True,null=True)
+    status = models.CharField(max_length=100,null=True,default='New')

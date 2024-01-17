@@ -61,7 +61,7 @@
         </thead>
         <tbody>
           {% for a in customers %}
-          <tr class="clickable-row" data-href="" style="cursor: pointer;">
+          <tr class="clickable-row" data-href="{% url 'Fin_viewCustomer' a.id %}" style="cursor: pointer;">
             <td>{{ forloop.counter }}</td>
             <td>{{ a.first_name }} {{ a.last_name }}</td>
             <td>{{ a.gst_type }}</td>

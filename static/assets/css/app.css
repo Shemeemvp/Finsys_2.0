@@ -636,8 +636,8 @@ a:hover {
 .dropdown-lg .msg-info {
 
 	font-size: 13px;
-
 	margin-bottom: 0;
+	text-wrap: pretty;
 
 }
 
@@ -3583,7 +3583,7 @@ select option {
 
 .email-star {
 
-	color: ##ffffff;
+	color: #ffffff;
 
 }
 
