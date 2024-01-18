@@ -286,7 +286,7 @@
             <form action="{% url 'Fin_addPriceListComment' list.id %}" method="post">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <textarea type="text" class="form-control" name="comment" placeholder="Add Comments.."></textarea>
+                    <textarea type="text" class="form-control" name="comment" placeholder="Add Comments.." required></textarea>
                     {% if not comments %}
                     <span class="my-2 font-weight-bold d-flex justify-content-center">No Comments.!</span>
                     {% else %}
@@ -301,7 +301,7 @@
                             </thead>
                             <tbody>
                                 {% for c in comments %}
-                                <tr class="table-row">
+                                <tr class="">
                                     <td class="text-center">{{forloop.counter }}</td>
                                     <td class="text-center">{{c.comments}}</td>
                                     <td class="text-center"><a class="text-danger" href="{% url 'Fin_deletePriceListComment' c.id %}" onclick="return confirm('Are you sure you want to delete.?')"><i class="fa fa-trash" style="font-size: 1.1rem;"></i></a></td>

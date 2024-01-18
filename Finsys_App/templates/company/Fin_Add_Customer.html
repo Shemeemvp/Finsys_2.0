@@ -119,7 +119,7 @@
                             <div class="invalid-feedback">Please select a valid registration type.</div>
                         </div>
 
-                        <div class="col-md-4 gstrow d-none" id="gstInValue">
+                        <div class="col-md-4 gstrow d-block" id="gstInValue">
                             <div>
                                 <label for="gstIN">GSTIN</label>
                                 <input type="text" class="form-control" onchange="showMessage(this)" id="gstIN" name="gstin" style="background-color: #43596c;color: white;" placeholder="29APPCK7465F1Z1">
@@ -169,7 +169,7 @@
 
                         <div class="col-md-4 mt-3">
                             <label for="priceList">Price List</label>
-                            <select name="price_list" id="priceList" class="form-control" required>
+                            <select name="price_list" id="priceList" class="form-control">
                                 <option value="" selected>Choose</option>
                                 {% for l in list %}
                                 <option value="{{l.id}}">{{l.name}}</option>

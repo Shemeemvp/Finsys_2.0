@@ -211,26 +211,7 @@
                     </div>
                   </a>
                   <div class="header-notifications-list">
-                    {% if noti %}
-                    {% for i in noti %}
-                    <a class="dropdown-item" href="{% url 'Fin_Cnotification' %}">
-                      <div class="media align-items-center">
-                        <div class="notify bg-light-primary text-primary"><i class="bx bx-file"></i>
-                        </div>
-                        <div class="media-body">
-                          <h6 class="msg-name">{{i.Title}}<span class="msg-time float-right">{{i.Noti_date}}</span></h6>
-                          <p class="msg-info">{{i.Discription}}</p>
-                        </div>
-                      </div>
-                    </a>
-                    {% endfor %}                    
-                    
-                  </div>
-                  <a href="{% url 'Fin_Cnotification' %}">
-                    <div class="text-center msg-footer">View All Notifications</div>
-                  </a>
-                  {% endif %}
-                  {% if stockAlert %}
+                    {% if stockAlert %}
                     {% for data in stockLow %}
                     <a class="dropdown-item" href="javascript:;">
                       <div class="media align-items-center">
@@ -257,6 +238,26 @@
                     </a>
                     {% endfor %}
                     {% endif %}
+
+                    {% if noti %}
+                    {% for i in noti %}
+                    <a class="dropdown-item" href="{% url 'Fin_Cnotification' %}">
+                      <div class="media align-items-center">
+                        <div class="notify bg-light-primary text-primary"><i class="bx bx-file"></i>
+                        </div>
+                        <div class="media-body">
+                          <h6 class="msg-name">{{i.Title}}<span class="msg-time float-right">{{i.Noti_date}}</span></h6>
+                          <p class="msg-info">{{i.Discription}}</p>
+                        </div>
+                      </div>
+                    </a>
+                    {% endfor %}                    
+                    
+                  </div>
+                  <a href="{% url 'Fin_Cnotification' %}">
+                    <div class="text-center msg-footer">View All Notifications</div>
+                  </a>
+                  {% endif %}
                 </div>
               </li>
               {% else %}
@@ -275,6 +276,20 @@
                   <div class="header-notifications-list">
                     {% if stockAlert %}
                     {% for data in stockLow %}
+                    <a class="dropdown-item" href="javascript:;">
+                      <div class="media align-items-center">
+                        <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i></div>
+                        <div class="media-body">
+                          <h6 class="msg-name">{{data.Title}}<span class="msg-time float-right">{{data.Noti_date|date:'Y-m-d'}}</span></h6>
+                          <p class="msg-info">'{{data.Discription}}'</p>
+                        </div>
+                      </div>
+                    </a>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if creditLimitAlert %}
+                    {% for data in creditLimit %}
                     <a class="dropdown-item" href="javascript:;">
                       <div class="media align-items-center">
                         <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i></div>

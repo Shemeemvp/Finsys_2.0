@@ -16,6 +16,9 @@ from xhtml2pdf import pisa
 from django.core.mail import send_mail, EmailMessage
 from io import BytesIO
 from django.conf import settings
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+from datetime import datetime
 
 def Fin_index(request):
     return render(request,'Fin_index.html')
@@ -1225,11 +1228,6 @@ def Fin_Add_Modules(request,id):
                 new_account = Fin_Chart_Of_Account(Company=account['company_id'],LoginDetails=account['Login_Id'],account_name=account['account_name'],account_type=account['account_type'],credit_card_no=account['credit_card_no'],sub_account=account['sub_account'],parent_account=account['parent_account'],bank_account_no=account['bank_account_no'],account_code=account['account_code'],description=account['description'],balance=account['balance'],balance_type=account['balance_type'],create_status=account['create_status'],status=account['status'],date=account['date'])
                 new_account.save()
 
-        #Adding Default Customer payment under company
-        Fin_Company_Payment_Terms.objects.create(Company=com, term_name='Due on Receipt', days=0)
-        Fin_Company_Payment_Terms.objects.create(Company=com, term_name='NET 30', days=30)
-        Fin_Company_Payment_Terms.objects.create(Company=com, term_name='NET 60', days=60)
-
         print("add modules")
         return redirect('Fin_CompanyReg')
     return redirect('Fin_Modules',id)
@@ -2387,861 +2385,560 @@ def Fin_accountHistory(request,id):
        
 #End
 
-
-# -------------Shemeem--------Price List & Customers-------------------------------
-
-# PriceList
-
-def Fin_priceList(request):
+def Fin_bankholder(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            list = Fin_Price_List.objects.filter(Company = com)
-            return render(request,'company/Fin_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list})
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            list = Fin_Price_List.objects.filter(Company = com.company_id)
-            return render(request,'company/Fin_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list})
+
+        try:
+            data = Fin_Login_Details.objects.get(id=s_id)
+
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            else:
+                staff_details = Fin_Staff_Details.objects.get(Login_Id=s_id)
+                com = staff_details.company_id  # Assuming the foreign key field is named 'company_id'
+
+            account_holder = Fin_BankAccountHolder.objects.filter(Company=com)
+            account_configuration = Fin_BankConfiguration.objects.filter(Company=com)
+            mailing_address = Fin_MailingAddress.objects.filter(Company=com)
+            bank_details = Fin_BankingDetails.objects.filter(Company=com)
+            opening_balance = Fin_OpeningBalance.objects.filter(Company=com)
+
+
+            account = Fin_BankAccount.objects.filter(Company=com)
+
+            sort_by = request.GET.get('sort_by', None)
+            if sort_by == 'bname':
+                account = account.order_by('Bank_name')
+            elif sort_by == 'name':
+                account = account.order_by('Holder_id__Holder_name')
+
+            context = {
+                'company': com,
+                'account_holder': account_holder,
+                'account': account,
+                'account_configuration': account_configuration,
+                'mailing_address': mailing_address,
+                'bank_details': bank_details,
+                'opening_balance': opening_balance,
+                'sort_by': sort_by
+            }
+
+            return render(request, 'company/Fin_Bankholders.html', context)
+
+        except Fin_Login_Details.DoesNotExist:
+            return redirect('/')
     else:
-       return redirect('/')
+        return redirect('/')  
+
+
     
-def Fin_addPriceList(request):
+
+
+def Fin_addbank(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            items = Fin_Items.objects.filter(Company = com, status = 'Active').order_by('name')
-            return render(request,'company/Fin_Add_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            items = Fin_Items.objects.filter(Company = com.company_id, status = 'Active').order_by('name')
-            return render(request,'company/Fin_Add_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'items':items})
-    else:
-       return redirect('/')
 
-def Fin_createPriceList(request):
+        try:
+            data = Fin_Login_Details.objects.get(id=s_id)
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            else:
+                staff_details = Fin_Staff_Details.objects.get(Login_Id=s_id)
+                com = staff_details.company_id 
+
+            account_holder = Fin_BankAccountHolder.objects.filter(Company=com)
+            account_configuration = Fin_BankConfiguration.objects.filter(Company=com)
+            mailing_address = Fin_MailingAddress.objects.filter(Company=com)
+            bank_details = Fin_BankingDetails.objects.filter(Company=com)
+            opening_balance = Fin_OpeningBalance.objects.filter(Company=com)
+
+            context = {
+                'company': com,
+                'account_holder': account_holder,
+                'account_configuration': account_configuration,
+                'mailing_address': mailing_address,
+                'bank_details': bank_details,
+                'opening_balance': opening_balance,
+            }
+
+            return render(request, 'company/Fin_Createbankholder.html', context)
+
+        except Fin_Login_Details.DoesNotExist:
+            return redirect('/') 
+
+    return redirect('Fin_bankholder')
+
+
+
+def Fin_Bankaccountholder(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        try:
+            data = Fin_Login_Details.objects.get(id=s_id)
 
-        if request.method == 'POST':
-            name = request.POST['name']
-            type = request.POST['type']
-            itemRate = request.POST['item_rate']
-            description = request.POST['description']
-            upOrDown = request.POST['up_or_down']
-            percent = request.POST['percentage']
-            roundOff = request.POST['round_off']
-            currency = request.POST['currency']
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            else:
+                staff_details = Fin_Staff_Details.objects.get(Login_Id=s_id)
+                com = staff_details.company_id  
 
-            if Fin_Price_List.objects.filter(Company = com, name__iexact = name).exists():
-                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
+            if request.method == "POST":
+                account_number = request.POST['accountNumber']
+                ifsc_code = request.POST['ifscCode']
+                swift_code = request.POST['swiftCode']
+                bank_name = request.POST['bank_name']
+                branch_name = request.POST['branch_name']
+                name = request.POST['name']
+                alias = request.POST['alias']
+                phone_number = request.POST['phone_number']
+                email = request.POST['email']
+                account_type = request.POST['account_type']
+                mailing_name = request.POST['mailingName']
+                address = request.POST['address']
+                country = request.POST['country']
+                state = request.POST['state']
+                pin = request.POST['pin']
+                date = request.POST['date']
+                amount = request.POST['Opening']
+                pan_it_number = request.POST['pan_it_number']
+                registration_type = request.POST['registration_type']
+                gstin_un = request.POST['gstin_un']
+                types = request.POST['termof']
+                set_cheque_book_range = request.POST['set_cheque_book_range']
+                enable_cheque_printing = request.POST['enable_cheque_printing']
+                set_cheque_printing_configuration = request.POST['set_cheque_printing_configuration']
 
-            priceList = Fin_Price_List(
-                Company = com, LoginDetails = data, name = name, type = type, item_rate = itemRate, description = description, currency = currency, up_or_down = upOrDown, percentage = percent, round_off = roundOff, status = 'Active'
-            )
-            priceList.save()
+            
+                account_holder = Fin_BankAccountHolder(
+                    Company=com,
+                    Holder_name=name,
+                    Alias=alias,
+                    phone_number=phone_number,
+                    Email=email,
+                    Account_type=account_type,
+                )
+                account_holder.save()
 
-            #save transaction
+                account = Fin_BankAccount(
+                    Company=com,
+                    Holder_id=account_holder,
+                    is_active=True,
+                    Account_number=account_number,
+                    Ifsc_code=ifsc_code,
+                    Swift_code=swift_code,
+                    Bank_name=bank_name,
+                    Branch_name=branch_name,
+                )
+                account.save()
 
-            Fin_PriceList_Transaction_History.objects.create(
-                Company = com,
-                LoginDetails = data,
-                list = priceList,
-                action = 'Created'
-            )
+                mailing_address = Fin_MailingAddress(
+                    Company=com,
+                    Holder_id=account_holder,
+                    Mailing_name=mailing_name,
+                    Address=address,
+                    Country=country,
+                    State=state,
+                    Pin=pin,
+                )
+                mailing_address.save()
 
-            if itemRate == 'Customized individual rate':
-                itemName = request.POST.getlist('itemName[]')
-                stdRate = request.POST.getlist('itemRateSale[]') if type == 'Sales' else request.POST.getlist('itemRatePurchase[]')
-                customRate = request.POST.getlist('customRate[]')
+                opening_balance = Fin_OpeningBalance(
+                    Company=com,
+                    Holder_id=account_holder,
+                    Date=date,
+                    ArithmeticErrormount=amount,
+                    Open_type=types,
+                )
+                opening_balance.save()
+
+                bank_details = Fin_BankingDetails(
+                    Company=com,
+                    Holder_id=account_holder,
+                    Pan_it_number=pan_it_number,
+                    Registration_type=registration_type,
+                    Gstin_un=gstin_un,
+                )
+                bank_details.save()
+
+                account_configuration = Fin_BankConfiguration(
+                    Company=com,
+                    Holder_id=account_holder,
+                    Set_cheque_book_range=True if set_cheque_book_range == "Yes" else False,
+                    Enable_cheque_printing=True if enable_cheque_printing == "Yes" else False,
+                    Set_cheque_printing_configuration=True if set_cheque_printing_configuration == "Yes" else False,
+                )
+                account_configuration.save()
+
+                Fin_BankHistory.objects.create(
+                    Company=com,
+                    LoginDetails=data,
+                    account=account,
+                    Holder_id=account_holder,
+                    date=timezone.now(),
+                    action='Created'
+                )
+
+                return redirect('Fin_bankholder')
+
+        except Fin_Login_Details.DoesNotExist:
+            return redirect('/')
+
+    return redirect('Fin_bankholder')
+
+
+def Fin_Bankholderview(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+
+        try:
+            data = Fin_Login_Details.objects.get(id=s_id)
+
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            else:
+                staff_details = Fin_Staff_Details.objects.get(Login_Id=s_id)
+                com = staff_details.company_id 
+
+            account = Fin_BankAccount.objects.get(id=id) 
+            holder = account.Holder_id  
+
+            try:
+                mailing_address = Fin_MailingAddress.objects.get(Holder_id=holder)
+            except Fin_MailingAddress.DoesNotExist:
+                mailing_address = None
+
+            try:
+                banking_details = Fin_BankingDetails.objects.get(Holder_id=holder)
+            except Fin_BankingDetails.DoesNotExist:
+                banking_details = None
+
+            try:
+                opening_balance = Fin_OpeningBalance.objects.get(Holder_id=holder)
+            except Fin_OpeningBalance.DoesNotExist:
+                opening_balance = None
+
+            try:
+                bank_configuration = Fin_BankConfiguration.objects.get(Holder_id=holder)
+            except Fin_BankConfiguration.DoesNotExist:
+                bank_configuration = None
+
+            last_history_entry = Fin_BankHistory.objects.filter(Holder_id=holder).order_by('-date').first()
+
+            context = {
+                'account': account,
+                'holder': holder,
+                'mailing_address': mailing_address,
+                'banking_details': banking_details,
+                'opening_balance': opening_balance,
+                'bank_configuration': bank_configuration,
+                'company': com,
+                'last_history_entry': last_history_entry,
+            }
+
+            return render(request, 'company/Fin_Bankholderview.html', context)
+
+        except Fin_Login_Details.DoesNotExist:
+            return redirect('/')  
+
+    return redirect('Fin_bankholder')
+
+
+
+
+def Fin_activebankholder(request, id):
+    bank_account = Fin_BankAccount.objects.get(id=id)
+    bank_account.is_active = True
+    bank_account.save()
+    return redirect('Fin_Bankholderview', id=id)
+
+
+def Fin_inactivatebankaccount(request, id):
+    bank_account = Fin_BankAccount.objects.get(id=id)
+    bank_account.is_active = False
+    bank_account.save()
+    return redirect('Fin_Bankholderview', id=id)
+
+
+
+def Fin_Editbankholder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+
+        try:
+            data = Fin_Login_Details.objects.get(id=s_id)
+
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            else:
+                staff_details = Fin_Staff_Details.objects.get(Login_Id=s_id)
+                com = staff_details.company_id  
+
+            account = Fin_BankAccount.objects.get(id=id, Company=com)
+            holder = account.Holder_id  
+
+    
+            try:
+                account_configuration = Fin_BankConfiguration.objects.get(Holder_id=holder, Company=com)
+            except Fin_BankConfiguration.DoesNotExist:
+                account_configuration = None
+
+            try:
+                mailing_address = Fin_MailingAddress.objects.get(Holder_id=holder, Company=com)
+            except Fin_MailingAddress.DoesNotExist:
+                mailing_address = None
+
+            try:
+                bank_details = Fin_BankingDetails.objects.get(Holder_id=holder, Company=com)
+            except Fin_BankingDetails.DoesNotExist:
+                bank_details = None
+
+            try:
+                opening_balance = Fin_OpeningBalance.objects.get(Holder_id=holder, Company=com)
+            except Fin_OpeningBalance.DoesNotExist:
+                opening_balance = None
+
+            context = {
+                'Company_id': com,
+                'account': account,
+                'account_configuration': account_configuration,
+                'mailing_address': mailing_address,
+                'bank_details': bank_details,
+                'opening_balance': opening_balance
+            }
+
+            return render(request, 'company/Fin_Editbankholder.html', context)
+
+        except Fin_Login_Details.DoesNotExist:
+            return redirect('/') 
+
+    return redirect('Fin_bankholder')
+
+
+
+def Fin_Editholder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+
+        try:
+            data = Fin_Login_Details.objects.get(id=s_id)
+
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            else:
+                staff_details = Fin_Staff_Details.objects.get(Login_Id=s_id)
+                com = staff_details.company_id  
                 
-                if len(itemName) == len(stdRate) == len(customRate):
-                    values = zip(itemName,stdRate,customRate)
-                    lis = list(values)
+            account_holder = Fin_BankAccountHolder.objects.get(id=id, Company=com)
 
-                    for ele in lis:
-                        Fin_PriceList_Items.objects.get_or_create(Company = com, LoginDetails = data, list = priceList, item = Fin_Items.objects.get(id = int(ele[0])), standard_rate = float(ele[1]), custom_rate = float(ele[2]))
+            if request.method == "POST":
+                name = request.POST.get('name')
+                alias = request.POST.get('alias')
+                phone_number = request.POST.get('phone_number')
+                email = request.POST.get('email')
+                account_type = request.POST.get('account_type')
+                mailing_name = request.POST.get('mailingName')
+                address = request.POST.get('address')
+                country = request.POST.get('country')
+                state = request.POST.get('state')
+                pin = request.POST.get('pin')
+                # date = request.POST.get('date')
+                date_str = request.POST.get('date')
+                amount = request.POST.get('Opening')
+                types = request.POST.get('termof')
+                pan_it_number = request.POST.get('pan_it_number')
+                registration_type = request.POST.get('registration_type')
+                gstin_un = request.POST.get('gstin_un')
+                account_number = request.POST.get('accountNumber')
+                ifsc_code = request.POST.get('ifscCode')
+                swift_code = request.POST.get('swiftCode')
+                bank_name = request.POST.get('bank_name')
+                branch_name = request.POST.get('branch_name')
+                set_cheque_book_range = request.POST.get('set_cheque_book_range')
+                enable_cheque_printing = request.POST.get('enable_cheque_printing')
+                set_cheque_printing_configuration = request.POST.get('set_cheque_printing_configuration')
 
-                    return redirect(Fin_priceList)
+                date = datetime.strptime(date_str, '%Y-%m-%d').date()
+               
+                account_holder.Holder_name = name
+                account_holder.Alias = alias
+                account_holder.phone_number = phone_number
+                account_holder.Email = email
+                account_holder.Account_type = account_type
+                account_holder.save()
 
-                return redirect(Fin_addPriceList)
+                
+                for bank_account in account_holder.fin_bankaccount_set.filter(Company=com):
+                    bank_account.Account_number = account_number
+                    bank_account.Ifsc_code = ifsc_code
+                    bank_account.Swift_code = swift_code
+                    bank_account.Bank_name = bank_name
+                    bank_account.Branch_name = branch_name
+                    bank_account.save()
 
-            return redirect(Fin_priceList)
+                for mailing_address in account_holder.fin_mailingaddress_set.filter(Company=com):
+                    mailing_address.Mailing_name = mailing_name
+                    mailing_address.Address = address
+                    mailing_address.Country = country
+                    mailing_address.State = state
+                    mailing_address.Pin = pin
+                    mailing_address.save()
 
-        else:
-                return redirect(Fin_addPriceList)
-    else:
-        return redirect('/')
+                for opening_balance in account_holder.fin_openingbalance_set.filter(Company=com):
+                    opening_balance.Date = date
+                    opening_balance.ArithmeticErrormount = amount
+                    opening_balance.Open_type = types
+                    opening_balance.save()
 
-def Fin_viewPriceList(request,id):
+                for bank_details in account_holder.fin_bankingdetails_set.filter(Company=com):
+                    bank_details.Pan_it_number = pan_it_number
+                    bank_details.Registration_type = registration_type
+                    bank_details.Gstin_un = gstin_un
+                    bank_details.save()
+
+                for account_configuration in account_holder.fin_bankconfiguration_set.filter(Company=com):
+                    account_configuration.Set_cheque_book_range = True if set_cheque_book_range == "Yes" else False
+                    account_configuration.Enable_cheque_printing = True if enable_cheque_printing == "Yes" else False
+                    account_configuration.Set_cheque_printing_configuration = True if set_cheque_printing_configuration == "Yes" else False
+                    account_configuration.save()
+
+                
+                # Get or create the 'Created' entry for the holder
+                created_entry, created_entry_created = Fin_BankHistory.objects.get_or_create(
+                    Holder_id=account_holder,
+                    action='Created',
+                    defaults={'date': date}
+                )
+
+                # If the 'Created' entry already existed, update its date
+                if not created_entry_created:
+                    created_entry.date = date
+                    created_entry.save()
+
+                # Create a new 'Edited' entry
+                Fin_BankHistory.objects.create(
+                    LoginDetails=data,
+                    Company=com,
+                    Holder_id=account_holder,
+                    account=account_holder.fin_bankaccount_set.first(),
+                    date=date,
+                    action='Edited'
+                )
+
+
+
+                return redirect('Fin_bankholder')
+
+            return redirect('Fin_bankholder')
+
+        except Fin_Login_Details.DoesNotExist:
+            return redirect('/')  
+
+    return redirect('Fin_bankholder')
+
+
+
+
+def Fin_deleteholder(request, id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        list = Fin_Price_List.objects.get(id = id)
-        plItems = Fin_PriceList_Items.objects.filter(list = list)
-        cmt = Fin_PriceList_Comments.objects.filter(list = list)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            hist = Fin_PriceList_Transaction_History.objects.filter(Company = com, list = list).last()
-            return render(request,'company/Fin_View_PriceList.html',{'allmodules':allmodules,'com':com,'data':data,'plItems':plItems, 'list':list, 'comments':cmt, 'history': hist})
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            hist = Fin_PriceList_Transaction_History.objects.filter(Company = com.company_id, list = list).last()
-            return render(request,'company/Fin_View_PriceList.html',{'allmodules':allmodules,'com':com,'data':data,'plItems':plItems, 'list':list, 'comments':cmt, 'history': hist})
-    else:
-       return redirect('/')
-    
-def Fin_changePriceListStatus(request,id,status):
-    if 's_id' in request.session:
-        list = Fin_Price_List.objects.get(id = id)
-        list.status = status
-        list.save()
-        return redirect(Fin_viewPriceList, id)
-    
-def Fin_deletePriceList(request, id):
-    if 's_id' in request.session:
-        list = Fin_Price_List.objects.get( id = id)
-        list.delete()
-        return redirect(Fin_priceList)
-    
-def Fin_addPriceListComment(request, id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
-        list = Fin_Price_List.objects.get(id = id)
-        if request.method == "POST":
-            cmt = request.POST['comment'].strip()
-
-            Fin_PriceList_Comments.objects.create(Company = com, list = list, comments = cmt)
-            return redirect(Fin_viewPriceList, id)
-        return redirect(Fin_viewPriceList, id)
-    return redirect('/')
-
-def Fin_deletePriceListComment(request,id):
-    if 's_id' in request.session:
-        cmt = Fin_PriceList_Comments.objects.get(id = id)
-        listId = cmt.list.id
-        cmt.delete()
-        return redirect(Fin_viewPriceList, listId)
-
-def Fin_priceListHistory(request,id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        list = Fin_Price_List.objects.get(id = id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            his = Fin_PriceList_Transaction_History.objects.filter(Company = com , list = list)
-            return render(request,'company/Fin_PriceList_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'list':list})
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            his = Fin_PriceList_Transaction_History.objects.filter(Company = com.company_id , list = list)
-            return render(request,'company/Fin_PriceList_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'list':list})
-    else:
-       return redirect('/')
-    
-def Fin_editPriceList(request, id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        list = Fin_Price_List.objects.get(id = id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            plItems = Fin_PriceList_Items.objects.filter(Company = com, list = list)
-            items = Fin_Items.objects.filter(Company = com, status = 'Active').order_by('name')
-            return render(request,'company/Fin_Edit_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list, 'plItems':plItems, 'items':items })
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            plItems = Fin_PriceList_Items.objects.filter(Company = com.company_id, list = list)
-            items = Fin_Items.objects.filter(Company = com.company_id, status = 'Active').order_by('name')
-            return render(request,'company/Fin_Edit_Price_List.html',{'allmodules':allmodules,'com':com,'data':data,'list':list, 'plItems':plItems, 'items':items })
-    else:
-       return redirect('/')
-
-def Fin_updatePriceList(request,id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        lst = Fin_Price_List.objects.get(id = id)
-        if request.method == 'POST':
-            name = request.POST['name']
-            type = request.POST['type']
-            itemRate = request.POST['item_rate']
-            description = request.POST['description']
-            upOrDown = request.POST['up_or_down']
-            percent = request.POST['percentage']
-            roundOff = request.POST['round_off']
-            currency = request.POST['currency']
-
-            if lst.name != name and Fin_Price_List.objects.filter(Company = com, name__iexact = name).exists():
-                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-
-            if lst.item_rate == 'Customized individual rate' and itemRate != 'Customized individual rate':
-                Fin_PriceList_Items.objects.filter(list = lst).delete()
-
-            lst.name = name
-            lst.type = type
-            lst.item_rate = itemRate
-            lst.description = description
-            lst.currency = currency
-            lst.up_or_down = upOrDown
-            if itemRate == 'Customized individual rate':
-                lst.percentage = None
-                lst.round_off = None
-            else:
-                lst.percentage = percent
-                lst.round_off = roundOff
-            lst.save()
-
-            #save transaction
-
-            Fin_PriceList_Transaction_History.objects.create(
-                Company = com,
-                LoginDetails = data,
-                list = lst,
-                action = 'Edited'
-            )
-
-            itemName = request.POST.getlist('itemName[]')
-            stdRate = request.POST.getlist('itemRateSale[]') if type == 'Sales' else request.POST.getlist('itemRatePurchase[]')
-            customRate = request.POST.getlist('customRate[]')
-            
-            if itemRate == 'Customized individual rate':
-                if Fin_PriceList_Items.objects.filter(list = lst).exists():
-                    ids = request.POST.getlist('plItemId[]')
-                    
-                    if len(ids) == len(itemName) == len(stdRate) == len(customRate):
-                        values = zip(ids, itemName,stdRate,customRate)
-                        lis = list(values)
-
-                        for ele in lis:
-                            Fin_PriceList_Items.objects.filter(id = ele[0]).update(Company = com, LoginDetails = data, list = lst, item = Fin_Items.objects.get(id = int(ele[1])), standard_rate = float(ele[2]), custom_rate = float(ele[3]))
-
-                        return redirect(Fin_viewPriceList,id)
-
-                    else:
-                        return redirect(Fin_editPriceList, id)
-                else:
-                    if len(itemName) == len(stdRate) == len(customRate):
-                        values = zip(itemName,stdRate,customRate)
-                        lis = list(values)
-                        for ele in lis:
-                            Fin_PriceList_Items.objects.create(Company = com, LoginDetails = data, list = lst, item = Fin_Items.objects.get(id = int(ele[0])), standard_rate = float(ele[1]), custom_rate = float(ele[2]))
-                        
-                        return redirect(Fin_viewPriceList,id)
-            else:
-                return redirect(Fin_viewPriceList,id)
-
-        else:
-            return redirect(Fin_editPriceList, id)
-    else:
-        return redirect('/')
-
-def Fin_priceListViewPdf(request,id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        lst = Fin_Price_List.objects.get(id = id)
-        plItems = Fin_PriceList_Items.objects.filter(list = lst)
-    
-        context = {'list': lst, 'plItems':plItems}
-        
-        template_path = 'company/Fin_PriceListView_Pdf.html'
-        fname = 'Price_List_'+lst.name
-        # return render(request, 'company/Fin_PriceListView_Pdf.html',context)
-        # Create a Django response object, and specify content_type as pdftemp_
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
-        # find the template and render it.
-        template = get_template(template_path)
-        html = template.render(context)
-
-        # create a pdf
-        pisa_status = pisa.CreatePDF(
-        html, dest=response)
-        # if error then show some funny view
-        if pisa_status.err:
-            return HttpResponse('We had some errors <pre>' + html + '</pre>')
-        return response
-    else:
-        return redirect('/')
-
-def Fin_sharePriceListViewToEmail(request,id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        lst = Fin_Price_List.objects.get(id = id)
-        plItems = Fin_PriceList_Items.objects.filter(list = lst)
         try:
-            if request.method == 'POST':
-                emails_string = request.POST['email_ids']
+            data = Fin_Login_Details.objects.get(id=s_id)
 
-                # Split the string by commas and remove any leading or trailing whitespace
-                emails_list = [email.strip() for email in emails_string.split(',')]
-                email_message = request.POST['email_message']
-                # print(emails_list)
-            
-                context = {'list': lst, 'plItems':plItems}
-                template_path = 'company/Fin_PriceListView_Pdf.html'
-                template = get_template(template_path)
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            else:
+                staff_details = Fin_Staff_Details.objects.get(Login_Id=s_id)
+                com = staff_details.company_id 
 
-                html  = template.render(context)
-                result = BytesIO()
-                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
-                pdf = result.getvalue()
-                filename = f'Price_list_{lst.name}.pdf'
-                subject = f"Price_list_{lst.name}"
-                email = EmailMessage(subject, f"Hi,\nPlease find the attached Price List details - Price List-{lst.name}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
-                email.attach(filename, pdf, "application/pdf")
-                email.send(fail_silently=False)
+            upd = Fin_BankAccount.objects.get(id=id, Holder_id__Company=com)
 
-                messages.success(request, 'Price List details has been shared via email successfully..!')
-                return redirect(Fin_viewPriceList,id)
-        except Exception as e:
-            print(e)
-            messages.error(request, f'{e}')
-            return redirect(Fin_viewPriceList, id)
+            holder_id = upd.Holder_id.id 
+
+            Fin_BankAccount.objects.filter(Holder_id=holder_id, Holder_id__Company=com).delete()
+            Fin_BankingDetails.objects.filter(Holder_id=holder_id, Holder_id__Company=com).delete()
+            Fin_BankConfiguration.objects.filter(Holder_id=holder_id, Holder_id__Company=com).delete()
+            Fin_MailingAddress.objects.filter(Holder_id=holder_id, Holder_id__Company=com).delete()
+            Fin_OpeningBalance.objects.filter(Holder_id=holder_id, Holder_id__Company=com).delete()
+
+            Fin_BankAccountHolder.objects.filter(id=holder_id, Company=com).delete()
+            upd.delete()
+
+        except Fin_Login_Details.DoesNotExist:
+            return redirect('/')  
+
+    return redirect('Fin_bankholder')
 
 
-# Customers
-        
-def Fin_customers(request):
+
+
+def Fin_addcomment(request, id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            cust = Fin_Customers.objects.filter(Company = com)
-            return render(request,'company/Fin_Customers.html',{'allmodules':allmodules,'com':com,'data':data,'customers':cust})
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            cust = Fin_Customers.objects.filter(Company = com.company_id)
-            return render(request,'company/Fin_Customers.html',{'allmodules':allmodules,'com':com,'data':data,'customers':cust})
-    else:
-       return redirect('/')
 
-def Fin_addCustomer(request):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            trms = Fin_Company_Payment_Terms.objects.filter(Company = com)
-            lst = Fin_Price_List.objects.filter(Company = com, status = 'Active')
-            return render(request,'company/Fin_Add_Customer.html',{'allmodules':allmodules,'com':com,'data':data, 'pTerms':trms, 'list':lst})
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            trms = Fin_Company_Payment_Terms.objects.filter(Company = com.company_id)
-            lst = Fin_Price_List.objects.filter(Company = com.company_id, status = 'Active')
-            return render(request,'company/Fin_Add_Customer.html',{'allmodules':allmodules,'com':com,'data':data, 'pTerms':trms, 'list':lst})
-    else:
-       return redirect('/')
-
-def Fin_checkCustomerName(request):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        fName = request.POST['fname']
-        lName = request.POST['lname']
-
-        if Fin_Customers.objects.filter(Company = com, first_name__iexact = fName, last_name__iexact = lName).exists():
-            msg = f'{fName} {lName} already exists, Try another.!'
-            return JsonResponse({'is_exist':True, 'message':msg})
-        else:
-            return JsonResponse({'is_exist':False})
-    else:
-        return redirect('/')
-    
-def Fin_checkCustomerGSTIN(request):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        gstIn = request.POST['gstin']
-
-        if Fin_Customers.objects.filter(Company = com, gstin__iexact = gstIn).exists():
-            msg = f'{gstIn} already exists, Try another.!'
-            return JsonResponse({'is_exist':True, 'message':msg})
-        else:
-            return JsonResponse({'is_exist':False})
-    else:
-        return redirect('/')
-    
-def Fin_checkCustomerPAN(request):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        pan = request.POST['pan']
-
-        if Fin_Customers.objects.filter(Company = com, pan_no__iexact = pan).exists():
-            msg = f'{pan} already exists, Try another.!'
-            return JsonResponse({'is_exist':True, 'message':msg})
-        else:
-            return JsonResponse({'is_exist':False})
-    else:
-        return redirect('/')
-
-def Fin_checkCustomerPhone(request):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        phn = request.POST['phone']
-
-        if Fin_Customers.objects.filter(Company = com, mobile__iexact = phn).exists():
-            msg = f'{phn} already exists, Try another.!'
-            return JsonResponse({'is_exist':True, 'message':msg})
-        else:
-            return JsonResponse({'is_exist':False})
-    else:
-        return redirect('/')
-
-def Fin_checkCustomerEmail(request):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        email = request.POST['email']
-
-        if Fin_Customers.objects.filter(Company = com, email__iexact = email).exists():
-            msg = f'{email} already exists, Try another.!'
-            return JsonResponse({'is_exist':True, 'message':msg})
-        else:
-            return JsonResponse({'is_exist':False})
-    else:
-        return redirect('/')
-    
-def Fin_createCustomer(request):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-
-        if request.method == 'POST':
-            fName = request.POST['first_name']
-            lName = request.POST['last_name']
-            gstIn = request.POST['gstin']
-            pan = request.POST['pan_no']
-            email = request.POST['email']
-            phn = request.POST['mobile']
-
-            if Fin_Customers.objects.filter(Company = com, first_name__iexact = fName, last_name__iexact = lName).exists():
-                res = f'<script>alert("Customer `{fName} {lName}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-            elif gstIn !="" and Fin_Customers.objects.filter(Company = com, gstin__iexact = gstIn).exists():
-                res = f'<script>alert("GSTIN `{gstIn}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-            elif Fin_Customers.objects.filter(Company = com, pan_no__iexact = pan).exists():
-                res = f'<script>alert("PAN No `{pan}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-            elif Fin_Customers.objects.filter(Company = com, mobile__iexact = phn).exists():
-                res = f'<script>alert("Phone Number `{phn}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-            elif Fin_Customers.objects.filter(Company = com, email__iexact = email).exists():
-                res = f'<script>alert("Email `{email}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-
-            cust = Fin_Customers(
-                Company = com,
-                LoginDetails = data,
-                title = request.POST['title'],
-                first_name = fName,
-                last_name = lName,
-                company = request.POST['company_name'],
-                location = request.POST['location'],
-                place_of_supply = request.POST['place_of_supply'],
-                gst_type = request.POST['gst_type'],
-                gstin = None if request.POST['gst_type'] == "Unregistered Business" or request.POST['gst_type'] == 'Overseas' or request.POST['gst_type'] == 'Consumer' else gstIn,
-                pan_no = pan,
-                email = email,
-                mobile = phn,
-                website = request.POST['website'],
-                price_list = None if request.POST['price_list'] ==  "" else Fin_Price_List.objects.get(id = request.POST['price_list']),
-                payment_terms = None if request.POST['payment_terms'] == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_terms']),
-                opening_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
-                open_balance_type = request.POST['balance_type'],
-                current_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
-                credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit']),
-                billing_street = request.POST['street'],
-                billing_city = request.POST['city'],
-                billing_state = request.POST['state'],
-                billing_pincode = request.POST['pincode'],
-                billing_country = request.POST['country'],
-                ship_street = request.POST['shipstreet'],
-                ship_city = request.POST['shipcity'],
-                ship_state = request.POST['shipstate'],
-                ship_pincode = request.POST['shippincode'],
-                ship_country = request.POST['shipcountry'],
-                status = 'Active'
-            )
-            cust.save()
-
-            #save transaction
-
-            Fin_Customers_History.objects.create(
-                Company = com,
-                LoginDetails = data,
-                customer = cust,
-                action = 'Created'
-            )
-
-            return redirect(Fin_customers)
-
-        else:
-            return redirect(Fin_addCustomer)
-    else:
-        return redirect('/')
-
-def Fin_newCustomerPaymentTerm(request):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-
-        term = request.POST['term']
-        days = request.POST['days']
-
-        if not Fin_Company_Payment_Terms.objects.filter(Company = com, term_name__iexact = term).exists():
-            Fin_Company_Payment_Terms.objects.create(Company = com, term_name = term, days =days)
-            
-            list= []
-            terms = Fin_Company_Payment_Terms.objects.filter(Company = com)
-
-            for term in terms:
-                termDict = {
-                    'name': term.term_name,
-                    'id': term.id
-                }
-                list.append(termDict)
-
-            return JsonResponse({'status':True,'terms':list},safe=False)
-        else:
-            return JsonResponse({'status':False})
-
-    else:
-        return redirect('/')
-
-def Fin_viewCustomer(request,id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        cust = Fin_Customers.objects.get(id = id)
-        cmt = Fin_Customers_Comments.objects.filter(customer = cust)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            hist = Fin_Customers_History.objects.filter(Company = com, customer = cust).last()
-            return render(request,'company/Fin_View_Customer.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'history':hist, 'comments':cmt})
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            hist = Fin_Customers_History.objects.filter(Company = com.company_id, customer = cust).last()
-            return render(request,'company/Fin_View_Customer.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'history':hist, 'comments':cmt})
-    else:
-       return redirect('/')
-
-def Fin_changeCustomerStatus(request,id,status):
-    if 's_id' in request.session:
-        
-        cust = Fin_Customers.objects.get(id = id)
-        cust.status = status
-        cust.save()
-        return redirect(Fin_viewCustomer, id)
-    
-def Fin_deleteCustomer(request, id):
-    if 's_id' in request.session:
-        cust = Fin_Customers.objects.get( id = id)
-        cust.delete()
-        return redirect(Fin_customers)
-    
-def Fin_customerHistory(request,id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        cust = Fin_Customers.objects.get(id = id)
-        his = Fin_Customers_History.objects.filter(customer = cust)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            return render(request,'company/Fin_Customer_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'customer':cust})
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            return render(request,'company/Fin_Customer_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'customer':cust})
-    else:
-       return redirect('/')
-
-def Fin_editCustomer(request, id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        cust = Fin_Customers.objects.get(id = id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            trms = Fin_Company_Payment_Terms.objects.filter(Company = com)
-            lst = Fin_Price_List.objects.filter(Company = com, status = 'Active')
-            return render(request,'company/Fin_Edit_Customer.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'pTerms':trms, 'list':lst})
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            trms = Fin_Company_Payment_Terms.objects.filter(Company = com.company_id)
-            lst = Fin_Price_List.objects.filter(Company = com.company_id, status = 'Active')
-            return render(request,'company/Fin_Edit_Customer.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'pTerms':trms, 'list':lst})
-    else:
-       return redirect('/')
-
-def Fin_updateCustomer(request,id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-
-        cust = Fin_Customers.objects.get(id = id)
-
-        if request.method == 'POST':
-            fName = request.POST['first_name']
-            lName = request.POST['last_name']
-            gstIn = request.POST['gstin']
-            pan = request.POST['pan_no']
-            email = request.POST['email']
-            phn = request.POST['mobile']
-
-            if cust.first_name != fName and cust.last_name != lName and Fin_Customers.objects.filter(Company = com, first_name__iexact = fName, last_name__iexact = lName).exists():
-                res = f'<script>alert("Customer `{fName} {lName}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-            elif gstIn != "" and cust.gstin != gstIn and Fin_Customers.objects.filter(Company = com, gstin__iexact = gstIn).exists():
-                res = f'<script>alert("GSTIN `{gstIn}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-            elif cust.pan_no != pan and Fin_Customers.objects.filter(Company = com, pan_no__iexact = pan).exists():
-                res = f'<script>alert("PAN No `{pan}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-            elif cust.mobile != phn and Fin_Customers.objects.filter(Company = com, mobile__iexact = phn).exists():
-                res = f'<script>alert("Phone Number `{phn}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-            elif cust.email != email and Fin_Customers.objects.filter(Company = com, email__iexact = email).exists():
-                res = f'<script>alert("Email `{email}` already exists, try another!");window.history.back();</script>'
-                return HttpResponse(res)
-
-            # Updating customer details
-
-            cust.title = request.POST['title']
-            cust.first_name = fName
-            cust.last_name = lName
-            cust.company = request.POST['company_name']
-            cust.location = request.POST['location']
-            cust.place_of_supply = request.POST['place_of_supply']
-            cust.gst_type = request.POST['gst_type']
-            cust.gstin = None if request.POST['gst_type'] == "Unregistered Business" or request.POST['gst_type'] == 'Overseas' or request.POST['gst_type'] == 'Consumer' else gstIn
-            cust.pan_no = pan
-            cust.email = email
-            cust.mobile = phn
-            cust.website = request.POST['website']
-            cust.price_list = None if request.POST['price_list'] ==  "" else Fin_Price_List.objects.get(id = request.POST['price_list'])
-            cust.payment_terms = None if request.POST['payment_terms'] == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_terms'])
-            cust.opening_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance'])
-            cust.open_balance_type = request.POST['balance_type']
-            cust.current_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance'])
-            cust.credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit'])
-            cust.billing_street = request.POST['street']
-            cust.billing_city = request.POST['city']
-            cust.billing_state = request.POST['state']
-            cust.billing_pincode = request.POST['pincode']
-            cust.billing_country = request.POST['country']
-            cust.ship_street = request.POST['shipstreet']
-            cust.ship_city = request.POST['shipcity']
-            cust.ship_state = request.POST['shipstate']
-            cust.ship_pincode = request.POST['shippincode']
-            cust.ship_country = request.POST['shipcountry']
-
-            cust.save()
-
-            #save transaction
-
-            Fin_Customers_History.objects.create(
-                Company = com,
-                LoginDetails = data,
-                customer = cust,
-                action = 'Edited'
-            )
-
-            return redirect(Fin_viewCustomer, id)
-
-        else:
-            return redirect(Fin_editCustomer, id)
-    else:
-        return redirect('/')
-
-def Fin_customerTransactionsPdf(request,id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        cust = Fin_Customers.objects.get(id = id)
-    
-        context = {'customer':cust}
-        
-        template_path = 'company/Fin_Customer_Transaction_Pdf.html'
-        fname = 'Customer_Transactions_'+cust.first_name+'_'+cust.last_name
-        # return render(request, 'company/Fin_Customer_Transaction_Pdf.html',context)
-        # Create a Django response object, and specify content_type as pdftemp_
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
-        # find the template and render it.
-        template = get_template(template_path)
-        html = template.render(context)
-
-        # create a pdf
-        pisa_status = pisa.CreatePDF(
-        html, dest=response)
-        # if error then show some funny view
-        if pisa_status.err:
-            return HttpResponse('We had some errors <pre>' + html + '</pre>')
-        return response
-    else:
-        return redirect('/')
-
-def Fin_shareCustomerTransactionsToEmail(request,id):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
-        
-        cust = Fin_Customers.objects.get(id = id)
         try:
+            data = Fin_Login_Details.objects.get(id=s_id)
+
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            else:
+                staff_details = Fin_Staff_Details.objects.get(Login_Id=s_id)
+                com = staff_details.company_id
+
+            account = get_object_or_404(Fin_BankAccount, id=id, Company=com)
+            holder = get_object_or_404(Fin_BankAccountHolder, id=account.Holder_id.id)
+
             if request.method == 'POST':
-                emails_string = request.POST['email_ids']
+                comment_text = request.POST.get('comment')
+                comment = Fin_Comment.objects.create(comment_text=comment_text, bank_account=account, Holder_id=holder)
+                comment.save()
+                
+                comments = Fin_Comment.objects.filter(bank_account=account)
+                 
+                return redirect('Fin_addcomment', id=id)  
 
-                # Split the string by commas and remove any leading or trailing whitespace
-                emails_list = [email.strip() for email in emails_string.split(',')]
-                email_message = request.POST['email_message']
-                # print(emails_list)
-            
-                context = {'customer': cust}
-                template_path = 'company/Fin_Customer_Transaction_Pdf.html'
-                template = get_template(template_path)
+            comments = Fin_Comment.objects.filter(bank_account=account)
+            return render(request, 'company/Fin_Bankholderview.html', {'account': account, 'holder': holder, 'comments': comments})
 
-                html  = template.render(context)
-                result = BytesIO()
-                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
-                pdf = result.getvalue()
-                filename = f'Customer_Transactions_{cust.first_name}_{cust.last_name}'
-                subject = f"Customer_Transactions_{cust.first_name}_{cust.last_name}"
-                email = EmailMessage(subject, f"Hi,\nPlease find the attached Transaction details for - Customer-{cust.first_name} {cust.last_name}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
-                email.attach(filename, pdf, "application/pdf")
-                email.send(fail_silently=False)
+        except Fin_Login_Details.DoesNotExist:
+            return redirect('/')  
 
-                messages.success(request, 'Transactions details has been shared via email successfully..!')
-                return redirect(Fin_viewCustomer,id)
-        except Exception as e:
-            print(e)
-            messages.error(request, f'{e}')
-            return redirect(Fin_viewCustomer, id)
+    return redirect('/')  
 
-def Fin_addCustomerComment(request, id):
+
+
+def Fin_deletecomment(request, comment_id):
+    comment = get_object_or_404(Fin_Comment, id=comment_id)
+    comment.delete()
+    return redirect(reverse('Fin_addcomment', kwargs={'id': comment.bank_account.id}))
+
+
+
+def Fin_Bankhistory(request, account_id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
-        cust = Fin_Customers.objects.get(id = id)
-        if request.method == "POST":
-            cmt = request.POST['comment'].strip()
+        try:
+            data = Fin_Login_Details.objects.get(id=s_id)
 
-            Fin_Customers_Comments.objects.create(Company = com, customer = cust, comments = cmt)
-            return redirect(Fin_viewCustomer, id)
-        return redirect(Fin_viewCustomer, id)
+            if data.User_Type == "Company":
+                com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            else:
+                staff_details = Fin_Staff_Details.objects.get(Login_Id=s_id)
+                com = staff_details.company_id
+
+            account = get_object_or_404(Fin_BankAccount, id=account_id, Company=com)
+            history = Fin_BankHistory.objects.filter(account=account).order_by('-date')
+
+            context = {
+                'account': account,
+                'history': history,
+                'Holder_id': account.Holder_id,
+            }
+            return render(request, 'company/Fin_BankHistory.html', context)
+
+        except Fin_Login_Details.DoesNotExist:
+            return redirect('/')  
+
     return redirect('/')
-
-def Fin_deleteCustomerComment(request,id):
-    if 's_id' in request.session:
-        cmt = Fin_Customers_Comments.objects.get(id = id)
-        custId = cmt.customer.id
-        cmt.delete()
-        return redirect(Fin_viewCustomer, custId)
-# End

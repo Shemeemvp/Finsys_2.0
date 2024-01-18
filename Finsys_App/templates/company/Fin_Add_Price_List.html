@@ -43,15 +43,20 @@
                     <div class="col-md-12 mx-0">
 
                         <div class="row mt-3 d-flex justify-content-center">
-                            <div class="col-md-6">
+                            <div class="col-md-2">
                                 <label for="PLName" style="color: white;">Name</label>
+                            </div>
+                            <div class="col-md-5">
+                                
                                 <input type="text" id="PLName" name="name" class="form-control" style="background-color: #2a4964; color: white;" autocomplete="off" required>
                             </div>
                         </div>
 
                         <div class="row mt-3 d-flex justify-content-center">
-                            <div class="col-md-6">
-                                <p class="">Type</p>
+                            <div class="col-md-2">
+                                <label for="" style="color: white;">Type</label>
+                            </div>
+                            <div class="col-md-5">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="type" id="typeSale" value="Sales" checked>
                                     <label class="form-check-label" for="typeSale">Sales</label>
@@ -64,8 +69,11 @@
                         </div>
                         
                         <div class="row mt-3 d-flex justify-content-center">
-                            <div class="col-md-6">
-                                <p class="">Item Rate</p>
+                            <div class="col-md-2">
+                                <label for="" style="color: white;">Item Rate</label>
+                            </div>
+                            <div class="col-md-5">
+                                <!-- <p class=""></p> -->
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="item_rate" id="itemRatePercentage" value="Markup/Markdown by a percentage" checked>
                                     <label class="form-check-label" for="itemRatePercentage">Markup or Markdown the item rates by a percentage</label>
@@ -78,16 +86,20 @@
                         </div>
                         
                         <div class="row mt-3 d-flex justify-content-center">
-                            <div class="col-md-6">
+                            <div class="col-md-2">
                                 <label for="PLDescription">Description</label>
+                            </div>
+                            <div class="col-md-5">
                                 <textarea class="form-control" id="PLDescription" name="description" placeholder="Enter description.." rows="3" style="background-color: #2f516f;color: white;"></textarea>
                             </div>
                         </div>
 
                         <div id="fieldSet1">
                             <div class="row mt-3 d-flex justify-content-center">
-                                <div class="col-md-6">
+                                <div class="col-md-2">
                                     <label>Percentage</label>
+                                </div>
+                                <div class="col-md-5">
                                     <div class="input-group">
                                         <select class="form-select" name="up_or_down" style="background-color: #2f516f;color: white;" required>
                                             <option selected value="Markup" style="background-color: #2f516f;color: white;">Markup</option>
@@ -100,8 +112,10 @@
                             </div>
     
                             <div class="row mt-3 d-flex justify-content-center">
-                                <div class="col-md-6">
+                                <div class="col-md-2">
                                     <label>Round Off To</label>
+                                </div>
+                                <div class="col-md-5">
                                     <select class="form-select form-control" name="round_off" style="background-color: #2f516f;color: white;" required>
                                         <option selected value="Never mind" style="background-color: #2f516f;color: white;">Never mind</option>
                                         <option value="Nearest whole number" style="background-color: #2f516f;color: white;">Nearest whole number</option>
@@ -115,15 +129,17 @@
                         
                         <div id="fieldSet2" class="container-fluid" style="display: none;" >
                             <div class="row mt-3 d-flex justify-content-center">
-                                <div class="col-md-6">
+                                <div class="col-md-2">
                                     <label>Currency</label>
+                                </div>
+                                <div class="col-md-5">
                                     <select class="form-select form-control" name="currency" style="background-color: #2f516f;color: white;" required>
                                         <option selected value="Indian Rupee" style="background-color: #2f516f;color: white;">Indian Rupee</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="row mt-3 d-flex justify-content-center">
-                                <div class="col-md-6">
+                                <div class="col-md-7">
                                     <hr>
                                     <h5 class="mt-2">Customize Item Rates in Bulk</h5>
                                     <h6 class="mt-0">Add custom rates for each item to be saved as a price list.</h6>
@@ -131,7 +147,7 @@
                             </div>
                             
                             <div class="row mt-3 d-flex justify-content-center">
-                                <div class="col-md-6">
+                                <div class="col-md-7">
                                     <div class="table-responsive">
                                         <table class="table table-striped" style="background-color: #2f516f;color: white;">
                                             <thead>

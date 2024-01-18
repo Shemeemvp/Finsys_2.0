@@ -39,7 +39,7 @@
     .table-row {
         cursor: pointer;
     }
-    .submitShareEmailBtn {
+    .submitShareEmailBtn, #commentSaveBtn {
         background: #192d3e;
         border: 1px solid #3a4b5a;
         border-radius: 4px;
@@ -47,7 +47,7 @@
         font-weight: 600;
         padding: 0.5rem 1rem;
     }
-    .submitShareEmailBtn:hover {
+    .submitShareEmailBtn:hover, #commentSaveBtn:hover {
         background: #3a4b5a;
     }
     .customer_data p{
@@ -505,7 +505,7 @@
             <form action="{% url 'Fin_addCustomerComment' customer.id %}" method="post">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <textarea type="text" class="form-control" name="comment" placeholder="Add Comments.."></textarea>
+                    <textarea type="text" class="form-control" name="comment" placeholder="Add Comments.." required></textarea>
                     {% if not comments %}
                     <span class="my-2 font-weight-bold d-flex justify-content-center">No Comments.!</span>
                     {% else %}
@@ -520,7 +520,7 @@
                             </thead>
                             <tbody>
                                 {% for c in comments %}
-                                <tr class="table-row">
+                                <tr class="">
                                     <td class="text-center">{{forloop.counter }}</td>
                                     <td class="text-center">{{c.comments}}</td>
                                     <td class="text-center"><a class="text-danger" href="{% url 'Fin_deleteCustomerComment' c.id %}" onclick="return confirm('Are you sure you want to delete.?')"><i class="fa fa-trash" style="font-size: 1.1rem;"></i></a></td>
