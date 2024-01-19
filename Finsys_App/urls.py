@@ -193,7 +193,29 @@ urlpatterns = [
     path('holiday_delete/<int:pk>',views.holiday_delete,name="holiday_delete"),
     
     # harikrishnan (end)--------------------------------
+
+    # -------------Shemeem--------Invoice & Vendors-------------------------------
+    # Invoice
+
+    path('Fin_invoice',views.Fin_invoice, name='Fin_invoice'),
+
+    # Vendor
     
+    path('Fin_vendors',views.Fin_vendors, name='Fin_vendors'),
+    path('Fin_add_vendor',views.Fin_addVendor, name='Fin_addVendor'),
+    path('Fin_check_vendor_name',views.Fin_checkVendorName, name='Fin_checkVendorName'),
+    path('Fin_check_vendor_GSTIN',views.Fin_checkVendorGSTIN, name='Fin_checkVendorGSTIN'),
+    path('Fin_check_vendor_PAN',views.Fin_checkVendorPAN, name='Fin_checkVendorPAN'),
+    path('Fin_check_vendor_phone',views.Fin_checkVendorPhone, name='Fin_checkVendorPhone'),
+    path('Fin_check_vendor_email',views.Fin_checkVendorEmail, name='Fin_checkVendorEmail'),
+    path('Fin_create_vendor',views.Fin_createVendor, name='Fin_createVendor'),
+    path('Fin_view_vendor/<int:id>',views.Fin_viewVendor, name='Fin_viewVendor'),
+    path('Fin_change_vendor_status/<int:id>/<str:status>',views.Fin_changeVendorStatus, name='Fin_changeVendorStatus'),
+    path('Fin_delete_vendor/<int:id>',views.Fin_deleteVendor, name= 'Fin_deleteVendor'),
+    path('Fin_edit_vendor/<int:id>',views.Fin_editVendor, name='Fin_editVendor'),
+    path('Fin_vendor_history/<int:id>',views.Fin_vendorHistory, name='Fin_vendorHistory'),
+    path('Fin_add_vendor_comment/<int:id>',views.Fin_addVendorComment, name='Fin_addVendorComment'),
+    path('Fin_delete_vendor_comment/<int:id>',views.Fin_deleteVendorComment, name='Fin_deleteVendorComment'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

@@ -543,7 +543,7 @@
 
                 {% if allmodules.Invoice == 1 %}
                 
-                <li id="invoices"><a href=""><i class="bx bx-right-arrow-alt"></i>Invoices</a>
+                <li id="invoices"><a href="{% url 'Fin_invoice' %}"><i class="bx bx-right-arrow-alt"></i>Invoices</a>
                 </li>
                 {% endif %}
             </li>
@@ -589,7 +589,7 @@
               
 
               {% if allmodules.Vendors == 1 %}
-              <li id="vendor"><a href=""><i class="bx bx-right-arrow-alt"></i>Vendor</a>
+              <li id="vendor"><a href="{% url 'Fin_vendors' %}"><i class="bx bx-right-arrow-alt"></i>Vendor</a>
               </li>
               {% endif %}
 

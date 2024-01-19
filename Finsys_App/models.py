@@ -544,3 +544,135 @@ class Fin_Customers_Comments(models.Model):
     comments = models.CharField(max_length=500,null=True,blank=True)
 
 #End
+
+# -------------Shemeem--------Invoice & Vendors-------------------------------
+
+# Invoice
+
+class Fin_Invoice(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Customer = models.ForeignKey(Fin_Customers, on_delete=models.CASCADE, null=True)
+    customer_email = models.EmailField(max_length=100, null=True, blank=True)
+    billing_address = models.TextField(null=True, blank=True)
+    gst_type = models.CharField(max_length=100, null=True, blank=True)
+    gstin = models.CharField(max_length=100, null=True, blank=True)
+    place_of_supply = models.CharField(max_length=100, null=True, blank=True)
+    reference_no = models.IntegerField(null=True, blank=True)
+    invoice_no = models.CharField(max_length=100)
+    payment_terms = models.ForeignKey(Fin_Company_Payment_Terms, on_delete = models.SET_NULL,null=True)
+    invoice_date = models.DateField(null=True, blank=True)
+    duedate = models.DateField(null=True, blank=True)
+    salesOrder_no = models.CharField(max_length=100, null=True, blank=True)
+    exp_ship_date = models.DateField(null=True,blank=True)
+    
+    payment_method = models.CharField(max_length=100, null=True, blank=True)
+    cheque_no = models.CharField(max_length=100, null=True, blank=True)
+    upi_no = models.CharField(max_length=100, null=True, blank=True)
+    bank_acc_no = models.CharField(max_length=100, null=True, blank=True)
+
+    subtotal = models.IntegerField(default=0, null=True)
+    igst = models.FloatField(default=0.0, null=True, blank=True)
+    cgst = models.FloatField(default=0.0, null=True, blank=True)
+    sgst = models.FloatField(default=0.0, null=True, blank=True)
+    tax_amount = models.FloatField(default=0.0, null=True, blank=True)
+    adjustment = models.FloatField(default=0.0, null=True, blank=True)
+    shipping_charge = models.FloatField(default=0.0, null=True, blank=True)
+    grandtotal = models.FloatField(default=0.0, null=True, blank=True)
+    paid_off = models.FloatField(default=0.0, null=True, blank=True)
+    balance = models.FloatField(default=0.0, null=True, blank=True)
+    
+    note = models.TextField(null=True, blank=True)
+    file = models.FileField(upload_to='invoice',default="default.jpg")
+    status =models.CharField(max_length=150,default='Draft')
+
+
+class Fin_Invoice_Items(models.Model):
+    Invoice = models.ForeignKey(Fin_Invoice,on_delete=models.CASCADE, null=True)
+    Item = models.ForeignKey(Fin_Items,on_delete=models.SET_NULL, null=True)
+    hsn = models.IntegerField(null=True, blank=True)
+    quantity = models.IntegerField(default=0, null=True)
+    price = models.FloatField(default=0.0, null=True, blank=True)
+    total = models.FloatField(default=0.0, null=True, blank=True)
+    tax = models.CharField(max_length=100, null=True)
+    discount = models.FloatField(default=0.0, null=True, blank=True)
+
+
+class Fin_Invoice_Reference(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    reference_no = models.BigIntegerField(null = False, blank=False)
+
+
+class Fin_Invoice_History(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Invoice = models.ForeignKey(Fin_Invoice,on_delete=models.CASCADE,null=True,blank=True)
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True)
+    action_choices = [
+        ('Created', 'Created'),
+        ('Edited', 'Edited'),
+    ]
+    action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
+
+
+class Fin_Invoice_Comments(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    Invoice = models.ForeignKey(Fin_Invoice,on_delete=models.CASCADE,null=True,blank=True)
+    comments = models.CharField(max_length=500,null=True,blank=True)
+
+
+# Vendors
+
+class Fin_Vendors(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    title = models.CharField(max_length=10,null=True)
+    first_name = models.CharField(max_length=100,null=True)
+    last_name = models.CharField(max_length=100,null=True)
+    email = models.CharField(max_length=100,null=True)
+    mobile = models.CharField(max_length=10,null=True)
+    company = models.CharField(max_length=100,null=True)
+    location = models.CharField(max_length=100,null=True)
+    website = models.CharField(max_length=100, null=True)
+    gst_type = models.CharField(max_length=100, null=True)
+    gstin = models.CharField(max_length=100, null=True)
+    pan_no = models.CharField(max_length=100, null=True)
+    opening_balance = models.FloatField(null=True, blank=True, default=0.0)
+    open_balance_type = models.CharField(max_length=100,null=True,blank=True)
+    current_balance = models.FloatField(null=True, blank=True, default=0.0)
+    credit_limit = models.FloatField(null=True, blank=True, default=0.0)
+    place_of_supply = models.CharField(max_length=100, null=True, blank=True)
+    currency = models.CharField(max_length=100, null=True)
+    date = models.DateField(null=True, auto_now_add=True,auto_now=False)
+    price_list = models.ForeignKey(Fin_Price_List, on_delete = models.SET_NULL, null = True)
+    payment_terms = models.ForeignKey(Fin_Company_Payment_Terms, on_delete = models.SET_NULL,null=True)
+    billing_street = models.CharField(max_length=100,null=True)
+    billing_city = models.CharField(max_length=100,null=True)
+    billing_state = models.CharField(max_length=100,null=True)
+    billing_pincode = models.CharField(max_length=100,null=True)
+    billing_country = models.CharField(max_length=100,null=True)
+    ship_street = models.CharField(max_length=100, null=True)
+    ship_city = models.CharField(max_length=100, null=True)
+    ship_state = models.CharField(max_length=100, null=True)
+    ship_pincode = models.CharField(max_length=100, null=True)
+    ship_country = models.CharField(max_length=100, null=True)
+    status = models.CharField(max_length=15,default = 'Active')
+
+
+class Fin_Vendor_History(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Vendor = models.ForeignKey(Fin_Vendors,on_delete=models.CASCADE,null=True,blank=True)
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True)
+    action_choices = [
+        ('Created', 'Created'),
+        ('Edited', 'Edited'),
+    ]
+    action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
+
+
+class Fin_Vendor_Comments(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    Vendor = models.ForeignKey(Fin_Vendors,on_delete=models.CASCADE,null=True,blank=True)
+    comments = models.CharField(max_length=500,null=True,blank=True)

@@ -3556,7 +3556,7 @@ def Fin_newCustomerPaymentTerm(request):
 
             return JsonResponse({'status':True,'terms':list},safe=False)
         else:
-            return JsonResponse({'status':False})
+            return JsonResponse({'status':False, 'message':f'{term} already exists, try another.!'})
 
     else:
         return redirect('/')
@@ -4607,3 +4607,340 @@ def holiday_update(request,pk):
         return render(request,'company/Holiday_List.html',{'allmodules':allmodules})
 
 # harikrishnan end ---------------
+
+
+# -------------Shemeem--------Invoice & Vendors-------------------------------
+
+# Invoice
+        
+def Fin_invoice(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            inv = Fin_Invoice.objects.filter(Company = com)
+            return render(request,'company/Fin_Invoice.html',{'allmodules':allmodules,'com':com,'data':data,'invoices':inv})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            inv = Fin_Invoice.objects.filter(Company = com.company_id)
+            return render(request,'company/Fin_Invoice.html',{'allmodules':allmodules,'com':com,'data':data,'invoices':inv})
+    else:
+       return redirect('/')
+    
+
+# Vendors
+        
+def Fin_vendors(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            vnd = Fin_Vendors.objects.filter(Company = com)
+            return render(request,'company/Fin_Vendors.html',{'allmodules':allmodules,'com':com,'data':data,'vendors':vnd})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            vnd = Fin_Vendors.objects.filter(Company = com.company_id)
+            return render(request,'company/Fin_Vendors.html',{'allmodules':allmodules,'com':com,'data':data,'vendors':vnd})
+    else:
+       return redirect('/')
+
+def Fin_addVendor(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            trms = Fin_Company_Payment_Terms.objects.filter(Company = com)
+            lst = Fin_Price_List.objects.filter(Company = com, status = 'Active')
+            return render(request,'company/Fin_Add_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'pTerms':trms, 'list':lst})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            trms = Fin_Company_Payment_Terms.objects.filter(Company = com.company_id)
+            lst = Fin_Price_List.objects.filter(Company = com.company_id, status = 'Active')
+            return render(request,'company/Fin_Add_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'pTerms':trms, 'list':lst})
+    else:
+       return redirect('/')
+
+def Fin_checkVendorName(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        fName = request.POST['fname']
+        lName = request.POST['lname']
+
+        if Fin_Vendors.objects.filter(Company = com, first_name__iexact = fName, last_name__iexact = lName).exists():
+            msg = f'{fName} {lName} already exists, Try another.!'
+            return JsonResponse({'is_exist':True, 'message':msg})
+        else:
+            return JsonResponse({'is_exist':False})
+    else:
+        return redirect('/')
+    
+def Fin_checkVendorGSTIN(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        gstIn = request.POST['gstin']
+
+        if Fin_Vendors.objects.filter(Company = com, gstin__iexact = gstIn).exists():
+            msg = f'{gstIn} already exists, Try another.!'
+            return JsonResponse({'is_exist':True, 'message':msg})
+        else:
+            return JsonResponse({'is_exist':False})
+    else:
+        return redirect('/')
+    
+def Fin_checkVendorPAN(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        pan = request.POST['pan']
+
+        if Fin_Vendors.objects.filter(Company = com, pan_no__iexact = pan).exists():
+            msg = f'{pan} already exists, Try another.!'
+            return JsonResponse({'is_exist':True, 'message':msg})
+        else:
+            return JsonResponse({'is_exist':False})
+    else:
+        return redirect('/')
+
+def Fin_checkVendorPhone(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        phn = request.POST['phone']
+
+        if Fin_Vendors.objects.filter(Company = com, mobile__iexact = phn).exists():
+            msg = f'{phn} already exists, Try another.!'
+            return JsonResponse({'is_exist':True, 'message':msg})
+        else:
+            return JsonResponse({'is_exist':False})
+    else:
+        return redirect('/')
+
+def Fin_checkVendorEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        email = request.POST['email']
+
+        if Fin_Vendors.objects.filter(Company = com, email__iexact = email).exists():
+            msg = f'{email} already exists, Try another.!'
+            return JsonResponse({'is_exist':True, 'message':msg})
+        else:
+            return JsonResponse({'is_exist':False})
+    else:
+        return redirect('/')
+
+def Fin_createVendor(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            fName = request.POST['first_name']
+            lName = request.POST['last_name']
+            gstIn = request.POST['gstin']
+            pan = request.POST['pan_no']
+            email = request.POST['email']
+            phn = request.POST['mobile']
+
+            if Fin_Vendors.objects.filter(Company = com, first_name__iexact = fName, last_name__iexact = lName).exists():
+                res = f'<script>alert("Vendor `{fName} {lName}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif Fin_Vendors.objects.filter(Company = com, gstin__iexact = gstIn).exists():
+                res = f'<script>alert("GSTIN `{gstIn}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif Fin_Vendors.objects.filter(Company = com, pan_no__iexact = pan).exists():
+                res = f'<script>alert("PAN No `{pan}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif Fin_Vendors.objects.filter(Company = com, mobile__iexact = phn).exists():
+                res = f'<script>alert("Phone Number `{phn}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif Fin_Vendors.objects.filter(Company = com, email__iexact = email).exists():
+                res = f'<script>alert("Email `{email}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            vnd = Fin_Vendors(
+                Company = com,
+                LoginDetails = data,
+                title = request.POST['title'],
+                first_name = fName,
+                last_name = lName,
+                company = request.POST['company_name'],
+                location = request.POST['location'],
+                place_of_supply = request.POST['place_of_supply'],
+                gst_type = request.POST['gst_type'],
+                gstin = None if request.POST['gst_type'] == "Unregistered Business" or request.POST['gst_type'] == 'Overseas' or request.POST['gst_type'] == 'Consumer' else gstIn,
+                pan_no = pan,
+                email = email,
+                mobile = phn,
+                website = request.POST['website'],
+                price_list = None if request.POST['price_list'] ==  "" else Fin_Price_List.objects.get(id = request.POST['price_list']),
+                payment_terms = None if request.POST['payment_terms'] == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_terms']),
+                opening_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
+                open_balance_type = request.POST['balance_type'],
+                current_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
+                credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit']),
+                currency = request.POST['currency'],
+                billing_street = request.POST['street'],
+                billing_city = request.POST['city'],
+                billing_state = request.POST['state'],
+                billing_pincode = request.POST['pincode'],
+                billing_country = request.POST['country'],
+                ship_street = request.POST['shipstreet'],
+                ship_city = request.POST['shipcity'],
+                ship_state = request.POST['shipstate'],
+                ship_pincode = request.POST['shippincode'],
+                ship_country = request.POST['shipcountry'],
+                status = 'Active'
+            )
+            vnd.save()
+
+            #save transaction
+
+            Fin_Vendor_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                Vendor = vnd,
+                action = 'Created'
+            )
+
+            return redirect(Fin_vendors)
+
+        else:
+            return redirect(Fin_addVendor)
+    else:
+        return redirect('/')
+
+def Fin_viewVendor(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        vnd = Fin_Vendors.objects.get(id = id)
+        cmt = Fin_Vendor_Comments.objects.filter(Vendor = vnd)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            hist = Fin_Vendor_History.objects.filter(Company = com, Vendor = vnd).last()
+            return render(request,'company/Fin_View_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'vendor':vnd, 'history':hist, 'comments':cmt})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            hist = Fin_Vendor_History.objects.filter(Company = com.company_id, Vendor = vnd).last()
+            return render(request,'company/Fin_View_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'vendor':vnd, 'history':hist, 'comments':cmt})
+    else:
+       return redirect('/')
+
+def Fin_changeVendorStatus(request,id,status):
+    if 's_id' in request.session:
+        
+        vnd = Fin_Vendors.objects.get(id = id)
+        vnd.status = status
+        vnd.save()
+        return redirect(Fin_viewVendor, id)
+
+def Fin_deleteVendor(request, id):
+    if 's_id' in request.session:
+        vnd = Fin_Vendors.objects.get( id = id)
+        vnd.delete()
+        return redirect(Fin_vendors)
+
+def Fin_vendorHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        vnd = Fin_Vendors.objects.get(id = id)
+        his = Fin_Vendor_History.objects.filter(Vendor = vnd)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            return render(request,'company/Fin_Vendor_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'vendor':vnd})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            return render(request,'company/Fin_Vendor_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'vendor':vnd})
+    else:
+       return redirect('/')
+
+def Fin_editVendor(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        cust = Fin_Customers.objects.get(id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            trms = Fin_Company_Payment_Terms.objects.filter(Company = com)
+            lst = Fin_Price_List.objects.filter(Company = com, status = 'Active')
+            return render(request,'company/Fin_Edit_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'pTerms':trms, 'list':lst})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            trms = Fin_Company_Payment_Terms.objects.filter(Company = com.company_id)
+            lst = Fin_Price_List.objects.filter(Company = com.company_id, status = 'Active')
+            return render(request,'company/Fin_Edit_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'pTerms':trms, 'list':lst})
+    else:
+       return redirect('/')
+
+def Fin_addVendorComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        vnd = Fin_Vendors.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_Vendor_Comments.objects.create(Company = com, Vendor = vnd, comments = cmt)
+            return redirect(Fin_viewVendor, id)
+        return redirect(Fin_viewVendor, id)
+    return redirect('/')
+
+def Fin_deleteVendorComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_Vendor_Comments.objects.get(id = id)
+        vendorId = cmt.Vendor.id
+        cmt.delete()
+        return redirect(Fin_viewVendor, vendorId)
