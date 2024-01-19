@@ -1,0 +1,472 @@
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load static %}
+
+<!-- harikrishnan -->
+
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="{% static 'assets/js/Employee_Create_Page.js' %}"></script>
+
+    <div class="page-content ">
+        <div class="card radius-15">
+            <div class="ml-auto"><a style="cursor: pointer;" title="Close" onclick="goBack()" ><i class="fa-solid fa-circle-xmark fa-2xl"></i></a></div>
+            <script>
+                function goBack() {
+      window.history.back();
+    }
+            </script>
+            <div class=" card-body">
+                <form action="{% url 'employee_update' employe.id %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                <center><h2 style="text-transform: uppercase"><b>EDIT {{employe.first_name}} {{employe.last_name}} </b></h2></center><br>
+
+                
+                <br>
+                <!-- basic -->
+                <div class="row">
+                    <div class="col-md-8">
+                       
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>Title</Label></td>
+                                    <td>
+                                        <select name="Title" class="form-control"  id="" required>
+                                            <option value="{{employe.title}}" selected >{{employe.title}}</option>
+                                            {% if employe.title != 'Mr' %}<option value="Mr">Mr.</option>{% endif %}
+                                            {% if employe.title != 'Mrs' %}<option value="Mr">Mrs.</option>{% endif %}
+                                            {% if employe.title != 'Miss' %}<option value="Mr">Miss.</option>{% endif %}
+                                            {% if employe.title != 'Ms' %}<option value="Mr">Ms.</option>{% endif %}
+                                            
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>First Name</Label></td>
+                                    <td><input value="{{employe.first_name}}" name="First_Name" type="text" class="form-control"></td>
+                                </div>
+                                
+                            </tr>
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>Last Name</Label></td>
+                                    <td><input value="{{employe.last_name}}" name="Last_Name" type="text" class="form-control"></td>
+                                </div>
+                            </tr>
+                            
+                            
+                        
+                    </div>
+
+                    <div class="col-md-4">
+                        <!-- <input value="{{employe.}}" type="file" name="Image" id="" accept="image/*" style="color: transparent ;cursor:pointer ;padding: 25% 15%;background-image: url('static/assets/images/upload.png');background-repeat: no-repeat;background-size: contain;" > -->
+                        <label for="Image" class="ml-5 mt-3" style="cursor:pointer; padding: 25% 40%; background-image: url('{{employe.upload_image.url}}'); background-repeat: no-repeat; background-size: contain;">
+                            
+                        </label> <br> <span class="ml-5">Upload Image</span>
+                        <input type="file" name="Image" id="Image" accept="image/*" style="display: none;">
+                    </div>
+
+                    
+                </div> <br>
+
+                <div class="row">
+                    <div class="col">
+                        <tr>
+                            <div class="form-group" >
+                                <td><Label>Alias (optional)</Label></td>
+                                <td><input value="{{employe.alias}}" name="Alias" type="text" class="form-control"></td>
+                            </div>
+                        </tr>
+                        
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>Date of Joining</Label></td>
+                                    <td><input value="{{employe.date_of_joining|date:'Y-m-d' }}" required name="Joining_Date" type="date" class="form-control"></td>
+                                </div>
+                            </tr>
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>Salary Date</Label></td>
+                                    <td>
+                                        <select class="form-control" name="Salary_Date" id="">
+                                            <option value="{{employe.salary_effective_from}}" selected>{{employe.salary_effective_from}}</option>
+                                            {% if employe.salary_effective_from != '1-10' %}<option value="1-10">1-10</option>{% endif %}
+                                            {% if employe.salary_effective_from != '11-15' %}<option value="1-10">11-15</option>{% endif %}
+                                            {% if employe.salary_effective_from != '16-31' %}<option value="1-10">16-31</option>{% endif %}
+                                            
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>Define salary details</Label></td>
+                                    <td>
+                                        <select  class="form-control" name="Salary_Details" id="salary_details">
+                                            <option value="{{employe.salary_details}}" selected>{{employe.salary_details}}</option>
+                                            {% if employe.salary_details != 'Fixed' %}<option value="Fixed">Fixed</option>{% endif %}
+                                            {% if employe.salary_details != 'Temporary' %}<option value="Temporary">Temporary</option>{% endif %}
+                                            {% if employe.salary_details != 'Time Based' %}<option value="Time Based">Time Based</option>{% endif %}
+                                            
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                            
+                            <div id="salary_timebase">
+                                <tr>
+                                    <div class="form-group"  >
+                                        <td><Label>Amount Per Hour</Label></td>
+                                        <td><input value="{{employe.amount_per_hour}}" name="perhour" oninput="calculateAndSetSalary()" id="amount_perhour" type="number" class="form-control"></td>
+                                    </div>
+                                </tr>
+                                <tr>
+                                    <div class="form-group"  >
+                                        <td><Label>Total Working Hour(s)</Label></td>
+                                        <td><input value="{{employe.total_working_hours}}" name="workhour" oninput="calculateAndSetSalary()" id="working_hours" type="number" class="form-control"></td>
+                                    </div>
+                                </tr>
+                                
+                            </div>
+                            <tr>
+                                <div class="form-group" id="salary_amount" >
+                                    <td><Label>Salary Amount</Label></td>
+                                    <td><input value="{{employe.salary_amount}}" name="Salary_Amount" id="salary_amount2" type="text" class="form-control"></td>
+                                </div>
+                            </tr>
+                    </div>
+                </div>
+                
+                <!-- basic end -->
+
+                
+
+                <!-- ---general------ -->
+
+                <center><p><b>General Information</b></p></center>
+                <div class="row">
+
+                    
+                        
+                            
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Employee Number</Label></td>
+                                <td><input value="{{employe.employee_number}}" required name="Employee_Number" type="text" class="form-control"></td>
+                            </div>
+                        </tr>
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Designation</Label></td>
+                                <td><input value="{{employe.employee_designation}}" name="Designation" type="text" class="form-control"></td>
+                            </div>
+                        </tr>
+                        <tr>
+                            <div class="form-group col">
+                                <td><Label>Location</Label></td>
+                                <td><input value="{{employe.employee_current_location}}" name="Location" type="text" class="form-control"></td>
+                            </div>
+                        </tr>
+                    </div>
+                    <div class="row">
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Gender</Label></td>
+                                <td><select class="form-control" name="Gender" id="">
+                                    <option value="{{employe.gender}}" selected>{{employe.gender}}</option>
+                                    {% if employe.gender != 'Male' %}<option value="Male">Male</option>{% endif %}
+                                    {% if employe.gender != 'Female' %}<option value="Male">Female</option>{% endif %}
+                                    {% if employe.gender != 'Other' %}<option value="Male">Other</option>{% endif %}
+                                    
+                                    </select>
+                                </td>
+                            </div>
+                        </tr>
+                    
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Date Of Birth</Label></td>
+                                <td><input value="{{employe.date_of_birth|date:'Y-m-d'}}" required name="DOB" id="DOB" type="date" class="form-control"></td>
+                            </div>
+                           
+                        </tr>
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Blood Group</Label></td>
+                                <td>
+                                    <select name="Blood" class="form-control" name="" id="">
+                                        <option value="{{employe.blood_group}}" selected>{{employe.blood_group}}</option>
+                                        {% if employe.blood_group != 'A+' %}<option value="A+">A+</option>{% endif %}
+                                        {% if employe.blood_group != 'A-' %}<option value="A-">A-</option>{% endif %}
+                                        {% if employe.blood_group != 'B+' %}<option value="B+">B+</option>{% endif %}
+                                        {% if employe.blood_group != 'O+' %}<option value="O+">O+</option>{% endif %}
+                                        
+                                        <option value="">add more group</option>
+                                    </select>
+                                </td>
+                            </div>
+                        </tr>
+                    </div>
+
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Father's Name / Mother's Name</Label></td>
+                                    <td><input value="{{employe.fathers_name_mothers_name}}" name="Parent" type="text" class="form-control"></td>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Spouse's Name</Label></td>
+                                    <td><input value="{{employe.spouse_name}}" name="Spouse" type="text" class="form-control"></td>
+                                </div>
+                            </tr>
+                        </div>
+
+                        <div class="row">
+                            
+                                <tr>
+                                    <td>
+                                        <div class="form-group col" id="perAddress">
+                                            <Label>Permanent Address</Label>
+                                            <div class="row">
+                                                <div class="col"><Label>Street</Label><input value="{{employe.street}}" type="text" name="street" class="form-control" id="perStreet"></div>
+                                                <div class="col"><Label>City</Label><input value="{{employe.city}}" type="text" name="city" class="form-control" id="perCity"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>State</Label><input value="{{employe.state}}" type="text" name="state" class="form-control" id="perState"></div>
+                                                <div class="col"><Label>Pincode</Label><input value="{{employe.pincode}}" type="text" name="pincode" class="form-control" id="perPincode"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>Country</Label><input value="{{employe.country}}" type="text" name="country" class="form-control" id="perCountry"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group col" id="temAddress">
+                                            <Label>Temporary Address </Label>
+                                            <label style="float: right;" for=""><input value="{{employe.}}" id="addressCheckBox" type="checkbox"> Same as permanent address</label>
+                                            <div class="row">
+                                                <div class="col"><Label>Street</Label><input value="{{employe.temporary_street}}" type="text" name="tempStreet" class="form-control" id="temStreet"></div>
+                                                <div class="col"><Label>City</Label><input value="{{employe.temporary_city}}" type="text" name="tempCity" class="form-control" id="temCity"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>State</Label><input value="{{employe.temporary_state}}" type="text" name="tempState" class="form-control" id="temState"></div>
+                                                <div class="col"><Label>Pincode</Label><input value="{{employe.temporary_pincode}}" type="text" name="tempPincode" class="form-control" id="temPincode"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>Country</Label><input value="{{employe.temporary_country}}" type="text" name="tempCountry" class="form-control" id="temCountry"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            
+                        </div>
+
+
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Contact Number</Label></td>
+                                    <td><input value="{{employe.mobile}}" name="Contact_Number" type="text" pattern="^\d{10}$" class="form-control"></td>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Emergency Contact Number</Label></td>
+                                    <td><input value="{{employe.emergency_contact}}" name="Emergency_Contact" pattern="^\d{10}$" type="text" class="form-control"></td>
+                                </div>
+                            </tr>
+                            
+                        </div>
+                        
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Email</Label></td>
+                                    <td><input value="{{employe.employee_mail}}" name="Email" type="email" class="form-control"></td>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>File</Label></td>
+                                    <td><input value="{{employe.upload_file}}" name="File" type="file" class="form-control"></td>
+                                </div>
+                            </tr>
+                            
+                        </div>
+
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Provide bank Details</Label></td>
+                                    <td>
+                                        <select class="form-control" name="Bank_Details" id="bankDetails">
+                                            <option value="{{provide_bank_details}}" selected>{{employe.provide_bank_details}}</option>
+                                            {% if employe.provide_bank_details != 'Yes' %}<option value="Yes">Yes</option>{% endif %}
+                                            {% if employe.provide_bank_details != 'No' %}<option value="No">No</option>{% endif %}
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+
+                            <tr> 
+                                <div class="form-group col">
+                                    <td><Label>TDS Applicable</Label></td>
+                                    <td>
+                                        <select class="form-control" name="tds_applicable" id="TDS">
+                                            <option value="{{employe.tds_applicable}}" selected>{{employe.tds_applicable}}</option>
+                                            {% if employe.tds_applicable != 'Yes' %}<option value="Yes">Yes</option>{% endif %}
+                                            {% if employe.tds_applicable != 'No' %}<option value="No">No</option>{% endif %}
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                        </div><br>
+
+                        <div class="row">
+                            
+                                <div class="form-group col"  id="BankInfo">
+                                    <center><p><b>Banking Information</b></p></center>
+                                        
+                                        <tr >
+                                            <td><label for="">Account Number</label></td>
+                                            <td><input value="{{employe.account_number}}" style="width: 96%;" pattern="\d{4}\s?\d{4}\s?\d{4}\s?\d{4}" name="Account_Number" id="accountnumber" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="">IFSC</label></td>
+                                            <td><input value="{{employe.ifsc}}" style="width: 96%;" pattern="^[A-Za-z]{4}0[A-Za-z0-9]{6}$" name="IFSC" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="">Name of Bank</label></td>
+                                            <td><input value="{{employe.name_of_bank}}" style="width: 96%;" name="BankName" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="">Branch Name</label></td>
+                                            <td><input value="{{employe.branch_name}}" style="width: 96%;" name="BranchName" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                    
+                                    
+                                    <br>
+                                    <center><p><b>For Banking</b></p></center>
+                                    <tr>
+                                        <td><label for="">Transaction Type</label></td>
+                                        <td>
+                                            <select style="width: 96%;" class="form-control ml-4" name="Transaction_Type" >
+                                                <option value="{{employe.bank_transaction_type}}" selected>{{employe.bank_transaction_type}}</option>
+                                                {% if employe.bank_transaction_type != 'ATM' %}<option value="ATM">ATM</option>{% endif %}
+                                                {% if employe.bank_transaction_type != 'Cash' %}<option value="Cash">Cash</option>{% endif %}
+                                                {% if employe.bank_transaction_type != 'Cheque' %}<option value="Cheque">Cheque</option>{% endif %}
+                                               
+                                            </select>    
+                                        </td>
+                                    </tr>
+                                    
+                                </div>
+                            
+
+                            
+                                <div class="form-group col" id="TDSinfo">
+                                    <center><p><b>TDS Application</b></p></center>
+                                    <tr>
+                                        <td><label for="">Percentage/Amount</label></td>
+                                        <td>
+                                            <select style="width: 96%;" class="form-control ml-4" id="TDStype" name="TDS_Type" >
+                                                <option value="{{employe.tds_type}}">{{employe.tds_type}}</option>
+                                                {% if employe.tds_type != 'Percentage' %}<option value="Percentage">Percentage</option>{% endif %}
+                                                {% if employe.tds_type != 'Amount' %}<option value="Amount">Amount</option>{% endif %}
+                                                
+                                            </select>    
+                                        </td>
+                                    </tr><br>
+
+                                    <div id="TDSpercentage">
+                                        <tr>
+                                            <td><label for="">Enter TDS Percentage</label></td>
+                                            <td><input value="{{employe.percentage_amount}}" style="width: 96%;" name="TDS_Percentage" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                    </div><br>
+
+                                    <div id="TDSamount">
+                                        <tr>
+                                            <td><label for="">Enter TDS Amount</label></td>
+                                            <td><input value="{{employe.percentage_amount}}" style="width: 96%;" name="TDS_Amount" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                    </div>
+                                </div><br>
+                            
+                        </div>
+                    
+
+                    
+                
+
+                <!-- ---general end ------>
+
+
+                <!------ statutory -------->
+                <br><br>
+                    <center><p><b>Statutory Information</b></p></center><br>
+                        <div class="row">
+                            
+                            <div class="col">
+                                <div >
+                                    <tr>
+                                        <td><label for="">Income Tax Number</label></td>
+                                        <td><input value="{{employe.income_tax_number}}"  name="Income_Tax" type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                <div >
+                                    <tr>
+                                        <td><label for="">Aadhar Number</label></td>
+                                        <td><input value="{{employe.aadhar_number}}"  name="Aadhar" id="aadhar" pattern="\d{4}-\d{4}-\d{4}"  type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                <div >
+                                    <tr>
+                                        <td><label for="">Universal Account Number (UAN)</label></td>
+                                        <td><input value="{{employe.universal_account_number}}" pattern="\d{12}" maxlength="12" name="UAN" type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                
+                            </div>
+                            <div class="col">
+                                <div >
+                                    <tr>
+                                        <td><label for="">PF Account Number</label></td>
+                                        <td><input value="{{employe.pf_account_number}}"  name="PF" pattern="[A-Za-z]{3}/[A-Za-z0-9]{7}/[0-9]{5}/[0-9]{7}" type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                <div >
+                                    <tr>
+                                        <td><label for="">PAN Number</label></td>
+                                        <td><input value="{{employe.pan_number}}"  name="PAN" pattern="[A-Z]{5}[0-9]{4}[A-Z]" maxlength="10" type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                <div >
+                                    <tr>
+                                        <td><label for="">PR Account Number</label></td>
+                                        <td><input value="{{employe.pr_account_number}}"  name="PR" type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                
+                            </div>
+
+                        </div><br>
+                    
+                <!------ statutory ------>
+                <center><button type="submit"class="btn btn-secondary w-50" >Update Details</button></center><br>
+            </form>
+            </div>
+            
+        </div>
+    </div>
+
+
+
+
+{% endblock %}

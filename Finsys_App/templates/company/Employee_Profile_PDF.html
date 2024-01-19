@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script script src="https://kit.fontawesome.com/30ecc6e708.js" crossorigin="anonymous"></script>
+
+
+<!-- harikrishnan -->
+
+
+</head>
+
+<style>
+    
+    label,#body,span{
+        font-size: x-large;
+    }
+
+</style>
+
+<body>
+   
+    
+        <center>
+            <div id="overview123" >
+                <div class="container rounded mt-1 mb-5" >
+                    <div class="row">
+                        <div class=" col ">
+                            
+                            <div class="d-flex flex-column align-items-center text-center p-3 "><img class="rounded-circle" width="230px" height="230px" src="{{employ.upload_image.url}}"> <span class="font-weight-bold" style="font-size: x-large; text-transform: capitalize;"> <label for=""></label> <h2 style="font-size: xx-large;">{{employ.first_name}} {{employ.last_name}}</h2> </span></div>
+                            
+                
+                            
+                              
+                        </div>
+                    </div>
+    
+                    <div class="row">
+                        
+                        <div class="col-md-6 border-right">
+                            <div class=" py-5">
+                                <div class="d-flex justify-content-between align-items-center mb-3 ml-3 border-bottom">
+                                  <br><b><label for="">Profile </label></b><br>
+                                </div>
+                                <div class="row mt-2">
+                                    <!-- <div class="col"><label class="labels">Name : </label><span> <label for=""></label> {{employ.first_name}} {{employ.last_name}}</span></div> -->
+                                    <!-- <div class="col-md-6"><label class="labels">Surname</label><input type="text" class="form-control" value="" placeholder="surname"></div> -->
+                                </div>
+                                <div class="row mt-3">
+                                    
+                                    <div class="col-md-12"><label class="labels col-6"><b>Mobile Number :</b> </label> <label for="">{{employ.mobile}}</label> </div><br><br>
+                                    <div class="col-md-12"><label class="labels col-6"><b>Emergency Contact :</b> </label> <label for="">{{employ.emergency_contact}}</label> </div><br><br>
+                                    <div class="col-md-12"><label class="labels col-6"><b>Address :</b> </label> <label for="">{{employ.street}}, {{employ.city}}</label> </div><br>
+                                    <div class="col-md-12"><label class="labels col-6"> </label> <label for="">{{employ.pincode}}, {{employ.state}}</label> </div><br>
+                                    <div class="col-md-12"><label class="labels col-6"> </label> <label for="">{{employ.country}}.</label> </div><br><br>
+                                    
+                                    <div class="col-md-12"><label class="labels col-6"><b>Email ID :</b> </label> <label for="">{{employ.employee_mail}}</label> </div><br><br>
+                                    <div class="col-md-12"><label class="labels col-6"><b>Blood Group :</b> </label> <label for="">{{employ.blood_group}}</label> </div><br><br>
+                                    <div class="col-md-12"><label class="labels col-6"><b>Age :</b> </label> <label for="">{{employ.age}}</label> </div><br><br>
+                                    <div class="col-md-12"><label class="labels col-6"><b>DOB :</b> </label> <label for="">{{employ.date_of_birth}}</label> </div><br><br>
+    
+                                    <div class="col-md-12"><label class="labels col-6"><b>Father's Name :</b> </label> <label for="">{{employ.fathers_name_mothers_name}}</label> </div><br><br>
+                                    <div class="col-md-12"><label class="labels col-6"><b>Spouse Name :</b> </label> <label for="">{{employ.spouse_name}}</label> </div><br><br>
+                                    <div class="col-md-12"><label class="labels col-6"><b>Temporary Address : </b></label> <label>{{employ.temporary_street}}, {{employ.temporary_city}}</label></div><br>
+                                    <div class="col-md-12"><label class="labels col-6"> </label> <label >{{employ.temporary_pincode}}, {{employ.temporary_state}}</label></div><br>
+                                    <div class="col-md-12"><label class="labels col-6"> </label> <label >{{employ.temporary_country}}.</label></div><br><br>
+                                    <!-- <div class="col-md-12"><label class="labels">Education</label><input type="text" class="form-control" placeholder="education" value=""></div> -->
+                                </div>
+                                
+                                
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 py-2">
+                                <div class="d-flex justify-content-between align-items-center experience ml-3 border-bottom"><b><label>Salary Info</label></b></div><br>
+                                <div class="col-md-12"><label class="labels col-8"><b>Employee Salary :</b> </label><span>{{employ.salary_amount}}</span></div> <br>
+                                <div class="col-md-12"><label class="labels col-8"><b>Salary Date Range :</b></label><span>{{employ.salary_effective_from}}</span></div><br>
+                                <div class="col-md-12"><label class="labels col-8"><b>Salary Type :</b></label><span>{{employ.salary_details}}</span></div><br>
+                                <div class="col-md-12"><label class="labels col-8"><b>TDS Applicable :</b> </label><span>{{employ.tds_applicable}}</span></div><br>
+                            </div>
+                            <div class="p-3 py-2">
+                                <div class="d-flex justify-content-between align-items-center experience ml-3 border-bottom"><b><label>Statutory Info</label></b></div><br>
+                                <div class="col-md-12"><label class="labels col-8"><b>Income Tax Number : </b></label><span>{{employ.income_tax_number}}</span></div> <br>
+                                <div class="col-md-12"><label class="labels col-8"><b>Aadhar Number :</b></label><span>{{employ.aadhar_number}}</span></div><br>
+                                <div class="col-md-12"><label class="labels col-8"><b>Universal Account Number :</b></label><span>{{employ.universal_account_number}}</span></div><br>
+                                <div class="col-md-12"><label class="labels col-8"><b>PAN Number : </b></label><span>{{employ.pan_number}}</span></div><br>
+                                <div class="col-md-12"><label class="labels col-8"><b>PF Account Number :</b></label><span>{{employ.pf_account_number}}</span></div><br>
+                                <div class="col-md-12"><label class="labels col-8"><b>PR Account Number : </b></label><span>{{employ.pr_account_number}}</span></div><br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </center>
+
+
+
+</body>
+</html>

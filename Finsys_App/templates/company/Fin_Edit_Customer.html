@@ -607,7 +607,7 @@
 
     function checkphone(element) {
         var phoneinput = element.value;
-        var phoneregexp = "[0-9]{10}";
+        var phoneregexp = /^\d{10}$/;
         if (phoneinput.match(phoneregexp)) {
             document.getElementById('warnphone').innerHTML = '';
             checkCustomerPhone(phoneinput)

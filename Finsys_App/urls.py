@@ -117,7 +117,20 @@ urlpatterns = [
     path('Fin_update_account/<int:id>',views.Fin_updateAccount, name='Fin_updateAccount'),
     path('Fin_account_history/<int:id>',views.Fin_accountHistory, name='Fin_accountHistory'),
     #End
-
+    
+    path('Fin_bankholder',views.Fin_bankholder,name='Fin_bankholder'),
+    path('Fin_addbank',views.Fin_addbank,name='Fin_addbank'),
+    path('Fin_Bankaccountholder',views.Fin_Bankaccountholder,name='Fin_Bankaccountholder'),
+    path('Fin_Bankholderview/<int:id>/', views.Fin_Bankholderview, name='Fin_Bankholderview'),
+    path('Fin_activebankholder/<int:id>/',views.Fin_activebankholder,name='Fin_activebankholder'),
+    path('Fin_inactivatebankaccount/<int:id>/',views.Fin_inactivatebankaccount,name='Fin_inactivatebankaccount'),
+    path('Fin_Editholder/<int:id>/',views.Fin_Editholder,name='Fin_Editholder'),
+    path('Fin_Editbankholder/<int:id>/',views.Fin_Editbankholder,name='Fin_Editbankholder'),
+    path('Fin_deleteholder/<int:id>/',views.Fin_deleteholder,name='Fin_deleteholder'),
+    path('Fin_addcomment/<int:id>/', views.Fin_addcomment, name='Fin_addcomment'),
+    path('Fin_deletecomment/<int:comment_id>/', views.Fin_deletecomment, name='Fin_deletecomment'),
+    path('Fin_Bankhistory/<int:account_id>/', views.Fin_Bankhistory, name='Fin_Bankhistory'),
+    
     # -------------Shemeem--------Price List & Customers-------------------------------
     
     path('Fin_price_list',views.Fin_priceList, name='Fin_priceList'),
@@ -154,6 +167,32 @@ urlpatterns = [
     path('Fin_share_customer_transactions_to_email/<int:id>',views.Fin_shareCustomerTransactionsToEmail, name='Fin_shareCustomerTransactionsToEmail'),
     path('Fin_add_customer_comment/<int:id>',views.Fin_addCustomerComment, name='Fin_addCustomerComment'),
     path('Fin_delete_customer_comment/<int:id>',views.Fin_deleteCustomerComment, name='Fin_deleteCustomerComment'),
+    
+    # harikrishnan (start)--------------------------------
+    
+    path('employee_list',views.employee_list,name="employee_list"),
+    path('employee_create_page',views.employee_create_page,name="employee_create_page"),
+    path('employee_save',views.employee_save,name="employee_save"),
+    path('employee_overview/<int:pk>',views.employee_overview,name="employee_overview"),
+    path('activate/<int:pk>',views.activate,name="activate"),
+    path('employee_edit_page/<int:pk>',views.employee_edit_page,name="employee_edit_page"),
+    path('employee_update/<int:pk>',views.employee_update,name="employee_update"),
+    path('employee_comment/<int:pk>',views.employee_comment,name="employee_comment"),
+    path('employee_comment_view/<int:pk>',views.employee_comment_view,name="employee_comment_view"),
+    path('employee_delete/<int:pk>',views.employee_delete,name="employee_delete"),
+    path('employee_history/<int:pk>',views.employee_history,name="employee_history"),
+    path('employee_profile_email/<int:pk>',views.employee_profile_email,name="employee_profile_email"),
+    path('Employee_Profile_PDF/<int:pk>',views.Employee_Profile_PDF,name="Employee_Profile_PDF"),
+
+    path('holiday_list',views.holiday_list,name="holiday_list"),
+    path('holiday_create_page',views.holiday_create_page,name="holiday_create_page"),
+    path('holiday_add',views.holiday_add,name="holiday_add"),
+    path('holiday_calendar_view/<int:mn>/<int:yr>', views.holiday_calendar_view, name='holiday_calendar_view'),
+    path('holiday_edit_page/<int:pk>', views.holiday_edit_page, name='holiday_edit_page'),
+    path('holiday_update/<int:pk>',views.holiday_update,name="holiday_update"),
+    path('holiday_delete/<int:pk>',views.holiday_delete,name="holiday_delete"),
+    
+    # harikrishnan (end)--------------------------------
     
     # End
     

@@ -1,5 +1,8 @@
+import datetime
 from django.db import models
-
+from django_countries.fields import CountryField
+from datetime import timedelta
+from datetime import date
 
 class Fin_Payment_Terms(models.Model):
     payment_terms_number = models.IntegerField(null=True,blank=True)  
@@ -151,16 +154,7 @@ class Fin_DNotification(models.Model):
     Discription = models.CharField(max_length=255,null=True,blank=True) 
     Noti_date = models.DateTimeField(auto_now_add=True,null=True)
     status = models.CharField(max_length=100,null=True,default='New')     
-
-# class Fin_CNotification(models.Model): 
-#     Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
-#     Company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
-#     Item = models.ForeignKey(Fin_Items, on_delete = models.CASCADE, null=True, blank=True)
-    
-#     Title = models.CharField(max_length=255,null=True,blank=True)
-#     Discription = models.CharField(max_length=255,null=True,blank=True) 
-#     Noti_date = models.DateTimeField(auto_now_add=True,null=True)
-#     status = models.CharField(max_length=100,null=True,default='New')
+   
        
 #----------------Shemeem --------------Items&ChartOfAccounts----------------
     
@@ -193,7 +187,87 @@ class Fin_Items(models.Model):
     stock_out = models.IntegerField(default=0,blank=True,null=True)
     stock_unit_rate= models.FloatField(default=0.0,blank=True,null=True)
     status = models.CharField(max_length=100,null=True, default='Active')
+
+class Fin_Price_List(models.Model):
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    name = models.CharField(max_length=255,null=True,blank=True)
+
+    TYPE_CHOICES=(
+        ('Sales','Sales'),
+        ('Purchase','Purchase'),
+    )
+
+    ITEM_RATE_CHOICES=(
+        ('percentage','Markup or Markdown the item rates by a percentage'),
+        ('individual_rate','Enter the rate individually for each item'),
+    )
+
+    type = models.CharField(max_length=15,choices=TYPE_CHOICES,null=True,blank=True,default='Sales')
+    item_rate = models.CharField(max_length=100,choices=ITEM_RATE_CHOICES,null=True,blank=True,default='percentage')
+    description = models.TextField(blank=True, null=True)
+    currency = models.CharField(max_length=255,null=True,blank=True,default='Indian Rupee')
+    up_or_down = models.CharField(max_length=100,default='None')
+    percentage = models.CharField(max_length=100,null=True,blank=True)
+    round_off = models.CharField(max_length=100,default='None', null=True, blank=True)
+    created_date = models.DateField(auto_now_add = True, auto_now = False, blank = True, null = True)
+    status = models.CharField(max_length=15,default='Active',null=True,blank=True)
+
+class Fin_Company_Payment_Terms(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    term_name = models.CharField(max_length=100, null=True)
+    days = models.IntegerField(null=True, default=0)
     
+class Fin_Customers(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    title = models.CharField(max_length=10,null=True,blank=True)
+    first_name = models.CharField(max_length=100,null=True,blank=True)
+    last_name = models.CharField(max_length=100,null=True,blank=True)
+    company = models.CharField(max_length=100,null=True,blank=True)
+    location = models.CharField(max_length=100,null=True,blank=True)
+    place_of_supply = models.CharField(max_length=100,null=True,blank=True)
+    gst_type = models.CharField(max_length=100, null=True)
+    gstin = models.CharField(max_length=100,null=True,blank=True,default=None)
+    pan_no = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField(null=True,blank=True)
+    website = models.CharField(max_length=100, default='',null=True,blank=True)
+    mobile = models.CharField(max_length=20,null=True,blank=True)
+    price_list = models.ForeignKey(Fin_Price_List, on_delete = models.SET_NULL, null = True)
+    payment_terms = models.ForeignKey(Fin_Company_Payment_Terms, on_delete = models.SET_NULL,null=True)
+    billing_street = models.CharField(max_length=100,null=True,blank=True)
+    billing_city = models.CharField(max_length=100,null=True,blank=True)
+    billing_state = models.CharField(max_length=100,null=True,blank=True)
+    billing_pincode = models.CharField(max_length=100,null=True,blank=True)
+    billing_country = models.CharField(max_length=100,null=True,blank=True)
+    ship_street = models.CharField(max_length=100,null=True,blank=True)
+    ship_city = models.CharField(max_length=100,null=True,blank=True)
+    ship_state = models.CharField(max_length=100,null=True,blank=True)
+    ship_pincode = models.CharField(max_length=100,null=True,blank=True)
+    ship_country = models.CharField(max_length=100,null=True,blank=True)
+    opening_balance = models.FloatField(null=True, blank=True, default=0.0)
+    opening_balance_due = models.FloatField(null=True, blank=True, default=0.0)
+    open_balance_type = models.CharField(max_length=100,null=True,blank=True)
+    current_balance = models.FloatField(null=True, blank=True, default=0.0)
+    credit_limit = models.FloatField(null=True, blank=True, default=0.0)
+    date = models.DateField(null=True, auto_now_add=True,auto_now=False)
+    customer_status = (
+        ('Active','Active'),
+        ('Inactive','Inactive'),
+    )
+    status =models.CharField(max_length=150,choices=customer_status,default='Active',null=True,blank=True)
+
+
+class Fin_CNotification(models.Model): 
+    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Item = models.ForeignKey(Fin_Items, on_delete = models.CASCADE, null=True, blank=True) # Added - shemeem -> Handle Item's min stock alerts
+    Customers = models.ForeignKey(Fin_Customers, on_delete = models.CASCADE, null=True,blank=True) # Added - shemeem -> Handle customer's credit limit alerts
+    
+    Title = models.CharField(max_length=255,null=True,blank=True)
+    Discription = models.CharField(max_length=255,null=True,blank=True) 
+    Noti_date = models.DateTimeField(auto_now_add=True,null=True)
+    status = models.CharField(max_length=100,null=True,default='New')      
 
 class Fin_Items_Transaction_History(models.Model):
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
@@ -245,31 +319,181 @@ class Fin_ChartOfAccount_History(models.Model):
 #End
 
 
-# -------------Shemeem--------Price List & Customers-------------------------------
-class Fin_Price_List(models.Model):
+class Fin_BankAccountHolder(models.Model):
     LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
-    name = models.CharField(max_length=255,null=True,blank=True)
+    
 
-    TYPE_CHOICES=(
-        ('Sales','Sales'),
-        ('Purchase','Purchase'),
-    )
+    Holder_name = models.CharField(max_length=255,null=True,blank=True)
+    Alias = models.CharField(max_length=255,null=True,blank=True)
+    phone_number = models.CharField(max_length=10,null=True,blank=True,unique=True)
+    Email = models.EmailField(max_length=255,null=True,blank=True,unique=True)
+    ACCOUNT_TYPE_CHOICES = [('CC', 'Credit Card'),('BA', 'Bank Account'),]
+    Account_type = models.CharField(max_length=20,choices=ACCOUNT_TYPE_CHOICES,default='BA',)
+    
+    def __str__(self):
+        return self.Holder_name
+    
+    
 
-    ITEM_RATE_CHOICES=(
-        ('percentage','Markup or Markdown the item rates by a percentage'),
-        ('individual_rate','Enter the rate individually for each item'),
-    )
+class Fin_BankAccount(models.Model):
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    
+    def __str__(self):
+        return f"{self.Holder_id.Holder_name} - {self.Bank_name}"
+    
+    Holder_id = models.ForeignKey(Fin_BankAccountHolder, on_delete=models.CASCADE,null=True,blank=True)
+    is_active = models.BooleanField(default=True)
+    Account_number = models.CharField(max_length=15)
+    Ifsc_code = models.CharField(max_length=11)
+    Swift_code = models.CharField(max_length=11)
+    BANK_NAME_CHOICES = [
+        ('SBI', 'State Bank of India'),
+        ('BOB', 'Bank of Baroda'),
+        ('BOI', 'Bank of India'),
+        ('BOM', 'Bank of Maharashtra'),
+        ('CAN', 'Canara Bank'),
+        ('CBI', 'Central Bank of India'),
+        ('IND', 'Indian Bank'),
+        ('IOB', 'Indian Overseas Bank'),
+        ('PSB', 'Punjab & Sind Bank'),
+        ('PNB', 'Punjab National Bank'),
+        ('UCO', 'UCO Bank'),
+        ('UBI', 'Union Bank of India'),
+        ('AXIS', 'Axis Bank Ltd.'),
+        ('BANDHAN', 'Bandhan Bank Ltd.'),
+        ('CSB', 'CSB Bank Limited'),
+        ('CUB', 'City Union Bank Ltd.'),
+        ('DCB', 'DCB Bank Ltd.'),
+        ('DHANLAXMI', 'Dhanlaxmi Bank Ltd.'),
+        ('FEDERAL', 'Federal Bank Ltd.'),
+        ('HDFC', 'HDFC Bank Ltd.'),
+        ('ICICI', 'ICICI Bank Ltd.'),
+        
+    ]
+    Bank_name = models.CharField(max_length=10,choices=BANK_NAME_CHOICES,)
+    Branch_name = models.CharField(max_length=255,null=True,blank=True)
+    def __str__(self):
+        return self.Holder_id.Holder_name
+    
+    
+class Fin_BankConfiguration(models.Model):
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
 
-    type = models.CharField(max_length=15,choices=TYPE_CHOICES,null=True,blank=True,default='Sales')
-    item_rate = models.CharField(max_length=100,choices=ITEM_RATE_CHOICES,null=True,blank=True,default='percentage')
-    description = models.TextField(blank=True, null=True)
-    currency = models.CharField(max_length=255,null=True,blank=True,default='Indian Rupee')
-    up_or_down = models.CharField(max_length=100,default='None')
-    percentage = models.CharField(max_length=100,null=True,blank=True)
-    round_off = models.CharField(max_length=100,default='None', null=True, blank=True)
-    created_date = models.DateField(auto_now_add = True, auto_now = False, blank = True, null = True)
-    status = models.CharField(max_length=15,default='Active',null=True,blank=True)
+    
+    Holder_id = models.ForeignKey(Fin_BankAccountHolder,on_delete=models.CASCADE,null=True,blank=True)
+    Set_cheque_book_range = models.BooleanField(default=False)
+    Enable_cheque_printing = models.BooleanField(default=False)
+    Set_cheque_printing_configuration = models.BooleanField(default=False)
+    
+    
+class Fin_MailingAddress(models.Model):
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+
+
+   
+    Holder_id = models.ForeignKey(Fin_BankAccountHolder, on_delete=models.CASCADE)
+    Mailing_name = models.CharField(max_length=100)
+    Address = models.TextField(max_length=255,null=True,blank=True)
+    Country = CountryField(max_length=20,null=True,blank=True)
+    STATE_CHOICES = [
+    ('AN', 'Andaman and Nicobar Islands'),
+    ('AP', 'Andhra Pradesh'),
+    ('AR', 'Arunachal Pradesh'),
+    ('AS', 'Assam'),
+    ('BR', 'Bihar'),
+    ('CH', 'Chhattisgarh'),
+    ('DL', 'National Capital Territory of Delhi'),
+    ('GA', 'Goa'),
+    ('GJ', 'Gujarat'),
+    ('HR', 'Haryana'),
+    ('HP', 'Himachal Pradesh'),
+    ('JK', 'Jammu and Kashmir'),
+    ('LA', 'Ladakh'),
+    ('JH', 'Jharkhand'),
+    ('KA', 'Karnataka'),
+    ('KL', 'Kerala'),
+    ('MP', 'Madhya Pradesh'),
+    ('MH', 'Maharashtra'),
+    ('MN', 'Manipur'),
+    ('ML', 'Meghalaya'),
+    ('MZ', 'Mizoram'),
+    ('NL', 'Nagaland'),
+    ('OR', 'Odisha'),
+    ('PB', 'Punjab'),
+    ('RJ', 'Rajasthan'),
+    ('SK', 'Sikkim'),
+    ('TN', 'Tamil Nadu'),
+    ('TG', 'Telangana'),
+    ('TR', 'Tripura'),
+    ('UT', 'Uttarakhand'),
+    ('UP', 'Uttar Pradesh'),
+    ('WB', 'West Bengal')
+]
+    State = models.CharField(max_length=100,choices=STATE_CHOICES,)
+    Pin = models.CharField(max_length=6)
+
+
+
+class Fin_BankingDetails(models.Model):
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+
+
+    
+    Holder_id = models.ForeignKey(Fin_BankAccountHolder, on_delete=models.CASCADE)
+    REGISTRATION_TYPE_CHOICES = [('regular', 'Regular'),('composition', 'Composition'),('consumer', 'Consumer'),('unregistered', 'Unregistered'),]
+    Pan_it_number = models.CharField(max_length=10, blank=True)
+    Registration_type = models.CharField(max_length=20, choices=REGISTRATION_TYPE_CHOICES, default='unknown')
+    Gstin_un = models.CharField(max_length=15, blank=True)
+    Set_alter_gst_details = models.BooleanField(default=False)
+    
+    
+class Fin_OpeningBalance(models.Model):
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    
+    
+
+    Holder_id = models.ForeignKey(Fin_BankAccountHolder, on_delete=models.CASCADE)
+    Date = models.DateField(default=datetime.date.today)
+    ArithmeticErrormount = models.DecimalField(max_digits=10, decimal_places=2)
+    Types =[('CREDIT', 'CREDIT'),('DEBIT', 'DEBIT'),]
+    Open_type = models.CharField(max_length=20, choices=Types, default='unknown') 
+
+
+class Fin_Comment(models.Model):
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+
+    Holder_id = models.ForeignKey(Fin_BankAccountHolder, on_delete=models.CASCADE)
+    bank_account = models.ForeignKey(Fin_BankAccount, on_delete=models.CASCADE)
+    comment_text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Comment #{self.id}'
+       
+
+class Fin_BankHistory(models.Model):
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    account = models.ForeignKey(Fin_BankAccount, on_delete=models.CASCADE)
+    Holder_id = models.ForeignKey(Fin_BankAccountHolder, on_delete=models.CASCADE)
+
+
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True)
+    action_choices = [
+        ('Created', 'Created'),
+        ('Edited', 'Edited'),
+        ]
+    action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
+    
+    
+# -------------Shemeem--------Price List & Customers-------------------------------
 
 
 class Fin_PriceList_Items(models.Model):
@@ -298,49 +522,8 @@ class Fin_PriceList_Comments(models.Model):
     list = models.ForeignKey(Fin_Price_List,on_delete=models.CASCADE,null=True,blank=True)
     comments = models.CharField(max_length=500,null=True,blank=True)
 
-class Fin_Company_Payment_Terms(models.Model):
-    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
-    term_name = models.CharField(max_length=100, null=True)
-    days = models.IntegerField(null=True, default=0)
 
-class Fin_Customers(models.Model):
-    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
-    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
-    title = models.CharField(max_length=10,null=True,blank=True)
-    first_name = models.CharField(max_length=100,null=True,blank=True)
-    last_name = models.CharField(max_length=100,null=True,blank=True)
-    company = models.CharField(max_length=100,null=True,blank=True)
-    location = models.CharField(max_length=100,null=True,blank=True)
-    place_of_supply = models.CharField(max_length=100,null=True,blank=True)
-    gst_type = models.CharField(max_length=100, null=True)
-    gstin = models.CharField(max_length=100,null=True,blank=True,default=None)
-    pan_no = models.CharField(max_length=100, null=True, blank=True)
-    email = models.EmailField(null=True,blank=True)
-    website = models.CharField(max_length=100, default='',null=True,blank=True)
-    mobile = models.CharField(max_length=20,null=True,blank=True)
-    price_list = models.ForeignKey(Fin_Price_List, on_delete = models.SET_NULL, null = True)
-    payment_terms = models.ForeignKey(Fin_Company_Payment_Terms, on_delete = models.SET_NULL,null=True)
-    billing_street = models.CharField(max_length=100,null=True,blank=True)
-    billing_city = models.CharField(max_length=100,null=True,blank=True)
-    billing_state = models.CharField(max_length=100,null=True,blank=True)
-    billing_pincode = models.CharField(max_length=100,null=True,blank=True)
-    billing_country = models.CharField(max_length=100,null=True,blank=True)
-    ship_street = models.CharField(max_length=100,null=True,blank=True)
-    ship_city = models.CharField(max_length=100,null=True,blank=True)
-    ship_state = models.CharField(max_length=100,null=True,blank=True)
-    ship_pincode = models.CharField(max_length=100,null=True,blank=True)
-    ship_country = models.CharField(max_length=100,null=True,blank=True)
-    opening_balance = models.FloatField(null=True, blank=True, default=0.0)
-    opening_balance_due = models.FloatField(null=True, blank=True, default=0.0)
-    open_balance_type = models.CharField(max_length=100,null=True,blank=True)
-    current_balance = models.FloatField(null=True, blank=True, default=0.0)
-    credit_limit = models.FloatField(null=True, blank=True, default=0.0)
-    date = models.DateField(null=True, auto_now_add=True,auto_now=False)
-    customer_status = (
-        ('Active','Active'),
-        ('Inactive','Inactive'),
-    )
-    status =models.CharField(max_length=150,choices=customer_status,default='Active',null=True,blank=True)
+
 
 
 class Fin_Customers_History(models.Model):
@@ -361,14 +544,3 @@ class Fin_Customers_Comments(models.Model):
     comments = models.CharField(max_length=500,null=True,blank=True)
 
 #End
-    
-class Fin_CNotification(models.Model): 
-    Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
-    Company_id = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
-    Item = models.ForeignKey(Fin_Items, on_delete = models.CASCADE, null=True, blank=True) # Added - shemeem -> Handle Item's min stock alerts
-    Customers = models.ForeignKey(Fin_Customers, on_delete = models.CASCADE, null=True,blank=True) # Added - shemeem -> Handle customer's credit limit alerts
-    
-    Title = models.CharField(max_length=255,null=True,blank=True)
-    Discription = models.CharField(max_length=255,null=True,blank=True) 
-    Noti_date = models.DateTimeField(auto_now_add=True,null=True)
-    status = models.CharField(max_length=100,null=True,default='New')

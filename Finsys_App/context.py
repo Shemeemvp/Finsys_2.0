@@ -45,7 +45,8 @@ def minStock(request):
             return {'alert': False,'n': len(nCount)}
     else:
         return {'alert': False}
-    
+        
+        
 def creditLimitAlert(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']

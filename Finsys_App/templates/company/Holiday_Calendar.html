@@ -1,0 +1,190 @@
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load static %}
+
+<!-- harikrishnan -->
+
+
+<!-- Include FullCalendar CSS -->
+
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<link rel="stylesheet" href="{% static 'assets/plugins/fullcalendar/css/main.min.css' %}">
+
+<!-- Include jQuery from a CDN -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+
+
+
+<div class="page-content ">
+
+    <div class="row radius-15">
+        <div id="calendarDiv" class="col"><center><h3><a href="" id="calendarLink" style="padding: 10px 20%;border-top-right-radius: 15px;border-top-left-radius: 15px;">Calendar</a></h3></center></div>
+        <div id="holidayListDiv" class="col"><center><h3><a href="" id="holidayListLink" style="padding: 10px 20%;border-top-right-radius: 15px;border-top-left-radius: 15px;">Holiday List</a></h3></center></div>
+    </div>
+
+    <div class="card radius-15">
+        <div class="ml-auto"><a style="cursor: pointer;" title="Close" href="{% url 'holiday_list' %}" ><i class="fa-solid fa-circle-xmark fa-2xl"></i></a></div>
+        <div class="card-body">
+            
+            <div class="row" id="cal">
+                <div class="col" id="calendar"></div>
+            </div>
+            
+            <div class="row" id="cal_list">
+                
+                <div class="table-responsive">
+                    <table class="table ml-3" style="width: 95%;">
+                        <thead class="thead" id="holidayList" >
+                            <tr style="font-size: large; " >
+                                <th>Sl No.</th>
+                                <th>NAME</th>
+                                <th>START DATE</th>
+                                <th>END DATE</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in events %}
+                            <tr style="font-size: large;">
+                                <td></td>
+                                <td style="text-transform: capitalize;">{{i.holiday_name}}</td>
+                                <td>{{i.start_date}}</td>
+                                <td>{{i.end_date}}</td>
+                                <td ><form method="post" action="{% url 'holiday_delete' i.id %}"> {% csrf_token %}<a href="{% url 'holiday_edit_page' i.id %}"><i style="color: cyan;" class="fa-solid fa-pen-to-square"></i></a> <input type="text" name="year" value="{{year}}" hidden> <input name="month" value="{{month}}" type="text" hidden> <button type="submit" style="margin-left: 10px;background-color: transparent;border: none;" ><i style="color: crimson;" class="fa-solid fa-trash"></i></button></form></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+            
+            
+        </div>
+    
+    </div>
+</div>
+<script>
+
+    
+
+
+// -------------------------------------------------------------------------------------
+// index
+
+document.addEventListener('DOMContentLoaded', function () {
+        // Get the table element
+        var table = document.getElementById('holidayList');
+
+        // Get all rows in the table body
+        var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        // Loop through each row and add an index number
+        for (var i = 0; i < rows.length; i++) {
+            // Create a new cell element
+            var cell = document.createElement('td');
+
+            // Set the content of the cell to the current index plus 1
+            cell.textContent = i + 1; // Index starts from 1
+
+            // Insert the new cell as the first child of the current row
+            rows[i].insertBefore(cell, rows[i].firstChild);
+        }
+    });
+// ----------------------------------------------------------------------------------
+// calendar (ignore the error - code working fine)
+
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: [
+            {% for i in events %}
+            {
+                title: '{{i.holiday_name}}',
+                start: '{{i.start_date|date:"c"}}',
+                // Extend the end date by one day
+                end: new Date('{{i.end_date|date:"c"}}'),
+            },
+            {% endfor %}
+        ],
+        eventContent: function(arg) {
+            // Customize the appearance of each event
+            var eventElement = document.createElement('div');
+            eventElement.innerHTML = arg.event.title;
+
+            // Increase width and height
+            eventElement.style.width = '120px'; // Adjust width as needed
+            eventElement.style.height = '30px'; // Adjust height as needed
+
+            // Add other style modifications as needed
+            eventElement.style.fontSize = '20px'; // Adjust font size as needed
+            eventElement.style.textTransform = 'capitalize'; // Capitalize the text
+            eventElement.style.marginLeft = '10px'; // Margin left
+
+            return { domNodes: [eventElement] };
+        }
+    });
+
+    // Specify the year and month you want to open the calendar to
+    var yearToOpen = {{ year }};
+    var monthToOpen = {{ month }}; // (months are 0-indexed in JavaScript)
+
+    // Use gotoDate to open the calendar to the specified year and month
+    calendar.gotoDate(new Date(yearToOpen, monthToOpen));
+
+    calendar.render();
+});
+
+
+// ----------------------------------------------------------------------------------
+// hide or show calendar
+
+
+      // Get references to the links and divs
+    var calendarLink = document.getElementById("calendarLink");
+    var holidayListLink = document.getElementById("holidayListLink");
+    var calendarDiv = document.getElementById("cal");
+    var holidayListDiv = document.getElementById("cal_list");
+    
+    holidayListDiv.style.display = "none"; // Hide the holiday list div
+    calendarLink.style.backgroundColor = '#213b52';
+
+    // Add click event listeners
+    calendarLink.addEventListener("click", function (event) {
+        event.preventDefault(); // Prevent the default behavior of the anchor tag
+        calendarDiv.style.display = "block"; // Show the calendar div
+        holidayListDiv.style.display = "none"; // Hide the holiday list div
+
+        // Add class to the selected div
+        calendarLink.style.backgroundColor = '#213b52';
+        holidayListLink.style.backgroundColor = 'transparent' ;
+            
+        
+        
+    });
+
+    holidayListLink.addEventListener("click", function (event) {
+        event.preventDefault(); // Prevent the default behavior of the anchor tag
+        calendarDiv.style.display = "none"; // Hide the calendar div
+        holidayListDiv.style.display = "block"; // Show the holiday list div
+
+        // Add class to the selected div
+
+        calendarLink.style.backgroundColor = 'transparent';
+        holidayListLink.style.backgroundColor = '#213b52' ;
+    });
+
+
+// ----------------------------------
+// back function
+    function goBack() {
+      window.history.back();
+    }
+
+  </script>
+            
+
+
+{% endblock %}
