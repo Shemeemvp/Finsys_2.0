@@ -198,7 +198,7 @@ urlpatterns = [
     # Invoice
 
     path('Fin_invoice',views.Fin_invoice, name='Fin_invoice'),
-
+    path('Fin_add_invoice',views.Fin_addInvoice, name='Fin_addInvoice'),
     # Vendor
     
     path('Fin_vendors',views.Fin_vendors, name='Fin_vendors'),
@@ -216,6 +216,9 @@ urlpatterns = [
     path('Fin_vendor_history/<int:id>',views.Fin_vendorHistory, name='Fin_vendorHistory'),
     path('Fin_add_vendor_comment/<int:id>',views.Fin_addVendorComment, name='Fin_addVendorComment'),
     path('Fin_delete_vendor_comment/<int:id>',views.Fin_deleteVendorComment, name='Fin_deleteVendorComment'),
+    path('Fin_vendor_transactions_pdf/<int:id>',views.Fin_vendorTransactionsPdf, name='Fin_vendorTransactionsPdf'),
+    path('Fin_share_vendor_transactions_to_email/<int:id>',views.Fin_shareVendorTransactionsToEmail, name='Fin_shareVendorTransactionsToEmail'),
+    path('Fin_update_vendor/<int:id>',views.Fin_updateVendor, name='Fin_updateVendor'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

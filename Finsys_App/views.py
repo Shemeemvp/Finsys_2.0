@@ -4630,6 +4630,21 @@ def Fin_invoice(request):
     else:
        return redirect('/')
     
+def Fin_addInvoice(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            return render(request,'company/Fin_Add_Invoice.html',{'allmodules':allmodules,'com':com,'data':data})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            return render(request,'company/Fin_Add_Invoice.html',{'allmodules':allmodules,'com':com,'data':data})
+    else:
+       return redirect('/')
+    
 
 # Vendors
         
@@ -4800,7 +4815,7 @@ def Fin_createVendor(request):
 
             vnd = Fin_Vendors(
                 Company = com,
-                LoginDetails = data,
+                LoginDetails = com.Login_Id,
                 title = request.POST['title'],
                 first_name = fName,
                 last_name = lName,
@@ -4854,18 +4869,43 @@ def Fin_viewVendor(request,id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
-        vnd = Fin_Vendors.objects.get(id = id)
-        cmt = Fin_Vendor_Comments.objects.filter(Vendor = vnd)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            hist = Fin_Vendor_History.objects.filter(Company = com, Vendor = vnd).last()
-            return render(request,'company/Fin_View_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'vendor':vnd, 'history':hist, 'comments':cmt})
+            cmp = com
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            hist = Fin_Vendor_History.objects.filter(Company = com.company_id, Vendor = vnd).last()
-            return render(request,'company/Fin_View_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'vendor':vnd, 'history':hist, 'comments':cmt})
+            cmp = com.company_id
+        
+        vnd = Fin_Vendors.objects.get(id = id)
+        cmt = Fin_Vendor_Comments.objects.filter(Vendor = vnd)
+        hist = Fin_Vendor_History.objects.filter(Vendor = vnd).last()
+
+        # Collect data from sales,purchase and other req tables and add or substract balnace amount with 'Bal' based on its type.
+        # Create dict with data -> Type, Number, Date, Total, Balance and append it with 'combined_data' list.
+        # Pass 'combined_data' list and Final 'Bal' as BALANCE with context dict after fetching all req data.
+
+        Bal = 0
+        combined_data=[]
+        
+        # Vendor opening balance.
+        dict = {
+            'Type' : 'Opening Balance', 'Number' : "", 'Date' : vnd.date, 'Total': vnd.opening_balance, 'Balance': vnd.opening_balance
+        }
+        combined_data.append(dict)
+
+        if vnd.open_balance_type == 'credit':
+            Bal += float(vnd.opening_balance)
+        else:
+            Bal -= float(vnd.opening_balance)
+
+        # Vendor Purchase order, Purchase bill, expense, recurring bill etc, goes here..
+
+        context = {'allmodules':allmodules,'com':com,'cmp':cmp,'data':data, 'vendor':vnd, 'history':hist, 'comments':cmt, 'BALANCE':Bal, 'combined_data':combined_data}
+
+        return render(request,'company/Fin_View_Vendor.html', context)
+
     else:
        return redirect('/')
 
@@ -4904,21 +4944,103 @@ def Fin_editVendor(request, id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
-        cust = Fin_Customers.objects.get(id = id)
+        vnd = Fin_Vendors.objects.get(id = id)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
             trms = Fin_Company_Payment_Terms.objects.filter(Company = com)
             lst = Fin_Price_List.objects.filter(Company = com, status = 'Active')
-            return render(request,'company/Fin_Edit_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'pTerms':trms, 'list':lst})
+            return render(request,'company/Fin_Edit_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'vendor':vnd, 'pTerms':trms, 'list':lst})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             trms = Fin_Company_Payment_Terms.objects.filter(Company = com.company_id)
             lst = Fin_Price_List.objects.filter(Company = com.company_id, status = 'Active')
-            return render(request,'company/Fin_Edit_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'pTerms':trms, 'list':lst})
+            return render(request,'company/Fin_Edit_Vendor.html',{'allmodules':allmodules,'com':com,'data':data, 'vendor':vnd, 'pTerms':trms, 'list':lst})
     else:
        return redirect('/')
+
+def Fin_updateVendor(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        vnd = Fin_Vendors.objects.get(id = id)
+        if request.method == 'POST':
+            fName = request.POST['first_name']
+            lName = request.POST['last_name']
+            gstIn = request.POST['gstin']
+            pan = request.POST['pan_no']
+            email = request.POST['email']
+            phn = request.POST['mobile']
+
+            if vnd.first_name != fName and vnd.last_name != lName and Fin_Vendors.objects.filter(Company = com, first_name__iexact = fName, last_name__iexact = lName).exists():
+                res = f'<script>alert("Vendor `{fName} {lName}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif vnd.gstin != gstIn and Fin_Vendors.objects.filter(Company = com, gstin__iexact = gstIn).exists():
+                res = f'<script>alert("GSTIN `{gstIn}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif vnd.pan_no != pan and Fin_Vendors.objects.filter(Company = com, pan_no__iexact = pan).exists():
+                res = f'<script>alert("PAN No `{pan}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif vnd.mobile != phn and Fin_Vendors.objects.filter(Company = com, mobile__iexact = phn).exists():
+                res = f'<script>alert("Phone Number `{phn}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif vnd.email != email and Fin_Vendors.objects.filter(Company = com, email__iexact = email).exists():
+                res = f'<script>alert("Email `{email}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            vnd.title = request.POST['title']
+            vnd.first_name = fName
+            vnd.last_name = lName
+            vnd.company = request.POST['company_name']
+            vnd.location = request.POST['location']
+            vnd.place_of_supply = request.POST['place_of_supply']
+            vnd.gst_type = request.POST['gst_type']
+            vnd.gstin = None if request.POST['gst_type'] == "Unregistered Business" or request.POST['gst_type'] == 'Overseas' or request.POST['gst_type'] == 'Consumer' else gstIn
+            vnd.pan_no = pan
+            vnd.email = email
+            vnd.mobile = phn
+            vnd.website = request.POST['website']
+            vnd.price_list = None if request.POST['price_list'] ==  "" else Fin_Price_List.objects.get(id = request.POST['price_list'])
+            vnd.payment_terms = None if request.POST['payment_terms'] == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_terms'])
+            vnd.opening_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance'])
+            vnd.open_balance_type = request.POST['balance_type']
+            vnd.current_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance'])
+            vnd.credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit'])
+            vnd.currency = request.POST['currency']
+            vnd.billing_street = request.POST['street']
+            vnd.billing_city = request.POST['city']
+            vnd.billing_state = request.POST['state']
+            vnd.billing_pincode = request.POST['pincode']
+            vnd.billing_country = request.POST['country']
+            vnd.ship_street = request.POST['shipstreet']
+            vnd.ship_city = request.POST['shipcity']
+            vnd.ship_state = request.POST['shipstate']
+            vnd.ship_pincode = request.POST['shippincode']
+            vnd.ship_country = request.POST['shipcountry']
+
+            vnd.save()
+
+            #save transaction
+
+            Fin_Vendor_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                Vendor = vnd,
+                action = 'Edited'
+            )
+
+            return redirect(Fin_viewVendor, id)
+
+        else:
+            return redirect(Fin_editVendor, id)
+    else:
+        return redirect('/')
 
 def Fin_addVendorComment(request, id):
     if 's_id' in request.session:
@@ -4944,3 +5066,105 @@ def Fin_deleteVendorComment(request,id):
         vendorId = cmt.Vendor.id
         cmt.delete()
         return redirect(Fin_viewVendor, vendorId)
+
+def Fin_vendorTransactionsPdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        vnd = Fin_Vendors.objects.get(id = id)
+
+        Bal = 0
+        combined_data=[]
+        
+        # Vendor opening balance.
+        dict = {
+            'Type' : 'Opening Balance', 'Number' : "", 'Date' : vnd.date, 'Total': vnd.opening_balance, 'Balance': vnd.opening_balance
+        }
+        combined_data.append(dict)
+
+        if vnd.open_balance_type == 'credit':
+            Bal += float(vnd.opening_balance)
+        else:
+            Bal -= float(vnd.opening_balance)
+    
+        context = {'vendor':vnd, 'cmp':com, 'BALANCE':Bal, 'combined_data':combined_data}
+        
+        template_path = 'company/Fin_Vendor_Transaction_Pdf.html'
+        fname = 'Vendor_Transactions_'+vnd.first_name+'_'+vnd.last_name
+        # return render(request, 'company/Fin_Vendor_Transaction_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+    
+def Fin_shareVendorTransactionsToEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                vnd = Fin_Vendors.objects.get(id = id)
+
+                Bal = 0
+                combined_data=[]
+                
+                # Vendor opening balance.
+                dict = {
+                    'Type' : 'Opening Balance', 'Number' : "", 'Date' : vnd.date, 'Total': vnd.opening_balance, 'Balance': vnd.opening_balance
+                }
+                combined_data.append(dict)
+
+                if vnd.open_balance_type == 'credit':
+                    Bal += float(vnd.opening_balance)
+                else:
+                    Bal -= float(vnd.opening_balance)
+            
+                context = {'vendor':vnd, 'cmp':com, 'BALANCE':Bal, 'combined_data':combined_data}
+                template_path = 'company/Fin_Vendor_Transaction_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Vendor_Transactions_{vnd.first_name}_{vnd.last_name}'
+                subject = f"Vendor_Transactions_{vnd.first_name}_{vnd.last_name}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Transaction details for - Vendor-{vnd.first_name} {vnd.last_name}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Transactions details has been shared via email successfully..!')
+                return redirect(Fin_viewVendor,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_viewVendor, id)
