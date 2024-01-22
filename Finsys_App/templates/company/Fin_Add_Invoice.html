@@ -26,6 +26,38 @@
     <div class="card radius-15">
       <div class="card-body">
         <div id="invoice">
+            <div class="row">
+                <div class="col-md-4 mt-3">
+                    <label class="">Select Customer</label>
+                    <div class="d-flex">
+                        <select name="customer" id="customer" class="form-control" style="background-color: #43596c; color: white;" required>
+                            <option value=""  selected >Select Customer</option>
+                            {% for cust in customers %}
+                            <option value="{{ cust.id }}"> {{ cust.title }} {{ cust.first_name }} {{ cust.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" data-toggle="modal" data-target="#customercreation" class="btn btn-outline-secondary ml-1">+</button>
+                    </div>
+                    <label class="mt-3">GST Type</label>
+                    <input type="text" class="form-control" id="gstType" name="gst_type" style="background-color: #43596c;" readonly>
+                </div>
+
+                <div class="col-md-4 mt-3">
+                    <label class="">Email</label>
+                    <input class="form-control" type="email" name="email" placeholder="Email" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
+                    <div class="mt-3" id="gstInDisplay" style="display: block;">
+                        <label class="">GSTIN</label>
+                        <input type="text" class="form-control" id="gstin" name="gstin" style="background-color: #43596c;" readonly>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mt-3">
+                    <label class="">Billing Address</label>
+                    <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly></textarea>
+                </div>
+            </div>
+
+
           <div class="row">
             <div class="col-md-4">
             <div class="d-flex">
@@ -33,20 +65,6 @@
             </div>
             <input type="text" class="form-control" name="inv_no"  id="inv_no" style="background-color: #43596c;" placeholder="{{inv_no}}"><br>
 
-              <label class="col-form-label mt-2">Select Customer</label>
-              <div class="d-flex">
-                <select name="customername" id="customer" class="form-control" style="background-color: #43596c; color: white;">
-                  <option value="NIL" disabled selected hidden>Select Customer</option>
-                  {% for cust in customers %}
-                  {% if cust.cid_id == cmp1.cid %}
-                  <option value="{{ cust.customerid }} {{ cust.firstname }} {{ cust.lastname }}"> {{ cust.title }} {{ cust.firstname }} {{ cust.lastname }}</option>
-                  {% endif %}
-                  {% endfor %}
-                </select>
-                <a data-toggle="modal" href="#customercreation">
-                  <button type="button" class="btn btn-outline-secondary ml-1">+</button>
-              </a>
-              </div>
               <br>
               
               <label class="col-form-label mt-2">Place of supply</label>
@@ -97,21 +115,12 @@
                 <label class="col-form-label">Reference Number</label>
                 <input type="text" class="form-control" name="Ref_No" value="{{ref_no}}" style="background-color: #43596c;" readonly><br>
 
-                <label class="col-form-label mt-2">Email </label>
-                <input class="form-control" name="email" placeholder="Email" required style="background-color: #43596c; color: white;" id="cust_email" readonly><br>
 
-                <label class="col-form-label mt-2">GST Type</label>
-                <input type="text" class="form-control" id="gsttype" name="gsttype" style="background-color: #43596c;" readonly>
             </div>
             <div class="col-md-4">
-              <label class="text-gray-light">Billing Address</label>
-              <textarea class="form-control mb-2 mt-1" name="bname" id="bname" rows="6" type="text" style="background-color: #43596c; color: white;" readonly></textarea>
 
               
-              <div id="gstnodiv" style="display: none;">
-                <label class="col-form-label mt-1">GSTIN</label>
-                <input type="text" class="form-control" id="gstno" name="gstno" style="background-color: #43596c;" readonly>
-            </div>
+              
             </div>
           </div>
 
@@ -812,8 +821,8 @@ function reloadterms(){
     });
 
 $(document).ready(function() {
-  $("#gsttype").change(function() {
-  var x=$('#gsttype').val();
+  $("#gstType").change(function() {
+  var x=$('#gstType').val();
   if(x=="unregistered Business") 
   {
       $(".gstrow").removeClass('d-block');
@@ -1050,16 +1059,16 @@ function reloadItem() {
               },
               
               success: function(data){
-                document.getElementById('cust_email').value = data.email;
+                document.getElementById('customerEmail').value = data.email;
                 document.getElementById('plosu').value = data.shipstate;
-                document.getElementById('gsttype').value = data.gsttype;
-                document.getElementById('bname').value = data.street + '\n' + data.city + '\n' + data.state + '\n' + data.country  + '\n' + data.pincode ;
+                document.getElementById('gstType').value = data.gsttype;
+                document.getElementById('billAddress').value = data.street + '\n' + data.city + '\n' + data.state + '\n' + data.country  + '\n' + data.pincode ;
                 if(data.gstno){
-                    document.getElementById('gstnodiv').style.display = 'block';
-                    document.getElementById('gstno').value = data.gstno;
+                    document.getElementById('gstInDisplay').style.display = 'block';
+                    document.getElementById('gstin').value = data.gstno;
                 }else{
-                    document.getElementById('gstnodiv').style.display = 'none';
-                    document.getElementById('gstno').value = '';
+                    document.getElementById('gstInDisplay').style.display = 'none';
+                    document.getElementById('gstin').value = '';
                 }
                 var compstate = document.getElementById("cmpstate").value;
                 if (data.shipstate == compstate ) {

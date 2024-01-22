@@ -4637,11 +4637,18 @@ def Fin_addInvoice(request):
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            return render(request,'company/Fin_Add_Invoice.html',{'allmodules':allmodules,'com':com,'data':data})
+            cmp = com
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            return render(request,'company/Fin_Add_Invoice.html',{'allmodules':allmodules,'com':com,'data':data})
+            cmp = com.company_id
+
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        context = {
+            'allmodules':allmodules,'com':com,'data':data, 'customers':cust, 'items':itms
+        }
+        return render(request,'company/Fin_Add_Invoice.html',context)
     else:
        return redirect('/')
     
