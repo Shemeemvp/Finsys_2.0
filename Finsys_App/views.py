@@ -4645,8 +4645,29 @@ def Fin_addInvoice(request):
 
         cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
         itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+
+        # Fetching last invoice and assigning upcoming ref no as current + 1
+        # Also check for if any bill is deleted and ref no is continuos w r t the deleted invoice
+        latest_inv = Fin_Invoice.objects.filter(Company = cmp).order_by('-id').first()
+
+        new_number = int(latest_inv.reference_no) + 1 if latest_inv else 1
+        # if latest_inv:
+        #     last_number = int(latest_inv.reference_no)
+        #     new_number = last_number + 1
+        # else:
+            # new_number = 1
+
+        if Fin_Invoice_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_Invoice_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.reference_no) >= new_number:
+                    new_number+=1
+
         context = {
-            'allmodules':allmodules,'com':com,'data':data, 'customers':cust, 'items':itms
+            'allmodules':allmodules,'com':com,'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,
+            'ref_no':new_number,
         }
         return render(request,'company/Fin_Add_Invoice.html',context)
     else:
