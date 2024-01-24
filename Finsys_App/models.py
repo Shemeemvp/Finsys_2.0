@@ -676,3 +676,17 @@ class Fin_Vendor_Comments(models.Model):
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
     Vendor = models.ForeignKey(Fin_Vendors,on_delete=models.CASCADE,null=True,blank=True)
     comments = models.CharField(max_length=500,null=True,blank=True)
+# End
+    
+class Fin_Banking(models.Model): 
+    login_details = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+
+    bank_name = models.CharField(max_length=255,null=True,blank=True) 
+    account_number = models.CharField(max_length=255,null=True,blank=True) 
+    ifsc_code = models.CharField(max_length=255,null=True,blank=True) 
+    branch_name = models.CharField(max_length=255,null=True,blank=True) 
+    opening_balance_type = models.CharField(max_length=255,null=True,blank=True) 
+    opening_balance = models.IntegerField(null=True,default=0)
+    date = models.DateTimeField(auto_now_add=False,null=True)
+    current_balance = models.IntegerField(null=True,default=0)

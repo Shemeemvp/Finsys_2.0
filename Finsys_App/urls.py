@@ -199,6 +199,8 @@ urlpatterns = [
 
     path('Fin_invoice',views.Fin_invoice, name='Fin_invoice'),
     path('Fin_add_invoice',views.Fin_addInvoice, name='Fin_addInvoice'),
+    path('Fin_get_bank_account',views.Fin_getBankAccount, name='Fin_getBankAccount'),
+    path('Fin_get_invoice_customer_data',views.Fin_getInvoiceCustomerData, name='Fin_getInvoiceCustomerData'),
     # Vendor
     
     path('Fin_vendors',views.Fin_vendors, name='Fin_vendors'),

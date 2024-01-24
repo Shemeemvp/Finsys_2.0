@@ -3041,7 +3041,7 @@ def Fin_createPriceList(request):
                     lis = list(values)
 
                     for ele in lis:
-                        Fin_PriceList_Items.objects.get_or_create(Company = com, LoginDetails = data, list = priceList, item = Fin_Items.objects.get(id = int(ele[0])), standard_rate = float(ele[1]), custom_rate = float(ele[2]))
+                        Fin_PriceList_Items.objects.get_or_create(Company = com, LoginDetails = data, list = priceList, item = Fin_Items.objects.get(id = int(ele[0])), standard_rate = float(ele[1]), custom_rate = float(ele[1]) if ele[2] == 0 or ele[2] =="0" else float(ele[2]))
 
                     return redirect(Fin_priceList)
 
@@ -3213,7 +3213,7 @@ def Fin_updatePriceList(request,id):
                         lis = list(values)
 
                         for ele in lis:
-                            Fin_PriceList_Items.objects.filter(id = ele[0]).update(Company = com, LoginDetails = data, list = lst, item = Fin_Items.objects.get(id = int(ele[1])), standard_rate = float(ele[2]), custom_rate = float(ele[3]))
+                            Fin_PriceList_Items.objects.filter(id = ele[0]).update(Company = com, LoginDetails = data, list = lst, item = Fin_Items.objects.get(id = int(ele[1])), standard_rate = float(ele[2]), custom_rate = float(ele[2]) if ele[3] == 0 or ele[3] =="0" else float(ele[3]))
 
                         return redirect(Fin_viewPriceList,id)
 
@@ -3224,7 +3224,7 @@ def Fin_updatePriceList(request,id):
                         values = zip(itemName,stdRate,customRate)
                         lis = list(values)
                         for ele in lis:
-                            Fin_PriceList_Items.objects.create(Company = com, LoginDetails = data, list = lst, item = Fin_Items.objects.get(id = int(ele[0])), standard_rate = float(ele[1]), custom_rate = float(ele[2]))
+                            Fin_PriceList_Items.objects.create(Company = com, LoginDetails = data, list = lst, item = Fin_Items.objects.get(id = int(ele[0])), standard_rate = float(ele[1]), custom_rate = float(ele[1]) if ele[2] == 0 or ele[2] =="0" else float(ele[2]))
                         
                         return redirect(Fin_viewPriceList,id)
             else:
@@ -3550,7 +3550,8 @@ def Fin_newCustomerPaymentTerm(request):
             for term in terms:
                 termDict = {
                     'name': term.term_name,
-                    'id': term.id
+                    'id': term.id,
+                    'days':term.days
                 }
                 list.append(termDict)
 
@@ -4646,6 +4647,7 @@ def Fin_addInvoice(request):
         cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
         itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
         trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
 
         # Fetching last invoice and assigning upcoming ref no as current + 1
         # Also check for if any bill is deleted and ref no is continuos w r t the deleted invoice
@@ -4666,13 +4668,60 @@ def Fin_addInvoice(request):
                     new_number+=1
 
         context = {
-            'allmodules':allmodules,'com':com,'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,
-            'ref_no':new_number,
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,
+            'ref_no':new_number,'banks':bnk,
         }
         return render(request,'company/Fin_Add_Invoice.html',context)
     else:
        return redirect('/')
+
+def Fin_getBankAccount(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+        
+        bankId = request.GET['id']
+        bnk = Fin_Banking.objects.get(id = bankId)
+
+        if bnk:
+            return JsonResponse({'status':True, 'account':bnk.account_number})
+        else:
+            return JsonResponse({'status':False, 'message':'Something went wrong..!'})
+    else:
+       return redirect('/')
     
+def Fin_getInvoiceCustomerData(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+        
+        custId = request.POST['id']
+        cust = Fin_Customers.objects.get(id = custId)
+
+        if cust:
+            if cust.price_list and cust.price_list.type == 'Sales':
+                list = True
+                listId = cust.price_list.id
+            else:
+                list = False
+                listId = None
+            context = {
+                'status':True, 'email':cust.email, 'gstType':cust.gst_type,'shipState':cust.ship_state,'gstin':False if cust.gstin == "" or cust.gstin == None else True, 'gstNo':cust.gstin, 'priceList':list, 'ListId':listId,
+                'street':cust.billing_street, 'city':cust.billing_city, 'state':cust.billing_state, 'country':cust.billing_country, 'pincode':cust.billing_pincode
+            }
+            return JsonResponse(context)
+        else:
+            return JsonResponse({'status':False, 'message':'Something went wrong..!'})
+    else:
+       return redirect('/')
 
 # Vendors
         
