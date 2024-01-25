@@ -4723,6 +4723,159 @@ def Fin_getInvoiceCustomerData(request):
     else:
        return redirect('/')
 
+def Fin_checkInvoiceNumber(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        invNo = request.GET['invNum']
+
+        nxtInv = ""
+        lastInv = Fin_Invoice.objects.filter(Company = com).last()
+        if lastInv:
+            inv_no = str(lastInv.invoice_no)
+            numbers = []
+            stri = []
+            for word in inv_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            inv_num = int(num)+1
+
+            if num[0] == '0':
+                if inv_num <10:
+                    nxtInv = st+'0'+ str(inv_num)
+                else:
+                    nxtInv = st+ str(inv_num)
+            else:
+                nxtInv = st+ str(inv_num)
+
+        if Fin_Invoice.objects.filter(Company = com, invoice_no__iexact = invNo).exists():
+            return JsonResponse({'status':False, 'message':'Invoice No already Exists.!'})
+        elif nxtInv != "" and invNo != nxtInv:
+            return JsonResponse({'status':False, 'message':'Invoice No is not continuous.!'})
+        else:
+            return JsonResponse({'status':True, 'message':'Number is okay.!'})
+    else:
+       return redirect('/')
+    
+def Fin_getInvItemDetails(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        itemName = request.GET['item']
+        item = Fin_Items.objects.get(Company = com, name = itemName)
+
+        context = {
+            'status':True,
+            'hsn':item.hsn,
+            'sales_rate':item.selling_price,
+            'avl':item.current_stock,
+            'tax': True if item.tax_reference == 'taxable' else False,
+            'gst':item.inter_state_tax,
+            'igst':item.intra_state_tax,
+
+        }
+        return JsonResponse(context)
+    else:
+       return redirect('/')
+
+def Fin_createInvoice(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        if request.method == 'POST':
+            inv = Fin_Invoice(
+                Company = com,
+                LoginDetails = com.Login_Id,
+                Customer = Fin_Customers.objects.get(id = request.POST['customer']),
+                customer_email = request.POST['customerEmail'],
+                billing_address = request.POST['bill_address'],
+                gst_type = request.POST['gst_type'],
+                gstin = request.POST['gstin'],
+                place_of_supply = request.POST['place_of_supply'],
+                reference_no = request.POST['reference_number'],
+                invoice_no = request.POST['invoice_no'],
+                payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term']),
+                invoice_date = request.POST['invoice_date'],
+                duedate = datetime.strptime(request.POST['due_date'], '%d-%m-%Y').date(),
+                salesOrder_no = request.POST['order_number'],
+                exp_ship_date = None,
+                payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method'],
+                cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id'],
+                upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id'],
+                bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id'],
+                subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal']),
+                igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst']),
+                cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst']),
+                sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst']),
+                tax_amount = 0.0 if request.POST['taxamount'] == "" else float(request.POST['taxamount']),
+                adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj']),
+                shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship']),
+                grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal']),
+                paid_off = 0.0 if request.POST['advance'] == "" else float(request.POST['advance']),
+                balance = request.POST['grandtotal'] if request.POST['balance'] == "" else float(request.POST['balance']),
+                note = request.POST['note']
+            )
+
+            inv.save()
+
+            if len(request.FILES) != 0:
+                inv.file=request.FILES.get('file')
+            inv.save()
+
+            if 'Draft' in request.POST:
+                inv.status = "Draft"
+            elif "Save" in request.POST:
+                inv.status = "Saved" 
+            inv.save()
+
+                
+            # ids = request.POST.getlist("pItems[]")
+            # item = request.POST.getlist("item[]")
+            # hsn  = request.POST.getlist("hsn[]")
+            # qty = request.POST.getlist("qty[]")
+            # price = request.POST.getlist("price[]")
+            # tax = request.POST.getlist("taxgst[]") if request.POST['stateOfSupply'] == 'State' else request.POST.getlist("taxigst[]")
+            # total = request.POST.getlist("total[]")
+
+            # pid = Purchases.objects.get( bill_no = purchase.bill_no)
+
+            # if len(item)==len(hsn)==len(qty)==len(price)==len(tax)==len(total)==len(ids) and ids and item and hsn and qty and price and tax and total:
+            #     mapped = zip(item,hsn,qty,price,tax,total,ids)
+            #     mapped = list(mapped)
+            #     for ele in mapped:
+            #         Purchase_items.objects.create(name = ele[0],hsn=ele[1],quantity=ele[2],rate=ele[3],tax=ele[4],total=ele[5],pid = pid, cid=cmp, item = Items.objects.get(cid = cmp, id = ele[6]))
+            return redirect(Fin_invoice)
+        else:
+            return redirect(Fin_addInvoice)
+        return JsonResponse()
+    else:
+       return redirect('/')
+
 # Vendors
         
 def Fin_vendors(request):
