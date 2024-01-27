@@ -4654,11 +4654,6 @@ def Fin_addInvoice(request):
         latest_inv = Fin_Invoice.objects.filter(Company = cmp).order_by('-id').first()
 
         new_number = int(latest_inv.reference_no) + 1 if latest_inv else 1
-        # if latest_inv:
-        #     last_number = int(latest_inv.reference_no)
-        #     new_number = last_number + 1
-        # else:
-            # new_number = 1
 
         if Fin_Invoice_Reference.objects.filter(Company = cmp).exists():
             deleted = Fin_Invoice_Reference.objects.get(Company = cmp)
@@ -4667,9 +4662,40 @@ def Fin_addInvoice(request):
                 while int(deleted.reference_no) >= new_number:
                     new_number+=1
 
+        # Finding next invoice number w r t last invoic number if exists.
+        nxtInv = ""
+        lastInv = Fin_Invoice.objects.filter(Company = cmp).last()
+        if lastInv:
+            inv_no = str(lastInv.invoice_no)
+            numbers = []
+            stri = []
+            for word in inv_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            inv_num = int(num)+1
+
+            if num[0] == '0':
+                if inv_num <10:
+                    nxtInv = st+'0'+ str(inv_num)
+                else:
+                    nxtInv = st+ str(inv_num)
+            else:
+                nxtInv = st+ str(inv_num)
+
         context = {
             'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,
-            'ref_no':new_number,'banks':bnk,
+            'ref_no':new_number,'banks':bnk,'invNo':nxtInv,
         }
         return render(request,'company/Fin_Add_Invoice.html',context)
     else:
@@ -4787,6 +4813,7 @@ def Fin_getInvItemDetails(request):
 
         context = {
             'status':True,
+            'id': item.id,
             'hsn':item.hsn,
             'sales_rate':item.selling_price,
             'avl':item.current_stock,
@@ -4808,6 +4835,11 @@ def Fin_createInvoice(request):
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
         if request.method == 'POST':
+            invNum = request.POST['invoice_no']
+            if Fin_Invoice.objects.filter(Company = com, invoice_no__iexact = invNum).exists():
+                res = f'<script>alert("Invoice Number `{invNum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
             inv = Fin_Invoice(
                 Company = com,
                 LoginDetails = com.Login_Id,
@@ -4818,7 +4850,7 @@ def Fin_createInvoice(request):
                 gstin = request.POST['gstin'],
                 place_of_supply = request.POST['place_of_supply'],
                 reference_no = request.POST['reference_number'],
-                invoice_no = request.POST['invoice_no'],
+                invoice_no = invNum,
                 payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term']),
                 invoice_date = request.POST['invoice_date'],
                 duedate = datetime.strptime(request.POST['due_date'], '%d-%m-%Y').date(),
@@ -4853,29 +4885,135 @@ def Fin_createInvoice(request):
                 inv.status = "Saved" 
             inv.save()
 
-                
-            # ids = request.POST.getlist("pItems[]")
-            # item = request.POST.getlist("item[]")
-            # hsn  = request.POST.getlist("hsn[]")
-            # qty = request.POST.getlist("qty[]")
-            # price = request.POST.getlist("price[]")
-            # tax = request.POST.getlist("taxgst[]") if request.POST['stateOfSupply'] == 'State' else request.POST.getlist("taxigst[]")
-            # total = request.POST.getlist("total[]")
+            # Save invoice items.
 
-            # pid = Purchases.objects.get( bill_no = purchase.bill_no)
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("price[]")
+            tax = request.POST.getlist("taxGST[]") if request.POST['place_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
 
-            # if len(item)==len(hsn)==len(qty)==len(price)==len(tax)==len(total)==len(ids) and ids and item and hsn and qty and price and tax and total:
-            #     mapped = zip(item,hsn,qty,price,tax,total,ids)
-            #     mapped = list(mapped)
-            #     for ele in mapped:
-            #         Purchase_items.objects.create(name = ele[0],hsn=ele[1],quantity=ele[2],rate=ele[3],tax=ele[4],total=ele[5],pid = pid, cid=cmp, item = Items.objects.get(cid = cmp, id = ele[6]))
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total) and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total)
+                mapped = list(mapped)
+                for ele in mapped:
+                    itm = Fin_Items.objects.get(id = int(ele[0]))
+                    Fin_Invoice_Items.objects.create(Invoice = inv, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+            
+            # Save transaction
+                    
+            Fin_Invoice_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                Invoice = inv,
+                action = 'Created'
+            )
+
             return redirect(Fin_invoice)
         else:
             return redirect(Fin_addInvoice)
-        return JsonResponse()
     else:
        return redirect('/')
 
+def Fin_viewInvoice(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        inv = Fin_Invoice.objects.get(id = id)
+        cmt = Fin_Invoice_Comments.objects.filter(Invoice = inv)
+        hist = Fin_Invoice_History.objects.filter(Invoice = inv).last()
+        invItems = Fin_Invoice_Items.objects.filter(Invoice = inv)
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+            allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        
+        return render(request,'company/Fin_View_Invoice.html',{'allmodules':allmodules,'com':com,'cmp':cmp, 'data':data, 'invoice':inv,'invItems':invItems, 'history':hist, 'comments':cmt})
+    else:
+       return redirect('/')
+
+def Fin_convertInvoice(request,id):
+    if 's_id' in request.session:
+
+        inv = Fin_Invoice.objects.get(id = id)
+        inv.status = 'Saved'
+        inv.save()
+        return redirect(Fin_viewInvoice, id)
+
+def Fin_addInvoiceComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        inv = Fin_Invoice.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_Invoice_Comments.objects.create(Company = com, Invoice = inv, comments = cmt)
+            return redirect(Fin_viewInvoice, id)
+        return redirect(Fin_viewInvoice, id)
+    return redirect('/')
+
+def Fin_deleteInvoiceComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_Invoice_Comments.objects.get(id = id)
+        invId = cmt.Invoice.id
+        cmt.delete()
+        return redirect(Fin_viewInvoice, invId)
+    
+def Fin_invoiceHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        inv = Fin_Invoice.objects.get(id = id)
+        his = Fin_Invoice_History.objects.filter(Invoice = inv)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/Fin_Invoice_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'invoice':inv})
+    else:
+       return redirect('/')
+    
+def Fin_deleteInvoice(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        inv = Fin_Invoice.objects.get( id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        Fin_Invoice_Items.objects.filter(Invoice = inv).delete()
+
+        # Storing ref number to deleted table
+        # if entry exists and lesser than the current, update and save => Only one entry per company
+        if Fin_Invoice_Reference.objects.filter(Company = com).exists():
+            deleted = Fin_Invoice_Reference.objects.get(Company = com)
+            if int(inv.reference_no) > int(deleted.reference_no):
+                deleted.reference_no = inv.reference_no
+                deleted.save()
+        else:
+            Fin_Invoice_Reference.objects.create(Company = com, reference_no = inv.reference_no)
+        
+        inv.delete()
+        return redirect(Fin_invoice)
 # Vendors
         
 def Fin_vendors(request):

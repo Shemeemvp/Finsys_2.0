@@ -36,8 +36,8 @@
               <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown"><i class="fa fa-filter"></i> filter by</button>
               <div class="dropdown-menu" style="background-color: black">
                 <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(6,'all')">All</a>
-                <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(6,'active')">Active</a>
-                <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(6,'inactive')">Inactive</a>
+                <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(6,'draft')">Draft</a>
+                <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(6,'saved')">Saved</a>
               </div>
             </div>
             <a href="{% url 'Fin_addInvoice' %}" class="ml-1"></i><button type="button" class="btn btn-outline-secondary text-grey"><i class="fa fa-plus font-weight-light"></i> Invoice</button></a>
@@ -61,7 +61,7 @@
         </thead>
         <tbody>
           {% for a in invoices %}
-          <tr class="clickable-row" data-href="#" style="cursor: pointer;">
+          <tr class="clickable-row" data-href="{% url 'Fin_viewInvoice' a.id %}" style="cursor: pointer;">
             <td>{{ forloop.counter }}</td>
             <td>{{ a.invoice_date }}</td>
             <td>{{ a.invoice_no }}</td>

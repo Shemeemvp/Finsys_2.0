@@ -204,6 +204,12 @@ urlpatterns = [
     path('Fin_check_invoice_number',views.Fin_checkInvoiceNumber, name='Fin_checkInvoiceNumber'),
     path('Fin_get_inv_item_details',views.Fin_getInvItemDetails, name='Fin_getInvItemDetails'),
     path('Fin_create_invoice',views.Fin_createInvoice, name='Fin_createInvoice'),
+    path('Fin_view_invoice/<int:id>',views.Fin_viewInvoice, name='Fin_viewInvoice'),
+    path('Fin_convert_invoice/<int:id>',views.Fin_convertInvoice, name='Fin_convertInvoice'),
+    path('Fin_add_invoice_comment/<int:id>',views.Fin_addInvoiceComment, name='Fin_addInvoiceComment'),
+    path('Fin_delete_invoice_comment/<int:id>',views.Fin_deleteInvoiceComment, name='Fin_deleteInvoiceComment'),
+    path('Fin_invoice_history/<int:id>',views.Fin_invoiceHistory, name='Fin_invoiceHistory'),
+    path('Fin_delete_invoice/<int:id>',views.Fin_deleteInvoice, name= 'Fin_deleteInvoice'),
     # Vendor
     
     path('Fin_vendors',views.Fin_vendors, name='Fin_vendors'),
