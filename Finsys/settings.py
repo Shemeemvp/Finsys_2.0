@@ -66,7 +66,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'Finsys_App.context.minStock',
-                'Finsys_App.context.creditLimitAlert'
+                'Finsys_App.context.customerCreditLimitAlert',
+                'Finsys_App.context.vendorCreditLimitAlert'
             ],
         },
     },

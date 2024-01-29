@@ -225,8 +225,22 @@
                     {% endfor %}
                     {% endif %}
 
-                    {% if creditLimitAlert %}
-                    {% for data in creditLimit %}
+                    {% if cCreditLimitAlert %}
+                    {% for data in cCreditLimit %}
+                    <a class="dropdown-item" href="javascript:;">
+                      <div class="media align-items-center">
+                        <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i></div>
+                        <div class="media-body">
+                          <h6 class="msg-name">{{data.Title}}<span class="msg-time float-right">{{data.Noti_date|date:'Y-m-d'}}</span></h6>
+                          <p class="msg-info">'{{data.Discription}}'</p>
+                        </div>
+                      </div>
+                    </a>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if vCreditLimitAlert %}
+                    {% for data in vCreditLimit %}
                     <a class="dropdown-item" href="javascript:;">
                       <div class="media align-items-center">
                         <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i></div>
@@ -288,8 +302,22 @@
                     {% endfor %}
                     {% endif %}
 
-                    {% if creditLimitAlert %}
-                    {% for data in creditLimit %}
+                    {% if cCreditLimitAlert %}
+                    {% for data in cCreditLimit %}
+                    <a class="dropdown-item" href="javascript:;">
+                      <div class="media align-items-center">
+                        <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i></div>
+                        <div class="media-body">
+                          <h6 class="msg-name">{{data.Title}}<span class="msg-time float-right">{{data.Noti_date|date:'Y-m-d'}}</span></h6>
+                          <p class="msg-info">'{{data.Discription}}'</p>
+                        </div>
+                      </div>
+                    </a>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if vCreditLimitAlert %}
+                    {% for data in vCreditLimit %}
                     <a class="dropdown-item" href="javascript:;">
                       <div class="media align-items-center">
                         <div class="notify bg-light-primary text-primary"><i class='bx bx-package'></i></div>
