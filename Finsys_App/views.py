@@ -4648,6 +4648,7 @@ def Fin_addInvoice(request):
         itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
         trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
         bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
 
         # Fetching last invoice and assigning upcoming ref no as current + 1
         # Also check for if any bill is deleted and ref no is continuos w r t the deleted invoice
@@ -4694,7 +4695,7 @@ def Fin_addInvoice(request):
                 nxtInv = st+ str(inv_num)
 
         context = {
-            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
             'ref_no':new_number,'banks':bnk,'invNo':nxtInv,
         }
         return render(request,'company/Fin_Add_Invoice.html',context)
@@ -4736,11 +4737,13 @@ def Fin_getInvoiceCustomerData(request):
             if cust.price_list and cust.price_list.type == 'Sales':
                 list = True
                 listId = cust.price_list.id
+                listName = cust.price_list.name
             else:
                 list = False
                 listId = None
+                listName = None
             context = {
-                'status':True, 'email':cust.email, 'gstType':cust.gst_type,'shipState':cust.ship_state,'gstin':False if cust.gstin == "" or cust.gstin == None else True, 'gstNo':cust.gstin, 'priceList':list, 'ListId':listId,
+                'status':True, 'email':cust.email, 'gstType':cust.gst_type,'shipState':cust.ship_state,'gstin':False if cust.gstin == "" or cust.gstin == None else True, 'gstNo':cust.gstin, 'priceList':list, 'ListId':listId, 'ListName':listName,
                 'street':cust.billing_street, 'city':cust.billing_city, 'state':cust.billing_state, 'country':cust.billing_country, 'pincode':cust.billing_pincode
             }
             return JsonResponse(context)
@@ -4809,13 +4812,42 @@ def Fin_getInvItemDetails(request):
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
         
         itemName = request.GET['item']
+        priceListId = request.GET['listId']
         item = Fin_Items.objects.get(Company = com, name = itemName)
+
+        if priceListId != "":
+            priceList = Fin_Price_List.objects.get(id = int(priceListId))
+
+            if priceList.item_rate == 'Customized individual rate':
+                priceListPrice = float(Fin_PriceList_Items.objects.get(Company = com, list = priceList, item = item).custom_rate)
+            else:
+                mark = priceList.up_or_down
+                percentage = float(priceList.percentage)
+                roundOff = priceList.round_off
+
+                if mark == 'Markup':
+                    price = float(item.selling_price) + float((item.selling_price) * (percentage/100))
+                else:
+                    price = float(item.selling_price) - float((item.selling_price) * (percentage/100))
+
+                if priceList.round_off != 'Never mind':
+                    if roundOff == 'Nearest whole number':
+                        finalPrice = round(price)
+                    else:
+                        finalPrice = int(price) + float(roundOff)
+                else:
+                    finalPrice = price
+
+                priceListPrice = finalPrice
+        else:
+            priceListPrice = None
 
         context = {
             'status':True,
             'id': item.id,
             'hsn':item.hsn,
             'sales_rate':item.selling_price,
+            'PLPrice':priceListPrice,
             'avl':item.current_stock,
             'tax': True if item.tax_reference == 'taxable' else False,
             'gst':item.inter_state_tax,
@@ -4891,7 +4923,7 @@ def Fin_createInvoice(request):
             itemName = request.POST.getlist("item_name[]")
             hsn  = request.POST.getlist("hsn[]")
             qty = request.POST.getlist("qty[]")
-            price = request.POST.getlist("price[]")
+            price = request.POST.getlist("priceListPrice[]") if 'priceList' in request.POST else request.POST.getlist("price[]")
             tax = request.POST.getlist("taxGST[]") if request.POST['place_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
             discount = request.POST.getlist("discount[]")
             total = request.POST.getlist("total[]")
@@ -5089,6 +5121,105 @@ def Fin_shareInvoiceToEmail(request,id):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_viewInvoice, id)
+
+def Fin_createInvoiceCustomer(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        fName = request.POST['first_name']
+        lName = request.POST['last_name']
+        gstIn = request.POST['gstin']
+        pan = request.POST['pan_no']
+        email = request.POST['email']
+        phn = request.POST['mobile']
+
+        if Fin_Customers.objects.filter(Company = com, first_name__iexact = fName, last_name__iexact = lName).exists():
+            res = f"Customer `{fName} {lName}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif gstIn != "" and Fin_Customers.objects.filter(Company = com, gstin__iexact = gstIn).exists():
+            res = f"GSTIN `{gstIn}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Customers.objects.filter(Company = com, pan_no__iexact = pan).exists():
+            res = f"PAN No `{pan}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Customers.objects.filter(Company = com, mobile__iexact = phn).exists():
+            res = f"Phone Number `{phn}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Customers.objects.filter(Company = com, email__iexact = email).exists():
+            res = f"Email `{email}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+
+        cust = Fin_Customers(
+            Company = com,
+            LoginDetails = data,
+            title = request.POST['title'],
+            first_name = fName,
+            last_name = lName,
+            company = request.POST['company_name'],
+            location = request.POST['location'],
+            place_of_supply = request.POST['place_of_supply'],
+            gst_type = request.POST['gst_type'],
+            gstin = None if request.POST['gst_type'] == "Unregistered Business" or request.POST['gst_type'] == 'Overseas' or request.POST['gst_type'] == 'Consumer' else gstIn,
+            pan_no = pan,
+            email = email,
+            mobile = phn,
+            website = request.POST['website'],
+            price_list = None if request.POST['price_list'] ==  "" else Fin_Price_List.objects.get(id = request.POST['price_list']),
+            payment_terms = None if request.POST['payment_terms'] == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_terms']),
+            opening_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
+            open_balance_type = request.POST['balance_type'],
+            current_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
+            credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit']),
+            billing_street = request.POST['street'],
+            billing_city = request.POST['city'],
+            billing_state = request.POST['state'],
+            billing_pincode = request.POST['pincode'],
+            billing_country = request.POST['country'],
+            ship_street = request.POST['shipstreet'],
+            ship_city = request.POST['shipcity'],
+            ship_state = request.POST['shipstate'],
+            ship_pincode = request.POST['shippincode'],
+            ship_country = request.POST['shipcountry'],
+            status = 'Active'
+        )
+        cust.save()
+
+        #save transaction
+
+        Fin_Customers_History.objects.create(
+            Company = com,
+            LoginDetails = data,
+            customer = cust,
+            action = 'Created'
+        )
+
+        return JsonResponse({'status': True})
+    
+    else:
+        return redirect('/')
+    
+def Fin_getCustomers(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        options = {}
+        option_objects = Fin_Customers.objects.filter(Company = com)
+        for option in option_objects:
+            options[option.id] = [option.id , option.title, option.first_name, option.last_name]
+
+        return JsonResponse(options)
+    else:
+        return redirect('/')
 # Vendors
         
 def Fin_vendors(request):

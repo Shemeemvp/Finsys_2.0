@@ -103,7 +103,7 @@
                                             <option value="Markup" style="background-color: #2f516f;color: white;">Markup</option>
                                             <option value="Markdown" style="background-color: #2f516f;color: white;">Markdown</option>
                                         </select>
-                                        <input type="number" class="form-control" name="percentage" id="PLPercentage" style="background-color: #2f516f;color: white;" value="{{list.percentage}}" min="0" max="100" step="any" required>
+                                        <input type="number" class="form-control" name="percentage" id="PLPercentage" style="background-color: #2f516f;color: white;" value="{{list.percentage|default:0}}" min="0" max="100" step="any" required>
                                         <input type="button" class="btn" style="background-color: #2f516f;color: white;" value=" % ">
                                     </div>
                                 </div>

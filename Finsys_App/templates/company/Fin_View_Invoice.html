@@ -652,9 +652,9 @@
                                     <table class=" table table-hover table-bordered " id="table1">
                                         <thead >
                                             <tr>
-                                                <td style="text-align: center; font-weight:bold; color:black ">Items</td>
-                                                <td style="font-weight:bold; color:black ">HSN</td>
-                                                <td style="font-weight:bold; color:black ">Price</td>
+                                                <td style="text-align: center; font-weight:bold; color:black">Items</td>
+                                                <td style="font-weight:bold; color:black">HSN</td>
+                                                <td style="font-weight:bold; color:black">Price</td>
                                                 <td style="font-weight:bold; color:black">Quantity</td>
                                                 <td style="font-weight:bold; color:black">Tax</td>
                                                 <td style="font-weight:bold; color:black">Discount</td>
@@ -666,8 +666,8 @@
                                             {% for j in invItems %}
                                             <tr>
                                                 <td style="color:black; text-align: center;">{{j.Item.name}}</td>
-                                                <td style="color:black">{{j.price}}</td>
                                                 <td style="color:black">{{j.hsn}}</td>
+                                                <td style="color:black">{{j.price}}</td>
                                                 <td style="color:black">{{j.quantity}}</td>
                                                 <td style="color:black">{{j.tax}} %</td>
                                                 <td style="color:black">{{j.discount}} </td>
@@ -779,7 +779,7 @@
                                       <div class="col-12">
                                           <div class="row bb pb-2 mt-3">
                                               <div class="col-4 pl-0">
-                                                  <label class="text-white w-100 p-1" style="background-color: #999999; border-top-right-radius: 4vh; border-bottom-right-radius: 4vh;" ><b>BILLING ADDRESS</b></label>
+                                                  <label class="text-white w-100 p-1" style="background-color: #999999; border-top-right-radius: 4vh; border-bottom-right-radius: 4vh;" ><b>COMPANY ADDRESS</b></label>
                                                   <h5 class="text-secondary" style="font-weight: bold;">{{cmp.Company_name}}</h5>
                                                   <p class="address" style="font-weight: bold;color: #000;">
                                                       {{cmp.Address}}

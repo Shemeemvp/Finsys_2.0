@@ -212,6 +212,8 @@ urlpatterns = [
     path('Fin_delete_invoice/<int:id>',views.Fin_deleteInvoice, name= 'Fin_deleteInvoice'),
     path('Fin_invoicePdf/<int:id>',views.Fin_invoicePdf, name='Fin_invoicePdf'),
     path('Fin_share_invoice_to_email/<int:id>',views.Fin_shareInvoiceToEmail, name='Fin_shareInvoiceToEmail'),
+    path('Fin_create_invoice_customer',views.Fin_createInvoiceCustomer, name='Fin_createInvoiceCustomer'),
+    path('Fin_get_customers',views.Fin_getCustomers, name='Fin_getCustomers'),
     # Vendor
     
     path('Fin_vendors',views.Fin_vendors, name='Fin_vendors'),
