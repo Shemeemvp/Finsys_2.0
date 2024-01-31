@@ -554,6 +554,7 @@ class Fin_Invoice(models.Model):
     duedate = models.DateField(null=True, blank=True)
     salesOrder_no = models.CharField(max_length=100, null=True, blank=True)
     exp_ship_date = models.DateField(null=True,blank=True)
+    price_list_applied = models.BooleanField(null=True, default=False)
     
     payment_method = models.CharField(max_length=100, null=True, blank=True)
     cheque_no = models.CharField(max_length=100, null=True, blank=True)

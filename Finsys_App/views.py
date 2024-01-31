@@ -4649,6 +4649,8 @@ def Fin_addInvoice(request):
         trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
         bnk = Fin_Banking.objects.filter(company = cmp)
         lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
 
         # Fetching last invoice and assigning upcoming ref no as current + 1
         # Also check for if any bill is deleted and ref no is continuos w r t the deleted invoice
@@ -4696,7 +4698,7 @@ def Fin_addInvoice(request):
 
         context = {
             'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
-            'ref_no':new_number,'banks':bnk,'invNo':nxtInv,
+            'ref_no':new_number,'banks':bnk,'invNo':nxtInv,'units':units, 'accounts':acc
         }
         return render(request,'company/Fin_Add_Invoice.html',context)
     else:
@@ -4819,7 +4821,10 @@ def Fin_getInvItemDetails(request):
             priceList = Fin_Price_List.objects.get(id = int(priceListId))
 
             if priceList.item_rate == 'Customized individual rate':
-                priceListPrice = float(Fin_PriceList_Items.objects.get(Company = com, list = priceList, item = item).custom_rate)
+                try:
+                    priceListPrice = float(Fin_PriceList_Items.objects.get(Company = com, list = priceList, item = item).custom_rate)
+                except:
+                    priceListPrice = item.selling_price
             else:
                 mark = priceList.up_or_down
                 percentage = float(priceList.percentage)
@@ -4847,11 +4852,11 @@ def Fin_getInvItemDetails(request):
             'id': item.id,
             'hsn':item.hsn,
             'sales_rate':item.selling_price,
-            'PLPrice':priceListPrice,
             'avl':item.current_stock,
             'tax': True if item.tax_reference == 'taxable' else False,
             'gst':item.inter_state_tax,
             'igst':item.intra_state_tax,
+            'PLPrice':priceListPrice,
 
         }
         return JsonResponse(context)
@@ -4888,6 +4893,7 @@ def Fin_createInvoice(request):
                 duedate = datetime.strptime(request.POST['due_date'], '%d-%m-%Y').date(),
                 salesOrder_no = request.POST['order_number'],
                 exp_ship_date = None,
+                price_list_applied = True if 'priceList' in request.POST else False,
                 payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method'],
                 cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id'],
                 upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id'],
@@ -4934,6 +4940,8 @@ def Fin_createInvoice(request):
                 for ele in mapped:
                     itm = Fin_Items.objects.get(id = int(ele[0]))
                     Fin_Invoice_Items.objects.create(Invoice = inv, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                    itm.current_stock -= int(ele[3])
+                    itm.save()
             
             # Save transaction
                     
@@ -5213,13 +5221,265 @@ def Fin_getCustomers(request):
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         options = {}
-        option_objects = Fin_Customers.objects.filter(Company = com)
+        option_objects = Fin_Customers.objects.filter(Company = com, status = 'Active')
         for option in option_objects:
             options[option.id] = [option.id , option.title, option.first_name, option.last_name]
 
         return JsonResponse(options)
     else:
         return redirect('/')
+    
+def Fin_createInvoiceItem(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        name = request.POST['name']
+        type = request.POST['type']
+        unit = request.POST.get('unit')
+        hsn = request.POST['hsn']
+        tax = request.POST['taxref']
+        gstTax = 0 if tax == 'non taxable' else request.POST['intra_st']
+        igstTax = 0 if tax == 'non taxable' else request.POST['inter_st']
+        purPrice = request.POST['pcost']
+        purAccount = None if not 'pur_account' in request.POST or request.POST['pur_account'] == "" else request.POST['pur_account']
+        purDesc = request.POST['pur_desc']
+        salePrice = request.POST['salesprice']
+        saleAccount = None if not 'sale_account' in request.POST or request.POST['sale_account'] == "" else request.POST['sale_account']
+        saleDesc = request.POST['sale_desc']
+        inventory = request.POST.get('invacc')
+        stock = 0 if request.POST.get('stock') == "" else request.POST.get('stock')
+        stockUnitRate = 0 if request.POST.get('stock_rate') == "" else request.POST.get('stock_rate')
+        minStock = request.POST['min_stock']
+        createdDate = date.today()
+        
+        #save item and transaction if item or hsn doesn't exists already
+        if Fin_Items.objects.filter(Company=com, name__iexact=name).exists():
+            res = f"{name} already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Items.objects.filter(Company = com, hsn__iexact = hsn).exists():
+            res = f"HSN - {hsn} already exists, try another.!"
+            return JsonResponse({'status': False, 'message':res})
+        else:
+            item = Fin_Items(
+                Company = com,
+                LoginDetails = data,
+                name = name,
+                item_type = type,
+                unit = unit,
+                hsn = hsn,
+                tax_reference = tax,
+                intra_state_tax = gstTax,
+                inter_state_tax = igstTax,
+                sales_account = saleAccount,
+                selling_price = salePrice,
+                sales_description = saleDesc,
+                purchase_account = purAccount,
+                purchase_price = purPrice,
+                purchase_description = purDesc,
+                item_created = createdDate,
+                min_stock = minStock,
+                inventory_account = inventory,
+                opening_stock = stock,
+                current_stock = stock,
+                stock_in = 0,
+                stock_out = 0,
+                stock_unit_rate = stockUnitRate,
+                status = 'Active'
+            )
+            item.save()
+
+            #save transaction
+
+            Fin_Items_Transaction_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                item = item,
+                action = 'Created'
+            )
+            
+            return JsonResponse({'status': True})
+    else:
+       return redirect('/')
+
+def Fin_getItems(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        items = {}
+        option_objects = Fin_Items.objects.filter(Company = com, status='Active')
+        for option in option_objects:
+            items[option.id] = [option.name]
+
+        return JsonResponse(items)
+    else:
+        return redirect('/')
+
+def Fin_editInvoice(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            cmp = com.company_id
+
+        inv = Fin_Invoice.objects.get(id = id)
+        invItms = Fin_Invoice_Items.objects.filter(Invoice = inv)
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'invoice':inv, 'invItems':invItms, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'banks':bnk,'units':units, 'accounts':acc
+        }
+        return render(request,'company/Fin_Edit_Invoice.html',context)
+    else:
+       return redirect('/')
+
+def Fin_updateInvoice(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        inv = Fin_Invoice.objects.get(id = id)
+        if request.method == 'POST':
+            invNum = request.POST['invoice_no']
+            if inv.invoice_no != invNum and Fin_Invoice.objects.filter(Company = com, invoice_no__iexact = invNum).exists():
+                res = f'<script>alert("Invoice Number `{invNum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            inv.Customer = Fin_Customers.objects.get(id = request.POST['customer'])
+            inv.customer_email = request.POST['customerEmail']
+            inv.billing_address = request.POST['bill_address']
+            inv.gst_type = request.POST['gst_type']
+            inv.gstin = request.POST['gstin']
+            inv.place_of_supply = request.POST['place_of_supply']
+            inv.invoice_no = invNum
+            inv.payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term'])
+            inv.invoice_date = request.POST['invoice_date']
+            inv.duedate = datetime.strptime(request.POST['due_date'], '%d-%m-%Y').date()
+            inv.salesOrder_no = request.POST['order_number']
+            inv.exp_ship_date = None
+            inv.price_list_applied = True if 'priceList' in request.POST else False
+            inv.payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method']
+            inv.cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id']
+            inv.upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id']
+            inv.bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id']
+            inv.subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal'])
+            inv.igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst'])
+            inv.cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst'])
+            inv.sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst'])
+            inv.tax_amount = 0.0 if request.POST['taxamount'] == "" else float(request.POST['taxamount'])
+            inv.adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj'])
+            inv.shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship'])
+            inv.grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal'])
+            inv.paid_off = 0.0 if request.POST['advance'] == "" else float(request.POST['advance'])
+            inv.balance = request.POST['grandtotal'] if request.POST['balance'] == "" else float(request.POST['balance'])
+            inv.note = request.POST['note']
+
+            if len(request.FILES) != 0:
+                inv.file=request.FILES.get('file')
+
+            inv.save()
+
+            # Save invoice items.
+
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("priceListPrice[]") if 'priceList' in request.POST else request.POST.getlist("price[]")
+            tax = request.POST.getlist("taxGST[]") if request.POST['place_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
+            inv_item_ids = request.POST.getlist("id[]")
+            invItem_ids = [int(id) for id in inv_item_ids]
+
+            inv_items = Fin_Invoice_Items.objects.filter(Invoice = inv)
+            object_ids = [obj.id for obj in inv_items]
+
+            ids_to_delete = [obj_id for obj_id in object_ids if obj_id not in invItem_ids]
+            for itmId in ids_to_delete:
+                invItem = Fin_Invoice_Items.objects.get(id = itmId)
+                item = Fin_Items.objects.get(id = invItem.Item.id)
+                item.current_stock += invItem.quantity
+                item.save()
+
+            Fin_Invoice_Items.objects.filter(id__in=ids_to_delete).delete()
+            
+            count = Fin_Invoice_Items.objects.filter(Invoice = inv).count()
+
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total)==len(invItem_ids) and invItem_ids and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total,invItem_ids)
+                mapped = list(mapped)
+                for ele in mapped:
+                    if int(len(itemId))>int(count):
+                        if ele[8] == 0:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_Invoice_Items.objects.create(Invoice = inv, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                            itm.current_stock -= int(ele[3])
+                            itm.save()
+                        else:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            inItm = Fin_Invoice_Items.objects.get(id = int(ele[8]))
+                            crQty = int(inItm.quantity)
+                            
+                            Fin_Invoice_Items.objects.filter( id = int(ele[8])).update(Invoice = inv, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                            
+                            if crQty < int(ele[3]):
+                                itm.current_stock -=  abs(crQty - int(ele[3]))
+                            elif crQty > int(ele[3]):
+                                itm.current_stock += abs(crQty - int(ele[3]))
+                            itm.save()
+                    else:
+                        itm = Fin_Items.objects.get(id = int(ele[0]))
+                        inItm = Fin_Invoice_Items.objects.get(id = int(ele[8]))
+                        crQty = int(inItm.quantity)
+
+                        Fin_Invoice_Items.objects.filter( id = int(ele[8])).update(Invoice = inv, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+
+                        if crQty < int(ele[3]):
+                            itm.current_stock -=  abs(crQty - int(ele[3]))
+                        elif crQty > int(ele[3]):
+                            itm.current_stock += abs(crQty - int(ele[3]))
+                        itm.save()
+            
+            # Save transaction
+                    
+            Fin_Invoice_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                Invoice = inv,
+                action = 'Edited'
+            )
+
+            return redirect(Fin_viewInvoice, id)
+        else:
+            return redirect(Fin_editInvoice, id)
+    else:
+       return redirect('/')
 # Vendors
         
 def Fin_vendors(request):

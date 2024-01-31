@@ -214,6 +214,11 @@ urlpatterns = [
     path('Fin_share_invoice_to_email/<int:id>',views.Fin_shareInvoiceToEmail, name='Fin_shareInvoiceToEmail'),
     path('Fin_create_invoice_customer',views.Fin_createInvoiceCustomer, name='Fin_createInvoiceCustomer'),
     path('Fin_get_customers',views.Fin_getCustomers, name='Fin_getCustomers'),
+    path('Fin_create_invoice_item',views.Fin_createInvoiceItem, name='Fin_createInvoiceItem'),
+    path('Fin_get_items',views.Fin_getItems, name='Fin_getItems'),
+    path('Fin_edit_invoice/<int:id>',views.Fin_editInvoice, name='Fin_editInvoice'),
+    path('Fin_update_invoice/<int:id>',views.Fin_updateInvoice, name='Fin_updateInvoice'),
+
     # Vendor
     
     path('Fin_vendors',views.Fin_vendors, name='Fin_vendors'),

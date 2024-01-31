@@ -45,7 +45,10 @@
   <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
-
+<!-- fontawesome icons -->
+  <link href="{% static 'assets/fontawesome/css/fontawesome.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/brands.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/solid.css' %}" rel="stylesheet">
 
 
   <style>
@@ -518,7 +521,7 @@
                 
 
                 {% if allmodules.Bank_Holders == 1 %}
-                <li id="bankholders"><a href=""><i class="bx bx-right-arrow-alt"></i>Bank
+                <li id="Fin_bankholder"><a href=""><i class="bx bx-right-arrow-alt"></i>Bank
                     Holders</a>
                 </li>
                 {% endif %}
@@ -770,7 +773,7 @@
               
 
               {% if allmodules.Employees == 1 %}
-              <li id="employee"><a href=""><i class="bx bx-right-arrow-alt"></i>Employee</a> </li>
+              <li id="employee"><a href="{% url 'employee_list' %}"><i class="bx bx-right-arrow-alt"></i>Employee</a> </li>
               {% endif %}
 
               {% if allmodules.Employees_Loan == 1 %}
@@ -778,7 +781,7 @@
               {% endif %}
 
               {% if allmodules.Holiday == 1 %}
-              <li><a href=""><i class="bx bx-right-arrow-alt"></i>Holidays</a> </li>
+              <li><a href="{% url 'holiday_list' %}"><i class="bx bx-right-arrow-alt"></i>Holidays</a> </li>
               {% endif %}
 
               {% if allmodules.Attendance == 1 %}
