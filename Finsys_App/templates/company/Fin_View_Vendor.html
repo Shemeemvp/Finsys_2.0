@@ -23,6 +23,14 @@
     .bg-grey {
         background-color: rgba(0, 0, 0, 0.4);
     }
+    #logic {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    #logic th, #logic td {
+        text-align: center;
+    }
 
     @media (min-width: 992px) {
         .card-registration-2 .bg-grey {
@@ -584,11 +592,11 @@
                                 <div class="date_range d-flex">
                                     <div class="form-group">
                                         <label for="from">From</label>
-                                        <input type="date" class="form-control">
+                                        <input type="date" class="form-control" id="fromDate">
                                     </div>
                                     <div class="form-group ml-2">
                                         <label for="from">To</label>
-                                        <input type="date" class="form-control">
+                                        <input type="date" class="form-control" id="toDate">
                                     </div>
                                 </div>
                                 <div class="run_report">
@@ -608,7 +616,7 @@
                                                         <div class="widget-box">
                                                             <div class="widget-header widget-header-large py-3 px-4" style="background-color: #343a40;padding: 1.1rem 1rem;">
                                                                 <h5 class="widget-title mb-4 print-visible" style="color: white;">
-                                                                    <strong><span style="color: #fff; font-size: 1.3rem; font-weight: bold;">Statement of Accounts</span></strong>
+                                                                    <strong><span style="color: #fff; font-size: 1.3rem; font-weight: bold;">Statement of {{vendor.title}}. {{vendor.first_name}} {{vendor.last_name}}</span></strong>
                                                                 </h5>  
                                                                 <span id="df" style="border: none;color: #F7F7F7;background-color: #343a40;">{{vendor.date|date:'Y-m-d'}}</span> <span style="color: white;">to</span>
                                                                 <span id="dl" style="border: none; background-color: none;color: #F7F7F7;background-color: #343a40;">{% now 'Y-m-d' %}</span>
@@ -620,7 +628,7 @@
                                                                         <div class="col-sm-12" style="display: flex;">
                                                                             <div class="col-6" style="width: 50%;">
                                                                                 <div style="width:20px;">
-                                                                                    <img src="{{cmp.Image.url}}" style="width: 25px;">
+                                                                                    {% if cmp.Image.url %}<img src="{{cmp.Image.url}}" style="width: 25px;">{% endif %}
                                                                                 </div>
                                                                                 <p style="color:black;"><strong>{{ cmp.Company_name }}</strong> <br>
                                                                                     {{cmp.City}} <br>
@@ -663,32 +671,33 @@
                                                                         
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-md-12" style="margin-bottom: 1.5rem;">
-                                                                    <table id="logic" class="table table-bordered" width="100%" style=" color:white; background-color: #545455;">
-                                                                        <thead  style="background-color: #393939;">
+                                                                <div class="col-md-12" style="margin-bottom: 1.5rem; margin-top: 1rem;">
+                                                                    <!-- <table id="logic" class="table table-bordered" width="100%" style=" color:white; background-color: #545455;"> -->
+                                                                    <table id="logic" class="table table-hover" width="100%">
+                                                                        <thead class="" style="background: #22b8d1;">
                                                                             <tr>
-                                                                                <th style="padding:1.2rem 0.5rem;">Date</th>
-                                                                                <th style="padding:1.2rem 0.5rem;">Type</th>
-                                                                                <th style="padding:1.2rem 0.5rem;">Number</th>
-                                                                                <th style="padding:1.2rem 0.5rem;">Total</th>
-                                                                                <th style="padding:1.2rem 0.5rem;">Balance</th>
+                                                                                <th style="padding:1.2rem 0.5rem; color: black;">Date</th>
+                                                                                <th style="padding:1.2rem 0.5rem; color: black;">Type</th>
+                                                                                <th style="padding:1.2rem 0.5rem; color: black;">Number</th>
+                                                                                <th style="padding:1.2rem 0.5rem; color: black;">Total</th>
+                                                                                <th style="padding:1.2rem 0.5rem; color: black;">Balance</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
                                                                             {% for data in combined_data %}
                                                                                 <tr style="padding: 1.2rem 0.5rem;">
-                                                                                    <td style="padding: 1.2rem 0.5rem;">{{data.Date|date:'d-m-Y'}}</td>
-                                                                                    <td style="font-family: monospace; padding: 1.2rem 0.5rem;"><strong>{{data.Type}}</strong></td>
-                                                                                    <td style="padding: 1.2rem 0.5rem;">{{data.Number}}</td>
-                                                                                    <td style="padding: 1.2rem 0.5rem;">{{data.Total}}</td>
-                                                                                    <td style="padding: 1.2rem 0.5rem;">{{data.Balance}}</td>
+                                                                                    <td style="padding: 1.2rem 0.5rem; color: black;">{{data.Date|date:'d-m-Y'}}</td>
+                                                                                    <td style="font-family: monospace; padding: 1.2rem 0.5rem; color: black;"><strong>{{data.Type}}</strong></td>
+                                                                                    <td style="padding: 1.2rem 0.5rem; color: black;">{{data.Number}}</td>
+                                                                                    <td style="padding: 1.2rem 0.5rem; color: black;">{{data.Total}}</td>
+                                                                                    <td style="padding: 1.2rem 0.5rem; color: black;">{{data.Balance}}</td>
                                                                                 </tr>
                                                                             {% endfor %}
-                                                                            <br>
+                                                                            <!-- <br>
                                                                             <tr >
                                                                                 <th style="padding:1.2rem 0.5rem;" colspan="4">BALANCE</th>
                                                                                 <th >{{BALANCE}}</th>
-                                                                            </tr>
+                                                                            </tr> -->
                                                                         </tbody>
                                                                     </table>
                                                                 </div>
@@ -984,22 +993,37 @@
     }
 
     function templatePrint(){
-            var contentToPrint = document.getElementById('printContent').innerHTML;
-            var printWindow = window.open('', '_blank');
+        var contentToPrint = document.getElementById('printContent').innerHTML;
+        var printWindow = window.open('', '_blank');
 
-            // Write the HTML content to the new window
-            printWindow.document.write(contentToPrint);
+        // Write the HTML content to the new window
+        printWindow.document.write(contentToPrint);
 
-            // Close the document stream to finish writing the content
-            printWindow.document.close();
-            
-            printWindow.onafterprint = function () {
-                printWindow.close();
-            };
+        // Close the document stream to finish writing the content
+        printWindow.document.close();
+        
+        printWindow.onafterprint = function () {
+            printWindow.close();
+        };
 
-            // Print the new window
-            printWindow.print();
-        }
+        // Print the new window
+        printWindow.print();
+    }
+
+    $(document).ready(function(){
+        var date1 = "";
+        $('#fromDate').on('change',function(){
+            date1 = $(this).val()
+            $('#toDate').prop('min',date1)
+        })
+    })
+    $(document).ready(function(){
+        var date2 = "";
+        $('#toDate').on('change',function(){
+            date2 = $(this).val()
+            $('#fromDate').prop('max',date2)
+        })
+    })
 </script>
 
 {% endblock %}

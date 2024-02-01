@@ -107,7 +107,16 @@
             <div id="overview">
                 <div class="row g-0" style="margin-left: 1px; margin-right: 1px;">
                     <div class="col-lg-6">
-                        <div class="p-5">
+                        <div class="history_highlight px-4 pt-4 d-flex">
+                            <div class="col-8 d-flex justify-content-start">
+                                {% if history.action == 'Created' %}<p class="text-success" style="font-size: 1.07rem; font-weight: 500;">Created by :</p>{% else %}<p class="text-warning" style="font-size: 1.07rem; font-weight: 500;">Last Edited by :</p>{% endif %}
+                                <span class="ml-2" style="font-size: 1.15rem; font-weight: 500;">{{history.LoginDetails.First_name}} {{history.LoginDetails.Last_name}}</span>
+                            </div>
+                            <div class="col-4 d-flex justify-content-end">
+                                <span>{{history.date}}</span>
+                            </div>
+                        </div>
+                        <div class="p-5 pt-2">
                             <center><h4>ITEM DETAILS </h4></center>
                             <hr>
                             <div class="row mb-3">
@@ -236,16 +245,7 @@
 
 
                     <div class="col-md-6" style="background-color: rgba(22,37,50,255); border-top-right-radius:2vh; border-bottom-right-radius: 2vh;">
-                        <div class="history_highlight px-4 py-3 d-flex">
-                            <div class="col-8 d-flex justify-content-start">
-                                {% if history.action == 'Created' %}<p class="text-success" style="font-size: 1.07rem; font-weight: 500;">Created by :</p>{% else %}<p class="text-warning" style="font-size: 1.07rem; font-weight: 500;">Last Edited by :</p>{% endif %}
-                                <span class="ml-2" style="font-size: 1.15rem; font-weight: 500;">{{history.LoginDetails.First_name}} {{history.LoginDetails.Last_name}}</span>
-                            </div>
-                            <div class="col-4 d-flex justify-content-end">
-                                <span>{{history.date}}</span>
-                            </div>
-                        </div>
-                        <div class="px-5">
+                        <div class="px-5 py-4">
                             <center><h4>PURCHASE INFORMATION </h4></center>
                             <hr>
 

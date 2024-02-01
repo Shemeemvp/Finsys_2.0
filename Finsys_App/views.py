@@ -1060,7 +1060,7 @@ def Fin_Add_Modules(request,id):
         # --------- CASH & BANK-----
         Cash_in_hand = request.POST.get('c4')
         Offline_Banking = request.POST.get('c5')
-        # Bank_Reconciliation = request.POST.get('c6')
+        Bank_Reconciliation = request.POST.get('c6')
         UPI = request.POST.get('c7')
         Bank_Holders = request.POST.get('c8')
         Cheque = request.POST.get('c9')
@@ -1084,15 +1084,14 @@ def Fin_Add_Modules(request,id):
         Debit_Note = request.POST.get('c23')
         Purchase_Order = request.POST.get('c24')
         Expenses = request.POST.get('c25')
+        Recurring_Expenses = request.POST.get('c26')
         Payment_Made = request.POST.get('c27')
-
-        #  ---------EWay_Bill---------
         EWay_Bill = request.POST.get('c28')
 
         #  -------ACCOUNTS--------- 
         Chart_of_Accounts = request.POST.get('c29') 
         Manual_Journal = request.POST.get('c30')
-        # Reconcile  = request.POST.get('c36')
+        Reconcile  = request.POST.get('c36')
 
 
         # -------PAYROLL------- 
@@ -1103,15 +1102,15 @@ def Fin_Add_Modules(request,id):
         Salary_Details = request.POST.get('c35')
 
         modules = Fin_Modules_List(Items = Items,Price_List = Price_List,Stock_Adjustment = Stock_Adjustment,
-            Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,
+            Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,Bank_Reconciliation = Bank_Reconciliation ,
             UPI = UPI,Bank_Holders = Bank_Holders,Cheque = Cheque,Loan_Account = Loan_Account,
             Customers = Customers,Invoice = Invoice,Estimate = Estimate,Sales_Order = Sales_Order,
             Recurring_Invoice = Recurring_Invoice,Retainer_Invoice = Retainer_Invoice,Credit_Note = Credit_Note,
             Payment_Received = Payment_Received,Delivery_Challan = Delivery_Challan,
             Vendors = Vendors,Bills = Bills,Recurring_Bills = Recurring_Bills,Debit_Note = Debit_Note,
-            Purchase_Order = Purchase_Order,Expenses = Expenses,
+            Purchase_Order = Purchase_Order,Expenses = Expenses,Recurring_Expenses = Recurring_Expenses,
             Payment_Made = Payment_Made,EWay_Bill = EWay_Bill,
-            Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,
+            Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,Reconcile = Reconcile ,
             Employees = Employees,Employees_Loan = Employees_Loan,Holiday = Holiday,
             Attendance = Attendance,Salary_Details = Salary_Details,
             Login_Id = data,company_id = com)
@@ -1235,7 +1234,7 @@ def Fin_Add_Modules(request,id):
         #Adding Default Customer payment under company
         Fin_Company_Payment_Terms.objects.create(Company=com, term_name='Due on Receipt', days=0)
         Fin_Company_Payment_Terms.objects.create(Company=com, term_name='NET 30', days=30)
-        Fin_Company_Payment_Terms.objects.create(Company=com, term_name='NET 60', days=60)
+        Fin_Company_Payment_Terms.objects.create(Company=com, term_name='NET 60', days=60)        
 
         print("add modules")
         return redirect('Fin_CompanyReg')
@@ -4966,6 +4965,7 @@ def Fin_viewInvoice(request, id):
         cmt = Fin_Invoice_Comments.objects.filter(Invoice = inv)
         hist = Fin_Invoice_History.objects.filter(Invoice = inv).last()
         invItems = Fin_Invoice_Items.objects.filter(Invoice = inv)
+        created = Fin_Invoice_History.objects.get(Invoice = inv, action = 'Created')
 
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
@@ -4976,7 +4976,7 @@ def Fin_viewInvoice(request, id):
             cmp = com.company_id
             allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
         
-        return render(request,'company/Fin_View_Invoice.html',{'allmodules':allmodules,'com':com,'cmp':cmp, 'data':data, 'invoice':inv,'invItems':invItems, 'history':hist, 'comments':cmt})
+        return render(request,'company/Fin_View_Invoice.html',{'allmodules':allmodules,'com':com,'cmp':cmp, 'data':data, 'invoice':inv,'invItems':invItems, 'history':hist, 'comments':cmt, 'created':created})
     else:
        return redirect('/')
 
@@ -5039,6 +5039,11 @@ def Fin_deleteInvoice(request, id):
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        for i in Fin_Invoice_Items.objects.filter(Invoice = inv):
+            item = Fin_Items.objects.get(id = i.Item.id)
+            item.current_stock += i.quantity
+            item.save()
         
         Fin_Invoice_Items.objects.filter(Invoice = inv).delete()
 

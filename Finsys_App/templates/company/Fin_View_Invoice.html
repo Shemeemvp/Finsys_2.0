@@ -268,7 +268,7 @@
         margin: 1rem 0;
         border-bottom: 3px dotted black;
     }
-    .trns-id p,.datetime p{
+    .trns-id p,.datetime p, .createdby p{
         font-size: 0.85rem;
         margin: 0;
     }
@@ -1221,6 +1221,10 @@
                         <div class="paid-by mb-4 d-flex justify-content-between">
                             <span>Paid By:</span>
                             <span>{{invoice.payment_method}}</span>
+                        </div>
+                        <div class="createdby d-flex justify-content-between">
+                            <p class="">Created By:</p>
+                            <span>{{created.LoginDetails.First_name}} {{created.LoginDetails.Last_name}}</span>
                         </div>
                         <div class="datetime d-flex justify-content-between">
                             <p class="">Printed On:</p>

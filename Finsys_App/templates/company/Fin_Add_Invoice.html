@@ -168,8 +168,8 @@
                     </select>
                 </div>
                 <div class="col-md-3 mt-3" style="display:none;"  id="chequediv">
-                    <label class="" >Cheque ID</label>
-                    <input type="text" class="form-control" name="cheque_id" id="cheque_id" placeholder="Enter Cheque ID">
+                    <label class="" >Cheque No</label>
+                    <input type="text" class="form-control" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
                 </div>
                 <div class="col-md-3 mt-3"  style="display:none;" id="upidiv">
                     <label class="" >UPI ID</label>
@@ -1427,6 +1427,7 @@
 
     $(document).on('change','#placeOfSupply',function()   {
         refreshTax();
+        calc();
     });
 
     function filterFunction(id){
@@ -1769,7 +1770,6 @@ $(document).ready(function(){
     function validateForm() {
         var cust = $('#customer').val();
         var length = $("#items-table-body tr").length;
-        alert(length)
 
         if(length < 1){
             alert('Add atleast 1 item..!')

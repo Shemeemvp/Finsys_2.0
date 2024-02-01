@@ -171,8 +171,8 @@
                     </select>
                 </div>
                 <div class="col-md-3 mt-3" style="display:none;"  id="chequediv">
-                    <label class="" >Cheque ID</label>
-                    <input type="text" class="form-control" name="cheque_id" value="{{invoice.cheque_no}}" id="cheque_id" placeholder="Enter Cheque ID">
+                    <label class="" >Cheque No</label>
+                    <input type="text" class="form-control" name="cheque_id" value="{{invoice.cheque_no}}" id="cheque_id" placeholder="Enter Cheque No">
                 </div>
                 <div class="col-md-3 mt-3"  style="display:none;" id="upidiv">
                     <label class="" >UPI ID</label>
@@ -245,7 +245,7 @@
                                     <div class="d-flex"><span>Available Qty :</span><span id="qtyspan{{forloop.counter}}" class=''>{{itm.Item.current_stock}}</span></div>
                                 </td>
                                 <td>
-                                    <input type="number" name='price[]' id="price{{forloop.counter}}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white; display: block;" value={{itm.Item.price}} readonly />
+                                    <input type="number" name='price[]' id="price{{forloop.counter}}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white; display: block;" value={{itm.Item.selling_price}} readonly />
                                     <input type="number" name='priceListPrice[]' id="priceListPrice{{forloop.counter}}" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value={{itm.price}} readonly />
                                 </td>
                                 
@@ -1192,9 +1192,6 @@
             $('#custPriceListName').css('display','block');
             checkPriceList();
         }
-        else{
-            checkPriceList();
-        }
 
         document.querySelector('#placeOfSupply').value = `{{invoice.place_of_supply}}`;
         document.querySelector('#paymentTerm').value = `{{invoice.payment_terms.id}}`;
@@ -1511,6 +1508,7 @@
 
     $(document).on('change','#placeOfSupply',function()   {
         refreshTax();
+        calc();
     });
 
     function filterFunction(id){
