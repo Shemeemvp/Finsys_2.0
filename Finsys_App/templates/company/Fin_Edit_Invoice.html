@@ -1522,16 +1522,31 @@
             }
         })
     }
-    
+
     function getItemDetails(inpId, value){
+        var itm = value;
+        var exists = false;
         var plc = $('#placeOfSupply').val();
         var PLId = $('#customerPriceListId').val();
+        console.log('clicked',value);
 
-        if(plc != ""){
-            $('#'+inpId).val(value);
+        $('#items-table-body tr').each(function () {
+            var html = $(this).html();
+            if (html != '') {
+                var itemName = $(this).find('.item-display').val();
+                console.log(itm,itemName);
+                if(itemName == itm){
+                    exists = true;
+                    console.log('exists',exists);
+                }
+            }
+        });
+        console.log('status',exists);
 
-            var n = inpId.slice(4);
-            $.ajax({
+        if(!exists){
+            if(plc != ""){
+                var n = inpId.slice(4);
+                $.ajax({
                 url: "{% url 'Fin_getInvItemDetails' %}",
                 type : 'GET',
                 data:{
@@ -1542,6 +1557,7 @@
                 
                 success: function(response) {
                     if (response.status){
+                        $('#'+inpId).val(value);
                         document.getElementById('itemId'+n).value = response.id;
                         document.getElementById('hsn'+n).value = response.hsn;
                         document.getElementById('price'+n).value = response.sales_rate;
@@ -1554,11 +1570,13 @@
                         calc();
                     }
                 },
-            });
+                });
+            }else{
+                alert('Select Place of Supply.!')
+            }
         }else{
-            alert('Select Place of Supply.!')
+            alert('Item already exists in the INVOICE, choose another or change quantity.!')
         }
-        
 
     }
 
@@ -1783,6 +1801,7 @@
         clonedRow.find('.tax_ref_igst').each(function() {
             $(this).val(originalRow.find('.tax_ref_igst').val());
         });
+        clonedRow.find('.item-display').val('');
         originalRow.after(clonedRow);
         refreshIndex();
         calc();

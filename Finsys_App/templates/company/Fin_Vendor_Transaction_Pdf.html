@@ -49,7 +49,7 @@
                                         <div class="col-sm-12" style="display: flex;">
                                             <div class="col-6" style="width: 50%;">
                                                 <div style="width:20px;">
-                                                    <img src="{{cmp.Image.url}}" style="width: 25px;">
+                                                    {% if cmp.Image %}<img src="{{cmp.Image.url}}" style="width: 25px;">{% endif %}
                                                 </div>
                                                 <p style="color:black;"><strong>{{ cmp.Company_name }}</strong> <br>
                                                     {{cmp.City}} <br>

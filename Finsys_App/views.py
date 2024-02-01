@@ -5672,7 +5672,7 @@ def Fin_createVendor(request):
                 opening_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
                 open_balance_type = request.POST['balance_type'],
                 current_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
-                credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit']),
+                credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit']) * -1,
                 currency = request.POST['currency'],
                 billing_street = request.POST['street'],
                 billing_city = request.POST['city'],
@@ -5850,7 +5850,7 @@ def Fin_updateVendor(request,id):
             vnd.opening_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance'])
             vnd.open_balance_type = request.POST['balance_type']
             vnd.current_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance'])
-            vnd.credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit'])
+            vnd.credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit']) * -1
             vnd.currency = request.POST['currency']
             vnd.billing_street = request.POST['street']
             vnd.billing_city = request.POST['city']

@@ -1443,41 +1443,59 @@
     }
     
     function getItemDetails(inpId, value){
+        var itm = value;
+        var exists = false;
         var plc = $('#placeOfSupply').val();
         var PLId = $('#customerPriceListId').val();
+        console.log('clicked',value);
 
-        if(plc != ""){
-            $('#'+inpId).val(value);
-
-            var n = inpId.slice(4);
-            $.ajax({
-            url: "{% url 'Fin_getInvItemDetails' %}",
-            type : 'GET',
-            data:{
-                item : value,
-                listId : PLId,
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-            
-            success: function(response) {
-                if (response.status){
-                    document.getElementById('itemId'+n).value = response.id;
-                    document.getElementById('hsn'+n).value = response.hsn;
-                    document.getElementById('qtyspan'+n).innerHTML = response.avl;
-                    document.getElementById('avl'+n).innerHTML = response.avl;
-                    document.getElementById('price'+n).value = response.sales_rate;
-                    document.getElementById('priceListPrice'+n).value = response.PLPrice;
-                    document.getElementById('taxGST'+n).value = response.gst;
-                    document.getElementById('taxIGST'+n).value = response.igst;
-                    refreshTax();
-                    calc();
+        $('#items-table-body tr').each(function () {
+            var html = $(this).html();
+            if (html != '') {
+                var itemName = $(this).find('.item-display').val();
+                console.log(itm,itemName);
+                if(itemName == itm){
+                    exists = true;
+                    console.log('exists',exists);
                 }
-            },
-            });
+            }
+        });
+        console.log('status',exists);
+
+        if(!exists){
+            if(plc != ""){
+                var n = inpId.slice(4);
+                $.ajax({
+                url: "{% url 'Fin_getInvItemDetails' %}",
+                type : 'GET',
+                data:{
+                    item : value,
+                    listId : PLId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                
+                success: function(response) {
+                    if (response.status){
+                        $('#'+inpId).val(value);
+                        document.getElementById('itemId'+n).value = response.id;
+                        document.getElementById('hsn'+n).value = response.hsn;
+                        document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                        document.getElementById('avl'+n).innerHTML = response.avl;
+                        document.getElementById('price'+n).value = response.sales_rate;
+                        document.getElementById('priceListPrice'+n).value = response.PLPrice;
+                        document.getElementById('taxGST'+n).value = response.gst;
+                        document.getElementById('taxIGST'+n).value = response.igst;
+                        refreshTax();
+                        calc();
+                    }
+                },
+                });
+            }else{
+                alert('Select Place of Supply.!')
+            }
         }else{
-            alert('Select Place of Supply.!')
+            alert('Item already exists in the INVOICE, choose another or change quantity.!')
         }
-        
 
     }
 
@@ -1679,6 +1697,7 @@
         clonedRow.find('.tax_ref_igst').each(function() {
             $(this).val(originalRow.find('.tax_ref_igst').val());
         });
+        clonedRow.find('.item-display').val('');
         originalRow.after(clonedRow);
         refreshIndex();
         calc();

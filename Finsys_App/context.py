@@ -116,20 +116,20 @@ def vendorCreditLimitAlert(request):
                 for c in alertItems:
                     vnd = Fin_Vendors.objects.get(id = c.Vendors.id)
                     if vnd.credit_limit != 0 and vnd.credit_limit > vnd.current_balance:
-                        c.status = 'Old'
+                        c.status = 'New'
                         c.save()
                     else:
-                        c.status = 'New'
+                        c.status = 'Old'
                         c.save()
                 
                 for itm in vendors:
                     if not Fin_CNotification.objects.filter(Vendors = itm).exists():
-                        if itm.credit_limit != 0 and itm.current_balance > itm.credit_limit:
+                        if itm.credit_limit != 0 and itm.credit_limit > itm.current_balance:
                             Fin_CNotification.objects.create(Company_id = com, Login_Id = data, Vendors = itm, Title = 'Vendor Credit Limit Alert.!!', Discription = f'{itm.first_name} {itm.last_name} has been exceeded the credit limit..')
 
             else:
                 for itm in vendors:
-                    if itm.credit_limit != 0 and itm.current_balance > itm.credit_limit:
+                    if itm.credit_limit != 0 and itm.credit_limit > itm.current_balance:
                         Fin_CNotification.objects.create(Company_id = com, Login_Id = data, Vendors = itm, Title = 'Vendor Credit Limit Alert.!!', Discription = f'{itm.first_name} {itm.last_name} has been exceeded the credit limit..')
             
             vendorCreditLimit = Fin_CNotification.objects.filter(Company_id = com, Vendors__isnull=False, status = 'New')
