@@ -1428,7 +1428,40 @@
                 var itemName = $('#'+itemId).val();
                 console.log(itemId,itemName);
 
-                getItemDetails(itemId,itemName);
+                var plc = $('#placeOfSupply').val();
+                var PLId = $('#customerPriceListId').val();
+
+                if(plc != ""){
+                    var n = itemId.slice(4);
+                    $.ajax({
+                    url: "{% url 'Fin_getInvItemDetails' %}",
+                    type : 'GET',
+                    data:{
+                        item : itemName,
+                        listId : PLId,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                        },
+                    
+                    success: function(response) {
+                        if (response.status){
+                            $('#'+itemId).val(value);
+                            document.getElementById('itemId'+n).value = response.id;
+                            document.getElementById('hsn'+n).value = response.hsn;
+                            document.getElementById('price'+n).value = response.sales_rate;
+                            document.getElementById('priceListPrice'+n).value = response.PLPrice;
+                            document.getElementById('taxGST'+n).value = response.gst;
+                            document.getElementById('taxIGST'+n).value = response.igst;
+                            document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                            document.getElementById('avl'+n).value = response.avl;
+                            refreshTax();
+                            calc();
+                        }
+                    },
+                    });
+                }else{
+                    alert('Select Place of Supply.!')
+                }
+                // getItemDetails(itemId,itemName);
             }
             checkPriceList();
         });
