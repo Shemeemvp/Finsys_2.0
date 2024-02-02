@@ -239,6 +239,12 @@ urlpatterns = [
     path('Fin_vendor_transactions_pdf/<int:id>',views.Fin_vendorTransactionsPdf, name='Fin_vendorTransactionsPdf'),
     path('Fin_share_vendor_transactions_to_email/<int:id>',views.Fin_shareVendorTransactionsToEmail, name='Fin_shareVendorTransactionsToEmail'),
     path('Fin_update_vendor/<int:id>',views.Fin_updateVendor, name='Fin_updateVendor'),
+
+    # -------------Shemeem--------Sales Order-------------------------------
+    path('Fin_sales_orders',views.Fin_salesOrder, name='Fin_salesOrder'),
+    path('Fin_add_sales_order',views.Fin_addSalesOrder, name='Fin_addSalesOrder'),
+    path('Fin_create_sales_order',views.Fin_createSalesOrder, name='Fin_createSalesOrder'),
+    path('Fin_check_sales_order_number',views.Fin_checkSalesOrderNumber, name='Fin_checkSalesOrderNumber'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
