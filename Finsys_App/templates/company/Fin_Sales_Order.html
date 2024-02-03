@@ -62,7 +62,7 @@
         </thead>
         <tbody>
           {% for a in sales_orders %}
-          <tr class="clickable-row" data-href="#" style="cursor: pointer;">
+          <tr class="clickable-row" data-href="{% url 'Fin_viewSalesOrder' a.id %}" style="cursor: pointer;">
             <td>{{ forloop.counter }}</td>
             <td>{{ a.sales_order_date }}</td>
             <td>{{ a.sales_order_no }}</td>
@@ -72,15 +72,15 @@
             <td>{{ a.status }}</td>
             <td>{{ a.balance }}</td>
             <td>
-              {% if i.converted_to_invoice != None %}
-              <span class="text-info fw-bolder text-center" onclick="window.location.href='#'">Converted to Invoice - {{i.converted_to_invoice.invoice_no}}</span>
+              {% if a.converted_to_invoice != None %}
+              <span class="text-info fw-bolder text-center" onclick="window.location.href='#'">Converted to Invoice - #{{a.converted_to_invoice.invoice_no}}</span>
               {% else %}
               <div class="btn-group">
                   <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                       Convert
                   </button>
                   <ul class="dropdown-menu">
-                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=``">To Invoice</button></li>
+                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertSalesOrderToInvoice' a.id %}`">To Invoice</button></li>
                     <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=``">To Recurring Invoice</button></li>
                   </ul>
               </div>
@@ -149,7 +149,7 @@
   });
 
   jQuery(document).ready(function ($) {
-    $(".clickable-row").click(function () {
+    $(".clickable-row").dblclick(function () {
       window.location = $(this).data("href");
     });
   });

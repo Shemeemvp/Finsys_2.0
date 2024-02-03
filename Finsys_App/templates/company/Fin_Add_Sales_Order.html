@@ -41,7 +41,7 @@
     </div>
     <div class="card radius-15">
       <div class="card-body">
-        <div id="invoice">
+        <div id="salesOrder">
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <label class="">Select Customer</label><span class="text-danger ml-3" id="custErr"></span>
@@ -371,7 +371,7 @@
                 <div class="text-muted">NOTICE:</div>
                 <div class="text-muted">Fin sYs Terms and Conditions Apply</div>
             </div>
-            <footer class="text-muted">Invoice was created on a computer and is valid without the signature and seal.</footer>
+            <footer class="text-muted">Sales Order was created on a computer and is valid without the signature and seal.</footer>
         </div>
       </div>
     </div>
@@ -2089,6 +2089,7 @@ $(document).ready(function(){
     }
 
     $(document).on("click", "#newCustomerSave", function(){
+        var title = $('#title').val();
         var fName = $('#firstName').val();
         var lName = $('#lastName').val();
         var placeSupply = $('#custPlaceOfSupply').val();
@@ -2113,7 +2114,7 @@ $(document).ready(function(){
                 type : 'POST',
                 url:"{% url 'Fin_createInvoiceCustomer' %}",
                 data:{
-                    title : $('#title').val(),
+                    title : title,
                     first_name : fName,
                     last_name : lName,
                     company_name : $("#companyName").val(),
@@ -2148,7 +2149,8 @@ $(document).ready(function(){
                         console.log("AJAX Success",response)
                         document.getElementById("newCustomerForm").reset();
 
-                        reloadCustomer();
+
+                        reloadCustomer(title,fName,lName);
                     }else{
                         alert(response.message)
                     }
@@ -2160,21 +2162,35 @@ $(document).ready(function(){
         }
     });
 
-    function reloadCustomer() {
+    function reloadCustomer(title,fName,lName) {
+        const fullName = title+' '+fName+' '+lName
         $.ajax({
             url: "{% url 'Fin_getCustomers' %}",
             type: "GET",
             dataType: "json",
             data: {},
-            csrfmiddlewaretoken: '{{ csrf_token }}',
 
             success: function(data) {
-                var $select = $(document.getElementById('customer'));
-                var selectize = $select[0].selectize;
-                $.each(data, function(key, value) {
-                    selectize.addOption({value:value[0],text:value[1]+' '+value[2]+' '+value[3]});
-                    selectize.addItem(value[0]); 
+                console.log('Ajax Response ->',data);
+                var custDrpDwn = $('#cust_drop');
+                custDrpDwn.empty();
+                custDrpDwn.append(`<li class="dropdown-item customers-options" onclick="getCustomerDetails('','')">Select Customer</li>`);
+
+                $.each(data, function (key, value) {
+                    const customerDetails = `${value[1]} ${value[2]} ${value[3]}`;
+                    const ID = `${value[0]}`
+
+                    if(customerDetails == fullName){
+                        getCustomerDetails(value[0], customerDetails)
+                    }
+                    const listItem = $(`
+                        <li class="dropdown-item customers-options" onclick="getCustomerDetails('${ID}', '${customerDetails}')">
+                            ${customerDetails}
+                        </li>`
+                    );
+                    custDrpDwn.append(listItem);
                 });
+                console.log('Customers RELOADED');
 
             },
             error: function(xhr, status, error) {
@@ -2182,7 +2198,7 @@ $(document).ready(function(){
             }
 
         });
-        refreshCustomerDetails();
+        // refreshCustomerDetails();
 
         if ($('#newCustomerPaymentTerm').hasClass('show')){
             $('#newCustomerPaymentTerm').modal('toggle');

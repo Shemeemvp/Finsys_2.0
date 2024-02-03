@@ -1444,7 +1444,7 @@
                     
                     success: function(response) {
                         if (response.status){
-                            $('#'+itemId).val(value);
+                            $('#'+itemId).val(itemName);
                             document.getElementById('itemId'+n).value = response.id;
                             document.getElementById('hsn'+n).value = response.hsn;
                             document.getElementById('price'+n).value = response.sales_rate;

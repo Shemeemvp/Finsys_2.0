@@ -6243,3 +6243,400 @@ def Fin_checkSalesOrderNumber(request):
             return JsonResponse({'status':True, 'message':'Number is okay.!'})
     else:
        return redirect('/')
+
+def Fin_viewSalesOrder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        cmt = Fin_Sales_Order_Comments.objects.filter(SalesOrder = salesOrder)
+        hist = Fin_Sales_Order_History.objects.filter(SalesOrder = salesOrder).last()
+        SOItems = Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder)
+        try:
+            created = Fin_Sales_Order_History.objects.get(SalesOrder = salesOrder, action = 'Created')
+        except:
+            created = None
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+            allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        
+        return render(request,'company/Fin_View_Sales_Order.html',{'allmodules':allmodules,'com':com,'cmp':cmp, 'data':data, 'order':salesOrder,'orderItems':SOItems, 'history':hist, 'comments':cmt, 'created':created})
+    else:
+       return redirect('/')
+
+def Fin_convertSalesOrder(request,id):
+    if 's_id' in request.session:
+
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        salesOrder.status = 'Saved'
+        salesOrder.save()
+        return redirect(Fin_viewSalesOrder, id)
+
+def Fin_addSalesOrderComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_Sales_Order_Comments.objects.create(Company = com, SalesOrder = salesOrder, comments = cmt)
+            return redirect(Fin_viewSalesOrder, id)
+        return redirect(Fin_viewSalesOrder, id)
+    return redirect('/')
+
+def Fin_deleteSalesOrderComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_Sales_Order_Comments.objects.get(id = id)
+        orderId = cmt.SalesOrder.id
+        cmt.delete()
+        return redirect(Fin_viewSalesOrder, orderId)
+    
+def Fin_salesOrderHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        his = Fin_Sales_Order_History.objects.filter(SalesOrder = salesOrder)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/Fin_Sales_Order_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'order':salesOrder})
+    else:
+       return redirect('/')
+    
+def Fin_deleteSalesOrder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        salesOrder = Fin_Sales_Order.objects.get( id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder).delete()
+
+        # Storing ref number to deleted table
+        # if entry exists and lesser than the current, update and save => Only one entry per company
+        if Fin_Sales_Order_Reference.objects.filter(Company = com).exists():
+            deleted = Fin_Sales_Order_Reference.objects.get(Company = com)
+            if int(salesOrder.reference_no) > int(deleted.reference_no):
+                deleted.reference_no = salesOrder.reference_no
+                deleted.save()
+        else:
+            Fin_Sales_Order_Reference.objects.create(Company = com, reference_no = salesOrder.reference_no)
+        
+        salesOrder.delete()
+        return redirect(Fin_salesOrder)
+
+def Fin_editSalesOrder(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            cmp = com.company_id
+
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        SOItms = Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder)
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'order':salesOrder, 'orderItems':SOItms, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'banks':bnk,'units':units, 'accounts':acc
+        }
+        return render(request,'company/Fin_Edit_Sales_Order.html',context)
+    else:
+       return redirect('/')
+
+def Fin_updateSalesOrder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        if request.method == 'POST':
+            SONum = request.POST['sales_order_no']
+            if salesOrder.sales_order_no != SONum and Fin_Sales_Order.objects.filter(Company = com, sales_order_no__iexact = SONum).exists():
+                res = f'<script>alert("Sales Order Number `{SONum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            salesOrder.Customer = None if request.POST['customerId'] == "" else Fin_Customers.objects.get(id = request.POST['customerId'])
+            salesOrder.customer_email = request.POST['customerEmail']
+            salesOrder.billing_address = request.POST['bill_address']
+            salesOrder.gst_type = request.POST['gst_type']
+            salesOrder.gstin = request.POST['gstin']
+            salesOrder.place_of_supply = request.POST['place_of_supply']
+
+            salesOrder.sales_order_no = SONum
+            salesOrder.payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term'])
+            salesOrder.sales_order_date = request.POST['sales_order_date']
+            salesOrder.exp_ship_date = datetime.strptime(request.POST['shipment_date'], '%d-%m-%Y').date()
+
+            salesOrder.payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method']
+            salesOrder.cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id']
+            salesOrder.upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id']
+            salesOrder.bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id']
+
+            salesOrder.subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal'])
+            salesOrder.igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst'])
+            salesOrder.cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst'])
+            salesOrder.sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst'])
+            salesOrder.tax_amount = 0.0 if request.POST['taxamount'] == "" else float(request.POST['taxamount'])
+            salesOrder.adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj'])
+            salesOrder.shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship'])
+            salesOrder.grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal'])
+            salesOrder.paid_off = 0.0 if request.POST['advance'] == "" else float(request.POST['advance'])
+            salesOrder.balance = request.POST['grandtotal'] if request.POST['balance'] == "" else float(request.POST['balance'])
+
+            salesOrder.note = request.POST['note']
+
+            if len(request.FILES) != 0:
+                salesOrder.file=request.FILES.get('file')
+
+            salesOrder.save()
+
+            # Save invoice items.
+
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("priceListPrice[]") if 'priceList' in request.POST else request.POST.getlist("price[]")
+            tax = request.POST.getlist("taxGST[]") if request.POST['place_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
+            so_item_ids = request.POST.getlist("id[]")
+            SOItem_ids = [int(id) for id in so_item_ids]
+
+            order_items = Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder)
+            object_ids = [obj.id for obj in order_items]
+
+            ids_to_delete = [obj_id for obj_id in object_ids if obj_id not in SOItem_ids]
+
+            Fin_Sales_Order_Items.objects.filter(id__in=ids_to_delete).delete()
+            
+            count = Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder).count()
+
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total)==len(SOItem_ids) and SOItem_ids and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total,SOItem_ids)
+                mapped = list(mapped)
+                for ele in mapped:
+                    if int(len(itemId))>int(count):
+                        if ele[8] == 0:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_Sales_Order_Items.objects.create(SalesOrder = salesOrder, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                        else:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_Sales_Order_Items.objects.filter( id = int(ele[8])).update(SalesOrder = salesOrder, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                    else:
+                        itm = Fin_Items.objects.get(id = int(ele[0]))
+                        Fin_Sales_Order_Items.objects.filter( id = int(ele[8])).update(SalesOrder = salesOrder, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+            
+            # Save transaction
+                    
+            Fin_Sales_Order_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                SalesOrder = salesOrder,
+                action = 'Edited'
+            )
+
+            return redirect(Fin_viewSalesOrder, id)
+        else:
+            return redirect(Fin_editSalesOrder, id)
+    else:
+       return redirect('/')
+
+def Fin_attachSalesOrderFile(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+
+        if request.method == 'POST' and len(request.FILES) != 0:
+            salesOrder.file = request.FILES.get('file')
+            salesOrder.save()
+
+        return redirect(Fin_viewSalesOrder, id)
+    else:
+        return redirect('/')
+
+def Fin_salesOrderPdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        itms = Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder)
+    
+        context = {'order':salesOrder, 'orderItems':itms,'cmp':com}
+        
+        template_path = 'company/Fin_Sales_Order_Pdf.html'
+        fname = 'Sales_Order_'+salesOrder.sales_order_no
+        # return render(request, 'company/Fin_Invoice_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_shareSalesOrderToEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        itms = Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder)
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                context = {'order':salesOrder, 'orderItems':itms,'cmp':com}
+                template_path = 'company/Fin_Sales_Order_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Sales_Order_{salesOrder.sales_order_no}'
+                subject = f"Sales_Order_{salesOrder.sales_order_no}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Sales Order for - #-{salesOrder.sales_order_no}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Sales Order details has been shared via email successfully..!')
+                return redirect(Fin_viewSalesOrder,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_viewSalesOrder, id)
+
+def Fin_convertSalesOrderToInvoice(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            cmp = com.company_id
+
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        orderItms = Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder)
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+
+        # Fetching last invoice and assigning upcoming ref no as current + 1
+        # Also check for if any bill is deleted and ref no is continuos w r t the deleted invoice
+        latest_inv = Fin_Invoice.objects.filter(Company = cmp).order_by('-id').first()
+
+        new_number = int(latest_inv.reference_no) + 1 if latest_inv else 1
+
+        if Fin_Invoice_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_Invoice_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.reference_no) >= new_number:
+                    new_number+=1
+
+        # Finding next invoice number w r t last invoic number if exists.
+        nxtInv = ""
+        lastInv = Fin_Invoice.objects.filter(Company = cmp).last()
+        if lastInv:
+            inv_no = str(lastInv.invoice_no)
+            numbers = []
+            stri = []
+            for word in inv_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            inv_num = int(num)+1
+
+            if num[0] == '0':
+                if inv_num <10:
+                    nxtInv = st+'0'+ str(inv_num)
+                else:
+                    nxtInv = st+ str(inv_num)
+            else:
+                nxtInv = st+ str(inv_num)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'order':salesOrder, 'orderItems':orderItms, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'banks':bnk,'units':units, 'accounts':acc,'ref_no':new_number,'invNo':nxtInv
+        }
+        return render(request,'company/Fin_Convert_SalesOrder_toInvoice.html',context)
+    else:
+       return redirect('/')

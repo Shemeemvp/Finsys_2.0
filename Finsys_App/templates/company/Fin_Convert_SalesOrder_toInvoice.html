@@ -23,14 +23,13 @@
     }
 </style>
 
-<form action="{% url 'Fin_createInvoice' %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+<form action="" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
   {% csrf_token %}
   <div class="page-content">
-    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_invoice' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
     <div class="card radius-15">
       <div class="card-body">
         <div class="card-title">
-          <center><h3 class="mb-0">INVOICE</h3></center>
+          <center><h3 class="mb-0">CONVERT SALES ORDER TO INVOICE</h3></center>
         </div>
         <hr />
       </div>
@@ -45,28 +44,32 @@
                         <select name="customer" id="customer" class="form-control" required>
                             <option value="0">Select Customer</option>
                             {% for cust in customers %}
+                            {% if order.Customer.id == cust.id %}
+                            <option value="{{ cust.id }}" selected> {{ cust.title }} {{ cust.first_name }} {{ cust.last_name }}</option>
+                            {% else %}
                             <option value="{{ cust.id }}"> {{ cust.title }} {{ cust.first_name }} {{ cust.last_name }}</option>
+                            {% endif %}
                             {% endfor %}
                         </select>
                         <button type="button" data-toggle="modal" data-target="#newCustomer" class="btn btn-outline-secondary ml-1">+</button>
                     </div>
 
                     <label class="mt-3">GST Type</label>
-                    <input type="text" class="form-control" id="gstType" name="gst_type" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" id="gstType" value="{{order.gst_type}}" name="gst_type" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
                 </div>
 
                 <div class="col-md-4 mt-3">
                     <label class="">Email</label>
-                    <input class="form-control" type="email" name="customerEmail" placeholder="Email" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
+                    <input class="form-control" type="email" name="customerEmail" value="{{order.customer_email}}" placeholder="Email" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
                     <div class="mt-3" id="gstInDisplay" style="display: block;">
                         <label class="">GSTIN</label>
-                        <input type="text" class="form-control" id="gstin" name="gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                        <input type="text" class="form-control" id="gstin" value="{{order.gstin}}" name="gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
                     </div>
                 </div>
 
                 <div class="col-md-4 mt-3">
                     <label class="">Billing Address</label>
-                    <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly></textarea>
+                    <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly>{{order.billing_address}}</textarea>
                 </div>
             </div>
 
@@ -79,7 +82,7 @@
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Reference Number</label>
-                    <input type="text" class="form-control" name="reference_number" value="{{ref_no}}" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" name="reference_number"  value="{{ref_no}}" style="background-color: #43596c;" readonly>
                 </div>
                 <div class="col-md-4 mt-3">
                     <input hidden value="{{cmp.State}}" id="cmpstate">
@@ -131,11 +134,11 @@
             <div class="row">
                 <div class="col-md-3 mt-3">
                     <label class="">Invoice Date:</label>
-                    <input type="date" class="form-control" name="invoice_date" id="invoiceDate" style="background-color: #43596c; color: white;" value="{% now 'Y-m-d' %}">
+                    <input type="date" class="form-control" name="invoice_date" id="invoiceDate" style="background-color: #43596c; color: white;"  value="{{order.sales_order_date|date:'Y-m-d'}}">
                 </div>
                 <div class="col-md-3 mt-3">
                     <label class="">Due Date:</label>
-                    <input type="text" id="dueDate" class="form-control" name="due_date" style="background-color: #43596c; color: white; " readonly>
+                    <input type="text" id="dueDate" value="{{order.exp_ship_date|date:'d-m-Y'}}" class="form-control" name="due_date" style="background-color: #43596c; color: white; " readonly>
                 </div>
                 <div class="col-md-3 mt-3">
                     <label class="">Terms </label>
@@ -152,7 +155,7 @@
 
                 <div class="col-md-3 mt-3">
                     <label class="" for="orderNum"> Order Number: </label> 
-                    <input class="form-control" type="text" name="order_number" id="orderNum">
+                    <input class="form-control" type="text" name="order_number"  value="{{order.sales_order_no}}" id="orderNum">
                 </div>
 
                 <div class="col-md-3 mt-3">
@@ -169,15 +172,15 @@
                 </div>
                 <div class="col-md-3 mt-3" style="display:none;"  id="chequediv">
                     <label class="" >Cheque No</label>
-                    <input type="text" class="form-control" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
+                    <input type="text" class="form-control" name="cheque_id" value="{{order.cheque_no}}" id="cheque_id" placeholder="Enter Cheque No">
                 </div>
                 <div class="col-md-3 mt-3"  style="display:none;" id="upidiv">
                     <label class="" >UPI ID</label>
-                    <input type="text" class="form-control" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
+                    <input type="text" class="form-control" name="upi_id" value="{{order.upi_no}}" id="upi_id" placeholder="Enter UPI ID">
                 </div>
                 <div class="col-md-3 mt-3"  style="display:none;" id="bnkdiv">
                     <label class="" >Account#</label>
-                    <input type="text" class="form-control" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" name="bnk_id" value="{{order.bank_acc_no}}" id="bnk_id" style="background-color: #43596c;" readonly>
                 </div>
             </div>
 
@@ -209,14 +212,15 @@
                             </tr>
                         </thead>
                         <tbody id="items-table-body">
-                            <tr id='tab_row1'>
-                                <td class="nnum" style="text-align: center;">1</td>
+                            {% for itm in orderItems %}
+                            <tr id='tab_row{{forloop.counter}}'>
+                                <td class="nnum" style="text-align: center;">{{forloop.counter}}</td>
                                 <td style="width: 20%;">
                                     <div class="d-flex">
                                         <div class="w-100">
                                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                                <input required type="text" id="item1" value="" name="item_name[]" class="dropdown-toggle form-control item-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
-                                                <ul class="dropdown-menu w-100 items-available position-absolute" id="menu1"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
+                                                <input required type="text" id="item{{forloop.counter}}" value="{{itm.Item.name}}" name="item_name[]" class="dropdown-toggle form-control item-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
+                                                <ul class="dropdown-menu w-100 items-available position-absolute" id="menu{{forloop.counter}}"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                                     {% for i in items %}
                                                     <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.name}}`)">{{i.name}}</li>
                                                     {% endfor %}
@@ -231,23 +235,25 @@
                                 
                                 </td>
                                 <td>
-                                    <input type="hidden" name="item_id[]" id="itemId1">
-                                    <input type="text" name='hsn[]' id="hsn1" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
+                                    <input type="hidden" name="id[]" value="{{itm.id}}">
+                                    <input type="hidden" name="item_id[]" value="{{itm.Item.id}}" id="itemId{{forloop.counter}}">
+                                    <input type="text" name='hsn[]' id="hsn{{forloop.counter}}" value="{{itm.hsn}}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
                                 </td>
                                 <td >
-                                    <input type="number" name='qty[]' id="qty1"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value=0 onchange="changeItemQty(this.id)" required/>
-                                    <input type="text" id="avl1" style="display: none;">
-                                    <div class="d-flex"><span>Available Qty :</span><span id="qtyspan1" class=''></span></div>
+                                    <input type="number" name='qty[]' id="qty{{forloop.counter}}"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value={{itm.quantity}} onchange="changeItemQty(this.id,`{{itm.quantity}}`)" required/>
+                                    <input type="text" id="avl{{forloop.counter}}" value={{itm.Item.current_stock}} style="display: none;">
+                                    <div class="d-flex"><span>Available Qty :</span><span id="qtyspan{{forloop.counter}}" class=''>{{itm.Item.current_stock}}</span></div>
                                 </td>
                                 <td>
-                                    <input type="number" name='price[]' id="price1" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white; display: block;" value=0 readonly />
-                                    <input type="number" name='priceListPrice[]' id="priceListPrice1" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value=0 readonly />
+                                    <input type="number" name='price[]' id="price{{forloop.counter}}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white; display: block;" value={{itm.price}} readonly />
+                                    <input type="number" name='priceListPrice[]' id="priceListPrice{{forloop.counter}}" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value=0 readonly />
                                 </td>
                                 
                                 <td style="width: 13%;">
                                     <!-- <input type="text"  id="select_tax" placeholder="Tax Rate" class="form-control seltax d-flex"> -->
-                                    <select name='taxGST[]' id="taxGST1" class="form-control tax_ref tax_ref_gst" style="display: block;" onchange="taxchange(this.id)">
-                                        <option selected disabled hidden>Select GST</option>
+                                    <select name='taxGST[]' id="taxGST{{forloop.counter}}" class="form-control tax_ref tax_ref_gst" style="display: block;" onchange="taxchange(this.id)">
+                                        <option value="">Select GST</option>
+                                        <option value={{itm.tax}} selected>{{itm.tax}}% GST</option>
                                         <option value=28 >28.0% GST</option>
                                         <option value=18 >18.0% GST</option>
                                         <option value=12 >12.0% GST</option>
@@ -255,8 +261,9 @@
                                         <option value=3 >03.0% GST</option>
                                         <option value=0 >0.0% GST</option>
                                     </select>
-                                    <select name='taxIGST[]' id="taxIGST1" class="form-control tax_ref tax_ref_igst" style="display: none;" onchange="taxchange(this.id)">
-                                        <option selected disabled hidden >Select IGST</option>
+                                    <select name='taxIGST[]' id="taxIGST{{forloop.counter}}" class="form-control tax_ref tax_ref_igst" style="display: none;" onchange="taxchange(this.id)">
+                                        <option value="" >Select IGST</option>
+                                        <option value={{itm.tax}} selected>{{itm.tax}}% IGST</option>
                                         <option value=28 >28.0% IGST</option>
                                         <option value=18 >18.0% IGST</option>
                                         <option value=12 >12.0% IGST</option>
@@ -264,19 +271,20 @@
                                         <option value=3 >03.0% IGST</option>
                                         <option value=0 >0.0% IGST</option>
                                     </select>
-                                    <div class="mt-1" style=" text-align: center;color: red;" ><span id="invalidtax1" style="display: none;"> Invalid Tax %</span> </div>    
+                                    <div class="mt-1" style=" text-align: center;color: red;" ><span id="invalidtax{{forloop.counter}}" style="display: none;"> Invalid Tax %</span> </div>    
                                 </td>
                                 <td >
-                                    <input type="number" name='discount[]'  placeholder='Enter Discount' id="disc1" value=0 class="form-control disc" step=0 min=0 style="background-color: #43596c;  color: white;"  />
+                                    <input type="number" name='discount[]'  placeholder='Enter Discount' id="disc{{forloop.counter}}" value={{itm.discount}} class="form-control disc" step=0 min=0 style="background-color: #43596c;  color: white;"  />
                                 </td>
 
-                                <td><input type="number" name='total[]' id="total1" class="form-control total" value=0 readonly style="background-color: #43596c; color: white;" /></td>
-                                <td style="display: none;"><input type="hidden" id="taxamount1" class="form-control itemTaxAmount" /></td>
+                                <td><input type="number" name='total[]' id="total{{forloop.counter}}" class="form-control total" value={{itm.total}} readonly style="background-color: #43596c; color: white;" /></td>
+                                <td style="display: none;"><input type="hidden" id="taxamount{{forloop.counter}}" class="form-control itemTaxAmount" /></td>
                                 <td>
-                                    <button type="button" id="1" class="btn font-weight-bold clone_row fa fa-clone px-2 my-1 py-1" title="Clone Row" style="background-color:rgb(88, 107, 143);"></button><br>
-                                    <button type="button" id="1" class="btn btn-danger remove_row px-2 py-1 mx-1 fa fa-close" title="Remove Row"> </button>
+                                    <button type="button" id="{{forloop.counter}}" class="btn font-weight-bold clone_row fa fa-clone px-2 my-1 py-1" title="Clone Row" style="background-color:rgb(88, 107, 143);"></button><br>
+                                    <button type="button" id="{{forloop.counter}}" class="btn btn-danger remove_row px-2 py-1 mx-1 fa fa-close" title="Remove Row"> </button>
                                 </td>
                             </tr>
+                            {% endfor %}
                         </tbody>
                         <tr>
                             <td style="border: none;"><a class="btn btn-outline-secondary ml-1" role="button" id="add" >+</a></td>
@@ -286,7 +294,7 @@
             </div>
             <div class="row clearfix" style="margin-top:20px">
                 <div class="col-md-6">
-                    <textarea class="form-control mt-3"  id="" name="note" placeholder="Note" style="height: 190px;"></textarea>
+                    <textarea class="form-control mt-3"  id="" name="note" placeholder="Note" style="height: 190px;">{{order.note}}</textarea>
                     <input type="file" name="file"  style="margin-top: 10px; width: 70%;">
                 </div>            
                 <div class="col-md-1"></div>
@@ -295,43 +303,43 @@
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label class="text-center">Sub Total</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='subtotal' value=0.00 readonly style="background-color: #37444f;" class="form-control" id="sub_total"></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='subtotal' value="{{order.subtotal}}" readonly style="background-color: #37444f;" class="form-control" id="sub_total"></div>
                         </div>
                         <div class="row container-fluid p-2 m-0" id="taxamountIGST" style="display: flex;">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">IGST</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='igst' step="any" id="igstAmount" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='igst' step="any" id="igstAmount" value="{{order.igst}}" readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0" style="display: none;" id="taxamountCGST">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">CGST</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='cgst' step="any" id="cgstAmount" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='cgst' step="any" id="cgstAmount" value="{{order.cgst}}" readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0" style="display: none;" id="taxamountSGST">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">SGST</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='sgst' step="any" id="sgstAmount" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='sgst' step="any" id="sgstAmount" value="{{order.sgst}}" readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Tax Amount</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='taxamount' id="tax_amount" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='taxamount' id="tax_amount" value="{{order.tax_amount}}" readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Shipping Charge</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='ship' id="ship" value=0.00 class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='ship' id="ship" value="{{order.shipping_charge}}" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Adjustment</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='adj' id="adj" value=0.00 class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='adj' id="adj" value="{{order.adjustment}}" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Grand Total</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='grandtotal' id="grandtotal" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='grandtotal' id="grandtotal" value="{{order.grandtotal}}" readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                     </div>
                 </div>
@@ -343,12 +351,12 @@
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Paid Off</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='advance' id="advance"  value=0.00 class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='advance' id="advance"  value="{{order.paid_off}}" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Balance</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='balance' id="balance" value=0.00 readonly style="background-color: #37444f;" class="form-control" readonly /></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='balance' id="balance" value="{{order.balance}}" readonly style="background-color: #37444f;" class="form-control" readonly /></div>
                         </div>
                     </div>
                 </div>
@@ -364,8 +372,8 @@
                     </div>
                 </div>
                 <div class="col-md-5 mt-3 d-flex">
-                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" name="Draft" value="Draft">
-                    <input type="submit" class="btn btn-outline-secondary w-50 ml-1 text-light" name="Save" value="Save">
+                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="CONVERT">
+                    <input type="button" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL" onclick="window.location.href=`{% url 'Fin_salesOrder' %}`">
                 </div>
             </div>
             <div class="notices mt-3">
@@ -1177,6 +1185,72 @@
         });
     });
 
+    $(document).ready(function(){
+        refreshCustomerDetails();
+
+        document.querySelector('#placeOfSupply').value = `{{order.place_of_supply}}`;
+        document.querySelector('#paymentTerm').value = `{{order.payment_terms.id}}`;
+        document.querySelector('#paymentMethod').value = `{{order.payment_method}}`;
+
+        var x='{{order.payment_method}}';
+        if(x==='Cash'){
+            $('#chequediv').hide()
+            $('#bnkdiv').hide()
+            $('#upidiv').hide()
+            document.getElementById('cheque_id').value=""
+            document.getElementById('upi_id').value=""
+            document.getElementById('bnk_id').value=""
+        }else if(x==='Cheque'){
+            $('#chequediv').show()
+            $('#bnkdiv').hide()
+            $('#upidiv').hide()
+            document.getElementById('upi_id').value=""
+            document.getElementById('bnk_id').value=""
+        }else if(x==='UPI'){
+            $('#upidiv').show()
+            $('#bnkdiv').hide()
+            $('#chequediv').hide()
+            document.getElementById('cheque_id').value=""
+            document.getElementById('bnk_id').value=""
+        }else{
+            $('#bnkdiv').show()
+            $('#chequediv').hide()
+            $('#upidiv').hide()
+            document.getElementById('cheque_id').value=""
+            document.getElementById('upi_id').value=""
+
+            $.ajax({
+                type: "GET",
+                url: "{% url 'Fin_getBankAccount' %}",
+                data: {
+                    id: $('#paymentMethod').find(':selected').attr('text'),
+                },
+                success: function (response) {
+                    if (response.status){
+                        document.getElementById('cheque_id').value="";
+                        document.getElementById('upi_id').value="";
+                        document.getElementById("bnk_id").value = response.account;
+                    }else{
+                        alert(response.message);
+                    }
+                }
+            });
+        }
+    })
+    // $(document).ready(function() {
+    //     $('#items-table-body tr').each(function () {
+    //         var html = $(this).html();
+    //         if (html != '') {
+    //             var itemId = $(this).find('.item-display').attr('id');
+    //             var itemName = $('#'+itemId).val();
+    //             console.log(itemId,itemName);
+
+    //             getItemDetails(itemId,itemName);
+    //         }
+            
+    //     });
+    // });
+
     function refreshCustomerDetails(){
         console.log($('#customer').text());
         if($('#customer').val() != 0){
@@ -1202,7 +1276,9 @@
                         document.getElementById('gstInDisplay').style.display = 'none';
                         document.getElementById('gstin').value = '';
                     }
-                    $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
+                    if(`{{order.price_list_applied}}` != "True"){
+                        $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
+                    }
                     if(data.priceList){
                         $('#applyPriceListSection').show();
                         $('#customerPriceListId').val(data.ListId);
@@ -1366,12 +1442,12 @@
                             $('#'+itemId).val(itemName);
                             document.getElementById('itemId'+n).value = response.id;
                             document.getElementById('hsn'+n).value = response.hsn;
-                            document.getElementById('qtyspan'+n).innerHTML = response.avl;
-                            document.getElementById('avl'+n).innerHTML = response.avl;
                             document.getElementById('price'+n).value = response.sales_rate;
                             document.getElementById('priceListPrice'+n).value = response.PLPrice;
                             document.getElementById('taxGST'+n).value = response.gst;
                             document.getElementById('taxIGST'+n).value = response.igst;
+                            document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                            document.getElementById('avl'+n).value = response.avl;
                             refreshTax();
                             calc();
                         }
@@ -1474,7 +1550,7 @@
             }
         })
     }
-    
+
     function getItemDetails(inpId, value){
         var itm = value;
         var exists = false;
@@ -1512,12 +1588,12 @@
                         $('#'+inpId).val(value);
                         document.getElementById('itemId'+n).value = response.id;
                         document.getElementById('hsn'+n).value = response.hsn;
-                        document.getElementById('qtyspan'+n).innerHTML = response.avl;
-                        document.getElementById('avl'+n).innerHTML = response.avl;
                         document.getElementById('price'+n).value = response.sales_rate;
                         document.getElementById('priceListPrice'+n).value = response.PLPrice;
                         document.getElementById('taxGST'+n).value = response.gst;
                         document.getElementById('taxIGST'+n).value = response.igst;
+                        document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                        document.getElementById('avl'+n).value = response.avl;
                         refreshTax();
                         calc();
                     }
@@ -1532,17 +1608,40 @@
 
     }
 
-    function changeItemQty(id){
+    function changeItemQty(id,QTY){
         id_val = id.slice(3)
+        var crQty = parseInt(QTY)
         var qty = document.getElementById(id).value;
-        var avl_val = document.getElementById(`avl${id_val}`).innerText;
+        var avl_val = document.getElementById(`avl${id_val}`).value;
+        var diff = Math.abs(parseInt(qty) - crQty);
+        
     
         if( parseInt(qty) > parseInt(avl_val) ){
             alert("Quantity Greater than Available Quantity")
             document.getElementById(id).value = avl_val;
             calc()
         }else{
-            document.getElementById(`qtyspan${id_val}`).textContent = parseInt(avl_val) - parseInt(qty);
+            if(crQty < parseInt(qty)){
+                document.getElementById(`qtyspan${id_val}`).textContent = parseInt(avl_val) - diff;
+            }else{
+                document.getElementById(`qtyspan${id_val}`).textContent = parseInt(avl_val) + diff;
+            }
+            
+        }
+    }
+
+    function changeItemQuantity(id){
+        id_val = id.slice(3)
+        var qty = document.getElementById(id).value;
+        var avl_val = document.getElementById(`avl${id_val}`).value;
+        
+    
+        if( parseInt(qty) > parseInt(avl_val) ){
+            alert("Quantity Greater than Available Quantity")
+            document.getElementById(id).value = avl_val;
+            calc()
+        }else{
+            document.getElementById(`qtyspan${id_val}`).textContent = parseInt(avl_val) - parseInt(qty)
         }
     }
 
@@ -1767,11 +1866,12 @@ $(document).ready(function(){
             
             </td>
             <td>
+                <input type="hidden" name="id[]" value=0>
                 <input type="hidden" name="item_id[]" id="itemId${roinc}">
                 <input type="text" name='hsn[]' id="hsn${roinc}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
             </td>
             <td >
-                <input type="number" name='qty[]' id="qty${roinc}"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value=0 onchange="changeItemQty(this.id)" required/>
+                <input type="number" name='qty[]' id="qty${roinc}"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value=0 onchange="changeItemQuantity(this.id)" required/>
                 <input type="text" id="avl${roinc}" style="display: none;">
                 <div class="d-flex"><span>Available Qty :</span><span id="qtyspan${roinc}" class=''></span></div>
             </td>
@@ -1816,9 +1916,8 @@ $(document).ready(function(){
         `);
         checkPriceList();
     });
-  });
- 
-  
+  }); 
+
     function validateForm() {
         var cust = $('#customer').val();
         var length = $("#items-table-body tr").length;
@@ -1827,7 +1926,6 @@ $(document).ready(function(){
             alert('Add atleast 1 item..!')
             return false;
         }
-
         if(cust == 0){
             alert('Select customer..')
             return false;

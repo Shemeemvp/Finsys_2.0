@@ -245,6 +245,18 @@ urlpatterns = [
     path('Fin_add_sales_order',views.Fin_addSalesOrder, name='Fin_addSalesOrder'),
     path('Fin_create_sales_order',views.Fin_createSalesOrder, name='Fin_createSalesOrder'),
     path('Fin_check_sales_order_number',views.Fin_checkSalesOrderNumber, name='Fin_checkSalesOrderNumber'),
+    path('Fin_view_sales_order/<int:id>',views.Fin_viewSalesOrder, name='Fin_viewSalesOrder'),
+    path('Fin_edit_sales_order/<int:id>',views.Fin_editSalesOrder, name='Fin_editSalesOrder'),
+    path('Fin_update_sales_order/<int:id>',views.Fin_updateSalesOrder, name='Fin_updateSalesOrder'),
+    path('Fin_convert_sales_order/<int:id>',views.Fin_convertSalesOrder, name='Fin_convertSalesOrder'),
+    path('Fin_add_sales_order_comment/<int:id>',views.Fin_addSalesOrderComment, name='Fin_addSalesOrderComment'),
+    path('Fin_delete_sales_order_comment/<int:id>',views.Fin_deleteSalesOrderComment, name='Fin_deleteSalesOrderComment'),
+    path('Fin_sales_order_history/<int:id>',views.Fin_salesOrderHistory, name='Fin_salesOrderHistory'),
+    path('Fin_delete_sales_order/<int:id>',views.Fin_deleteSalesOrder, name= 'Fin_deleteSalesOrder'),
+    path('Fin_attach_sales_order_file/<int:id>',views.Fin_attachSalesOrderFile, name='Fin_attachSalesOrderFile'),
+    path('Fin_sales_order_pdf/<int:id>',views.Fin_salesOrderPdf, name='Fin_salesOrderPdf'),
+    path('Fin_share_sales_order_to_email/<int:id>',views.Fin_shareSalesOrderToEmail, name='Fin_shareSalesOrderToEmail'),
+    path('Fin_convert_sales_order_to_invoice/<int:id>',views.Fin_convertSalesOrderToInvoice, name='Fin_convertSalesOrderToInvoice'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

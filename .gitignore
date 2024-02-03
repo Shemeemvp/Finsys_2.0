@@ -1,4 +1,5 @@
 media/image
 media/default
+media/sales_order/*
 Finsys_App/migrations/__pycache__
 Finsys_App/__pycache__
