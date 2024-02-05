@@ -221,7 +221,7 @@
                                                 <input required type="text" id="item1" value="" name="item_name[]" class="dropdown-toggle form-control item-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
                                                 <ul class="dropdown-menu w-100 items-available position-absolute" id="menu1"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                                     {% for i in items %}
-                                                    <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.name}}`)">{{i.name}}</li>
+                                                    <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.name}}`)">{{i.name}}</li>
                                                     {% endfor %}
                                                 </ul>
                                             </div>
@@ -1679,7 +1679,7 @@ $(document).ready(function(){
                             <input required type="text" id="item${roinc}" value="" name="item_name[]" class="dropdown-toggle form-control item-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
                             <ul class="dropdown-menu w-100 items-available position-absolute" id="menu${roinc}"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                 {% for i in items %}
-                                <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),$(this).html())">{{i.name}}</li>
+                                <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'),$(this).html())">{{i.name}}</li>
                                 {% endfor %}
                             </ul>
                             
@@ -2549,7 +2549,7 @@ function reloadItems() {
                 $.each(data, function(key, value) {
                     for (let i = 0; i < value.length; i++) {
                         currentRow.find(".items-available").append(`
-                            <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'), '${value[i]}')">
+                            <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'), '${value[i]}')">
                                 ${value[i]}
                             </li>`
                         );

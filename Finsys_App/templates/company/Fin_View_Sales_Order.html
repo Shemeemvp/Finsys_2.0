@@ -2,6 +2,7 @@
 {% extends 'company/Fin_base.html' %}
 {% block body %}
 {% load social_share %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 <style>
     .filterTable-column .dropdown-toggle::after{
         content: none;
@@ -317,6 +318,7 @@
                             {% endif %}
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-table" role="button" id="exportBtn" style="display: none;" onclick="ExportToExcel('xlsx')">&nbsp;Export</a>
                             <a href="{% url 'Fin_salesOrderPdf' order.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
+                            <a class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" onclick="slipPDF()" id="slipPdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('whatToPrint')">&nbsp;Print</a>
                             <div class="dropdown p-0 nav-item"  id="shareBtn" style="display: none;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-share-alt" data-toggle="dropdown">&nbsp;Share</li>
@@ -1374,6 +1376,7 @@
         $('#printBtn').hide();
         $('#pdfBtn').hide();
         $('#convertBtn').show();
+        $('#slipPdfBtn').hide();
         $('#editBtn').show();
         $('#deleteBtn').show();
         $('#historyBtn').show();
@@ -1392,6 +1395,7 @@
         $('#shareBtn').show();
         $('#printBtn').show();
         $('#pdfBtn').show();
+        $('#slipPdfBtn').hide();
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#deleteBtn').hide();
@@ -1412,6 +1416,7 @@
         $('#pdfBtn').hide();
         $('#shareBtn').hide();
         $('#deleteBtn').hide();
+        $('#slipPdfBtn').show();
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#historyBtn').show();
@@ -1575,6 +1580,20 @@
         $('#'+buttonId).addClass('active');
         $("#templatePrintButton").attr("onclick","printSection('"+templateId+"')");
         document.getElementById('page-content').scrollIntoView();
+    }
+
+    function slipPDF(){
+        var salesOrderNo = `{{order.sales_order_no }}`;
+        var element = document.getElementById('slip');
+        var opt =
+        {
+            margin: 1,
+            filename: 'Sales_Order_Slip_'+ salesOrderNo + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 

@@ -73,7 +73,10 @@
             <td>{{ a.balance }}</td>
             <td>
               {% if a.converted_to_invoice != None %}
-              <span class="text-info fw-bolder text-center" onclick="window.location.href='#'">Converted to Invoice - #{{a.converted_to_invoice.invoice_no}}</span>
+              <span class="text-info fw-bolder text-center" onclick="window.location.href=`{% url 'Fin_viewInvoice' a.converted_to_invoice.id %}`">Converted to Invoice - #{{a.converted_to_invoice.invoice_no}}</span>
+              
+              <!-- Add elif a.converted_to_recurring_Inv condition here.. -->
+              
               {% else %}
               <div class="btn-group">
                   <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
@@ -81,7 +84,7 @@
                   </button>
                   <ul class="dropdown-menu">
                     <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertSalesOrderToInvoice' a.id %}`">To Invoice</button></li>
-                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=``">To Recurring Invoice</button></li>
+                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`#`">To Recurring Invoice</button></li>
                   </ul>
               </div>
               {% endif %}
@@ -156,7 +159,7 @@
 
   function sortTable(columnIndex) {
     var table, rows, switching, i, x, y, shouldSwitch;
-    table = document.getElementsByClassName("salesOrderTable");
+    table = document.getElementById("salesOrderTable");
     switching = true;
 
     while (switching) {

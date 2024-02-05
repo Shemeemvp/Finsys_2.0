@@ -693,6 +693,54 @@ class Fin_CNotification(models.Model):
     Noti_date = models.DateTimeField(auto_now_add=True,null=True)
     status = models.CharField(max_length=100,null=True,default='New')
 
+class Fin_Recurring_invoice(models.Model): 
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    customer = models.ForeignKey(Fin_Customers, on_delete=models.CASCADE,null=True,blank=True)
+    Customer_Email = models.CharField(max_length=20, null=True, blank=True)
+    Customer_Billing_Address = models.CharField(max_length=20, null=True, blank=True) 
+    Customer_GST_Type = models.CharField(max_length=20, null=True, blank=True)
+    Customer_GST_Number = models.CharField(max_length=20, null=True, blank=True)
+    Customer_Place_of_Supply = models.CharField(max_length=20, null=True, blank=True)
+    Entry_Type = models.CharField(max_length=20, null=True, blank=True)
+    Profile_Name = models.CharField(max_length=20, null=True, blank=True)
+    startdate = models.DateField(null=True,blank=True)
+    enddate = models.DateField(null=True,blank=True)
+    
+    Reference_Number = models.CharField(max_length=20, null=True, blank=True)
+    Order_Number = models.IntegerField() 
+    Repeat_Every = models.CharField(max_length=20, null=True, blank=True)
+    
+    Payment_Terms = models.ForeignKey(Fin_Company_Payment_Terms, on_delete=models.CASCADE,null=True,blank=True)
+   
+    
+    Payment_Method = models.CharField(max_length=20, null=True, blank=True)
+    Cheque_Number = models.CharField(max_length=20, null=True, blank=True)
+    UPI_Number = models.CharField(max_length=20, null=True, blank=True)
+    Bank_Account_Number = models.CharField(max_length=20, null=True, blank=True)
+    Description = models.CharField(max_length=20, null=True, blank=True) 
+    Document = models.ImageField(null=True,blank = True,upload_to = 'image/RCIN') 
+    Sub_Total = models.IntegerField() 
+    CGST = models.IntegerField() 
+    SGST = models.IntegerField()
+    Tax_Amount= models.IntegerField()
+    IGST = models.IntegerField()
+    Shipping_charge = models.IntegerField()
+    Adjustment = models.IntegerField()
+    Grand_Total = models.IntegerField()
+    Status = models.CharField(max_length=20, null=True, blank=True)
+
+class Fin_Recurring_invoice_item(models.Model):
+    recinvoice = models.ForeignKey(Fin_Recurring_invoice,on_delete=models.CASCADE)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    items = models.ForeignKey(Fin_Items, on_delete=models.CASCADE,null=True,blank=True)
+    hsn = models.CharField(max_length=100)
+    qty = models.IntegerField(default=0, null=True)
+    price = models.CharField(max_length=100)
+    tax = models.CharField(max_length=100)
+    discount = models.IntegerField(default=0, null=True)
+    total = models.IntegerField(default=0, null=True)
+
 # -------------Shemeem--------Sales Order-------------------------------
 
 class Fin_Sales_Order(models.Model):
@@ -728,7 +776,7 @@ class Fin_Sales_Order(models.Model):
 
     # converted_from_estimate = models.ForeignKey(Fin_Estimate, on_delete = models.SET_NULL, null = True)
     converted_to_invoice =  models.ForeignKey(Fin_Invoice, on_delete = models.SET_NULL, null = True)
-    # converted_to_rec_invoice =  models.ForeignKey(Fin_Recurring_Invoice, on_delete = models.SET_NULL, null = True)
+    converted_to_rec_invoice =  models.ForeignKey(Fin_Recurring_invoice, on_delete = models.SET_NULL, null = True)
     
     note = models.TextField(null=True, blank=True)
     file = models.FileField(upload_to='sales_order', null=True, default=None)

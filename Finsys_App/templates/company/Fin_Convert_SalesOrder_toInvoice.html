@@ -23,7 +23,7 @@
     }
 </style>
 
-<form action="" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+<form action="{% url 'Fin_salesOrderConvertInvoice' order.id %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
   {% csrf_token %}
   <div class="page-content">
     <div class="card radius-15">
@@ -222,7 +222,7 @@
                                                 <input required type="text" id="item{{forloop.counter}}" value="{{itm.Item.name}}" name="item_name[]" class="dropdown-toggle form-control item-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
                                                 <ul class="dropdown-menu w-100 items-available position-absolute" id="menu{{forloop.counter}}"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                                     {% for i in items %}
-                                                    <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.name}}`)">{{i.name}}</li>
+                                                    <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.name}}`)">{{i.name}}</li>
                                                     {% endfor %}
                                                 </ul>
                                                 
@@ -241,8 +241,8 @@
                                 </td>
                                 <td >
                                     <input type="number" name='qty[]' id="qty{{forloop.counter}}"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value={{itm.quantity}} onchange="changeItemQty(this.id,`{{itm.quantity}}`)" required/>
-                                    <input type="text" id="avl{{forloop.counter}}" value={{itm.Item.current_stock}} style="display: none;">
-                                    <div class="d-flex"><span>Available Qty :</span><span id="qtyspan{{forloop.counter}}" class=''>{{itm.Item.current_stock}}</span></div>
+                                    <input type="text" class="avlqty" id="avl{{forloop.counter}}" value={{itm.Item.current_stock}} style="display: none;">
+                                    <div class="d-flex"><span>Available Qty :</span><span id="qtyspan{{forloop.counter}}" class='qtyspan'>{{itm.Item.current_stock}}</span></div>
                                 </td>
                                 <td>
                                     <input type="number" name='price[]' id="price{{forloop.counter}}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white; display: block;" value={{itm.price}} readonly />
@@ -1237,19 +1237,20 @@
             });
         }
     })
-    // $(document).ready(function() {
-    //     $('#items-table-body tr').each(function () {
-    //         var html = $(this).html();
-    //         if (html != '') {
-    //             var itemId = $(this).find('.item-display').attr('id');
-    //             var itemName = $('#'+itemId).val();
-    //             console.log(itemId,itemName);
 
-    //             getItemDetails(itemId,itemName);
-    //         }
+    $(document).ready(function() {
+        $('#items-table-body tr').each(function () {
+            var html = $(this).html();
+            if (html != '') {
+                var avlQty = $(this).find('.avlqty').val();
+                var orderQty = $(this).find('.qty').val();
+                
+                $(this).find('.avlqty').val(parseInt(avlQty) - parseInt(orderQty))
+                $(this).find('.qtyspan').text(parseInt(avlQty) - parseInt(orderQty))
+            }
             
-    //     });
-    // });
+        });
+    });
 
     function refreshCustomerDetails(){
         console.log($('#customer').text());
@@ -1416,51 +1417,56 @@
     }
 
     $(document).on('change','#applyPriceList', function() {
-        $('#items-table-body tr').each(function () {
-            var html = $(this).html();
-            if (html != '') {
-                var itemId = $(this).find('.item-display').attr('id');
-                var itemName = $('#'+itemId).val();
-                console.log(itemId,itemName);
+        var plc = $('#placeOfSupply').val();
+        var PLId = $('#customerPriceListId').val();
 
-                var plc = $('#placeOfSupply').val();
-                var PLId = $('#customerPriceListId').val();
+        if(plc != ""){
+            $('#items-table-body tr').each(function () {
+                var html = $(this).html();
+                if (html != '') {
+                    var itemId = $(this).find('.item-display').attr('id');
+                    var itemName = $('#'+itemId).val();
+                    console.log(itemId,itemName);
 
-                if(plc != ""){
-                    var n = itemId.slice(4);
-                    $.ajax({
-                    url: "{% url 'Fin_getInvItemDetails' %}",
-                    type : 'GET',
-                    data:{
-                        item : itemName,
-                        listId : PLId,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'
+
+                    if(plc != ""){
+                        var n = itemId.slice(4);
+                        $.ajax({
+                        url: "{% url 'Fin_getInvItemDetails' %}",
+                        type : 'GET',
+                        data:{
+                            item : itemName,
+                            listId : PLId,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
+                            },
+                        
+                        success: function(response) {
+                            if (response.status){
+                                $('#'+itemId).val(itemName);
+                                document.getElementById('itemId'+n).value = response.id;
+                                document.getElementById('hsn'+n).value = response.hsn;
+                                document.getElementById('price'+n).value = response.sales_rate;
+                                document.getElementById('priceListPrice'+n).value = response.PLPrice;
+                                document.getElementById('taxGST'+n).value = response.gst;
+                                document.getElementById('taxIGST'+n).value = response.igst;
+                                document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                                document.getElementById('avl'+n).value = response.avl;
+                                refreshTax();
+                                calc();
+                            }
                         },
-                    
-                    success: function(response) {
-                        if (response.status){
-                            $('#'+itemId).val(itemName);
-                            document.getElementById('itemId'+n).value = response.id;
-                            document.getElementById('hsn'+n).value = response.hsn;
-                            document.getElementById('price'+n).value = response.sales_rate;
-                            document.getElementById('priceListPrice'+n).value = response.PLPrice;
-                            document.getElementById('taxGST'+n).value = response.gst;
-                            document.getElementById('taxIGST'+n).value = response.igst;
-                            document.getElementById('qtyspan'+n).innerHTML = response.avl;
-                            document.getElementById('avl'+n).value = response.avl;
-                            refreshTax();
-                            calc();
-                        }
-                    },
-                    });
-                }else{
-                    alert('Select Place of Supply.!')
+                        });
+                    }else{
+                        alert('Select Place of Supply.!')
+                    }
+                    // getItemDetails(itemId,itemName);
                 }
-                // getItemDetails(itemId,itemName);
-            }
-            checkPriceList();
-        });
-        
+                checkPriceList();
+            });
+        }else{
+            $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
+            alert('Select Place of Supply.!')
+        }
     });
 
     $(document).on('change','#invoiceNumber', function() {
@@ -1853,7 +1859,7 @@ $(document).ready(function(){
                             <input required type="text" id="item${roinc}" value="" name="item_name[]" class="dropdown-toggle form-control item-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
                             <ul class="dropdown-menu w-100 items-available position-absolute" id="menu${roinc}"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                 {% for i in items %}
-                                <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),$(this).html())">{{i.name}}</li>
+                                <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'),$(this).html())">{{i.name}}</li>
                                 {% endfor %}
                             </ul>
                             
@@ -1872,8 +1878,8 @@ $(document).ready(function(){
             </td>
             <td >
                 <input type="number" name='qty[]' id="qty${roinc}"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value=0 onchange="changeItemQuantity(this.id)" required/>
-                <input type="text" id="avl${roinc}" style="display: none;">
-                <div class="d-flex"><span>Available Qty :</span><span id="qtyspan${roinc}" class=''></span></div>
+                <input type="text" class="avlqty" id="avl${roinc}" style="display: none;">
+                <div class="d-flex"><span>Available Qty :</span><span id="qtyspan${roinc}" class='qtyspan'></span></div>
             </td>
             <td>
                 <input type="number" name='price[]' id="price${roinc}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white;" value=0 readonly />
@@ -2697,7 +2703,7 @@ function reloadItems() {
                 $.each(data, function(key, value) {
                     for (let i = 0; i < value.length; i++) {
                         currentRow.find(".items-available").append(`
-                            <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'), '${value[i]}')">
+                            <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'), '${value[i]}')">
                                 ${value[i]}
                             </li>`
                         );

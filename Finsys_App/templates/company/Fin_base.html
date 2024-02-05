@@ -513,7 +513,7 @@
 
                 {% if allmodules.Offline_Banking == 1 %}
                 
-                <li id="Offlinebanking"><a href=""><i class="bx bx-right-arrow-alt"></i>Offline
+                <li id="Offlinebanking"><a href="{% url 'Fin_banking_listout' %}"><i class="bx bx-right-arrow-alt"></i>Offline
                     Banking</a>
                 </li>
                 {% endif %}
@@ -521,7 +521,7 @@
                 
 
                 {% if allmodules.Bank_Holders == 1 %}
-                <li id="Fin_bankholder"><a href=""><i class="bx bx-right-arrow-alt"></i>Bank
+                <li id="Fin_bankholder"><a href="{% url 'Fin_bankholder' %}"><i class="bx bx-right-arrow-alt"></i>Bank
                     Holders</a>
                 </li>
                 {% endif %}

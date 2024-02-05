@@ -257,6 +257,7 @@ urlpatterns = [
     path('Fin_sales_order_pdf/<int:id>',views.Fin_salesOrderPdf, name='Fin_salesOrderPdf'),
     path('Fin_share_sales_order_to_email/<int:id>',views.Fin_shareSalesOrderToEmail, name='Fin_shareSalesOrderToEmail'),
     path('Fin_convert_sales_order_to_invoice/<int:id>',views.Fin_convertSalesOrderToInvoice, name='Fin_convertSalesOrderToInvoice'),
+    path('Fin_sales_order_convert_invoice/<int:id>',views.Fin_salesOrderConvertInvoice, name='Fin_salesOrderConvertInvoice'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
