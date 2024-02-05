@@ -4853,8 +4853,8 @@ def Fin_getInvItemDetails(request):
             'sales_rate':item.selling_price,
             'avl':item.current_stock,
             'tax': True if item.tax_reference == 'taxable' else False,
-            'gst':item.inter_state_tax,
-            'igst':item.intra_state_tax,
+            'gst':item.intra_state_tax,
+            'igst':item.inter_state_tax,
             'PLPrice':priceListPrice,
 
         }
@@ -6688,19 +6688,14 @@ def Fin_salesOrderConvertInvoice(request, id):
                 grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal']),
                 paid_off = 0.0 if request.POST['advance'] == "" else float(request.POST['advance']),
                 balance = request.POST['grandtotal'] if request.POST['balance'] == "" else float(request.POST['balance']),
-                note = request.POST['note']
+                note = request.POST['note'],
+                status = "Saved" 
             )
 
             inv.save()
 
             if len(request.FILES) != 0:
                 inv.file=request.FILES.get('file')
-            inv.save()
-
-            if 'Draft' in request.POST:
-                inv.status = "Draft"
-            elif "Save" in request.POST:
-                inv.status = "Saved" 
             inv.save()
 
             # Save invoice items.

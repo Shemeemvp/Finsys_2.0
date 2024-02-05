@@ -2227,9 +2227,7 @@ $(document).ready(function(){
                         getCustomerDetails(value[0], customerDetails)
                     }
                     const listItem = $(`
-                        <li class="dropdown-item customers-options" onclick="getCustomerDetails('${ID}', '${customerDetails}')">
-                            ${customerDetails}
-                        </li>`
+                        <li class="dropdown-item customers-options" onclick="getCustomerDetails('${ID}', '${customerDetails}')">${customerDetails}</li>`
                     );
                     custDrpDwn.append(listItem);
                 });

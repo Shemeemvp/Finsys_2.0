@@ -1748,11 +1748,16 @@ $(document).ready(function(){
 
         var customers = $('#cust_drop').children();
         var search_text = $("#customer").val().toLowerCase();
+        console.log('customerssss---');
+        console.log(customers);
         var cust = false;
         customers.each(function(){
             if($(this).text().toLowerCase() == search_text){
                 cust = true;
             }
+            console.log('Cust--',$(this).text().toLowerCase());
+            console.log('search--',search_text);
+            console.log('cust status--',cust);
         })
 
         if(! cust){
@@ -2184,9 +2189,7 @@ $(document).ready(function(){
                         getCustomerDetails(value[0], customerDetails)
                     }
                     const listItem = $(`
-                        <li class="dropdown-item customers-options" onclick="getCustomerDetails('${ID}', '${customerDetails}')">
-                            ${customerDetails}
-                        </li>`
+                        <li class="dropdown-item customers-options" onclick="getCustomerDetails('${ID}', '${customerDetails}')">${customerDetails}</li>`
                     );
                     custDrpDwn.append(listItem);
                 });

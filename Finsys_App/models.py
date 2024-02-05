@@ -702,7 +702,7 @@ class Fin_Recurring_invoice(models.Model):
     Customer_GST_Type = models.CharField(max_length=20, null=True, blank=True)
     Customer_GST_Number = models.CharField(max_length=20, null=True, blank=True)
     Customer_Place_of_Supply = models.CharField(max_length=20, null=True, blank=True)
-    Entry_Type = models.CharField(max_length=20, null=True, blank=True)
+    Entity_Type = models.CharField(max_length=20, null=True, blank=True)
     Profile_Name = models.CharField(max_length=20, null=True, blank=True)
     startdate = models.DateField(null=True,blank=True)
     enddate = models.DateField(null=True,blank=True)
