@@ -258,6 +258,20 @@ urlpatterns = [
     path('Fin_share_sales_order_to_email/<int:id>',views.Fin_shareSalesOrderToEmail, name='Fin_shareSalesOrderToEmail'),
     path('Fin_convert_sales_order_to_invoice/<int:id>',views.Fin_convertSalesOrderToInvoice, name='Fin_convertSalesOrderToInvoice'),
     path('Fin_sales_order_convert_invoice/<int:id>',views.Fin_salesOrderConvertInvoice, name='Fin_salesOrderConvertInvoice'),
+
+    # -------------Shemeem--------Estimate-------------------------------
+    path('Fin_estimates',views.Fin_estimates, name='Fin_estimates'),
+    path('Fin_add_estimate',views.Fin_addEstimate, name='Fin_addEstimate'),
+    path('Fin_create_estimate',views.Fin_createEstimate, name='Fin_createEstimate'),
+    path('Fin_view_estimate/<int:id>',views.Fin_viewEstimate, name='Fin_viewEstimate'),
+    path('Fin_edit_estimate/<int:id>',views.Fin_editEstimate, name='Fin_editEstimate'),
+    path('Fin_convert_estimate/<int:id>',views.Fin_convertEstimate, name='Fin_convertEstimate'),
+    path('Fin_add_estimate_comment/<int:id>',views.Fin_addEstimateComment, name='Fin_addEstimateComment'),
+    path('Fin_delete_estimate_comment/<int:id>',views.Fin_deleteEstimateComment, name='Fin_deleteEstimateComment'),
+    path('Fin_estimate_history/<int:id>',views.Fin_estimateHistory, name='Fin_estimateHistory'),
+    path('Fin_delete_estimate/<int:id>',views.Fin_deleteEstimate, name= 'Fin_deleteEstimate'),
+    path('Fin_convert_estimate_to_invoice/<int:id>',views.Fin_convertEstimateToInvoice, name='Fin_convertEstimateToInvoice'),
+    path('Fin_estimate_convert_invoice/<int:id>',views.Fin_estimateConvertInvoice, name='Fin_estimateConvertInvoice'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
