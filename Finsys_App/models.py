@@ -848,6 +848,7 @@ class Fin_Estimate(models.Model):
     adjustment = models.FloatField(default=0.0, null=True, blank=True)
     shipping_charge = models.FloatField(default=0.0, null=True, blank=True)
     grandtotal = models.FloatField(default=0.0, null=True, blank=True)
+    balance = models.FloatField(default=0.0, null=True, blank = True)
 
     converted_to_sales_order =  models.ForeignKey(Fin_Sales_Order, on_delete = models.SET_NULL, null = True)
     converted_to_invoice =  models.ForeignKey(Fin_Invoice, on_delete = models.SET_NULL, null = True)

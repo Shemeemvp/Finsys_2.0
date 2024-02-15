@@ -72,7 +72,9 @@
             <td>{{ a.status }}</td>
             <td>{{ a.balance }}</td>
             <td>
-              {% if a.converted_to_invoice != None %}
+              {% if a.converted_to_sales_order != None %}
+              <span class="text-info font-weight-bolder text-center" onclick="window.location.href=`{% url 'Fin_viewSalesOrder' a.converted_to_sales_order.id %}`">Converted to <br>Sales Order - #{{a.converted_to_sales_order.sales_order_no}}</span>
+              {% elif a.converted_to_invoice != None %}
               <span class="text-info font-weight-bolder text-center" onclick="window.location.href=`{% url 'Fin_viewInvoice' a.converted_to_invoice.id %}`">Converted to <br>Invoice - #{{a.converted_to_invoice.invoice_no}}</span>
               {% elif a.converted_to_rec_invoice != None %}
               <span class="text-info font-weight-bolder text-center" onclick="window.location.href=`#`">Converted to <br>Recurring Invoice - #{{a.converted_to_rec_invoice.invoice_no}}</span>
@@ -82,7 +84,7 @@
                       Convert
                   </button>
                   <ul class="dropdown-menu">
-                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`#`">To Sales Order</button></li>
+                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertEstimateToSalesOrder' a.id %}`">To Sales Order</button></li>
                     <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertEstimateToInvoice' a.id %}`">To Invoice</button></li>
                     <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`#`">To Recurring Invoice</button></li>
                   </ul>

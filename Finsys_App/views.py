@@ -6971,6 +6971,102 @@ def Fin_editEstimate(request,id):
         return render(request,'company/Fin_Edit_Estimate.html',context)
     else:
        return redirect('/')
+
+def Fin_updateEstimate(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        est = Fin_Estimate.objects.get(id = id)
+        if request.method == 'POST':
+            ESTNo = request.POST['estimate_no']
+            if est.estimate_no != ESTNo and Fin_Estimate.objects.filter(Company = com, estimate_no__iexact = ESTNo).exists():
+                res = f'<script>alert("Estimate Number `{ESTNo}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            est.Customer = None if request.POST['customerId'] == "" else Fin_Customers.objects.get(id = request.POST['customerId'])
+            est.customer_email = request.POST['customerEmail']
+            est.billing_address = request.POST['bill_address']
+            est.gst_type = request.POST['gst_type']
+            est.gstin = request.POST['gstin']
+            est.place_of_supply = request.POST['place_of_supply']
+
+            est.estimate_no = ESTNo
+            est.payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term'])
+            est.estimate_date = request.POST['estimate_date']
+            est.exp_date = datetime.strptime(request.POST['exp_date'], '%d-%m-%Y').date()
+
+            est.subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal'])
+            est.igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst'])
+            est.cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst'])
+            est.sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst'])
+            est.tax_amount = 0.0 if request.POST['taxamount'] == "" else float(request.POST['taxamount'])
+            est.adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj'])
+            est.shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship'])
+            est.grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal'])
+            est.paid_off = 0.0 if request.POST['advance'] == "" else float(request.POST['advance'])
+
+            est.note = request.POST['note']
+
+            if len(request.FILES) != 0:
+                est.file=request.FILES.get('file')
+
+            est.save()
+
+            # Save estimate items.
+
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("price[]")
+            tax = request.POST.getlist("taxGST[]") if request.POST['place_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
+            est_item_ids = request.POST.getlist("id[]")
+            EstItem_ids = [int(id) for id in est_item_ids]
+
+            estimate_items = Fin_Estimate_Items.objects.filter(Estimate = est)
+            object_ids = [obj.id for obj in estimate_items]
+
+            ids_to_delete = [obj_id for obj_id in object_ids if obj_id not in EstItem_ids]
+
+            Fin_Estimate_Items.objects.filter(id__in=ids_to_delete).delete()
+            
+            count = Fin_Estimate_Items.objects.filter(Estimate = est).count()
+
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total)==len(EstItem_ids) and EstItem_ids and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total,EstItem_ids)
+                mapped = list(mapped)
+                for ele in mapped:
+                    if int(len(itemId))>int(count):
+                        if ele[8] == 0:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_Estimate_Items.objects.create(Estimate = est, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                        else:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_Estimate_Items.objects.filter( id = int(ele[8])).update(Estimate = est, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                    else:
+                        itm = Fin_Items.objects.get(id = int(ele[0]))
+                        Fin_Estimate_Items.objects.filter( id = int(ele[8])).update(Estimate = est, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+            
+            # Save transaction
+                    
+            Fin_Estimate_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                Estimate = est,
+                action = 'Edited'
+            )
+
+            return redirect(Fin_viewEstimate, id)
+        else:
+            return redirect(Fin_editEstimate, id)
+    else:
+       return redirect('/')
     
 def Fin_convertEstimate(request,id):
     if 's_id' in request.session:
@@ -7049,6 +7145,94 @@ def Fin_deleteEstimate(request, id):
         
         est.delete()
         return redirect(Fin_estimates)
+
+def Fin_estimatePdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        est = Fin_Estimate.objects.get(id = id)
+        itms = Fin_Estimate_Items.objects.filter(Estimate = est)
+    
+        context = {'estimate':est, 'estItems':itms,'cmp':com}
+        
+        template_path = 'company/Fin_Estimate_Pdf.html'
+        fname = 'Estimate_' + est.estimate_no
+
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_shareEstimateToEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        est = Fin_Estimate.objects.get(id = id)
+        itms = Fin_Estimate_Items.objects.filter(Estimate = est)
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                context = {'estimate':est, 'estItems':itms,'cmp':com}
+                template_path = 'company/Fin_Estimate_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Estimate_{est.estimate_no}'
+                subject = f"Estimate_{est.estimate_no}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Estimate for - #-{est.estimate_no}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Estimate details has been shared via email successfully..!')
+                return redirect(Fin_viewEstimate,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_viewEstimate, id)
+
+def Fin_attachEstimateFile(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        est = Fin_Estimate.objects.get(id = id)
+
+        if request.method == 'POST' and len(request.FILES) != 0:
+            est.file = request.FILES.get('file')
+            est.save()
+
+        return redirect(Fin_viewEstimate, id)
+    else:
+        return redirect('/')
 
 def Fin_convertEstimateToInvoice(request,id):
     if 's_id' in request.session:
@@ -7219,5 +7403,179 @@ def Fin_estimateConvertInvoice(request, id):
             return redirect(Fin_estimates)
         else:
             return redirect(Fin_convertEstimateToInvoice, id)
+    else:
+       return redirect('/')
+
+def Fin_convertEstimateToSalesOrder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        est = Fin_Estimate.objects.get(id = id)
+        estitms = Fin_Estimate_Items.objects.filter(Estimate = est)
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+
+        # Fetching last sales order and assigning upcoming ref no as current + 1
+        # Also check for if any bill is deleted and ref no is continuos w r t the deleted sales order
+        latest_so = Fin_Sales_Order.objects.filter(Company = cmp).order_by('-id').first()
+
+        new_number = int(latest_so.reference_no) + 1 if latest_so else 1
+
+        if Fin_Sales_Order_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_Sales_Order_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.reference_no) >= new_number:
+                    new_number+=1
+
+        # Finding next SO number w r t last SO number if exists.
+        nxtSO = ""
+        lastSO = Fin_Sales_Order.objects.filter(Company = cmp).last()
+        if lastSO:
+            salesOrder_no = str(lastSO.sales_order_no)
+            numbers = []
+            stri = []
+            for word in salesOrder_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            s_order_num = int(num)+1
+
+            if num[0] == '0':
+                if s_order_num <10:
+                    nxtSO = st+'0'+ str(s_order_num)
+                else:
+                    nxtSO = st+ str(s_order_num)
+            else:
+                nxtSO = st+ str(s_order_num)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'ref_no':new_number,'banks':bnk,'SONo':nxtSO,'units':units, 'accounts':acc, 'estimate':est, 'estItems':estitms,
+        }
+        return render(request,'company/Fin_Convert_Estimate_toSalesOrder.html',context)
+    else:
+       return redirect('/')
+
+def Fin_estimateConvertSalesOrder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        est = Fin_Estimate.objects.get(id = id)
+        if request.method == 'POST':
+            SONum = request.POST['sales_order_no']
+            if Fin_Sales_Order.objects.filter(Company = com, sales_order_no__iexact = SONum).exists():
+                res = f'<script>alert("Sales Order Number `{SONum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            SOrder = Fin_Sales_Order(
+                Company = com,
+                LoginDetails = com.Login_Id,
+                Customer = None if request.POST['customerId'] == "" else Fin_Customers.objects.get(id = request.POST['customerId']),
+                customer_email = request.POST['customerEmail'],
+                billing_address = request.POST['bill_address'],
+                gst_type = request.POST['gst_type'],
+                gstin = request.POST['gstin'],
+                place_of_supply = request.POST['place_of_supply'],
+                reference_no = request.POST['reference_number'],
+                sales_order_no = SONum,
+                payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term']),
+                sales_order_date = request.POST['sales_order_date'],
+                exp_ship_date = datetime.strptime(request.POST['shipment_date'], '%d-%m-%Y').date(),
+                payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method'],
+                cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id'],
+                upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id'],
+                bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id'],
+                subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal']),
+                igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst']),
+                cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst']),
+                sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst']),
+                tax_amount = 0.0 if request.POST['taxamount'] == "" else float(request.POST['taxamount']),
+                adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj']),
+                shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship']),
+                grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal']),
+                paid_off = 0.0 if request.POST['advance'] == "" else float(request.POST['advance']),
+                balance = request.POST['grandtotal'] if request.POST['balance'] == "" else float(request.POST['balance']),
+                note = request.POST['note']
+            )
+
+            SOrder.save()
+
+            if len(request.FILES) != 0:
+                SOrder.file=request.FILES.get('file')
+            SOrder.save()
+
+            if 'Draft' in request.POST:
+                SOrder.status = "Draft"
+            elif "Save" in request.POST:
+                SOrder.status = "Saved" 
+            SOrder.save()
+
+            # Save Sales Order items.
+
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("price[]")
+            tax = request.POST.getlist("taxGST[]") if request.POST['place_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
+
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total) and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total)
+                mapped = list(mapped)
+                for ele in mapped:
+                    itm = Fin_Items.objects.get(id = int(ele[0]))
+                    Fin_Sales_Order_Items.objects.create(SalesOrder = SOrder, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                    # itm.current_stock -= int(ele[3])
+                    # itm.save()
+            
+            # Save transaction
+                    
+            Fin_Sales_Order_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                SalesOrder = SOrder,
+                action = 'Created'
+            )
+
+            # Save sales order details to Estimate and update Estimate Balance
+
+            est.converted_to_sales_order = SOrder
+            est.balance = float(SOrder.balance)
+            est.save()
+
+            return redirect(Fin_estimates)
+        else:
+            return redirect(Fin_convertEstimateToSalesOrder, id)
     else:
        return redirect('/')

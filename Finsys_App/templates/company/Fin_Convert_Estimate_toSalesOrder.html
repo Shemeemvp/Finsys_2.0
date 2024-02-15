@@ -27,13 +27,13 @@
 
 </style>
 
-<form action="{% url 'Fin_updateEstimate' estimate.id %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+<form action="{% url 'Fin_estimateConvertSalesOrder' estimate.id %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
   {% csrf_token %}
   <div class="page-content">
     <div class="card radius-15">
       <div class="card-body">
         <div class="card-title">
-          <center><h3 class="mb-0">EDIT ESTIMATE</h3></center>
+          <center><h3 class="mb-0">CONVERT ESTIMATE TO SALES ORDER</h3></center>
         </div>
         <hr />
       </div>
@@ -84,11 +84,11 @@
                     <div class="d-flex">
                         <label class="">Sales Order No.</label><span class="text-danger ml-3" id="SONoErr"></span>
                     </div>
-                    <input type="text" class="form-control" name="estimate_no" value="{{estimate.estimate_no}}"  id="salesOrderNumber" style="background-color: #43596c;" placeholder="{{SONo}}" required>
+                    <input type="text" class="form-control" name="sales_order_no" id="salesOrderNumber" style="background-color: #43596c;" placeholder="{{SONo}}" required>
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Reference Number</label>
-                    <input type="text" class="form-control" name="reference_number"  value="{{estimate.reference_no}}" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" name="reference_number"  value="{{ref_no}}" style="background-color: #43596c;" readonly>
                 </div>
                 <div class="col-md-4 mt-3">
                     <input hidden value="{{cmp.State}}" id="cmpstate">
@@ -139,12 +139,12 @@
 
             <div class="row">
                 <div class="col-md-4 mt-3">
-                    <label class="">Estimate Date:</label>
-                    <input type="date" class="form-control" name="estimate_date" id="salesOrderDate" style="background-color: #43596c; color: white;"  value="{{estimate.estimate_date|date:'Y-m-d'}}">
+                    <label class="">Sales Order Date:</label>
+                    <input type="date" class="form-control" name="sales_order_date" id="salesOrderDate" style="background-color: #43596c; color: white;"  value="{{estimate.estimate_date|date:'Y-m-d'}}">
                 </div>
                 <div class="col-md-4 mt-3">
-                    <label class="">Expiration Date:</label>
-                    <input type="text" id="shipmentDate" class="form-control"  value="{{estimate.exp_date|date:'d-m-Y'}}" name="exp_date" style="background-color: #43596c; color: white; " readonly>
+                    <label class="">Expected Shipment Date:</label>
+                    <input type="text" id="shipmentDate" class="form-control"  value="{{estimate.exp_date|date:'d-m-Y'}}" name="shipment_date" style="background-color: #43596c; color: white; " readonly>
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Terms </label>
@@ -159,7 +159,7 @@
                     </div>
                 </div>
 
-                <!-- <div class="col-md-4 mt-3">
+                <div class="col-md-4 mt-3">
                     <label class="">Payment Type</label>
                     <select class="form-control my-select" id="paymentMethod" name="payment_method" style="background-color: #43596c;">
                         <option value="" selected>Select Payment Method</option>
@@ -173,16 +173,16 @@
                 </div>
                 <div class="col-md-4 mt-3" style="display:none;"  id="chequediv">
                     <label class="" >Cheque No</label>
-                    <input type="text" class="form-control" value="{{estimate.cheque_no}}" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
+                    <input type="text" class="form-control" value="" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
                 </div>
                 <div class="col-md-4 mt-3"  style="display:none;" id="upidiv">
                     <label class="" >UPI ID</label>
-                    <input type="text" class="form-control" value="{{estimate.upi_no}}" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
+                    <input type="text" class="form-control" value="" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
                 </div>
                 <div class="col-md-4 mt-3"  style="display:none;" id="bnkdiv">
                     <label class="" >Account#</label>
-                    <input type="text" class="form-control" value="{{estimate.bank_acc_no}}" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
-                </div> -->
+                    <input type="text" class="form-control" value="" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
+                </div>
             </div>
 
             <div class="row clearfix ">
@@ -357,15 +357,15 @@
                     </div>
                 </div>
                 <div class="col-md-5 mt-3 d-flex">
-                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="SAVE">
-                    <input type="button" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL" onclick="window.location.href=`{% url 'Fin_viewEstimate' estimate.id %}`">
+                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="CONVERT">
+                    <input type="button" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL" onclick="window.location.href=`{% url 'Fin_estimates' %}`">
                 </div>
             </div>
             <div class="notices mt-3">
                 <div class="text-muted">NOTICE:</div>
                 <div class="text-muted">Fin sYs Terms and Conditions Apply</div>
             </div>
-            <footer class="text-muted">Estimate was created on a computer and is valid without the signature and seal.</footer>
+            <footer class="text-muted">Sales Order was created on a computer and is valid without the signature and seal.</footer>
         </div>
       </div>
     </div>
@@ -1170,52 +1170,52 @@
 
         document.querySelector('#placeOfSupply').value = `{{estimate.place_of_supply}}`;
         document.querySelector('#paymentTerm').value = `{{estimate.payment_terms.id}}`;
-        document.querySelector('#paymentMethod').value = `{{estimate.payment_method}}`;
+        // document.querySelector('#paymentMethod').value = `{{estimate.payment_method}}`;
 
-        var x='{{estimate.payment_method}}';
-        if(x==='Cash'){
-            $('#chequediv').hide()
-            $('#bnkdiv').hide()
-            $('#upidiv').hide()
-            document.getElementById('cheque_id').value=""
-            document.getElementById('upi_id').value=""
-            document.getElementById('bnk_id').value=""
-        }else if(x==='Cheque'){
-            $('#chequediv').show()
-            $('#bnkdiv').hide()
-            $('#upidiv').hide()
-            document.getElementById('upi_id').value=""
-            document.getElementById('bnk_id').value=""
-        }else if(x==='UPI'){
-            $('#upidiv').show()
-            $('#bnkdiv').hide()
-            $('#chequediv').hide()
-            document.getElementById('cheque_id').value=""
-            document.getElementById('bnk_id').value=""
-        }else{
-            $('#bnkdiv').show()
-            $('#chequediv').hide()
-            $('#upidiv').hide()
-            document.getElementById('cheque_id').value=""
-            document.getElementById('upi_id').value=""
+        // var x='{{estimate.payment_method}}';
+        // if(x==='Cash'){
+        //     $('#chequediv').hide()
+        //     $('#bnkdiv').hide()
+        //     $('#upidiv').hide()
+        //     document.getElementById('cheque_id').value=""
+        //     document.getElementById('upi_id').value=""
+        //     document.getElementById('bnk_id').value=""
+        // }else if(x==='Cheque'){
+        //     $('#chequediv').show()
+        //     $('#bnkdiv').hide()
+        //     $('#upidiv').hide()
+        //     document.getElementById('upi_id').value=""
+        //     document.getElementById('bnk_id').value=""
+        // }else if(x==='UPI'){
+        //     $('#upidiv').show()
+        //     $('#bnkdiv').hide()
+        //     $('#chequediv').hide()
+        //     document.getElementById('cheque_id').value=""
+        //     document.getElementById('bnk_id').value=""
+        // }else{
+        //     $('#bnkdiv').show()
+        //     $('#chequediv').hide()
+        //     $('#upidiv').hide()
+        //     document.getElementById('cheque_id').value=""
+        //     document.getElementById('upi_id').value=""
 
-            $.ajax({
-                type: "GET",
-                url: "{% url 'Fin_getBankAccount' %}",
-                data: {
-                    id: $('#paymentMethod').find(':selected').attr('text'),
-                },
-                success: function (response) {
-                    if (response.status){
-                        document.getElementById('cheque_id').value="";
-                        document.getElementById('upi_id').value="";
-                        document.getElementById("bnk_id").value = response.account;
-                    }else{
-                        alert(response.message);
-                    }
-                }
-            });
-        }
+        //     $.ajax({
+        //         type: "GET",
+        //         url: "{% url 'Fin_getBankAccount' %}",
+        //         data: {
+        //             id: $('#paymentMethod').find(':selected').attr('text'),
+        //         },
+        //         success: function (response) {
+        //             if (response.status){
+        //                 document.getElementById('cheque_id').value="";
+        //                 document.getElementById('upi_id').value="";
+        //                 document.getElementById("bnk_id").value = response.account;
+        //             }else{
+        //                 alert(response.message);
+        //             }
+        //         }
+        //     });
+        // }
     })
 
     function checkCustomer(){

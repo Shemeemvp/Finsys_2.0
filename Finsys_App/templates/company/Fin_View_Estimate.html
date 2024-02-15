@@ -304,6 +304,7 @@
                         <div class="col-md-6">
                             <a style="padding: 10px; cursor: pointer; border-radius: 1vh; background-color: rgba(22,37,50,255);" onclick="overview()" id="overviewBtn" >Overview</a>
                             <a style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="template()" id="templateBtn" > Templates</a>
+                            <a style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="slip()" id="slipBtn" > Slip</a>
                         </div> 
 
                         <div class="col-md-6 d-flex justify-content-end">
@@ -315,7 +316,8 @@
                                 </ul>
                             </div>
                             {% endif %}
-                            <a href="" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
+                            <a href="{% url 'Fin_estimatePdf' estimate.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
+                            <a class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" onclick="slipPDF()" id="slipPdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('whatToPrint')">&nbsp;Print</a>
                             <div class="dropdown p-0 nav-item"  id="shareBtn" style="display: none;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-share-alt" data-toggle="dropdown">&nbsp;Share</li>
@@ -436,17 +438,17 @@
                                 </div>
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
                                     <div class="col-md-3 mt-3">
-                                        <h6 class="mb-0">Sales Order Date</h6>
+                                        <h6 class="mb-0">Estimate Date</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
                                         <p class="mb-0 text-right">{{estimate.estimate_date | date:'d-m-Y'}}</p>
                                     </div>
     
                                     <div class="col-md-3 mt-3 vl">
-                                        <h6 class="mb-0">Shipment Date</h6>
+                                        <h6 class="mb-0">Expiration Date</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <p class="mb-0 text-right">{{estimate.exp_ship_date | date:'d-m-Y'}}</p>
+                                        <p class="mb-0 text-right">{{estimate.exp_date | date:'d-m-Y'}}</p>
                                     </div>
                                 </div>
                                 <div class="row mb-4 d-flex justify-content-start align-items-center">
@@ -457,10 +459,10 @@
                                         <p class="mb-0">{{estimate.billing_address}}</p>
                                     </div>
                                     <div class="col-md-3 mt-3 vl">
-                                        <h6 class="mb-0">Payment Method</h6>
+                                        <h6 class="mb-0">&nbsp;</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <p class="mb-0 text-right">{{estimate.payment_method}}</p>
+                                        <!-- <p class="mb-0 text-right">{{estimate.payment_method}}</p> -->
                                     </div>
                                 </div>
                                 
@@ -470,7 +472,7 @@
                                     <div class="col-md-12 mt-3">
                                         <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Items Details</h5>
     
-                                        {% for itm in orderItems %}
+                                        {% for itm in estItems %}
                                             <div class="row mb-4 d-flex justify-content-between align-items-center">
                                                 <div class="col-md-3 mt-3">
                                                     <h6 class="mb-0">Name</h6>
@@ -608,10 +610,10 @@
                                     </div>
                                     <div class="top-left">
                                         <div class="graphic-path">
-                                            <p>Sales Order</p>
+                                            <p>Estimate</p>
                                         </div>
                                         <div class="position-relative">
-                                            <p> Sales Order No. <span>{{ estimate.estimate_no }}</span></p>
+                                            <p> Estimate No. <span>{{ estimate.estimate_no }}</span></p>
                                         </div>
                                     </div>
                                 </section>
@@ -638,11 +640,10 @@
                                         </div>
                                         <div class="row extra-info pt-3">
                                             <div class="col-6">
-                                                <p>Sales oder Date: <span>{{estimate.estimate_date | date:'d-m-Y'}}</span></p>
-                                                <p>Payment Method: <span>{{estimate.payment_method}}</span></p>
+                                                <p>Estimate Date: <span>{{estimate.estimate_date | date:'d-m-Y'}}</span></p>
                                             </div>
                                             <div class="col-6">
-                                                <p>Expected Shipment Date : <span>{{estimate.exp_date | date:'d-m-Y'}}</span></p>
+                                                <p>Expiration Date : <span>{{estimate.exp_date | date:'d-m-Y'}}</span></p>
                                             </div>
                                         </div>
                                     </div>
@@ -663,7 +664,7 @@
                                         </thead>
                                         <tbody>
             
-                                            {% for j in orderItems %}
+                                            {% for j in estItems %}
                                             <tr>
                                                 <td style="color:black; text-align: center;">{{j.Item.name}}</td>
                                                 <td style="color:black">{{j.hsn}}</td>
@@ -761,11 +762,11 @@
                                       <div class="text-white d-flex align-items-center px-5" style="border-radius: 1vh; background-color:#999999">{{estimate.status}}<!----></div>
                                   </div>
                                   <div class="col-md-4 d-flex justify-content-center">
-                                      <center class="h3 text-white"><b>Sales Order</b></center>
+                                      <center class="h3 text-white"><b>ESTIMATE</b></center>
                                   </div>  
                                   <div class="col-md-4 d-flex justify-content-end">
                                       <div class="text-white">
-                                          <p class="mb-0 mt-2">Sales Order No: <b>{{estimate.estimate_no }}</b></p>
+                                          <p class="mb-0 mt-2">ESTIMATE No: <b>{{estimate.estimate_no }}</b></p>
                                       </div>
                                   </div>
                               </div>
@@ -795,8 +796,7 @@
                                           </div>
                                           <div class="row my-3">
                                             <div class="col-12">
-                                                <p>Order Date: <span>{{estimate.estimate_date}}</span></p>
-                                                <p>Payment Method: <span>{{estimate.payment_method}}</span></p>
+                                                <p>Estimate Date: <span>{{estimate.estimate_date}}</span></p>
                                             </div>
                                           </div>
                                           
@@ -817,7 +817,7 @@
                                               </tr>
                                           </thead>
                                           <tbody  style="background-color: #999999;">
-                                              {% for itm in orderItems %}
+                                              {% for itm in estItems %}
                                                   <tr>
                                                       <td class="text-center" style="color:black">{{ itm.Item.name}}</td>
                                                       <td class="text-center" style="color:black">{{ itm.hsn }}</td>
@@ -927,7 +927,7 @@
                             <div class="" id="printdiv3">
                                 <div class="row">
                                     <div class="col-sm-12" style="background-image: linear-gradient(#1b83e8, black); color: white;">
-                                        <p style="font-size: 4vh; text-align: center;">SALES ORDER</p>
+                                        <p style="font-size: 4vh; text-align: center;">ESTIMATE</p>
                                         <p style=" text-align: center;"> {{cmp.Company_name}} <br>
                                             {{cmp.Address}} <br>
                                             {{cmp.City}},
@@ -952,27 +952,22 @@
                                             <table class="table table-borderless">
                                                 <tbody>
                                                     <tr >
-                                                        <td style="color: #000; font-weight: bold;">Sales Order No.</td>
+                                                        <td style="color: #000; font-weight: bold;">ESTIMATE No.</td>
                                                         <td style="color: #000;">:</td>
                                                         <td class="text-right" style="color: #000;">{{ estimate.estimate_no }}</td>
                                                     </tr>
 
                                                     <tr >
-                                                        <td style="color: #000; font-weight: bold;">Sales Order Date</td>
+                                                        <td style="color: #000; font-weight: bold;">Estimate Date</td>
                                                         <td style="color: #000;">:</td>
                                                         <td class="text-right" style="color: #000;">{{estimate.estimate_date | date:'d-m-Y'}}<td>
                                                     </tr>
      
                                                     <tr>
-                                                        <td style="color: #000; font-weight: bold;">Shipment Date</td>
+                                                        <td style="color: #000; font-weight: bold;">Expiration Date</td>
                                                         <td style="color: #000;">:</td>
-                                                        <td class="text-right" style="color: #000;">{{estimate.exp_ship_date | date:'d-m-Y'}}</td>
+                                                        <td class="text-right" style="color: #000;">{{estimate.exp_date | date:'d-m-Y'}}</td>
                                                         
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="color: #000; font-weight: bold;">Payment Method</td>
-                                                        <td style="color: #000;">:</td>
-                                                        <td class="text-right" style="color: #000;">{{estimate.payment_method}}</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -983,17 +978,17 @@
                                         <table class="table table-hover table-bordered  template3table" id="table3">
                                             <thead >
                                                 <tr class="template3tablehead">
-                                                    <th class="text-center bg-dark"  style="color:black">Items</th>
-                                                    <th class="text-center bg-dark"  style="color:black">HSN</th>
-                                                    <th class="text-center bg-dark"  style="color:black">Quantity</th>
-                                                    <th class="text-center bg-dark"  style="color:black">Rate</th>
-                                                    <th class="text-center bg-dark"  style="color:black">Tax</th>
-                                                    <th class="text-center bg-dark"  style="color:black">Discount</th>
-                                                    <th class="text-center bg-dark"  style="color:black">Total</th>
+                                                    <th class="text-center"  style="color:black; background-color: gray;">Items</th>
+                                                    <th class="text-center"  style="color:black; background-color: gray;">HSN</th>
+                                                    <th class="text-center"  style="color:black; background-color: gray;">Quantity</th>
+                                                    <th class="text-center"  style="color:black; background-color: gray;">Rate</th>
+                                                    <th class="text-center"  style="color:black; background-color: gray;">Tax</th>
+                                                    <th class="text-center"  style="color:black; background-color: gray;">Discount</th>
+                                                    <th class="text-center"  style="color:black; background-color: gray;">Total</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {% for itm in orderItems %}
+                                                {% for itm in estItems %}
                                                     <tr>
                                                         <td class="text-center" style="color: black;">{{ itm.Item.name}}</td>
                                                         <td class="text-center" style="color: black;">{{ itm.hsn }}</td>
@@ -1105,7 +1100,7 @@
 
                         <div class="ml-4 mt-2" style="color: black;">
                             <div class="row">
-                                <div class="col-md-6 text-left">Sales Order No:</div>
+                                <div class="col-md-6 text-left">Estimate No:</div>
                                 <div class="col-md-5 text-right">{{estimate.estimate_no}}</div>
                             </div>
                             <div class="row">
@@ -1113,12 +1108,12 @@
                                 <div class="col-md-5 text-right">{{estimate.Customer.first_name}} {{estimate.Customer.last_name}}</div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 text-left">Sales Order Date :</div>
+                                <div class="col-md-6 text-left">Estimate Date :</div>
                                 <div class="col-md-5 text-right">{{estimate.estimate_date | date:'d-m-Y'}}</div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 text-left">Shipment Date:</div>
-                                <div class="col-md-5 text-right">{{estimate.exp_ship_date | date:'d-m-Y'}}</div>
+                                <div class="col-md-6 text-left">Expiration Date:</div>
+                                <div class="col-md-5 text-right">{{estimate.exp_date | date:'d-m-Y'}}</div>
                             </div>
                         </div>
 
@@ -1150,7 +1145,7 @@
                                 <hr style="border-bottom: 1px solid black; margin-top:1vh; width:65%;  margin-left: 10px;">
                             </div>
                         </div>
-                        {% for i in orderItems %}
+                        {% for i in estItems %}
                         <div class="equal-length-container" style="color: black; font-size: small; word-wrap: break-word; margin-bottom: 1vh;">
                             <div class="equal-length-item"  style="text-align: center; margin-left: 2px;">
                                 {{i.Item.name}}
@@ -1248,7 +1243,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{% url 'Fin_attachSalesOrderFile' estimate.id %}" method="post" enctype="multipart/form-data" class="needs-validation">
+            <form action="{% url 'Fin_attachEstimateFile' estimate.id %}" method="post" enctype="multipart/form-data" class="needs-validation">
                 <div class="modal-body">
                     <div class="card p-3">
                         
@@ -1274,14 +1269,14 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content" style="background-color: #213b52;">
             <div class="modal-header">
-                <h5 class="m-3">Share Sales Order</h5>
+                <h5 class="m-3">Share Estimate</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="card p-3">
-                    <form action="{% url 'Fin_shareSalesOrderToEmail' estimate.id %}" method="post" class="needs-validation" id="share_to_email_form">
+                    <form action="{% url 'Fin_shareEstimateToEmail' estimate.id %}" method="post" class="needs-validation" id="share_to_email_form">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="emailIds">Email IDs</label>
@@ -1312,7 +1307,7 @@
                 </button>
             </div>
 
-            <form action="{% url 'Fin_addSalesOrderComment' estimate.id %}" method="post">
+            <form action="{% url 'Fin_addEstimateComment' estimate.id %}" method="post">
                 {% csrf_token %}
                 <div class="modal-body">
                     <textarea type="text" class="form-control" name="comment" placeholder="Add Comments.." required></textarea>
@@ -1333,7 +1328,7 @@
                                 <tr class="">
                                     <td class="text-center">{{forloop.counter }}</td>
                                     <td class="text-center">{{c.comments}}</td>
-                                    <td class="text-center"><a class="text-danger" href="{% url 'Fin_deleteSalesOrderComment' c.id %}" onclick="return confirm('Are you sure you want to delete.?')"><i class="fa fa-trash" style="font-size: 1.1rem;"></i></a></td>
+                                    <td class="text-center"><a class="text-danger" href="{% url 'Fin_deleteEstimateComment' c.id %}" onclick="return confirm('Are you sure you want to delete.?')"><i class="fa fa-trash" style="font-size: 1.1rem;"></i></a></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -1373,6 +1368,7 @@
         $('#printBtn').hide();
         $('#pdfBtn').hide();
         $('#convertBtn').show();
+        $('#slipPdfBtn').hide();
         $('#editBtn').show();
         $('#deleteBtn').show();
         $('#historyBtn').show();
@@ -1387,12 +1383,34 @@
         document.getElementById('overviewBtn').style.backgroundColor='transparent';
         document.getElementById('slipBtn').style.backgroundColor='transparent';
         document.getElementById('templateBtn').style.backgroundColor='rgba(22,37,50,255)';
+        $("#printBtn").attr("onclick","printSection('whatToPrint')");
         $('#shareBtn').show();
         $('#printBtn').show();
         $('#pdfBtn').show();
+        $('#slipPdfBtn').hide();
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#deleteBtn').hide();
+        $('#historyBtn').show();
+        $('#commentsBtn').show();
+        $('#attachBtn').hide();
+    }
+
+    function slip() {
+        document.getElementById('overview').style.display = 'none';
+        document.getElementById('template').style.display = 'none';
+        document.getElementById('slip').style.display = 'block';
+        document.getElementById('overviewBtn').style.backgroundColor='transparent';
+        document.getElementById('templateBtn').style.backgroundColor='transparent';
+        document.getElementById('slipBtn').style.backgroundColor='rgba(22,37,50,255)';
+        $("#printBtn").attr("onclick","printSection('slip')");
+        $('#printBtn').show();
+        $('#pdfBtn').hide();
+        $('#shareBtn').hide();
+        $('#deleteBtn').hide();
+        $('#slipPdfBtn').show();
+        $('#editBtn').hide();
+        $('#convertBtn').hide();
         $('#historyBtn').show();
         $('#commentsBtn').show();
         $('#attachBtn').hide();
@@ -1556,19 +1574,19 @@
         document.getElementById('page-content').scrollIntoView();
     }
 
-    // function slipPDF(){
-    //     var estimateNo = `{{estimate.estimate_no }}`;
-    //     var element = document.getElementById('slip');
-    //     var opt =
-    //     {
-    //         margin: 1,
-    //         filename: 'Estimate_Slip_'+ estimateNo + '.pdf',
-    //         image: { type: 'jpeg', quality: 0.98 },
-    //         html2canvas: { scale: 2 },
-    //         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    //     };
-    //     html2pdf().set(opt).from(element).save();
-    // }
+    function slipPDF(){
+        var estimateNo = `{{estimate.estimate_no }}`;
+        var element = document.getElementById('slip');
+        var opt =
+        {
+            margin: 1,
+            filename: 'Estimate_Slip_'+ estimateNo + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
 </script>
 
 {% endblock %}
