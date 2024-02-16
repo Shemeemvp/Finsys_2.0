@@ -1198,6 +1198,12 @@
                                 <span><span>&#8377; </span>{{estimate.adjustment}}</span>
                             </div>
                             {% endif %}
+                            {% if estimate.shipping_charge != 0 %}
+                            <div class="subtot-item d-flex justify-content-between">
+                                <span>Shipping</span>
+                                <span><span>&#8377; </span>{{estimate.shipping_charge}}</span>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="divider"></div>
                         <div class="grandtot fw-bold d-flex justify-content-between">

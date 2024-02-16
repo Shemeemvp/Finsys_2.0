@@ -1330,9 +1330,9 @@
             console.log(est_num);
             $.ajax({
                 type: "GET",
-                url: "",
+                url: "{% url 'Fin_checkEstimateNumber' %}",
                 data: {
-                    ESTNo : est_num,
+                    EstNum : est_num,
                 },
                 success: function (response) {
                     if (response.status){

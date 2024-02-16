@@ -40,7 +40,7 @@
     </div>
     <div class="card radius-15">
       <div class="card-body">
-        <div id="salesOrder">
+        <div id="estimate">
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <label class="">Select Customer</label><span class="text-danger ml-3" id="custErr"></span>
@@ -82,9 +82,9 @@
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <div class="d-flex">
-                        <label class="">Sales Order No.</label><span class="text-danger ml-3" id="SONoErr"></span>
+                        <label class="">Estimate No.</label><span class="text-danger ml-3" id="EstNoErr"></span>
                     </div>
-                    <input type="text" class="form-control" name="estimate_no" value="{{estimate.estimate_no}}"  id="salesOrderNumber" style="background-color: #43596c;" placeholder="{{SONo}}" required>
+                    <input type="text" class="form-control" name="estimate_no" value="{{estimate.estimate_no}}"  id="estimateNumber" style="background-color: #43596c;" placeholder="{{SONo}}" required>
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Reference Number</label>
@@ -140,7 +140,7 @@
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <label class="">Estimate Date:</label>
-                    <input type="date" class="form-control" name="estimate_date" id="salesOrderDate" style="background-color: #43596c; color: white;"  value="{{estimate.estimate_date|date:'Y-m-d'}}">
+                    <input type="date" class="form-control" name="estimate_date" id="estimateDate" style="background-color: #43596c; color: white;"  value="{{estimate.estimate_date|date:'Y-m-d'}}">
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Expiration Date:</label>
@@ -187,7 +187,7 @@
 
             <div class="row clearfix ">
                 <div class="col-md-12 table-responsive-md mt-3">
-                    <table class="table table-bordered table-hover mt-3" id="salesOrderItemsTable">
+                    <table class="table table-bordered table-hover mt-3" id="estimateItemsTable">
                         <thead>
                             <tr>
                                 <th class="text-center">#</th>
@@ -283,7 +283,7 @@
                     <input type="file" name="file"  style="margin-top: 10px; width: 70%;">
                 </div>            
                 <div class="col-md-1"></div>
-                <div class="col-md-5 table-responsive-md mt-3 " id="salesOrderItemsTableTotal" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
+                <div class="col-md-5 table-responsive-md mt-3 " id="estimateItemsTableTotal" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
                     <div class="p-3">
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label class="text-center">Sub Total</label></div>
@@ -331,7 +331,7 @@
             </div>
             <div class="row">
                 <div class="col-md-7"></div>
-                <div class="col-md-5 table-responsive-md mt-3 " id="salesOrderItemsTablePaid" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
+                <div class="col-md-5 table-responsive-md mt-3 " id="estimateItemsTablePaid" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
                     <div class="p-3">
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Paid Off</label></div>
@@ -1342,7 +1342,7 @@
 
     function findShipmentDate(){
         var days = parseInt($('#paymentTerm').find(":selected").attr('text'))
-        order_date =new Date($('#salesOrderDate').val())
+        order_date =new Date($('#estimateDate').val())
         console.log(days);
         console.log(order_date);
         if (!isNaN(order_date.getTime())) {
@@ -1368,7 +1368,7 @@
         findShipmentDate();
     });
 
-    $('#salesOrderDate').on('change', function() {
+    $('#estimateDate').on('change', function() {
         findShipmentDate();
     });
 
@@ -1390,22 +1390,22 @@
         }
     }
 
-    $(document).on('change','#salesOrderNumber', function() {
-        $('#SONoErr').text('');
-        var so_num = $(this).val();
-        if(so_num != ""){
-            console.log(so_num);
+    $(document).on('change','#estimateNumber', function() {
+        $('#EstNoErr').text('');
+        var est_num = $(this).val();
+        if(est_num != "" && est_num != `{{estimate.estimate_no}}`){
+            console.log(est_num);
             $.ajax({
                 type: "GET",
-                url: "{% url 'Fin_checkSalesOrderNumber' %}",
+                url: "{% url 'Fin_checkEstimateNumber' %}",
                 data: {
-                    SONum : so_num,
+                    EstNum : est_num,
                 },
                 success: function (response) {
                     if (response.status){
-                        $('#SONoErr').text('');
+                        $('#EstNoErr').text('');
                     }else{
-                        $('#SONoErr').text(response.message);
+                        $('#EstNoErr').text(response.message);
                     }
                 }
             })
@@ -1552,7 +1552,7 @@
     // calculation---------------------------
 
     function calc() {
-        $('#salesOrderItemsTable tbody tr').each(function () {
+        $('#estimateItemsTable tbody tr').each(function () {
             var html = $(this).html();
             if (html != '') {
                 var qty = $(this).find('.qty').val();

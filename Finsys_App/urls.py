@@ -263,6 +263,7 @@ urlpatterns = [
     path('Fin_estimates',views.Fin_estimates, name='Fin_estimates'),
     path('Fin_add_estimate',views.Fin_addEstimate, name='Fin_addEstimate'),
     path('Fin_create_estimate',views.Fin_createEstimate, name='Fin_createEstimate'),
+    path('Fin_check_estimate_number',views.Fin_checkEstimateNumber, name='Fin_checkEstimateNumber'),
     path('Fin_view_estimate/<int:id>',views.Fin_viewEstimate, name='Fin_viewEstimate'),
     path('Fin_edit_estimate/<int:id>',views.Fin_editEstimate, name='Fin_editEstimate'),
     path('Fin_update_estimate/<int:id>',views.Fin_updateEstimate, name='Fin_updateEstimate'),

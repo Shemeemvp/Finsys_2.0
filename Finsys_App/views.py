@@ -6840,6 +6840,24 @@ def Fin_createEstimate(request):
 
         if request.method == 'POST':
             ESTNo = request.POST['estimate_no']
+
+            PatternStr = []
+            for word in ESTNo:
+                if word.isdigit():
+                    pass
+                else:
+                    PatternStr.append(word)
+            
+            pattern = ''
+            for j in PatternStr:
+                pattern += j
+
+            pattern_exists = checkEstimateNumberPattern(pattern)
+
+            if pattern_exists:
+                res = f'<script>alert("Estimate No. Pattern already Exists.! Try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
             if Fin_Estimate.objects.filter(Company = com, estimate_no__iexact = ESTNo).exists():
                 res = f'<script>alert("Estimate Number `{ESTNo}` already exists, try another!");window.history.back();</script>'
                 return HttpResponse(res)
@@ -6983,6 +7001,24 @@ def Fin_updateEstimate(request, id):
         est = Fin_Estimate.objects.get(id = id)
         if request.method == 'POST':
             ESTNo = request.POST['estimate_no']
+
+            PatternStr = []
+            for word in ESTNo:
+                if word.isdigit():
+                    pass
+                else:
+                    PatternStr.append(word)
+            
+            pattern = ''
+            for j in PatternStr:
+                pattern += j
+
+            pattern_exists = checkEstimateNumberPattern(pattern)
+
+            if pattern_exists:
+                res = f'<script>alert("Estimate No. Pattern already Exists.! Try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
             if est.estimate_no != ESTNo and Fin_Estimate.objects.filter(Company = com, estimate_no__iexact = ESTNo).exists():
                 res = f'<script>alert("Estimate Number `{ESTNo}` already exists, try another!");window.history.back();</script>'
                 return HttpResponse(res)
@@ -7579,3 +7615,77 @@ def Fin_estimateConvertSalesOrder(request, id):
             return redirect(Fin_convertEstimateToSalesOrder, id)
     else:
        return redirect('/')
+
+def Fin_checkEstimateNumber(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        EstNo = request.GET['EstNum']
+
+        nxtEstNo = ""
+        lastEstmate = Fin_Estimate.objects.filter(Company = com).last()
+        if lastEstmate:
+            Est_no = str(lastEstmate.estimate_no)
+            numbers = []
+            stri = []
+            for word in Est_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            est_num = int(num)+1
+
+            if num[0] == '0':
+                if est_num <10:
+                    nxtEstNo = st+'0'+ str(est_num)
+                else:
+                    nxtEstNo = st+ str(est_num)
+            else:
+                nxtEstNo = st+ str(est_num)
+
+        PatternStr = []
+        for word in EstNo:
+            if word.isdigit():
+                pass
+            else:
+                PatternStr.append(word)
+        
+        pattern = ''
+        for j in PatternStr:
+            pattern += j
+
+        pattern_exists = checkEstimateNumberPattern(pattern)
+
+        if pattern_exists:
+            return JsonResponse({'status':False, 'message':'Estimate No. Pattern already Exists.!'})
+        elif Fin_Estimate.objects.filter(Company = com, estimate_no__iexact = EstNo).exists():
+            return JsonResponse({'status':False, 'message':'Estimate No. already Exists.!'})
+        elif nxtEstNo != "" and EstNo != nxtEstNo:
+            return JsonResponse({'status':False, 'message':'Estimate No. is not continuous.!'})
+        else:
+            return JsonResponse({'status':True, 'message':'Number is okay.!'})
+    else:
+       return redirect('/')
+
+def checkEstimateNumberPattern(pattern):
+    models = [Fin_Invoice, Fin_Sales_Order, Fin_Recurring_invoice, Fin_Purchase_Bill]
+
+    for model in models:
+        field_name = model.getNumFieldName(model)
+        if model.objects.filter(**{f"{field_name}__icontains": pattern}).exists():
+            return True
+    return False

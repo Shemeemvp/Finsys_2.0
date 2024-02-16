@@ -576,6 +576,9 @@ class Fin_Invoice(models.Model):
     file = models.FileField(upload_to='invoice',default="default.jpg")
     status =models.CharField(max_length=150,default='Draft')
 
+    def getNumFieldName(self):
+        return 'invoice_no'
+
 
 class Fin_Invoice_Items(models.Model):
     Invoice = models.ForeignKey(Fin_Invoice,on_delete=models.CASCADE, null=True)
@@ -693,7 +696,12 @@ class Fin_CNotification(models.Model):
     Noti_date = models.DateTimeField(auto_now_add=True,null=True)
     status = models.CharField(max_length=100,null=True,default='New')
 
+class Fin_Recurring_Invoice_Reference(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    reference_no = models.BigIntegerField(null = False, blank=False)
+
 class Fin_Recurring_invoice(models.Model): 
+    recinvoiceno = models.CharField(max_length=100,default='RI00')
     LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
     customer = models.ForeignKey(Fin_Customers, on_delete=models.CASCADE,null=True,blank=True)
@@ -702,16 +710,17 @@ class Fin_Recurring_invoice(models.Model):
     Customer_GST_Type = models.CharField(max_length=20, null=True, blank=True)
     Customer_GST_Number = models.CharField(max_length=20, null=True, blank=True)
     Customer_Place_of_Supply = models.CharField(max_length=20, null=True, blank=True)
-    Entity_Type = models.CharField(max_length=20, null=True, blank=True)
+    Entry_Type = models.CharField(max_length=20, null=True, blank=True)
     Profile_Name = models.CharField(max_length=20, null=True, blank=True)
-    startdate = models.DateField(null=True,blank=True)
-    enddate = models.DateField(null=True,blank=True)
+    billdate = models.DateField(null=True,blank=True)
+    duedate = models.DateField(null=True,blank=True)
     
-    Reference_Number = models.CharField(max_length=20, null=True, blank=True)
+    Reference_Number = models.IntegerField()
     Order_Number = models.IntegerField() 
     Repeat_Every = models.CharField(max_length=20, null=True, blank=True)
     
     Payment_Terms = models.ForeignKey(Fin_Company_Payment_Terms, on_delete=models.CASCADE,null=True,blank=True)
+    Price_list = models.BooleanField(null=True, default=False)
    
     
     Payment_Method = models.CharField(max_length=20, null=True, blank=True)
@@ -720,15 +729,18 @@ class Fin_Recurring_invoice(models.Model):
     Bank_Account_Number = models.CharField(max_length=20, null=True, blank=True)
     Description = models.CharField(max_length=20, null=True, blank=True) 
     Document = models.ImageField(null=True,blank = True,upload_to = 'image/RCIN') 
-    Sub_Total = models.IntegerField() 
-    CGST = models.IntegerField() 
-    SGST = models.IntegerField()
-    Tax_Amount= models.IntegerField()
-    IGST = models.IntegerField()
-    Shipping_charge = models.IntegerField()
-    Adjustment = models.IntegerField()
-    Grand_Total = models.IntegerField()
+    Sub_Total = models.FloatField(default=0.0, null=True, blank=True) 
+    CGST = models.FloatField(default=0.0, null=True, blank=True) 
+    SGST = models.FloatField(default=0.0, null=True, blank=True)
+    Tax_Amount= models.FloatField(default=0.0, null=True, blank=True)
+    IGST = models.FloatField(default=0.0, null=True, blank=True)
+    Shipping_charge = models.FloatField(default=0.0, null=True, blank=True)
+    Adjustment = models.FloatField(default=0.0, null=True, blank=True)
+    Grand_Total = models.FloatField(default=0.0, null=True, blank=True)
     Status = models.CharField(max_length=20, null=True, blank=True)
+
+    def getNumFieldName(self):
+        return 'recinvoiceno'
 
 class Fin_Recurring_invoice_item(models.Model):
     recinvoice = models.ForeignKey(Fin_Recurring_invoice,on_delete=models.CASCADE)
@@ -781,6 +793,9 @@ class Fin_Sales_Order(models.Model):
     note = models.TextField(null=True, blank=True)
     file = models.FileField(upload_to='sales_order', null=True, default=None)
     status =models.CharField(max_length=150,default='Draft')
+
+    def getNumFieldName(self):
+        return 'sales_order_no'
 
 
 class Fin_Sales_Order_Items(models.Model):
@@ -858,6 +873,9 @@ class Fin_Estimate(models.Model):
     file = models.FileField(upload_to='estimate', null=True, default=None)
     status =models.CharField(max_length=150,default='Draft')
 
+    def getNumFieldName(self):
+        return 'estimate_no'
+
 
 class Fin_Estimate_Items(models.Model):
     Estimate = models.ForeignKey(Fin_Estimate,on_delete=models.CASCADE, null=True)
@@ -892,3 +910,76 @@ class Fin_Estimate_Comments(models.Model):
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
     Estimate = models.ForeignKey(Fin_Estimate,on_delete=models.CASCADE, null=True)
     comments = models.CharField(max_length=500,null=True,blank=True)
+
+
+# Purchase Bill
+class Fin_Purchase_Bill(models.Model):
+    company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    logindetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    vendor = models.ForeignKey(Fin_Vendors,  on_delete=models.CASCADE, null=True)
+    customer = models.ForeignKey(Fin_Customers,  on_delete=models.CASCADE, null=True)
+    pricelist = models.ForeignKey(Fin_Price_List,  on_delete=models.CASCADE, null=True)
+    pay_term = models.ForeignKey(Fin_Company_Payment_Terms, on_delete = models.SET_NULL,null=True)
+    bill_no = models.CharField(max_length=100, null=True, blank=True)
+    ref_no = models.IntegerField(null=True, blank=True)
+    porder_no = models.IntegerField(null=True, blank=True)
+    bill_date = models.DateField(null=True, blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    pay_type = models.CharField(max_length=100, null=True, blank=True)
+    cheque_no = models.CharField(max_length=100, null=True, blank=True)
+    upi_no = models.CharField(max_length=100, null=True, blank=True)
+    bank_no = models.CharField(max_length=100, null=True, blank=True)
+    ven_psupply = models.CharField(max_length=100, null=True, blank=True)
+    cust_psupply = models.CharField(max_length=100, null=True, blank=True)
+    subtotal = models.CharField(max_length=100, default=0, null=True)
+    igst = models.CharField(max_length=100, default=0, null=True)
+    cgst = models.CharField(max_length=100, default=0, null=True)
+    sgst = models.CharField(max_length=100, default=0, null=True)
+    taxamount = models.CharField(max_length=100, default=0, null=True)
+    ship_charge = models.CharField(max_length=100, default=0, null=True)
+    adjust = models.CharField(max_length=100, default=0, null=True)
+    grandtotal = models.FloatField(default=0, null=True)
+    paid = models.CharField(null=True, blank=True, max_length=255)
+    balance = models.CharField(null=True, blank=True, max_length=255)
+    file = models.FileField(upload_to='purchase_bill')
+    description = models.CharField(null=True, blank=True, max_length=255)
+    BILL_STATUS = (
+        ('Draft','Draft'),
+        ('Save','Save'),
+    )
+    status = models.CharField(max_length=10, choices=BILL_STATUS, default='Draft')
+
+    def getNumFieldName(self):
+        return 'bill_no'
+
+class Fin_Purchase_Bill_Item(models.Model):
+    pbill = models.ForeignKey(Fin_Purchase_Bill, on_delete=models.CASCADE)
+    company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE)
+    item = models.ForeignKey(Fin_Items, on_delete=models.CASCADE)
+    qty = models.IntegerField(default=0, null=True)
+    price = models.CharField(max_length=100, default=0, null=True)
+    tax = models.CharField(max_length=100, default=0, null=True)
+    discount = models.CharField(max_length=100, default=0, null=True)
+    total = models.IntegerField(default=0, null=True)
+
+class Fin_Purchase_Bill_Ref_No(models.Model):
+    company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE)
+    logindetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    ref_no = models.CharField(max_length=100, default=0, null=True)
+
+class Fin_Purchase_Bill_History(models.Model):
+    company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE)
+    logindetails = models.ForeignKey(Fin_Login_Details,  on_delete=models.CASCADE, null=True)
+    pbill = models.ForeignKey(Fin_Purchase_Bill, on_delete=models.CASCADE)
+    change_date = models.DateField(auto_now_add=True, null=True)
+    BILL_ACTION = (
+        ('Created','Created'),
+        ('Updated','Updated'),
+    )
+    action = models.CharField(max_length=10, choices=BILL_ACTION)
+
+class Fin_Purchase_Bill_Comment(models.Model):
+    company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE)
+    logindetails = models.ForeignKey(Fin_Login_Details,  on_delete=models.CASCADE, null=True)
+    pbill = models.ForeignKey(Fin_Purchase_Bill, on_delete=models.CASCADE)
+    comment = models.CharField(max_length=100, default=0, null=True)
