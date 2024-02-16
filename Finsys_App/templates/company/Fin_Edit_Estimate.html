@@ -329,7 +329,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <!-- <div class="row">
                 <div class="col-md-7"></div>
                 <div class="col-md-5 table-responsive-md mt-3 " id="estimateItemsTablePaid" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
                     <div class="p-3">
@@ -345,7 +345,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
         
             <div class="row">
@@ -1596,9 +1596,9 @@
 
         $('#grandtotal').val(gtot.toFixed(2));
         
-        var adv_val = parseFloat($('#advance').val())
-        var bal = gtot - adv_val
-        $('#balance').val(bal.toFixed(2));
+        // var adv_val = parseFloat($('#advance').val())
+        // var bal = gtot - adv_val
+        // $('#balance').val(bal.toFixed(2));
         splitTax();
     }
 
@@ -1625,7 +1625,7 @@
             var sh = $("#ship").val();
             var adj = $("#adj").val();
             $('#grandtotal').val((parseFloat(subtot)+parseFloat(tax)+parseFloat(sh)+parseFloat(adj)).toFixed(2));
-            $('#balance').val((parseFloat($("#grandtotal").val())-parseFloat($("#advance").val())).toFixed(2))
+            // $('#balance').val((parseFloat($("#grandtotal").val())-parseFloat($("#advance").val())).toFixed(2))
             
         });
 
@@ -1645,7 +1645,7 @@
             var sh = $("#ship").val();
             var adj = $("#adj").val();
             $('#grandtotal').val((parseFloat(subtot)+parseFloat(tax)+parseFloat(sh)+parseFloat(adj)).toFixed(2));
-            $('#balance').val((parseFloat($("#grandtotal").val())-parseFloat($("#advance").val())).toFixed(2))
+            // $('#balance').val((parseFloat($("#grandtotal").val())-parseFloat($("#advance").val())).toFixed(2))
         });
 
         $(document).on("blur", "#adj", function(){

@@ -4744,7 +4744,7 @@ def Fin_getInvoiceCustomerData(request):
                 listId = None
                 listName = None
             context = {
-                'status':True, 'id':cust.id, 'email':cust.email, 'gstType':cust.gst_type,'shipState':cust.ship_state,'gstin':False if cust.gstin == "" or cust.gstin == None else True, 'gstNo':cust.gstin, 'priceList':list, 'ListId':listId, 'ListName':listName,
+                'status':True, 'id':cust.id, 'email':cust.email, 'gstType':cust.gst_type,'shipState':cust.place_of_supply,'gstin':False if cust.gstin == "" or cust.gstin == None else True, 'gstNo':cust.gstin, 'priceList':list, 'ListId':listId, 'ListName':listName,
                 'street':cust.billing_street, 'city':cust.billing_city, 'state':cust.billing_state, 'country':cust.billing_country, 'pincode':cust.billing_pincode
             }
             return JsonResponse(context)
@@ -7043,7 +7043,6 @@ def Fin_updateEstimate(request, id):
             est.adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj'])
             est.shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship'])
             est.grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal'])
-            est.paid_off = 0.0 if request.POST['advance'] == "" else float(request.POST['advance'])
 
             est.note = request.POST['note']
 
@@ -7431,9 +7430,10 @@ def Fin_estimateConvertInvoice(request, id):
                 action = 'Created'
             )
 
-            # Save invoice details to Estimate
+            # Save invoice and balance details to Estimate
 
             est.converted_to_invoice = inv
+            est.balance = float(inv.balance)
             est.save()
 
             return redirect(Fin_estimates)
