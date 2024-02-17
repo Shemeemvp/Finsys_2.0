@@ -7682,7 +7682,171 @@ def Fin_checkEstimateNumber(request):
        return redirect('/')
 
 def checkEstimateNumberPattern(pattern):
-    models = [Fin_Invoice, Fin_Sales_Order, Fin_Recurring_invoice, Fin_Purchase_Bill]
+    models = [Fin_Invoice, Fin_Sales_Order, Fin_Recurring_invoice, Fin_Purchase_Bill, Fin_Manual_Journal]
+
+    for model in models:
+        field_name = model.getNumFieldName(model)
+        if model.objects.filter(**{f"{field_name}__icontains": pattern}).exists():
+            return True
+    return False
+
+
+# < ------------- Shemeem -------- > Manual Journals < ------------------------------- >
+        
+def Fin_manualJournals(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        jrn = Fin_Manual_Journal.objects.filter(Company = cmp)
+        return render(request,'company/Fin_Manual_Journal.html',{'allmodules':allmodules,'com':com, 'cmp':cmp,'data':data,'journals':jrn})
+    else:
+       return redirect('/')
+
+def Fin_addJournal(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        acc = Fin_Chart_Of_Account.objects.filter(Company=cmp).order_by('account_name')
+        vnd = Fin_Vendors.objects.filter(Company = cmp, status = 'Active')
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        emp = Employee.objects.filter(company = cmp, employee_status = 'Active')
+
+
+        # Fetching last Journal and assigning upcoming ref no as current + 1
+        # Also check for if any bill is deleted and ref no is continuos w r t the deleted Journal
+        latest_jrn = Fin_Manual_Journal.objects.filter(Company = cmp).order_by('-id').first()
+
+        new_number = int(latest_jrn.reference_no) + 1 if latest_jrn else 1
+
+        if Fin_Manual_Journal_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_Manual_Journal_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.reference_no) >= new_number:
+                    new_number+=1
+
+        # Finding next Jrn number w r t last Jrn number if exists.
+        nxtJRN = ""
+        # lastEST = Fin_Estimate.objects.filter(Company = cmp).last()
+        if latest_jrn:
+            jrn_no = str(latest_jrn.estimate_no)
+            numbers = []
+            stri = []
+            for word in jrn_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            journal_num = int(num)+1
+
+            if num[0] == '0':
+                if journal_num <10:
+                    nxtJRN = st+'0'+ str(journal_num)
+                else:
+                    nxtJRN = st+ str(journal_num)
+            else:
+                nxtJRN = st+ str(journal_num)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vnd, 'employees':emp,
+            'ref_no':new_number,'JRNNo':nxtJRN, 'accounts':acc
+        }
+        return render(request,'company/Fin_Add_Journal.html',context)
+    else:
+       return redirect('/')
+
+def Fin_checkJournalNumber(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        JrnNo = request.GET['JrnNum']
+
+        nxtJrnNo = ""
+        lastJournal = Fin_Manual_Journal.objects.filter(Company = com).last()
+        if lastJournal:
+            Jrn_no = str(lastJournal.journal_no)
+            numbers = []
+            stri = []
+            for word in Jrn_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            journal_num = int(num)+1
+
+            if num[0] == '0':
+                if journal_num <10:
+                    nxtJrnNo = st+'0'+ str(journal_num)
+                else:
+                    nxtJrnNo = st+ str(journal_num)
+            else:
+                nxtJrnNo = st+ str(journal_num)
+
+        PatternStr = []
+        for word in JrnNo:
+            if word.isdigit():
+                pass
+            else:
+                PatternStr.append(word)
+        
+        pattern = ''
+        for j in PatternStr:
+            pattern += j
+
+        pattern_exists = checkJournalNumberPattern(pattern)
+
+        if pattern_exists:
+            return JsonResponse({'status':False, 'message':'Journal No. Pattern already Exists.!'})
+        elif Fin_Manual_Journal.objects.filter(Company = com, journal_no__iexact = JrnNo).exists():
+            return JsonResponse({'status':False, 'message':'Journal No. already Exists.!'})
+        elif nxtJrnNo != "" and JrnNo != nxtJrnNo:
+            return JsonResponse({'status':False, 'message':'Journal No. is not continuous.!'})
+        else:
+            return JsonResponse({'status':True, 'message':'Number is okay.!'})
+    else:
+       return redirect('/')
+
+def checkJournalNumberPattern(pattern):
+    models = [Fin_Invoice, Fin_Sales_Order, Fin_Recurring_invoice, Fin_Purchase_Bill, Fin_Estimate]
 
     for model in models:
         field_name = model.getNumFieldName(model)

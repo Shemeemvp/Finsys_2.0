@@ -279,6 +279,11 @@ urlpatterns = [
     path('Fin_estimate_convert_invoice/<int:id>',views.Fin_estimateConvertInvoice, name='Fin_estimateConvertInvoice'),
     path('Fin_convert_estimate_to_sales_order/<int:id>',views.Fin_convertEstimateToSalesOrder, name='Fin_convertEstimateToSalesOrder'),
     path('Fin_estimate_convert_sales_order/<int:id>',views.Fin_estimateConvertSalesOrder, name='Fin_estimateConvertSalesOrder'),
+
+    # < ------------- Shemeem -------- > Manual Journals < ------------------------------- >
+    path('Fin_manual_journals',views.Fin_manualJournals, name='Fin_manualJournals'),
+    path('Fin_add_journal',views.Fin_addJournal, name='Fin_addJournal'),
+    path('Fin_check_journal_number',views.Fin_checkJournalNumber, name='Fin_checkJournalNumber'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
