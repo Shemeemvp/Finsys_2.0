@@ -60,15 +60,15 @@
         </thead>
         <tbody>
           {% for a in journals %}
-          <tr class="clickable-row" data-href="" style="cursor: pointer;">
+          <tr class="clickable-row" data-href="{% url 'Fin_viewJournal' a.id %}" style="cursor: pointer;">
             <td>{{ forloop.counter }}</td>
             <td>{{ a.journal_date }}</td>
             <td>{{ a.journal_no }}</td>
-            <td>{{ a.reference_number }}</td>
+            <td>{{ a.reference_no }}</td>
             <td>
               <i class="fa fa-commenting" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="{{a.notes | default:'None'}}"></i>
             </td>
-            <td>{{ a.amount}}</td>
+            <td>{{ a.total_debit}}</td>
             <td>{{ a.status }}</td>
           </tr>
           {% endfor %}
@@ -97,9 +97,9 @@
       <td>{{ forloop.counter }}</td>
       <td>{{ a.journal_date }}</td>
       <td>{{ a.journal_no }}</td>
-      <td>{{ a.reference_number }}</td>
+      <td>{{ a.reference_no }}</td>
       <td>{{ a.notes | default:'None' }}</td>
-      <td>{{ a.amount}}</td>
+      <td>{{ a.total_debit}}</td>
       <td>{{ a.status }}</td>
     </tr>
     {% endfor %}
@@ -131,7 +131,7 @@
   });
 
   jQuery(document).ready(function ($) {
-    $(".clickable-row").dblclick(function () {
+    $(".clickable-row").click(function () {
       window.location = $(this).data("href");
     });
   });

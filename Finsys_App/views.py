@@ -6854,7 +6854,7 @@ def Fin_createEstimate(request):
 
             pattern_exists = checkEstimateNumberPattern(pattern)
 
-            if pattern_exists:
+            if pattern !="" and pattern_exists:
                 res = f'<script>alert("Estimate No. Pattern already Exists.! Try another!");window.history.back();</script>'
                 return HttpResponse(res)
 
@@ -6899,7 +6899,7 @@ def Fin_createEstimate(request):
                 Estimate.status = "Saved" 
             Estimate.save()
 
-            # Save Sales Order items.
+            # Save Estimate items.
 
             itemId = request.POST.getlist("item_id[]")
             itemName = request.POST.getlist("item_name[]")
@@ -7015,7 +7015,7 @@ def Fin_updateEstimate(request, id):
 
             pattern_exists = checkEstimateNumberPattern(pattern)
 
-            if pattern_exists:
+            if pattern !="" and pattern_exists:
                 res = f'<script>alert("Estimate No. Pattern already Exists.! Try another!");window.history.back();</script>'
                 return HttpResponse(res)
 
@@ -7670,7 +7670,7 @@ def Fin_checkEstimateNumber(request):
 
         pattern_exists = checkEstimateNumberPattern(pattern)
 
-        if pattern_exists:
+        if pattern !="" and pattern_exists:
             return JsonResponse({'status':False, 'message':'Estimate No. Pattern already Exists.!'})
         elif Fin_Estimate.objects.filter(Company = com, estimate_no__iexact = EstNo).exists():
             return JsonResponse({'status':False, 'message':'Estimate No. already Exists.!'})
@@ -7743,9 +7743,8 @@ def Fin_addJournal(request):
 
         # Finding next Jrn number w r t last Jrn number if exists.
         nxtJRN = ""
-        # lastEST = Fin_Estimate.objects.filter(Company = cmp).last()
         if latest_jrn:
-            jrn_no = str(latest_jrn.estimate_no)
+            jrn_no = str(latest_jrn.journal_no)
             numbers = []
             stri = []
             for word in jrn_no:
@@ -7834,7 +7833,7 @@ def Fin_checkJournalNumber(request):
 
         pattern_exists = checkJournalNumberPattern(pattern)
 
-        if pattern_exists:
+        if pattern !="" and pattern_exists:
             return JsonResponse({'status':False, 'message':'Journal No. Pattern already Exists.!'})
         elif Fin_Manual_Journal.objects.filter(Company = com, journal_no__iexact = JrnNo).exists():
             return JsonResponse({'status':False, 'message':'Journal No. already Exists.!'})
@@ -7853,3 +7852,259 @@ def checkJournalNumberPattern(pattern):
         if model.objects.filter(**{f"{field_name}__icontains": pattern}).exists():
             return True
     return False
+
+def Fin_createJournal(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            JRNNo = request.POST['journal_no']
+
+            PatternStr = []
+            for word in JRNNo:
+                if word.isdigit():
+                    pass
+                else:
+                    PatternStr.append(word)
+            
+            pattern = ''
+            for j in PatternStr:
+                pattern += j
+
+            pattern_exists = checkJournalNumberPattern(pattern)
+
+            if pattern !="" and pattern_exists:
+                res = f'<script>alert("Journal No. Pattern already Exists.! Try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            if Fin_Manual_Journal.objects.filter(Company = com, journal_no__iexact = JRNNo).exists():
+                res = f'<script>alert("Journal Number `{JRNNo}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            
+            debSubTot = request.POST['subtotal_debit']
+            credSubTot = request.POST['subtotal_credit']
+
+            debTot = request.POST['total_debit']
+            credTot = request.POST['total_credit']
+
+            Journal = Fin_Manual_Journal(
+                Company = com,
+                LoginDetails = com.Login_Id,
+                reference_no = request.POST['reference_number'],
+                journal_no = JRNNo,
+                journal_date = request.POST['journal_date'],
+                notes = request.POST['notes'],
+                currency = request.POST['currency'],
+                subtotal_debit = 0.0 if debSubTot == "" else float(debSubTot),
+                subtotal_credit = 0.0 if credSubTot == "" else float(credSubTot),
+                total_debit = 0.0 if debTot == "" else float(debTot),
+                total_credit = 0.0 if credTot == "" else float(credTot),
+                balance_debit = 0.0 if request.POST['balance_debit'] == "" else float(request.POST['balance_debit']),
+                balance_credit = 0.0 if request.POST['balance_credit'] == "" else float(request.POST['balance_credit'])
+            )
+
+            if len(request.FILES) != 0:
+                Journal.file=request.FILES.get('file')
+
+            if 'Draft' in request.POST:
+                Journal.status = "Draft"
+            elif "Save" in request.POST:
+                Journal.status = "Saved"
+
+            if Journal.total_debit == Journal.total_credit:
+                Journal.save()
+
+                # Save Journal Accounts.
+
+                accId = request.POST.getlist("acc_id[]")
+                accName = request.POST.getlist("account_name[]")
+                desc  = request.POST.getlist("desc[]")
+                contact = request.POST.getlist("contact[]")
+                deb = request.POST.getlist("debits[]")
+                cred = request.POST.getlist("credits[]")
+
+                credit = [0.0 if x == '' else float(x) for x in deb]
+                debit = [0.0 if x == '' else float(x) for x in cred]
+
+                if len(accId)==len(accName)==len(desc)==len(contact)==len(debit)==len(credit) and accId and accName and desc and contact and debit and credit:
+                    mapped = zip(accId,accName,desc,contact,debit,credit)
+                    mapped = list(mapped)
+                    for ele in mapped:
+                        acc = Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
+                        Fin_Manual_Journal_Accounts.objects.create(Journal = Journal, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = ele[5], Company = com, LoginDetails = com.Login_Id)
+                
+                # Save transaction
+                        
+                Fin_Manual_Journal_History.objects.create(
+                    Company = com,
+                    LoginDetails = data,
+                    Journal = Journal,
+                    action = 'Created'
+                )
+
+                return redirect(Fin_manualJournals)
+            
+            else:
+                res = f'<script>alert("Please ensure that the debit and credit are equal.!");window.history.back();</script>'
+                return HttpResponse(res)
+        else:
+            return redirect(Fin_addJournal)
+    else:
+       return redirect('/')
+
+def Fin_createNewAccountAjax(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            name = request.POST['account_name']
+            type = request.POST['account_type']
+            subAcc = True if request.POST['subAccountCheckBox'] == 'true' else False
+            parentAcc = request.POST['parent_account'] if subAcc == True else None
+            accCode = request.POST['account_code']
+            bankAccNum = None
+            desc = request.POST['description']
+            
+            createdDate = date.today()
+            
+            #save account and transaction if account doesn't exists already
+            if Fin_Chart_Of_Account.objects.filter(Company=com, account_name__iexact=name).exists():
+                return JsonResponse({'status':False, 'message':'Account Name already exists..!'})
+            else:
+                account = Fin_Chart_Of_Account(
+                    Company = com,
+                    LoginDetails = data,
+                    account_type = type,
+                    account_name = name,
+                    account_code = accCode,
+                    description = desc,
+                    balance = 0.0,
+                    balance_type = None,
+                    credit_card_no = None,
+                    sub_account = subAcc,
+                    parent_account = parentAcc,
+                    bank_account_no = bankAccNum,
+                    date = createdDate,
+                    create_status = 'added',
+                    status = 'active'
+                )
+                account.save()
+
+                #save transaction
+
+                Fin_ChartOfAccount_History.objects.create(
+                    Company = com,
+                    LoginDetails = data,
+                    account = account,
+                    action = 'Created'
+                )
+                
+                list= []
+                account_objects = Fin_Chart_Of_Account.objects.filter(Company=com).order_by('account_name')
+
+                for account in account_objects:
+                    accounts = {
+                        'id':account.id,
+                        'name': account.account_name,
+                    }
+                    list.append(accounts)
+
+                return JsonResponse({'status':True,'accounts':list},safe=False)
+
+        return JsonResponse({'status':False, 'message':'Something went wrong.!'})
+    else:
+       return redirect('/')
+
+def Fin_viewJournal(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        Jrn = Fin_Manual_Journal.objects.get(id = id)
+        cmt = Fin_Manual_Journal_Comments.objects.filter(Journal = Jrn)
+        hist = Fin_Manual_Journal_History.objects.filter(Journal = Jrn).last()
+        JrnAcc = Fin_Manual_Journal_Accounts.objects.filter(Journal = Jrn)
+        try:
+            created = Fin_Manual_Journal_History.objects.get(Journal = Jrn, action = 'Created')
+        except:
+            created = None
+
+        return render(request,'company/Fin_View_Journal.html',{'allmodules':allmodules,'com':com,'cmp':cmp, 'data':data, 'journal':Jrn,'jrnAccounts':JrnAcc, 'history':hist, 'comments':cmt, 'created':created})
+    else:
+       return redirect('/')
+
+def Fin_journalHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        jrn = Fin_Manual_Journal.objects.get(id = id)
+        his = Fin_Manual_Journal_History.objects.filter(Journal = jrn)
+
+        return render(request,'company/Fin_Journal_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'journal':jrn})
+    else:
+       return redirect('/')
+
+def Fin_addJournalComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        jrn = Fin_Manual_Journal.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_Manual_Journal_Comments.objects.create(Company = com, Journal = jrn, comments = cmt)
+            return redirect(Fin_viewJournal, id)
+        return redirect(Fin_viewJournal, id)
+    return redirect('/')
+
+def Fin_deleteJournalComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_Manual_Journal_Comments.objects.get(id = id)
+        jrnId = cmt.Journal.id
+        cmt.delete()
+        return redirect(Fin_viewJournal, jrnId)
+
+def Fin_attachJournalFile(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        jrn = Fin_Manual_Journal.objects.get(id = id)
+
+        if request.method == 'POST' and len(request.FILES) != 0:
+            jrn.file = request.FILES.get('file')
+            jrn.save()
+
+        return redirect(Fin_viewJournal, id)
+    else:
+        return redirect('/')

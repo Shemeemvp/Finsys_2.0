@@ -284,6 +284,13 @@ urlpatterns = [
     path('Fin_manual_journals',views.Fin_manualJournals, name='Fin_manualJournals'),
     path('Fin_add_journal',views.Fin_addJournal, name='Fin_addJournal'),
     path('Fin_check_journal_number',views.Fin_checkJournalNumber, name='Fin_checkJournalNumber'),
+    path('Fin_create_journal',views.Fin_createJournal, name='Fin_createJournal'),
+    path('Fin_create_new_account_ajax',views.Fin_createNewAccountAjax, name='Fin_createNewAccountAjax'),
+    path('Fin_view_journal/<int:id>',views.Fin_viewJournal, name='Fin_viewJournal'),
+    path('Fin_add_journal_comment/<int:id>',views.Fin_addJournalComment, name='Fin_addJournalComment'),
+    path('Fin_delete_journal_comment/<int:id>',views.Fin_deleteJournalComment, name='Fin_deleteJournalComment'),
+    path('Fin_attach_journal_file/<int:id>',views.Fin_attachJournalFile, name='Fin_attachJournalFile'),
+    path('Fin_journal_history/<int:id>',views.Fin_journalHistory, name='Fin_journalHistory'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

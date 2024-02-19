@@ -27,7 +27,7 @@
 
 </style>
 
-<form action="" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+<form action="{% url 'Fin_createJournal' %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
   {% csrf_token %}
   <div class="page-content">
     <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_manualJournals' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
@@ -105,13 +105,13 @@
                                 
                                 </td>
                                 <td>
-                                    <input type="hidden" name="item_id[]" id="accId1">
+                                    <input type="hidden" name="acc_id[]" id="accId1">
                                     <input type="text" name='desc[]' id="desc1" placeholder='Enter Description..' class="form-control" style="background-color: #43596c; color: white;" />
                                 </td>
                                 <td style="width: 20%;">
                                     <div class="w-100">
                                         <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                            <input required type="text" id="contact1" value="" name="contact[]" class="dropdown-toggle form-control contact-display" onkeyup="filterContacts($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Contact.." autocomplete="off">
+                                            <input type="text" id="contact1" value="" name="contact[]" class="dropdown-toggle form-control contact-display" onkeyup="filterContacts($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Contact.." autocomplete="off">
                                             <ul class="dropdown-menu w-100 contacts-available position-absolute" id="contactMenu1"  style="overflow-y: auto; height: fit-content;max-height: 50vh; width: fit-content !important; max-width: 21vw;"> 
                                                 {% for i in vendors %}
                                                 <li class="dropdown-item contact-options" style="cursor: pointer;" onclick="getContactDetails($(this).parent().prev().attr('id'),`{{i.title}} {{i.first_name}} {{i.last_name}}`)">{{i.title}} {{i.first_name}} {{i.last_name}}</li>
@@ -153,33 +153,33 @@
                 </div>
                 <div class="col-md-2"></div>
                 <div class="col-md-6 table-responsive-md" style="background-color:rgba(0,0,0,.2);">
-                    <table class="table table-hover" id="tab_logic_total">
+                    <table class="table" id="tab_logic_total">
                         <tbody>
                             <tr>
                                 <th class="text-center text-muted">Sub Total</th>
-                                <td class="text-center">
-                                    <input type="number" class="form-control" name='sub_total' placeholder='0.00' class="tdd" id="subtotal" readonly/>
+                                <td>
+                                    <input type="number" class="form-control" name='subtotal_debit' placeholder='0.00' value=0.0 style="background-color: #43596c; border: none;" id="debitSubTotal" readonly/>
                                 </td>
                                 <td>
-                                    <input type="number" class="form-control" name='sub_total1' placeholder='0.00' class="tdd" id="sub_total" readonly/>
+                                    <input type="number" class="form-control" name='subtotal_credit' placeholder='0.00' value=0.0 style="background-color: #43596c; border: none;" id="creditSubTotal" readonly/>
                                 </td>
                             </tr>
                             <tr>
                                 <th class="text-center">Total Amount</th>
-                                <td class="text-center">
-                                    <input type="number" name='total_amount' id="amount" placeholder='0.00' class="form-control" />
+                                <td>
+                                    <input type="number" name='total_debit' id="debitTotalAmount" placeholder='0.00' class="form-control" />
                                 </td>
                                 <td>
-                                    <input type="number" name='total_amount1' placeholder='0.00' class="form-control" id="amount1" />
+                                    <input type="number" name='total_credit' placeholder='0.00' class="form-control" id="creditTotalAmount" />
                                 </td>
                             </tr>
                             <tr>
                                 <th class="text-center"> Difference</th>
                                 <td>
-                                    <input type="number" name='differ' id="diff" placeholder='0.00' class="form-control diff"/>
+                                    <input type="number" name='balance_debit' id="debitDifference" placeholder='0.00' class="form-control"/>
                                 </td>
                                 <td>
-                                    <input type="number" name='differ' id="diff1" placeholder='0.00' class="form-control diff1"/>
+                                    <input type="number" name='balance_credit' id="creditDifference" placeholder='0.00' class="form-control"/>
                                 </td>
                             </tr>
                         </tbody>
@@ -317,7 +317,7 @@
                             <div class="row">
                                 <div class="col-md-4"></div>
                                 <div class="col-md-4 d-flex justify-content-center">
-                                    <button type="button" data-dismiss="modal" id="saveNewAccount" class="btn btn-outline-info">Save</button>
+                                    <button type="button" id="saveNewAccount" class="btn btn-outline-info">Save</button>
                                 </div>
                                 <div class="col-md-4"></div>
                             </div>
@@ -408,148 +408,53 @@
         $('#'+inpId).val(value);
     }
 
-    $(document).ready(function(){
-        $('#accounts-table-body').on('keyup change', function () {
-            refreshTax();
-            calc();
-        });
-    });
+    
 
-    $(document).ready(function(){
-        $(document).on("blur", ".disc", function(){
-            if($(this).val() != ""){
-            }else{
-            $(this).val(0);
-            calc();
-            }
-        }); 
-    });
 
     // calculation---------------------------
 
+    $(document).ready(function(){
+        $('#accounts-table-body').on('keyup change', function () {
+            calc();
+        });
+    });
+
     function calc() {
-        $('#estimateItemsTable tbody tr').each(function () {
+        var debit_total = 0;
+        var credit_total = 0;
+        $('#accounts-table-body tr').each(function() {
             var html = $(this).html();
             if (html != '') {
-                var qty = $(this).find('.qty').val();
-                var price = $(this).find('.price').val();
-                var dis = $(this).find('.disc').val();
-                var bc = $("#placeOfSupply").val();
-                var compstate = $("#cmpstate").val();
+                var debit_val = $(this).find('.debits').val();
+                var credit_val = $(this).find('.credits').val();
+            
+                debit_total += parseFloat(debit_val) || 0;
+                credit_total += parseFloat(credit_val) || 0;
 
-                if(bc==compstate){
-                    var tax = $(this).find('.tax_ref_gst').val();
-                }
-                else{
-                    var tax = $(this).find('.tax_ref_igst').val();
-                }
-                $(this).find('.total').val((parseFloat(qty) * parseFloat(price)) - parseFloat(dis));
-                $(this).find('.itemTaxAmount').val(((qty * price)-dis) * (tax / 100));
-                calc_total();
+                $('#debitSubTotal').val(debit_total.toFixed(2));
+                $('#debitTotalAmount').val(debit_total.toFixed(2));
+                $('#creditSubTotal').val(credit_total.toFixed(2));
+                $('#creditTotalAmount').val(credit_total.toFixed(2));
+                
+                calc_diff(debit_total, credit_total);
             }
         });
     }
 
-    function calc_total() {
-            
-        total = 0;
-        $('.total').each(function () {
-            total += parseFloat($(this).val());
-        });
-        taxamount = 0;
-        $('.itemTaxAmount').each(function () {
-            taxamount += parseFloat($(this).val());
-        });
-        $('#sub_total').val(total.toFixed(2));
-        $('#tax_amount').val(taxamount.toFixed(2));
-        var ship = parseFloat($("#ship").val());
-        var adj_val = parseFloat($('#adj').val())
-        var gtot = taxamount + total + ship + adj_val;
-
-        $('#grandtotal').val(gtot.toFixed(2));
-        
-        // var adv_val = parseFloat($('#advance').val())
-        // var bal = gtot - adv_val
-        // $('#balance').val(bal.toFixed(2));
-        splitTax();
+    function calc_diff(debitTotal, creditTotal) {
+        var x = 0;
+        if (debitTotal == creditTotal) {
+            $('#debitDifference').val(x.toFixed(2));
+            $('#creditDifference').val(x.toFixed(2));
+        } else if (debitTotal > creditTotal) {
+            $('#debitDifference').val(x.toFixed(2));
+            $('#creditDifference').val((debitTotal - creditTotal).toFixed(2));
+        } else {
+            $('#debitDifference').val((creditTotal - debitTotal).toFixed(2));
+            $('#creditDifference').val(x.toFixed(2));
+        }
     }
-
-    function splitTax(){
-        var bc = $("#placeOfSupply").val();
-        var compstate = $("#cmpstate").val();
-        d=0
-        if (bc == compstate  ) {
-            var gst = taxamount/2
-            $('#cgstAmount').val(parseFloat(gst.toFixed(2)));
-            $('#sgstAmount').val(parseFloat(gst.toFixed(2)));
-            $('#igstAmount').val(parseFloat(d.toFixed(2)));
-        }else{
-            $('#igstAmount').val(taxamount.toFixed(2));
-            $('#cgstAmount').val(d.toFixed(2));
-            $('#sgstAmount').val(d.toFixed(2));
-        }   
-    }
-
-    $(document).ready(function(){
-        $(document).on('keyup',"#ship",function(){
-            var subtot = $('#sub_total').val();
-            var tax = $('#tax_amount').val();
-            var sh = $("#ship").val();
-            var adj = $("#adj").val();
-            $('#grandtotal').val((parseFloat(subtot)+parseFloat(tax)+parseFloat(sh)+parseFloat(adj)).toFixed(2));
-            // $('#balance').val((parseFloat($("#grandtotal").val())-parseFloat($("#advance").val())).toFixed(2))
-            
-        });
-
-        $(document).on("blur", "#ship", function(){
-            if($(this).val() != ""){
-            }else{
-            $(this).val(0);
-            calc_total();
-            }
-        }); 
-    });
-
-    $(document).ready(function(){
-        $(document).on("keyup", "#adj", function(){
-            var subtot = $('#sub_total').val();
-            var tax = $('#tax_amount').val();
-            var sh = $("#ship").val();
-            var adj = $("#adj").val();
-            $('#grandtotal').val((parseFloat(subtot)+parseFloat(tax)+parseFloat(sh)+parseFloat(adj)).toFixed(2));
-            // $('#balance').val((parseFloat($("#grandtotal").val())-parseFloat($("#advance").val())).toFixed(2))
-        });
-
-        $(document).on("blur", "#adj", function(){
-            if($(this).val() != ""){
-            }else{
-            $(this).val(0);
-            calc_total();
-            }
-        }); 
-    });
-
-    $(document).ready(function() {
-        $("#advance").on('keyup change',function() {
-            var tot_val = $('#grandtotal').val();
-            var adv_val = $('#advance').val();
-            if(adv_val !=""){
-                if (parseFloat(tot_val) < parseFloat(adv_val)){
-                    $('#advance').val(parseFloat(tot_val))
-                    $('#balance').val(0);
-                    alert("Advance Greater than Total Amount")
-        
-                }else{
-                    var bal = parseFloat(tot_val) - parseFloat(adv_val)
-                    $('#balance').val(bal.toFixed(2));
-                }
-            }else{
-                $('#balance').val(parseFloat(tot_val));
-            }
-            
-        })
-    });
-
+ 
     // Tabel row add, clone, remove
 
     function refreshIndex(){
@@ -605,13 +510,13 @@ $(document).ready(function(){
             
             </td>
             <td>
-                <input type="hidden" name="item_id[]" id="accId${roinc}">
+                <input type="hidden" name="acc_id[]" id="accId${roinc}">
                 <input type="text" name='desc[]' id="desc${roinc}" placeholder='Enter Description..' class="form-control" style="background-color: #43596c; color: white;" />
             </td>
             <td style="width: 20%;">
                 <div class="w-100">
                     <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                        <input required type="text" id="contact${roinc}" value="" name="contact[]" class="dropdown-toggle form-control contact-display" onkeyup="filterContacts($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Contact.." autocomplete="off">
+                        <input type="text" id="contact${roinc}" value="" name="contact[]" class="dropdown-toggle form-control contact-display" onkeyup="filterContacts($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Contact.." autocomplete="off">
                         <ul class="dropdown-menu w-100 contacts-available position-absolute" id="contactMenu${roinc}"  style="overflow-y: auto; height: fit-content;max-height: 50vh; width: fit-content !important; max-width: 21vw;"> 
                             {% for i in vendors %}
                             <li class="dropdown-item contact-options" style="cursor: pointer;" onclick="getContactDetails($(this).parent().prev().attr('id'),'{{i.title}} {{i.first_name}} {{i.last_name}}')">{{i.title}} {{i.first_name}} {{i.last_name}}</li>
@@ -649,6 +554,11 @@ $(document).ready(function(){
             alert('Add at least 1 Account..!')
             return false;
         }
+
+        if(parseFloat($('#debitSubTotal').val()) != parseFloat($('#creditSubTotal').val())){
+            alert('Please ensure that the debits and credits are equal..!')
+            return false;
+        }
     }
 
   
@@ -662,14 +572,7 @@ $(document).ready(function(){
 
     $(document).ready(function(){
         var Acnt_desc = document.getElementById("acnt-desc");
-        Acnt_desc.innerHTML=`
-            <b>Expense</b> <br>Reflects expenses incurred for running normal business operations, such as :<br/>
-            <ul>
-                <li>1.Advertisements and Marketing</li>
-                <li>2.Business Travel Expenses</li>
-                <li>3.License Fees</li>
-                <li>4.Utility Expenses</li>
-            </ul>`;
+        Acnt_desc.innerHTML=`<b>Asset</b> <br> Track special assets like goodwill and other intangible assets<br/>`;
 
             var selectedValue = $('#Account_type').val();
             $.ajax({
@@ -704,6 +607,95 @@ $(document).ready(function(){
         var acctype = document.getElementById("acctype");
 
         switch(selectedValue) {
+
+            case "Other Asset":
+                Acnt_desc.innerHTML=`<b>Asset</b> <br> Track special assets like goodwill and other intangible assets<br/>`;
+                acctype.value="Asset";
+                break;
+            case "Other Current Asset":
+                Acnt_desc.innerHTML=`
+                    <b>Asset</b> <br> Any short term asset that can be converted into cash or cash equivalents easily<br/>
+                    <ul>
+                        <li>1.Prepaid expenses</li>
+                        <li>2.Stocks and Mutual Funds</li>
+                    </ul>`;
+                acctype.value="Asset";
+                break;
+            case "Cash":
+                Acnt_desc.innerHTML=`<b>Asset</b> <br> To keep track of cash and other cash equivalents like petty cash, undeposited funds, etc.<br/>`;
+                acctype.value="Asset";
+                break;
+            case "Bank":
+                Acnt_desc.innerHTML=`<b>Asset</b> <br> To keep track of bank accounts like Savings, Checking, and Money Market accounts<br/>`;
+                    acctype.value="Asset";
+                break;
+            case "Fixed Asset":
+                Acnt_desc.innerHTML=`
+                    <b>Asset</b> <br> Any long term investment or an asset that cannot be converted into cash easily like:<br/>
+                    <ul>
+                        <li>1.Land and Buildings</li>
+                        <li>2.Plant, Machinery and Equipment</li>
+                        <li>3.Computers</li>
+                        <li>3.Furniture</li>
+                    </ul>`;
+                    acctype.value="Asset";
+                break;
+            case "Stock":
+                Acnt_desc.innerHTML=`<b>Asset</b> <br> To keep track of your inventory assets.<br/>`;
+                acctype.value="Asset";
+                break;
+            case "Payment Clearing":
+                Acnt_desc.innerHTML=`<b>Asset</b> <br> To keep track of funds moving in and out via payment processors like Stripe, PayPal, etc.<br/>`;
+                acctype.value="Asset";
+                break;
+            case "Other Current Liability":
+                Acnt_desc.innerHTML=`
+                    <b>Liability</b> <br> Any short term liability like:<br/>
+                    <ul>
+                        <li>1.Customer Deposits</li>
+                        <li>2.Tax Payable</li>
+                    </ul>`;
+                    acctype.value="Liability"
+                break;
+            case "Credit Card":
+                Acnt_desc.innerHTML=`<b>Liability</b> <br>Create a trail of all your credit card transactions by creating a credit card account<br/>`;
+                acctype.value="Liability"
+                break;
+            case "Long Term Liability":
+                Acnt_desc.innerHTML=`<b>Liability</b> <br> Liabilities that mature after a minimum period of one year like Notes Payable, Debentures, and Long Term Loans<br/>`;
+                acctype.value="Liability"
+                break;
+            case "Other Liability":
+                Acnt_desc.innerHTML=`
+                    <b>Liability</b> <br>Obligation of an entity arising from past transactions or events which would require repayment.<br/>
+                    <ul>
+                        <li>1.Tax to be paid</li>
+                        <li>2.Loan to be Repaid</li>
+                        <li>3.Accounts Payable etc</li>
+                    </ul>`;
+                    acctype.value="Liability"
+                break;
+            case "Overseas Tax Payable":
+                Acnt_desc.innerHTML=`<b>Liability</b> <br> Track your taxes in this account if your business sells digital services to foreign customers.<br/>`;
+                acctype.value="Liability"
+                break;
+            case "Equity":
+                Acnt_desc.innerHTML=`<b>Equity</b> <br>Owners or stakeholders interest on the assets of the business after deducting all the liabilities<br/>`;
+                acctype.value="Equity"
+                break;
+            case "Income":
+                Acnt_desc.innerHTML=`<b>Income</b> <br>Income or Revenue earned from normal business activities like sale of goods and services to customers<br/>`;
+                acctype.value="Income"
+                break;
+            case "Other Income":
+                Acnt_desc.innerHTML=`
+                    <b>Income</b> <br>Income or revenue earned from activities not directly related to your business like :<br/>
+                    <ul>
+                        <li>1.Interest Earned</li>
+                        <li>2.Dividend Earned</li>
+                    </ul>`;
+                    acctype.value="Income"
+                break;
             case "Expense":
                 Acnt_desc.innerHTML=`
                     <b>Expense</b> <br>Reflects expenses incurred for running normal business operations, such as :<br/>
@@ -729,9 +721,11 @@ $(document).ready(function(){
                     <b>Expense</b> <br>Track miscellaneous expenses incurred for activities other than primary business operations or create additional accounts to track default expenses like insurance or contribution towards charity.<br/>`;
                     acctype.value="Expense"
                 break;
+
             default:
             Acnt_desc.innerHTML=`<b>Account Type</b> <br>Select an account type..<br/>`;
-        }
+                // }
+            }
 
         if(selectedValue !=""){
             $('#subAccountCheck').css('display','none')
@@ -795,7 +789,7 @@ $(document).on("click","#saveNewAccount",function(){
     if (name !="" && type !="" ){
         $.ajax({
             type : 'POST',
-            url:"{% url 'Fin_createNewAccountFromItems' %}",
+            url:"{% url 'Fin_createNewAccountAjax' %}",
             data:{
                 'account_name' : name,
                 'account_type' : type,
@@ -810,21 +804,29 @@ $(document).on("click","#saveNewAccount",function(){
                 if(response.status){
                     document.getElementById("newAccountForm").reset();
                     
-                    var dropdown = $('#purchaseAccount');
-                    dropdown.empty();
-                    dropdown.append(`<option value="" disabled>--Choose--<option/>`);
-                    $.each(response, function(key, value) {
-                        for(let i=0; i<value.length; i++){
-                            if(value[i].name == name){
-                                dropdown.append($('<option selected></option>').text(value[i].name).val(value[i].name))
-                            }else{
-                                dropdown.append($('<option></option>').text(value[i].name).val(value[i].name))
-                            }   
+                    $('#accounts-table-body tr').each(function () {
+                        var currentRow = $(this);
+                        var html = currentRow.html();
+                        
+                        if (html !== '') {
+                            currentRow.find(".accounts-available").find("li").remove();
+
+                            $.each(response, function(key, value) {
+                                for (let i = 0; i < value.length; i++) {
+                                    console.log(value);
+                                    console.log(value[i]);
+                                    console.log(value[i].name);
+                                    currentRow.find(".accounts-available").append(`<li class="dropdown-item account-options" style="cursor: pointer;" onclick="getAccountDetails($(this).parent().prev().attr('id'),'${value[i].name}','${value[i].id}')">${value[i].name}</li>`);
+                                }
+                            });
                         }
                     });
 
+                    if($('#createNewAccount').hasClass('show')){
+                        $("#createNewAccount").modal('toggle');
+                    }
                 }else{
-                    alert("Something went wrong.!")
+                    alert(response.message)
                 }
             },         
         });
