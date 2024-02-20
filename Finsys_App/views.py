@@ -7935,7 +7935,7 @@ def Fin_createJournal(request):
                     mapped = zip(accId,accName,desc,contact,debit,credit)
                     mapped = list(mapped)
                     for ele in mapped:
-                        acc = Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
+                        acc = None if not ele[0].isdigit() else Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
                         Fin_Manual_Journal_Accounts.objects.create(Journal = Journal, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = float(ele[5]), Company = com, LoginDetails = com.Login_Id)
                 
                 # Save transaction
@@ -8164,13 +8164,13 @@ def Fin_updateJournal(request, id):
                     for ele in mapped:
                         if int(len(accId))>int(count):
                             if ele[6] == 0:
-                                acc = Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
+                                acc = None if not ele[0].isdigit() else Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
                                 Fin_Manual_Journal_Accounts.objects.create(Journal = jrn, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = float(ele[5]), Company = com, LoginDetails = com.Login_Id)
                             else:
-                                acc = Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
+                                acc = None if not ele[0].isdigit() else Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
                                 Fin_Manual_Journal_Accounts.objects.filter( id = int(ele[6])).update(Journal = jrn, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = float(ele[5]))
                         else:
-                            acc = Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
+                            acc = None if not ele[0].isdigit() else Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
                             Fin_Manual_Journal_Accounts.objects.filter( id = int(ele[6])).update(Journal = jrn, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = float(ele[5]))
                 
                 # Save transaction

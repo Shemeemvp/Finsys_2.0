@@ -91,7 +91,7 @@
                                     <div class="d-flex">
                                         <div class="w-100">
                                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                                <input required type="text" id="item{{forloop.counter}}" value="{{acc.Account.account_name}}" name="account_name[]" class="dropdown-toggle form-control account-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Accounts.." autocomplete="off">
+                                                <input type="text" id="item{{forloop.counter}}" value="{{acc.Account.account_name}}" name="account_name[]" class="dropdown-toggle form-control account-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Accounts.." autocomplete="off">
                                                 <ul class="dropdown-menu w-100 accounts-available position-absolute" id="menu{{forloop.counter}}"  style="overflow-y: auto; height: fit-content;max-height: 50vh; width: fit-content !important; max-width: 21vw;"> 
                                                     {% for i in accounts %}
                                                     <li class="dropdown-item account-options" style="cursor: pointer;" onclick="getAccountDetails($(this).parent().prev().attr('id'),`{{i.account_name}}`,`{{i.id}}`)">{{i.account_name}}</li>
@@ -498,7 +498,7 @@ $(document).ready(function(){
                 <div class="d-flex">
                     <div class="w-100">
                         <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                            <input required type="text" id="item${roinc}" value="" name="account_name[]" class="dropdown-toggle form-control account-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Accounts.." autocomplete="off">
+                            <input type="text" id="item${roinc}" value="" name="account_name[]" class="dropdown-toggle form-control account-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Accounts.." autocomplete="off">
                             <ul class="dropdown-menu w-100 accounts-available position-absolute" id="menu${roinc}"  style="overflow-y: auto; height: fit-content;max-height: 50vh; width: fit-content !important; max-width: 21vw;"> 
                                 {% for i in accounts %}
                                 <li class="dropdown-item account-options" style="cursor: pointer;" onclick="getAccountDetails($(this).parent().prev().attr('id'),'{{i.account_name}}','{{i.id}}')">{{i.account_name}}</li>
@@ -556,6 +556,11 @@ $(document).ready(function(){
         var length = $("#accounts-table-body tr").length;
         if(length < 1){
             alert('Add at least 1 Account..!')
+            return false;
+        }
+
+        if(parseFloat($('#debitSubTotal').val()) == 0.0 || parseFloat($('#creditSubTotal').val()) == 0.0){
+            alert('Debit and credit values should be entered.!')
             return false;
         }
 
