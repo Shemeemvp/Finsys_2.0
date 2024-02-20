@@ -287,10 +287,16 @@ urlpatterns = [
     path('Fin_create_journal',views.Fin_createJournal, name='Fin_createJournal'),
     path('Fin_create_new_account_ajax',views.Fin_createNewAccountAjax, name='Fin_createNewAccountAjax'),
     path('Fin_view_journal/<int:id>',views.Fin_viewJournal, name='Fin_viewJournal'),
+    path('Fin_edit_journal/<int:id>',views.Fin_editJournal, name='Fin_editJournal'),
+    path('Fin_update_journal/<int:id>',views.Fin_updateJournal, name='Fin_updateJournal'),
+    path('Fin_convert_journal/<int:id>',views.Fin_convertJournal, name='Fin_convertJournal'),
     path('Fin_add_journal_comment/<int:id>',views.Fin_addJournalComment, name='Fin_addJournalComment'),
     path('Fin_delete_journal_comment/<int:id>',views.Fin_deleteJournalComment, name='Fin_deleteJournalComment'),
     path('Fin_attach_journal_file/<int:id>',views.Fin_attachJournalFile, name='Fin_attachJournalFile'),
     path('Fin_journal_history/<int:id>',views.Fin_journalHistory, name='Fin_journalHistory'),
+    path('Fin_delete_journal/<int:id>',views.Fin_deleteJournal, name= 'Fin_deleteJournal'),
+    path('Fin_journal_pdf/<int:id>',views.Fin_journalPdf, name='Fin_journalPdf'),
+    path('Fin_share_journal_to_email/<int:id>',views.Fin_shareJournalToEmail, name='Fin_shareJournalToEmail'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

@@ -295,11 +295,11 @@
                             <div class="dropdown p-0 nav-item"  id="convertBtn" style="display: block;">
                                 <li  class="dropdown-toggle btn btn-outline-secondary text-grey fa fa-exchange" data-toggle="dropdown">&nbsp;Convert</li>
                                 <ul class="dropdown-menu" style="background-color: black;" id="">
-                                    <a class="dropdown-item" href="{% url 'Fin_convertEstimate' journal.id %}">Saved</a>
+                                    <a class="dropdown-item" href="{% url 'Fin_convertJournal' journal.id %}">Saved</a>
                                 </ul>
                             </div>
                             {% endif %}
-                            <a href="{% url 'Fin_estimatePdf' journal.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
+                            <a href="{% url 'Fin_journalPdf' journal.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" onclick="slipPDF()" id="slipPdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('whatToPrint')">&nbsp;Print</a>
                             <div class="dropdown p-0 nav-item"  id="shareBtn" style="display: none;">
@@ -309,8 +309,8 @@
                                     <li style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</li>
                                 </ul>
                             </div>
-                            <a href="{% url 'Fin_editEstimate' journal.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
-                            <a href="{% url 'Fin_deleteEstimate' journal.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Journal - {{journal.journal_no}}.?')">&nbsp;Delete</a>
+                            <a href="{% url 'Fin_editJournal' journal.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
+                            <a href="{% url 'Fin_deleteJournal' journal.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Journal - {{journal.journal_no}}.?')">&nbsp;Delete</a>
                             <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
                             <a href="{% url 'Fin_journalHistory' journal.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                             <div class="dropdown p-0 nav-item"  id="attachBtn" style="display: block;">
@@ -601,8 +601,8 @@
                                             {% endfor %}
                                             <tr style="width: 100%; font-weight:bold"  >
                                                 <td colspan="2" class="table-head" style="font-size:13px; font-weight:bold; color:black;">Sub Total</td>
-                                                <td class="pcs-total-section-value text-center" style="color:black;">₹{{ journal.subtotal_debit }}</td>
-                                                <td class="pcs-total-section-value text-center" style="color:black;">₹{{ journal.subtotal_credit }}</td>
+                                                <td class="pcs-total-section-value" style="color:black;">₹{{ journal.subtotal_debit }}</td>
+                                                <td class="pcs-total-section-value" style="color:black;">₹{{ journal.subtotal_credit }}</td>
                                             </tr>
                                             <tr style="width: 100%;">
                                                 <td colspan="2"  style="padding:5px 15px 5px 15px; font-size:16px; font-weight:bold; color: black;"><b>Total</b></td>
@@ -756,8 +756,8 @@
                                                 </tr>
                                                 <tr style="width: 100%;">
                                                     <td colspan="2"  style="padding:5px 15px 5px 15px; font-size:16px; font-weight:bold; color: black;"><b>Total</b></td>
-                                                    <td style="font-size:16px; font-weight:bold; color:black;"><b>₹{{ journal.total_debit }}</b></td>
-                                                    <td style="font-size:16px; font-weight:bold; color:black;"><b>₹{{ journal.total_credit }}</b></td>
+                                                    <td class="text-center" style="font-size:16px; font-weight:bold; color:black;"><b>₹{{ journal.total_debit }}</b></td>
+                                                    <td class="text-center" style="font-size:16px; font-weight:bold; color:black;"><b>₹{{ journal.total_credit }}</b></td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -822,7 +822,7 @@
             </div>
             <div class="modal-body">
                 <div class="card p-3">
-                    <form action="{% url 'Fin_shareEstimateToEmail' journal.id %}" method="post" class="needs-validation" id="share_to_email_form">
+                    <form action="{% url 'Fin_shareJournalToEmail' journal.id %}" method="post" class="needs-validation" id="share_to_email_form">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="emailIds">Email IDs</label>

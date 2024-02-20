@@ -7928,15 +7928,15 @@ def Fin_createJournal(request):
                 deb = request.POST.getlist("debits[]")
                 cred = request.POST.getlist("credits[]")
 
-                credit = [0.0 if x == '' else float(x) for x in deb]
-                debit = [0.0 if x == '' else float(x) for x in cred]
+                debit = [0.0 if x == '' else float(x) for x in deb]
+                credit = [0.0 if x == '' else float(x) for x in cred]
 
                 if len(accId)==len(accName)==len(desc)==len(contact)==len(debit)==len(credit) and accId and accName and desc and contact and debit and credit:
                     mapped = zip(accId,accName,desc,contact,debit,credit)
                     mapped = list(mapped)
                     for ele in mapped:
                         acc = Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
-                        Fin_Manual_Journal_Accounts.objects.create(Journal = Journal, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = ele[5], Company = com, LoginDetails = com.Login_Id)
+                        Fin_Manual_Journal_Accounts.objects.create(Journal = Journal, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = float(ele[5]), Company = com, LoginDetails = com.Login_Id)
                 
                 # Save transaction
                         
@@ -8051,6 +8051,154 @@ def Fin_viewJournal(request, id):
     else:
        return redirect('/')
 
+def Fin_editJournal(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        jrn = Fin_Manual_Journal.objects.get(id = id)
+        jrnAcc = Fin_Manual_Journal_Accounts.objects.filter(Journal = jrn)
+        acc = Fin_Chart_Of_Account.objects.filter(Company=cmp).order_by('account_name')
+        vnd = Fin_Vendors.objects.filter(Company = cmp, status = 'Active')
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        emp = Employee.objects.filter(company = cmp, employee_status = 'Active')
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'journal':jrn, 'jrnAccounts':jrnAcc, 'customers':cust, 'vendors':vnd, 'employees':emp, 'accounts':acc
+        }
+        return render(request,'company/Fin_Edit_Journal.html',context)
+    else:
+       return redirect('/')
+
+def Fin_updateJournal(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        jrn = Fin_Manual_Journal.objects.get(id = id)
+        if request.method == 'POST':
+            JRNNo = request.POST['journal_no']
+
+            PatternStr = []
+            for word in JRNNo:
+                if word.isdigit():
+                    pass
+                else:
+                    PatternStr.append(word)
+            
+            pattern = ''
+            for j in PatternStr:
+                pattern += j
+
+            pattern_exists = checkJournalNumberPattern(pattern)
+
+            if pattern !="" and pattern_exists:
+                res = f'<script>alert("Journal No. Pattern already Exists.! Try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            if jrn.journal_no != JRNNo and Fin_Manual_Journal.objects.filter(Company = com, journal_no__iexact = JRNNo).exists():
+                res = f'<script>alert("Journal Number `{JRNNo}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            debSubTot = request.POST['subtotal_debit']
+            credSubTot = request.POST['subtotal_credit']
+
+            debTot = request.POST['total_debit']
+            credTot = request.POST['total_credit']
+
+            jrn.journal_no = JRNNo
+            jrn.journal_date = request.POST['journal_date']
+            jrn.notes = request.POST['notes']
+            jrn.currency = request.POST['currency']
+            jrn.subtotal_debit = 0.0 if debSubTot == "" else float(debSubTot)
+            jrn.subtotal_credit = 0.0 if credSubTot == "" else float(credSubTot)
+            jrn.total_debit = 0.0 if debTot == "" else float(debTot)
+            jrn.total_credit = 0.0 if credTot == "" else float(credTot)
+            jrn.balance_debit = 0.0 if request.POST['balance_debit'] == "" else float(request.POST['balance_debit'])
+            jrn.balance_credit = 0.0 if request.POST['balance_credit'] == "" else float(request.POST['balance_credit'])
+
+            if len(request.FILES) != 0:
+                jrn.file=request.FILES.get('file')
+
+            if debTot == credTot:
+                jrn.save()
+
+                # Save journal accounts.
+
+                accId = request.POST.getlist("acc_id[]")
+                accName = request.POST.getlist("account_name[]")
+                desc  = request.POST.getlist("desc[]")
+                contact = request.POST.getlist("contact[]")
+                deb = request.POST.getlist("debits[]")
+                cred = request.POST.getlist("credits[]")
+
+                debit = [0.0 if x == '' else float(x) for x in deb]
+                credit = [0.0 if x == '' else float(x) for x in cred]
+
+                jrn_acc_ids = request.POST.getlist("id[]")
+                JrnAcc_ids = [int(id) for id in jrn_acc_ids]
+
+                journal_accs = Fin_Manual_Journal_Accounts.objects.filter(Journal = jrn)
+                object_ids = [obj.id for obj in journal_accs]
+
+                ids_to_delete = [obj_id for obj_id in object_ids if obj_id not in JrnAcc_ids]
+
+                Fin_Manual_Journal_Accounts.objects.filter(id__in=ids_to_delete).delete()
+                
+                count = Fin_Manual_Journal_Accounts.objects.filter(Journal = jrn).count()
+
+                if len(accId)==len(accName)==len(desc)==len(contact)==len(debit)==len(credit)==len(JrnAcc_ids) and JrnAcc_ids and accId and accName and desc and contact and debit and credit:
+                    mapped = zip(accId,accName,desc,contact,debit,credit,JrnAcc_ids)
+                    mapped = list(mapped)
+                    for ele in mapped:
+                        if int(len(accId))>int(count):
+                            if ele[6] == 0:
+                                acc = Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
+                                Fin_Manual_Journal_Accounts.objects.create(Journal = jrn, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = float(ele[5]), Company = com, LoginDetails = com.Login_Id)
+                            else:
+                                acc = Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
+                                Fin_Manual_Journal_Accounts.objects.filter( id = int(ele[6])).update(Journal = jrn, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = float(ele[5]))
+                        else:
+                            acc = Fin_Chart_Of_Account.objects.get(id = int(ele[0]))
+                            Fin_Manual_Journal_Accounts.objects.filter( id = int(ele[6])).update(Journal = jrn, Account = acc, description = ele[2], contact = ele[3], debit = float(ele[4]), credit = float(ele[5]))
+                
+                # Save transaction
+                        
+                Fin_Manual_Journal_History.objects.create(
+                    Company = com,
+                    LoginDetails = data,
+                    Journal = jrn,
+                    action = 'Edited'
+                )
+
+                return redirect(Fin_viewJournal, id)
+            else:
+                res = f'<script>alert("Please ensure that the debit and credit are equal.!");window.history.back();</script>'
+                return HttpResponse(res)
+        else:
+            return redirect(Fin_editJournal, id)
+    else:
+       return redirect('/')
+
+def Fin_convertJournal(request,id):
+    if 's_id' in request.session:
+
+        jrn = Fin_Manual_Journal.objects.get(id = id)
+        jrn.status = 'Saved'
+        jrn.save()
+        return redirect(Fin_viewJournal, id)
+
 def Fin_journalHistory(request,id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
@@ -8070,6 +8218,31 @@ def Fin_journalHistory(request,id):
         return render(request,'company/Fin_Journal_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'journal':jrn})
     else:
        return redirect('/')
+
+def Fin_deleteJournal(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        jrn = Fin_Manual_Journal.objects.get( id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        Fin_Manual_Journal_Accounts.objects.filter(Journal = jrn).delete()
+
+        # Storing ref number to deleted table
+        # if entry exists and lesser than the current, update and save => Only one entry per company
+        if Fin_Manual_Journal_Reference.objects.filter(Company = com).exists():
+            deleted = Fin_Manual_Journal_Reference.objects.get(Company = com)
+            if int(jrn.reference_no) > int(deleted.reference_no):
+                deleted.reference_no = jrn.reference_no
+                deleted.save()
+        else:
+            Fin_Manual_Journal_Reference.objects.create(Company = com, reference_no = jrn.reference_no)
+        
+        jrn.delete()
+        return redirect(Fin_manualJournals)
 
 def Fin_addJournalComment(request, id):
     if 's_id' in request.session:
@@ -8108,3 +8281,78 @@ def Fin_attachJournalFile(request, id):
         return redirect(Fin_viewJournal, id)
     else:
         return redirect('/')
+
+def Fin_journalPdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        jrn = Fin_Manual_Journal.objects.get(id = id)
+        accs = Fin_Manual_Journal_Accounts.objects.filter(Journal = jrn)
+    
+        context = {'journal':jrn, 'jrnAccounts':accs,'cmp':com}
+        
+        template_path = 'company/Fin_Journal_Pdf.html'
+        fname = 'Manual_Journal_' + jrn.journal_no
+
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_shareJournalToEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        jrn = Fin_Manual_Journal.objects.get(id = id)
+        accs = Fin_Manual_Journal_Accounts.objects.filter(Journal = jrn)
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                context = {'journal':jrn, 'jrnAccounts':accs,'cmp':com}
+                template_path = 'company/Fin_Journal_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Manual_Journal_{jrn.journal_no}'
+                subject = f"Manual_Journal_{jrn.journal_no}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Manual Journal for - #-{jrn.journal_no}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Journal details has been shared via email successfully..!')
+                return redirect(Fin_viewJournal,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_viewJournal, id)
