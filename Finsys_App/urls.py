@@ -297,6 +297,10 @@ urlpatterns = [
     path('Fin_delete_journal/<int:id>',views.Fin_deleteJournal, name= 'Fin_deleteJournal'),
     path('Fin_journal_pdf/<int:id>',views.Fin_journalPdf, name='Fin_journalPdf'),
     path('Fin_share_journal_to_email/<int:id>',views.Fin_shareJournalToEmail, name='Fin_shareJournalToEmail'),
+
+    # < ------------- Shemeem -------- > Recurring Invoice < ------------------------------- >
+    path('Fin_recurring_invoice',views.Fin_recurringInvoice, name='Fin_recurringInvoice'),
+    path('Fin_add_recurring_invoice',views.Fin_addRecurringInvoice, name='Fin_addRecurringInvoice'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

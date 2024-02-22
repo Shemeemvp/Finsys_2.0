@@ -1234,7 +1234,13 @@ def Fin_Add_Modules(request,id):
         #Adding Default Customer payment under company
         Fin_Company_Payment_Terms.objects.create(Company=com, term_name='Due on Receipt', days=0)
         Fin_Company_Payment_Terms.objects.create(Company=com, term_name='NET 30', days=30)
-        Fin_Company_Payment_Terms.objects.create(Company=com, term_name='NET 60', days=60)        
+        Fin_Company_Payment_Terms.objects.create(Company=com, term_name='NET 60', days=60) 
+
+        #sumayya-------- Adding default repeat every values for company
+
+        Fin_CompanyRepeatEvery.objects.create(company=com, repeat_every = '3 Month', repeat_type='Month',duration = 3, days=90)
+        Fin_CompanyRepeatEvery.objects.create(company=com, repeat_every = '6 Month', repeat_type='Month',duration = 6, days=180)
+        Fin_CompanyRepeatEvery.objects.create(company=com, repeat_every = '1 Year', repeat_type='Year',duration = 1, days=360)       
 
         print("add modules")
         return redirect('Fin_CompanyReg')
@@ -7682,7 +7688,7 @@ def Fin_checkEstimateNumber(request):
        return redirect('/')
 
 def checkEstimateNumberPattern(pattern):
-    models = [Fin_Invoice, Fin_Sales_Order, Fin_Recurring_invoice, Fin_Purchase_Bill, Fin_Manual_Journal]
+    models = [Fin_Invoice, Fin_Sales_Order, Fin_Recurring_Invoice, Fin_Purchase_Bill, Fin_Manual_Journal]
 
     for model in models:
         field_name = model.getNumFieldName(model)
@@ -7845,7 +7851,7 @@ def Fin_checkJournalNumber(request):
        return redirect('/')
 
 def checkJournalNumberPattern(pattern):
-    models = [Fin_Invoice, Fin_Sales_Order, Fin_Recurring_invoice, Fin_Purchase_Bill, Fin_Estimate]
+    models = [Fin_Invoice, Fin_Sales_Order, Fin_Recurring_Invoice, Fin_Purchase_Bill, Fin_Estimate]
 
     for model in models:
         field_name = model.getNumFieldName(model)
@@ -8356,3 +8362,97 @@ def Fin_shareJournalToEmail(request,id):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_viewJournal, id)
+        
+
+# < ------------- Shemeem -------- > Recurring Invoice < ------------------------------- >
+
+def Fin_recurringInvoice(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        rec_inv = Fin_Recurring_Invoice.objects.filter(Company = cmp)
+        return render(request,'company/Fin_Recurring_Invoice.html',{'allmodules':allmodules,'com':com,'data':data,'rec_invoices':rec_inv})
+    else:
+       return redirect('/')
+    
+def Fin_addRecurringInvoice(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            cmp = com.company_id
+
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        priceList = Fin_Price_List.objects.filter(Company = cmp, type = 'Sales', status = 'Active')
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+
+        # Fetching last invoice and assigning upcoming ref no as current + 1
+        # Also check for if any bill is deleted and ref no is continuos w r t the deleted invoice
+        latest_inv = Fin_Invoice.objects.filter(Company = cmp).order_by('-id').first()
+
+        new_number = int(latest_inv.reference_no) + 1 if latest_inv else 1
+
+        if Fin_Invoice_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_Invoice_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.reference_no) >= new_number:
+                    new_number+=1
+
+        # Finding next invoice number w r t last invoic number if exists.
+        nxtInv = ""
+        lastInv = Fin_Invoice.objects.filter(Company = cmp).last()
+        if lastInv:
+            inv_no = str(lastInv.invoice_no)
+            numbers = []
+            stri = []
+            for word in inv_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            inv_num = int(num)+1
+
+            if num[0] == '0':
+                if inv_num <10:
+                    nxtInv = st+'0'+ str(inv_num)
+                else:
+                    nxtInv = st+ str(inv_num)
+            else:
+                nxtInv = st+ str(inv_num)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'ref_no':new_number,'banks':bnk,'invNo':nxtInv,'units':units, 'accounts':acc, 'priceListItems':priceList,
+        }
+        return render(request,'company/Fin_Add_Recurring_Invoice.html',context)
+    else:
+       return redirect('/')
