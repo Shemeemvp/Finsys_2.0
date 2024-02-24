@@ -301,6 +301,15 @@ urlpatterns = [
     # < ------------- Shemeem -------- > Recurring Invoice < ------------------------------- >
     path('Fin_recurring_invoice',views.Fin_recurringInvoice, name='Fin_recurringInvoice'),
     path('Fin_add_recurring_invoice',views.Fin_addRecurringInvoice, name='Fin_addRecurringInvoice'),
+    path('Fin_check_recurring_invoice_number',views.Fin_checkRecurringInvoiceNumber, name='Fin_checkRecurringInvoiceNumber'),
+    path('Fin_create_recurring_invoice',views.Fin_createRecurringInvoice, name='Fin_createRecurringInvoice'),
+    path('Fin_view_recurring_invoice/<int:id>',views.Fin_viewRecurringInvoice, name='Fin_viewRecurringInvoice'),
+    path('Fin_convert_recurring_invoice/<int:id>',views.Fin_convertRecurringInvoice, name='Fin_convertRecurringInvoice'),
+    path('Fin_add_recurring_invoice_comment/<int:id>',views.Fin_addRecurringInvoiceComment, name='Fin_addRecurringInvoiceComment'),
+    path('Fin_delete_recurring_invoice_comment/<int:id>',views.Fin_deleteRecurringInvoiceComment, name='Fin_deleteRecurringInvoiceComment'),
+    path('Fin_recurring_invoice_history/<int:id>',views.Fin_recurringInvoiceHistory, name='Fin_recurringInvoiceHistory'),
+    path('Fin_delete_recurring_invoice/<int:id>',views.Fin_deleteRecurringInvoice, name= 'Fin_deleteRecurringInvoice'),
+    path('Fin_new_repeat_every_type',views.Fin_newRepeatEveryType, name='Fin_newRepeatEveryType'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
