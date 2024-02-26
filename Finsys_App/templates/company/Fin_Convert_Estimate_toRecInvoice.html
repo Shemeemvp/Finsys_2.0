@@ -23,14 +23,14 @@
     }
 </style>
 
-<form action="{% url 'Fin_createRecurringInvoice' %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+<form action="{% url 'Fin_estimateConvertRecInvoice' estimate.id %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
   {% csrf_token %}
   <div class="page-content">
-    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_recurringInvoice' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+    <!-- <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_recurringInvoice' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span> -->
     <div class="card radius-15">
       <div class="card-body">
         <div class="card-title">
-          <center><h3 class="mb-0">RECURRING INVOICE</h3></center>
+          <center><h3 class="mb-0">CONVERT ESTIMATE TO RECURRING INVOICE</h3></center>
         </div>
         <hr />
       </div>
@@ -41,11 +41,11 @@
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <label class="">Select Customer</label><span class="text-danger ml-3" id="custErr"></span>
-                    <input type="hidden" name="customerId" id="customerId" value="">
+                    <input type="hidden" name="customerId" id="customerId" value="{{estimate.Customer.id}}">
                     <div class="d-flex">
                         <div class="w-100">
                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                <input required type="text" id="customer" value="" name="customer" class="dropdown-toggle form-control customers-display" onkeyup="filterCustomers()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Customer.." autocomplete="off">
+                                <input required type="text" id="customer" value="{{ estimate.Customer.title }} {{ estimate.Customer.first_name }} {{ estimate.Customer.last_name }}" name="customer" class="dropdown-toggle form-control customers-display" onkeyup="filterCustomers()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Customer.." autocomplete="off">
                                 <ul class="dropdown-menu w-100 customers-available position-absolute" id="cust_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                     <li class="dropdown-item customers-options" onclick="getCustomerDetails('','')">Select Customer</li>
                                     {% for cust in customers %}
@@ -59,28 +59,28 @@
                     </div>
 
                     <label class="mt-3">GST Type</label>
-                    <input type="text" class="form-control" id="gstType" name="gst_type" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" id="gstType" name="gst_type" value="{{estimate.gst_type}}" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
                 </div>
 
                 <div class="col-md-4 mt-3">
                     <label class="">Email</label>
-                    <input class="form-control" type="email" name="customerEmail" placeholder="Email" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
+                    <input class="form-control" type="email" name="customerEmail" placeholder="Email" value="{{estimate.customer_email}}" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
                     <div class="mt-3" id="gstInDisplay" style="display: block;">
                         <label class="">GSTIN</label>
-                        <input type="text" class="form-control" id="gstin" name="gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                        <input type="text" class="form-control" id="gstin" name="gstin" value="{{estimate.gstin}}" placeholder="GSTIN" style="background-color: #43596c;" readonly>
                     </div>
                 </div>
 
                 <div class="col-md-4 mt-3">
                     <label class="">Billing Address</label>
-                    <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly></textarea>
+                    <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly>{{estimate.billing_address}}</textarea>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <label class="">Profile Name</label>
-                    <input type="text" class="form-control" name="profile_name" placeholder="Profile Name.." style="background-color: #43596c;">
+                    <input type="text" class="form-control" value="" name="profile_name" placeholder="Profile Name.." style="background-color: #43596c;">
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Entry Type</label>
@@ -142,7 +142,7 @@
                     <div class="d-flex">
                         <label class="">Rec. Invoice No.</label><span class="text-danger ml-1" id="invNoErr"></span>
                     </div>
-                    <input type="text" class="form-control" name="rec_invoice_no"  id="recInvoiceNumber" style="background-color: #43596c;" placeholder="{{invNo}}" required>
+                    <input type="text" class="form-control" name="rec_invoice_no" placeholder="{{invNo}}" id="recInvoiceNumber" style="background-color: #43596c;" required>
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Reference Number</label>
@@ -150,11 +150,11 @@
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Start Date:</label>
-                    <input type="date" class="form-control" name="start_date" id="startDate" style="background-color: #43596c; color: white;" value="{% now 'Y-m-d' %}">
+                    <input type="date" class="form-control" name="start_date" id="startDate" style="background-color: #43596c; color: white;" value="{{estimate.estimate_date|date:'Y-m-d'}}">
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">End Date:</label>
-                    <input type="text" id="endDate" class="form-control" name="end_date" style="background-color: #43596c; color: white; " readonly>
+                    <input type="text" id="endDate" class="form-control" value="{{estimate.exp_date|date:'d-m-Y'}}" name="end_date" style="background-color: #43596c; color: white;" readonly>
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Terms </label>
@@ -162,7 +162,11 @@
                         <select class="form-control" name="payment_term" style="background-color: #43596c; color: white;" id="paymentTerm" required>
                             <option value="" selected> Select Payment Term</option>
                             {% for term in pTerms %}
+                                {% if estimate.payment_terms.id == term.id %}
+                                <option value="{{term.id}}" text="{{term.days}}" selected>{{term.term_name}}</option>
+                                {% else %}
                                 <option value="{{term.id}}" text="{{term.days}}">{{term.term_name}}</option>
+                                {% endif %}
                             {% endfor %}
                         </select>
                         <a class="btn btn-outline-secondary ml-1" role="button" data-target="#newPaymentTerm" data-toggle="modal" id="termsadd">+</a>
@@ -184,7 +188,7 @@
 
                 <div class="col-md-4 mt-3">
                     <label class="" for="orderNum"> Order Number: </label> 
-                    <input class="form-control" type="text" name="order_number" id="orderNum">
+                    <input class="form-control" type="text" value="" name="order_number" id="orderNum">
                 </div>
 
                 <div class="col-md-4 mt-3">
@@ -201,15 +205,15 @@
                 </div>
                 <div class="col-md-4 mt-3" style="display:none;"  id="chequediv">
                     <label class="" >Cheque No</label>
-                    <input type="text" class="form-control" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
+                    <input type="text" class="form-control" value="{{estimate.cheque_no}}" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
                 </div>
                 <div class="col-md-4 mt-3"  style="display:none;" id="upidiv">
                     <label class="" >UPI ID</label>
-                    <input type="text" class="form-control" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
+                    <input type="text" class="form-control" value="{{estimate.upi_no}}" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
                 </div>
                 <div class="col-md-4 mt-3"  style="display:none;" id="bnkdiv">
                     <label class="" >Account#</label>
-                    <input type="text" class="form-control" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" value="{{estimate.bank_acc_no}}" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
                 </div>
             </div>
 
@@ -227,7 +231,7 @@
                         <select class="form-control" id="priceListIds" name="price_list_id" style="background-color: #43596c;">
                             <option value="">Choose Price List</option>
                             {% for p in priceListItems %}
-                            <option value="{{p.id}}">{{p.name}}</option>
+                                <option value="{{p.id}}">{{p.name}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -254,14 +258,15 @@
                             </tr>
                         </thead>
                         <tbody id="items-table-body">
-                            <tr id='tab_row1'>
-                                <td class="nnum" style="text-align: center;">1</td>
+                            {% for itm in estItems %}
+                            <tr id='tab_row{{forloop.counter}}'>
+                                <td class="nnum" style="text-align: center;">{{forloop.counter}}</td>
                                 <td style="width: 20%;">
                                     <div class="d-flex">
                                         <div class="w-100">
                                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                                <input required type="text" id="item1" value="" name="item_name[]" class="dropdown-toggle form-control item-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
-                                                <ul class="dropdown-menu w-100 items-available position-absolute" id="menu1"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
+                                                <input required type="text" id="item{{forloop.counter}}" value="{{itm.Item.name}}" name="item_name[]" class="dropdown-toggle form-control item-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
+                                                <ul class="dropdown-menu w-100 items-available position-absolute" id="menu{{forloop.counter}}"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                                     {% for i in items %}
                                                     <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.name}}`)">{{i.name}}</li>
                                                     {% endfor %}
@@ -276,23 +281,25 @@
                                 
                                 </td>
                                 <td>
-                                    <input type="hidden" name="item_id[]" id="itemId1">
-                                    <input type="text" name='hsn[]' id="hsn1" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
+                                    <input type="hidden" name="id[]" value="{{itm.id}}">
+                                    <input type="hidden" name="item_id[]" value="{{itm.Item.id}}" id="itemId{{forloop.counter}}">
+                                    <input type="text" name='hsn[]' id="hsn{{forloop.counter}}" value="{{itm.hsn}}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
                                 </td>
                                 <td >
-                                    <input type="number" name='qty[]' id="qty1"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value=0 onchange="changeItemQty(this.id)" required/>
-                                    <input type="text" id="avl1" style="display: none;">
-                                    <div class="d-flex"><span>Available Qty :</span><span id="qtyspan1" class=''></span></div>
+                                    <input type="number" name='qty[]' id="qty{{forloop.counter}}" class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value={{itm.quantity}} onchange="changeItemQty(this.id,`{{itm.quantity}}`)" required/>
+                                    <input type="text" id="avl{{forloop.counter}}" value="{{itm.Item.current_stock}}" style="display: none;">
+                                    <div class="d-flex"><span>Available Qty :</span><span id="qtyspan{{forloop.counter}}" class=''>{{itm.Item.current_stock}}</span></div>
                                 </td>
                                 <td>
-                                    <input type="number" name='price[]' id="price1" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white; display: block;" value=0 readonly />
-                                    <input type="number" name='priceListPrice[]' id="priceListPrice1" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value=0 readonly />
+                                    <input type="number" name='price[]' id="price{{forloop.counter}}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white; display: block;" value={{itm.Item.selling_price}} readonly />
+                                    <input type="number" name='priceListPrice[]' id="priceListPrice{{forloop.counter}}" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value={{itm.price}} readonly />
                                 </td>
                                 
                                 <td style="width: 13%;">
                                     <!-- <input type="text"  id="select_tax" placeholder="Tax Rate" class="form-control seltax d-flex"> -->
-                                    <select name='taxGST[]' id="taxGST1" class="form-control tax_ref tax_ref_gst" style="display: block;" onchange="taxchange(this.id)">
+                                    <select name='taxGST[]' id="taxGST{{forloop.counter}}" class="form-control tax_ref tax_ref_gst" style="display: block;" onchange="taxchange(this.id)">
                                         <option selected disabled hidden>Select GST</option>
+                                        <option value={{itm.tax}} selected>{{itm.tax}}% GST</option>
                                         <option value=28 >28.0% GST</option>
                                         <option value=18 >18.0% GST</option>
                                         <option value=12 >12.0% GST</option>
@@ -300,8 +307,9 @@
                                         <option value=3 >03.0% GST</option>
                                         <option value=0 >0.0% GST</option>
                                     </select>
-                                    <select name='taxIGST[]' id="taxIGST1" class="form-control tax_ref tax_ref_igst" style="display: none;" onchange="taxchange(this.id)">
+                                    <select name='taxIGST[]' id="taxIGST{{forloop.counter}}" class="form-control tax_ref tax_ref_igst" style="display: none;" onchange="taxchange(this.id)">
                                         <option selected disabled hidden >Select IGST</option>
+                                        <option value={{itm.tax}} selected>{{itm.tax}}% IGST</option>
                                         <option value=28 >28.0% IGST</option>
                                         <option value=18 >18.0% IGST</option>
                                         <option value=12 >12.0% IGST</option>
@@ -309,18 +317,19 @@
                                         <option value=3 >03.0% IGST</option>
                                         <option value=0 >0.0% IGST</option>
                                     </select>
-                                    <div class="mt-1" style=" text-align: center;color: red;" ><span id="invalidtax1" style="display: none;"> Invalid Tax %</span> </div>    
+                                    <div class="mt-1" style=" text-align: center;color: red;" ><span id="invalidtax{{forloop.counter}}" style="display: none;"> Invalid Tax %</span> </div>    
                                 </td>
                                 <td >
-                                    <input type="number" name='discount[]'  placeholder='Enter Discount' id="disc1" value=0 class="form-control disc" step='any' min=0 style="background-color: #43596c;  color: white;"  />
+                                    <input type="number" name='discount[]'  placeholder='Enter Discount' id="disc{{forloop.counter}}" value={{itm.discount}} class="form-control disc" step='any' min=0 style="background-color: #43596c;  color: white;"  />
                                 </td>
 
-                                <td><input type="number" name='total[]' id="total1" class="form-control total" value=0 readonly style="background-color: #43596c; color: white;" /></td>
-                                <td style="display: none;"><input type="hidden" id="taxamount1" class="form-control itemTaxAmount" /></td>
+                                <td><input type="number" name='total[]' id="total{{forloop.counter}}" class="form-control total" value={{itm.total}} readonly style="background-color: #43596c; color: white;" /></td>
+                                <td style="display: none;"><input type="hidden" id="taxamount{{forloop.counter}}" class="form-control itemTaxAmount" /></td>
                                 <td>
-                                    <button type="button" id="1" class="btn btn-danger remove_row px-2 py-1 mx-1 fa fa-close" title="Remove Row"> </button>
+                                    <button type="button" id="{{forloop.counter}}" class="btn btn-danger remove_row px-2 py-1 mx-1 fa fa-close" title="Remove Row"> </button>
                                 </td>
                             </tr>
+                            {% endfor %}
                         </tbody>
                         <tr>
                             <td style="border: none;"><a class="btn btn-outline-secondary ml-1" role="button" id="add" >+</a></td>
@@ -330,7 +339,7 @@
             </div>
             <div class="row clearfix" style="margin-top:20px">
                 <div class="col-md-6">
-                    <textarea class="form-control mt-3"  id="" name="note" placeholder="Note" style="height: 190px;"></textarea>
+                    <textarea class="form-control mt-3"  id="" name="note" placeholder="Note" style="height: 190px;">{{estimate.note}}</textarea>
                     <input type="file" name="file"  style="margin-top: 10px; width: 70%;">
                 </div>            
                 <div class="col-md-1"></div>
@@ -339,43 +348,43 @@
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label class="text-center">Sub Total</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='subtotal' value=0.00 readonly style="background-color: #37444f;" class="form-control" id="sub_total"></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='subtotal' value={{estimate.subtotal}} readonly style="background-color: #37444f;" class="form-control" id="sub_total"></div>
                         </div>
                         <div class="row container-fluid p-2 m-0" id="taxamountIGST" style="display: flex;">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">IGST</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='igst' step="any" id="igstAmount" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='igst' step="any" id="igstAmount" value={{estimate.igst}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0" style="display: none;" id="taxamountCGST">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">CGST</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='cgst' step="any" id="cgstAmount" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='cgst' step="any" id="cgstAmount" value={{estimate.cgst}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0" style="display: none;" id="taxamountSGST">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">SGST</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='sgst' step="any" id="sgstAmount" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='sgst' step="any" id="sgstAmount" value={{estimate.sgst}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Tax Amount</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='taxamount' id="tax_amount" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='taxamount' id="tax_amount" value={{estimate.tax_amount}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Shipping Charge</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='ship' id="ship" value=0.00 class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='ship' id="ship" value={{estimate.shipping_charge}} class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Adjustment</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='adj' id="adj" value=0.00 class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='adj' id="adj" value={{estimate.adjustment}} class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Grand Total</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='grandtotal' id="grandtotal" value=0.00 readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='grandtotal' id="grandtotal" value={{estimate.grandtotal}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                     </div>
                 </div>
@@ -387,12 +396,12 @@
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Paid Off</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='advance' id="advance"  value=0.00 class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='advance' id="advance"  value=0 class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Balance</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='balance' id="balance" value=0.00 readonly style="background-color: #37444f;" class="form-control" readonly /></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='balance' id="balance" value={{estimate.grandtotal}} readonly style="background-color: #37444f;" class="form-control" readonly /></div>
                         </div>
                     </div>
                 </div>
@@ -408,8 +417,8 @@
                     </div>
                 </div>
                 <div class="col-md-5 mt-3 d-flex">
-                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" name="Draft" value="Draft">
-                    <input type="submit" class="btn btn-outline-secondary w-50 ml-1 text-light" name="Save" value="Save">
+                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="SAVE">
+                    <input type="reset" class="btn btn-outline-secondary w-50 ml-1 text-light" onclick="window.location.href=`{% url 'Fin_viewRecurringInvoice' estimate.id %}`" value="CANCEL">
                 </div>
             </div>
             <div class="notices mt-3">
@@ -1257,11 +1266,16 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
 
 <script>
-    // $(document).ready(function () {
-    //     $('#customer').selectize({
-    //         sortField: 'value'
-    //     });
-    // });
+    $(document).ready(function(){
+
+        getCustomerDetails(`{{estimate.Customer.id}}`,`{{estimate.Customer.title}} {{estimate.Customer.first_name}} {{estimate.Customer.last_name}}`);
+
+
+        document.querySelector('#placeOfSupply').value = `{{estimate.place_of_supply}}`;
+        document.querySelector('#entryType').value = `{{estimate.entry_type}}`;
+
+        
+    });
 
     function filterCustomers(){
         var options = $('#cust_drop').children();
@@ -1302,7 +1316,9 @@
                         document.getElementById('gstInDisplay').style.display = 'none';
                         document.getElementById('gstin').value = '';
                     }
-                    $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
+                    if(`{{estimate.price_list_applied}}` != "True"){
+                        $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
+                    }
                     if(data.priceList){
                         $('#applyPriceListSection').show();
                     }else{
@@ -1321,62 +1337,6 @@
             $('#custErr').text('Select a customer..');
         }
     }
-
-    // function refreshCustomerDetails(){
-    //     console.log($('#customer').text());
-    //     if($('#customer').val() != 0){
-    //         $('#custErr').text('');
-    //         $.ajax({
-    //             type : 'POST',
-    //             url: "{% url 'Fin_getInvoiceCustomerData' %}",
-    //             data: {
-    //                 id: $('#customer').val(),
-    //                 csrfmiddlewaretoken: '{{ csrf_token }}',
-    //             },
-                
-    //             success: function(data){
-    //                 console.log('AJAX-Response-->',data);
-    //                 document.getElementById('customerEmail').value = data.email;
-    //                 document.getElementById('placeOfSupply').value = data.shipState;
-    //                 document.getElementById('gstType').value = data.gstType;
-    //                 document.getElementById('billAddress').value = data.street + '\n' + data.city + '\n' + data.state + '\n' + data.country  + '\n' + data.pincode ;
-    //                 if(data.gstin){
-    //                     document.getElementById('gstInDisplay').style.display = 'block';
-    //                     document.getElementById('gstin').value = data.gstNo;
-    //                 }else{
-    //                     document.getElementById('gstInDisplay').style.display = 'none';
-    //                     document.getElementById('gstin').value = '';
-    //                 }
-    //                 $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
-    //                 if(data.priceList){
-    //                     $('#applyPriceListSection').show();
-    //                     $('#customerPriceListId').val(data.ListId);
-    //                     $('#custPriceListName').text('Applied: '+data.ListName)
-    //                 }else{
-    //                     $('#applyPriceListSection').hide();
-    //                     $('#customerPriceListId').val("");
-    //                 }
-
-    //                 refreshTax();
-    //                 checkPriceList();
-    //             }
-    //         });
-    //     }else{
-    //         document.getElementById('customerEmail').value = "";
-    //         document.getElementById('placeOfSupply').value = "";
-    //         document.getElementById('gstType').value = "";
-    //         document.getElementById('billAddress').value ="";
-    //         document.getElementById('gstin').value = "";
-    //         $('#customerPriceListId').val("");
-    //         $('#custErr').text('Select a customer..');
-    //     }
-    // }
-
-    // $(document).ready(function () {
-    //     $('#customer').on('change', function() {
-    //         refreshCustomerDetails();
-    //     });
-    // });
 
     $(document).on("click","#saveRepeatEvery",function(){
         var duration = $('#repeatEveryDuration').val();
@@ -1479,8 +1439,8 @@
 
             document.getElementById("endDate").value = formattedDate;
         } else {
-                alert("Please enter a valid date.");
-                $('#paymentTerm').val('')
+            alert("Please enter a valid date.");
+            $('#paymentTerm').val('')
         }
     }
 
@@ -1730,7 +1690,7 @@
                                 document.getElementById('itemId'+n).value = response.id;
                                 document.getElementById('hsn'+n).value = response.hsn;
                                 document.getElementById('qtyspan'+n).innerHTML = response.avl;
-                                document.getElementById('avl'+n).innerHTML = response.avl;
+                                document.getElementById('avl'+n).value = response.avl;
                                 document.getElementById('price'+n).value = response.sales_rate;
                                 document.getElementById('priceListPrice'+n).value = response.PLPrice;
                                 document.getElementById('taxGST'+n).value = response.gst;
@@ -1751,17 +1711,40 @@
 
     }
 
-    function changeItemQty(id){
+    function changeItemQty(id,QTY){
         id_val = id.slice(3)
+        var crQty = parseInt(QTY)
         var qty = document.getElementById(id).value;
-        var avl_val = document.getElementById(`avl${id_val}`).innerText;
+        var avl_val = document.getElementById(`avl${id_val}`).value;
+        var diff = Math.abs(parseInt(qty) - crQty);
+        
     
         if( parseInt(qty) > parseInt(avl_val) ){
             alert("Quantity Greater than Available Quantity")
             document.getElementById(id).value = avl_val;
             calc()
         }else{
-            document.getElementById(`qtyspan${id_val}`).textContent = parseInt(avl_val) - parseInt(qty);
+            if(crQty < parseInt(qty)){
+                document.getElementById(`qtyspan${id_val}`).textContent = parseInt(avl_val) - diff;
+            }else{
+                document.getElementById(`qtyspan${id_val}`).textContent = parseInt(avl_val) + diff;
+            }
+            
+        }
+    }
+
+    function changeItemQuantity(id){
+        id_val = id.slice(3)
+        var qty = document.getElementById(id).value;
+        var avl_val = document.getElementById(`avl${id_val}`).value;
+        
+    
+        if( parseInt(qty) > parseInt(avl_val) ){
+            alert("Quantity Greater than Available Quantity")
+            document.getElementById(id).value = avl_val;
+            calc()
+        }else{
+            document.getElementById(`qtyspan${id_val}`).textContent = parseInt(avl_val) - parseInt(qty)
         }
     }
 
@@ -1990,11 +1973,12 @@ $(document).ready(function(){
                 <input type="text" name='hsn[]' id="hsn${roinc}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
             </td>
             <td >
-                <input type="number" name='qty[]' id="qty${roinc}"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value=0 onchange="changeItemQty(this.id)" required/>
+                <input type="number" name='qty[]' id="qty${roinc}"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value=0 onchange="changeItemQuantity(this.id)" required/>
                 <input type="text" id="avl${roinc}" style="display: none;">
                 <div class="d-flex"><span>Available Qty :</span><span id="qtyspan${roinc}" class=''></span></div>
             </td>
             <td>
+                <input type="hidden" name="id[]" value=0>
                 <input type="number" name='price[]' id="price${roinc}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white;" value=0 readonly />
                 <input type="number" name='priceListPrice[]' id="priceListPrice${roinc}" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value=0 readonly />
             </td>

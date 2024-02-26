@@ -2,6 +2,7 @@
 {% extends 'company/Fin_base.html' %}
 {% block body %}
 {% load social_share %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 <style>
     .filterTable-column .dropdown-toggle::after{
         content: none;
@@ -151,6 +152,7 @@
 
     .top-left .graphic-path {
         height: 40px;
+        width: 200px;
         position: relative;
     }
 
@@ -315,9 +317,9 @@
                                 </ul>
                             </div>
                             {% endif %}
-                            <a class="ml-2 btn btn-outline-secondary text-grey fa fa-table" role="button" id="exportBtn" style="display: none;" onclick="ExportToExcel('xlsx')">&nbsp;Export</a>
-                            <a href="{% url 'Fin_invoicePdf' recInvoice.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
+                            <a href="{% url 'Fin_recurringInvoicePdf' recInvoice.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('whatToPrint')">&nbsp;Print</a>
+                            <a class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" onclick="slipPDF()" id="slipPdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <div class="dropdown p-0 nav-item"  id="shareBtn" style="display: none;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-share-alt" data-toggle="dropdown">&nbsp;Share</li>
                                 <ul class="dropdown-menu" style="background-color: black;" id="listdiv">
@@ -325,7 +327,7 @@
                                     <li style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</li>
                                 </ul>
                             </div>
-                            <a href="{% url 'Fin_editInvoice' recInvoice.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
+                            <a href="{% url 'Fin_editRecurringInvoice' recInvoice.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
                             <a href="{% url 'Fin_deleteRecurringInvoice' recInvoice.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Recurring Invoice - {{recInvoice.rec_invoice_no}}.?')">&nbsp;Delete</a>
                             <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
                             <a href="{% url 'Fin_recurringInvoiceHistory' recInvoice.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
@@ -359,7 +361,7 @@
                                 <div class="card-title">
                                     <div class="row">
                                         <div class="col mt-3">
-                                            <h2 class="mb-0"># {{ recInvoice.invoice_no }}</h2>
+                                            <h2 class="mb-0"># {{ recInvoice.rec_invoice_no }}</h2>
                                         </div>
                                     </div>
                                 </div>
@@ -412,10 +414,26 @@
                                     <div class="col-md-4 mt-3"></div>
     
                                     <div class="col-md-3 mt-3">
-                                        <h6 class="mb-0">Invoice No</h6>
+                                        <h6 class="mb-0">Profile Name:</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <p class="mb-0 text-right">{{ recInvoice.invoice_no  }}</p>
+                                        <p class="mb-0 text-right">{{ recInvoice.profile_name|default:'None' }}</p>
+                                    </div>
+    
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">Entry Type</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{recInvoice.entry_type|default:'None'}}</p>
+                                    </div>
+                                    
+                                </div>
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-3 mt-3">
+                                        <h6 class="mb-0">Rec. Invoice No</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{ recInvoice.rec_invoice_no  }}</p>
                                     </div>
     
                                     <div class="col-md-3 mt-3 vl">
@@ -424,21 +442,35 @@
                                     <div class="col-md-3 mt-3">
                                         <p class="mb-0 text-right">{{recInvoice.Customer.title}}. {{recInvoice.Customer.first_name}} {{recInvoice.Customer.last_name}}</p>
                                     </div>
-                                    
                                 </div>
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
                                     <div class="col-md-3 mt-3">
-                                        <h6 class="mb-0">Invoice Date</h6>
+                                        <h6 class="mb-0">Rec. Invoice Date</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <p class="mb-0 text-right">{{recInvoice.invoice_date | date:'d-m-Y'}}</p>
+                                        <p class="mb-0 text-right">{{recInvoice.start_date | date:'d-m-Y'}}</p>
                                     </div>
     
                                     <div class="col-md-3 mt-3 vl">
-                                        <h6 class="mb-0">Shipment Date</h6>
+                                        <h6 class="mb-0">End Date</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <p class="mb-0 text-right">{{recInvoice.duedate | date:'d-m-Y'}}</p>
+                                        <p class="mb-0 text-right">{{recInvoice.end_date | date:'d-m-Y'}}</p>
+                                    </div>
+                                </div>
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-3 mt-3">
+                                        <h6 class="mb-0">Payment Method</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{recInvoice.payment_method}}</p>
+                                    </div>
+    
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">Repeat Every</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{recInvoice.repeat_every.repeat_every}}</p>
                                     </div>
                                 </div>
                                 <div class="row mb-4 d-flex justify-content-start align-items-center">
@@ -606,10 +638,10 @@
                                     </div>
                                     <div class="top-left">
                                         <div class="graphic-path">
-                                            <p>Invoice</p>
+                                            <p>Recurring Invoice</p>
                                         </div>
                                         <div class="position-relative">
-                                            <p> Invoice No. <span>{{ recInvoice.invoice_no }}</span></p>
+                                            <p>Rec. Invoice No.<span>{{ recInvoice.rec_invoice_no }}</span></p>
                                             {%if recInvoice.salesOrder_no %}
                                             <p>Order No. <span>{{ recInvoice.salesOrder_no }}</span></p>
                                             {% endif %}
@@ -639,10 +671,11 @@
                                         </div>
                                         <div class="row extra-info pt-3">
                                             <div class="col-6">
-                                                <p>invoices Date: <span>{{recInvoice.invoice_date | date:'d-m-Y'}}</span></p>
+                                                <p>Rec. Invoices Date: <span>{{recInvoice.start_date | date:'d-m-Y'}}</span></p>
                                             </div>
                                             <div class="col-6">
-                                                <p>Expected Shipment Date : <span>{{recInvoice.duedate | date:'d-m-Y'}}</span></p>
+                                                <p>End Date : <span>{{recInvoice.end_date | date:'d-m-Y'}}</span></p>
+                                                <p>Payment Method : <span>{{recInvoice.payment_method}}</span></p>
                                             </div>
                                         </div>
                                     </div>
@@ -663,7 +696,7 @@
                                         </thead>
                                         <tbody>
             
-                                            {% for j in invItems %}
+                                            {% for j in recInvItems %}
                                             <tr>
                                                 <td style="color:black; text-align: center;">{{j.Item.name}}</td>
                                                 <td style="color:black">{{j.hsn}}</td>
@@ -763,11 +796,11 @@
                                       <div class="text-white d-flex align-items-center px-5" style="border-radius: 1vh; background-color:#999999">{{recInvoice.status}}<!----></div>
                                   </div>
                                   <div class="col-md-4 d-flex justify-content-center">
-                                      <center class="h3 text-white"><b>Invoice</b></center>
+                                      <center class="h4 text-white"><b>Recurring Invoice</b></center>
                                   </div>  
                                   <div class="col-md-4 d-flex justify-content-end">
                                       <div class="text-white">
-                                          <p class="mb-0 mt-2">Invoice No: <b>{{recInvoice.invoice_no }}</b></p>
+                                          <p class="mb-0 mt-2">Rec. Invoice No: <b>{{recInvoice.rec_invoice_no }}</b></p>
                                           {%if recInvoice.salesOrder_no %}
                                           <p class="mb-0 mt-2">Order No: <b>{{recInvoice.salesOrder_no }}</b></p>
                                           {% endif %}
@@ -798,6 +831,13 @@
                                                   <p class="address" style="font-weight: bold;color: #000;">{{ recInvoice.billing_address | linebreaksbr}} </p>
                                               </div>
                                           </div>
+                                          <div class="row my-3">
+                                            <div class="col-12">
+                                                <p>Start Date: <span>{{recInvoice.start_date|date:'Y-m-d'}}</span></p>
+                                                <p>End Date: <span>{{recInvoice.end_date|date:'Y-m-d'}}</span></p>
+                                                <p>Payment Method: <span>{{recInvoice.payment_method}}</span></p>
+                                            </div>
+                                          </div>
                                           
                                       </div>
                                   </section>
@@ -816,7 +856,7 @@
                                               </tr>
                                           </thead>
                                           <tbody  style="background-color: #999999;">
-                                              {% for itm in invItems %}
+                                              {% for itm in recInvItems %}
                                                   <tr>
                                                       <td class="text-center" style="color:black">{{ itm.Item.name}}</td>
                                                       <td class="text-center" style="color:black">{{ itm.hsn }}</td>
@@ -926,7 +966,7 @@
                             <div class="" id="printdiv3">
                                 <div class="row">
                                     <div class="col-sm-12" style="background-image: linear-gradient(#1b83e8, black); color: white;">
-                                        <p style="font-size: 4vh; text-align: center;">INVOICE</p>
+                                        <p style="font-size: 4vh; text-align: center;">RECURRING INVOICE</p>
                                         <p style=" text-align: center;"> {{cmp.Company_name}} <br>
                                             {{cmp.Address}} <br>
                                             {{cmp.City}},
@@ -951,9 +991,9 @@
                                             <table class="table table-borderless">
                                                 <tbody>
                                                     <tr >
-                                                        <td style="color: #000; font-weight: bold;">Invoices No</td>
+                                                        <td style="color: #000; font-weight: bold;">Rec. Invoice No</td>
                                                         <td style="color: #000;">:</td>
-                                                        <td class="text-right" style="color: #000;">{{ recInvoice.invoice_no }}</td>
+                                                        <td class="text-right" style="color: #000;">{{ recInvoice.rec_invoice_no }}</td>
                                                     </tr>
                                                     {%if recInvoice.salesOrder_no %}
                                                     <tr >
@@ -964,15 +1004,22 @@
                                                     {% endif %}
                                                     
                                                     <tr >
-                                                        <td style="color: #000; font-weight: bold;">Invoice Date</td>
+                                                        <td style="color: #000; font-weight: bold;">Start Date</td>
                                                         <td style="color: #000;">:</td>
-                                                        <td class="text-right" style="color: #000;">{{recInvoice.invoice_date | date:'d-m-Y'}}<td>
+                                                        <td class="text-right" style="color: #000;">{{recInvoice.start_date | date:'d-m-Y'}}<td>
                                                     </tr>
      
                                                     <tr>
-                                                        <td style="color: #000; font-weight: bold;">Shipment Date</td>
+                                                        <td style="color: #000; font-weight: bold;">End Date</td>
                                                         <td style="color: #000;">:</td>
-                                                        <td class="text-right" style="color: #000;">{{recInvoice.duedate | date:'d-m-Y'}}</td>
+                                                        <td class="text-right" style="color: #000;">{{recInvoice.end_date | date:'d-m-Y'}}</td>
+                                                        
+                                                    </tr>
+
+                                                    <tr>
+                                                        <td style="color: #000; font-weight: bold;">Payment Method</td>
+                                                        <td style="color: #000;">:</td>
+                                                        <td class="text-right" style="color: #000;">{{recInvoice.payment_method}}</td>
                                                         
                                                     </tr>
                                                 </tbody>
@@ -995,7 +1042,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {% for itm in invItems %}
+                                                {% for itm in recInvItems %}
                                                     <tr>
                                                         <td class="text-center" style="color: black;">{{ itm.Item.name}}</td>
                                                         <td class="text-center" style="color: black;">{{ itm.hsn }}</td>
@@ -1107,8 +1154,8 @@
 
                         <div class="ml-4 mt-2" style="color: black;">
                             <div class="row">
-                                <div class="col-md-6 text-left">Invoice No:</div>
-                                <div class="col-md-5 text-right">{{recInvoice.invoice_no}}</div>
+                                <div class="col-md-6 text-left">Rec. Invoice No:</div>
+                                <div class="col-md-5 text-right">{{recInvoice.rec_invoice_no}}</div>
                             </div>
                             {% if recInvoice.salesOrder_no  %}
                             <div class="row">
@@ -1121,12 +1168,12 @@
                                 <div class="col-md-5 text-right">{{recInvoice.Customer.first_name}} {{recInvoice.Customer.last_name}}</div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 text-left">Invoice Date :</div>
-                                <div class="col-md-5 text-right">{{recInvoice.invoice_date | date:'d-m-Y'}}</div>
+                                <div class="col-md-6 text-left">Start Date :</div>
+                                <div class="col-md-5 text-right">{{recInvoice.start_date | date:'d-m-Y'}}</div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 text-left">Shipment Date:</div>
-                                <div class="col-md-5 text-right">{{recInvoice.duedate | date:'d-m-Y'}}</div>
+                                <div class="col-md-6 text-left">End Date:</div>
+                                <div class="col-md-5 text-right">{{recInvoice.end_date | date:'d-m-Y'}}</div>
                             </div>
                         </div>
 
@@ -1158,7 +1205,7 @@
                                 <hr style="border-bottom: 1px solid black; margin-top:1vh; width:65%;  margin-left: 10px;">
                             </div>
                         </div>
-                        {% for i in invItems %}
+                        {% for i in recInvItems %}
                         <div class="equal-length-container" style="color: black; font-size: small; word-wrap: break-word; margin-bottom: 1vh;">
                             <div class="equal-length-item"  style="text-align: center; margin-left: 2px;">
                                 {{i.Item.name}}
@@ -1265,7 +1312,7 @@
             </div>
             <div class="modal-body">
                 <div class="card p-3">
-                    <form action="{% url 'Fin_shareInvoiceToEmail' recInvoice.id %}" method="post" class="needs-validation" id="share_to_email_form">
+                    <form action="{% url 'Fin_shareRecurringInvoiceToEmail' recInvoice.id %}" method="post" class="needs-validation" id="share_to_email_form">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="emailIds">Email IDs</label>
@@ -1356,6 +1403,7 @@
         $('#shareBtn').hide();
         $('#printBtn').hide();
         $('#pdfBtn').hide();
+        $('#slipPdfBtn').hide();
         $('#convertBtn').show();
         $('#editBtn').show();
         $('#deleteBtn').show();
@@ -1374,6 +1422,7 @@
         $('#shareBtn').show();
         $('#printBtn').show();
         $('#pdfBtn').show();
+        $('#slipPdfBtn').hide();
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#deleteBtn').hide();
@@ -1391,6 +1440,7 @@
         $("#printBtn").attr("onclick","printSection('slip')");
         $('#printBtn').show();
         $('#pdfBtn').hide();
+        $('#slipPdfBtn').show();
         $('#shareBtn').hide();
         $('#deleteBtn').hide();
         $('#editBtn').hide();
@@ -1571,6 +1621,20 @@
         $('#'+buttonId).addClass('active');
         $("#templatePrintButton").attr("onclick","printSection('"+templateId+"')");
         document.getElementById('page-content').scrollIntoView();
+    }
+
+    function slipPDF(){
+        var recInvNo = `{{recInvoice.rec_invoice_no }}`;
+        var element = document.getElementById('slip');
+        var opt =
+        {
+            margin: 1,
+            filename: 'RecurringInvoice_slip_'+ recInvNo + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 

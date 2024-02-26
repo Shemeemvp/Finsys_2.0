@@ -77,7 +77,7 @@
               {% elif a.converted_to_invoice != None %}
               <span class="text-info font-weight-bolder text-center" onclick="window.location.href=`{% url 'Fin_viewInvoice' a.converted_to_invoice.id %}`">Converted to <br>Invoice - #{{a.converted_to_invoice.invoice_no}}</span>
               {% elif a.converted_to_rec_invoice != None %}
-              <span class="text-info font-weight-bolder text-center" onclick="window.location.href=`#`">Converted to <br>Recurring Invoice - #{{a.converted_to_rec_invoice.invoice_no}}</span>
+              <span class="text-info font-weight-bolder text-center" onclick="window.location.href=`{% url 'Fin_viewRecurringInvoice' a.converted_to_rec_invoice.id %}`">Converted to <br>Recurring Invoice - #{{a.converted_to_rec_invoice.rec_invoice_no}}</span>
               {% else %}
               <div class="btn-group">
                   <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
@@ -86,7 +86,7 @@
                   <ul class="dropdown-menu">
                     <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertEstimateToSalesOrder' a.id %}`">To Sales Order</button></li>
                     <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertEstimateToInvoice' a.id %}`">To Invoice</button></li>
-                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`#`">To Recurring Invoice</button></li>
+                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertEstimateToRecurringInvoice' a.id %}`">To Recurring Invoice</button></li>
                   </ul>
               </div>
               {% endif %}

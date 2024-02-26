@@ -279,6 +279,8 @@ urlpatterns = [
     path('Fin_estimate_convert_invoice/<int:id>',views.Fin_estimateConvertInvoice, name='Fin_estimateConvertInvoice'),
     path('Fin_convert_estimate_to_sales_order/<int:id>',views.Fin_convertEstimateToSalesOrder, name='Fin_convertEstimateToSalesOrder'),
     path('Fin_estimate_convert_sales_order/<int:id>',views.Fin_estimateConvertSalesOrder, name='Fin_estimateConvertSalesOrder'),
+    path('Fin_convert_estimate_to_recurring_invoice/<int:id>',views.Fin_convertEstimateToRecurringInvoice, name='Fin_convertEstimateToRecurringInvoice'),
+    path('Fin_estimate_convert_rec_invoice/<int:id>',views.Fin_estimateConvertRecInvoice, name='Fin_estimateConvertRecInvoice'),
 
     # < ------------- Shemeem -------- > Manual Journals < ------------------------------- >
     path('Fin_manual_journals',views.Fin_manualJournals, name='Fin_manualJournals'),
@@ -308,8 +310,12 @@ urlpatterns = [
     path('Fin_add_recurring_invoice_comment/<int:id>',views.Fin_addRecurringInvoiceComment, name='Fin_addRecurringInvoiceComment'),
     path('Fin_delete_recurring_invoice_comment/<int:id>',views.Fin_deleteRecurringInvoiceComment, name='Fin_deleteRecurringInvoiceComment'),
     path('Fin_recurring_invoice_history/<int:id>',views.Fin_recurringInvoiceHistory, name='Fin_recurringInvoiceHistory'),
+    path('Fin_recurring_invoicePdf/<int:id>',views.Fin_recurringInvoicePdf, name='Fin_recurringInvoicePdf'),
+    path('Fin_share_recurring_invoice_to_email/<int:id>',views.Fin_shareRecurringInvoiceToEmail, name='Fin_shareRecurringInvoiceToEmail'),
     path('Fin_delete_recurring_invoice/<int:id>',views.Fin_deleteRecurringInvoice, name= 'Fin_deleteRecurringInvoice'),
     path('Fin_new_repeat_every_type',views.Fin_newRepeatEveryType, name='Fin_newRepeatEveryType'),
+    path('Fin_edit_recurring_invoice/<int:id>',views.Fin_editRecurringInvoice, name='Fin_editRecurringInvoice'),
+    path('Fin_update_recurring_invoice/<int:id>',views.Fin_updateRecurringInvoice, name='Fin_updateRecurringInvoice'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
