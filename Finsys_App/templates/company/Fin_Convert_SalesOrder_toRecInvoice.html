@@ -23,14 +23,14 @@
     }
 </style>
 
-<form action="{% url 'Fin_estimateConvertRecInvoice' estimate.id %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+<form action="{% url 'Fin_salesOrderConvertRecInvoice' order.id %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
   {% csrf_token %}
   <div class="page-content">
     <!-- <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_recurringInvoice' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span> -->
     <div class="card radius-15">
       <div class="card-body">
         <div class="card-title">
-          <center><h3 class="mb-0">CONVERT ESTIMATE TO RECURRING INVOICE</h3></center>
+          <center><h3 class="mb-0">CONVERT SALES ORDER TO RECURRING INVOICE</h3></center>
         </div>
         <hr />
       </div>
@@ -41,11 +41,11 @@
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <label class="">Select Customer</label><span class="text-danger ml-3" id="custErr"></span>
-                    <input type="hidden" name="customerId" id="customerId" value="{{estimate.Customer.id}}">
+                    <input type="hidden" name="customerId" id="customerId" value="{{order.Customer.id}}">
                     <div class="d-flex">
                         <div class="w-100">
                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                <input required type="text" id="customer" value="{{ estimate.Customer.title }} {{ estimate.Customer.first_name }} {{ estimate.Customer.last_name }}" name="customer" class="dropdown-toggle form-control customers-display" onkeyup="filterCustomers()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Customer.." autocomplete="off">
+                                <input required type="text" id="customer" value="{{ order.Customer.title }} {{ order.Customer.first_name }} {{ order.Customer.last_name }}" name="customer" class="dropdown-toggle form-control customers-display" onkeyup="filterCustomers()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Customer.." autocomplete="off">
                                 <ul class="dropdown-menu w-100 customers-available position-absolute" id="cust_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                     <li class="dropdown-item customers-options" onclick="getCustomerDetails('','')">Select Customer</li>
                                     {% for cust in customers %}
@@ -59,21 +59,21 @@
                     </div>
 
                     <label class="mt-3">GST Type</label>
-                    <input type="text" class="form-control" id="gstType" name="gst_type" value="{{estimate.gst_type}}" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" id="gstType" name="gst_type" value="{{order.gst_type}}" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
                 </div>
 
                 <div class="col-md-4 mt-3">
                     <label class="">Email</label>
-                    <input class="form-control" type="email" name="customerEmail" placeholder="Email" value="{{estimate.customer_email}}" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
+                    <input class="form-control" type="email" name="customerEmail" placeholder="Email" value="{{order.customer_email}}" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
                     <div class="mt-3" id="gstInDisplay" style="display: block;">
                         <label class="">GSTIN</label>
-                        <input type="text" class="form-control" id="gstin" name="gstin" value="{{estimate.gstin}}" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                        <input type="text" class="form-control" id="gstin" name="gstin" value="{{order.gstin}}" placeholder="GSTIN" style="background-color: #43596c;" readonly>
                     </div>
                 </div>
 
                 <div class="col-md-4 mt-3">
                     <label class="">Billing Address</label>
-                    <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly>{{estimate.billing_address}}</textarea>
+                    <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly>{{order.billing_address}}</textarea>
                 </div>
             </div>
 
@@ -150,11 +150,11 @@
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Start Date:</label>
-                    <input type="date" class="form-control" name="start_date" id="startDate" style="background-color: #43596c; color: white;" value="{{estimate.estimate_date|date:'Y-m-d'}}">
+                    <input type="date" class="form-control" name="start_date" id="startDate" style="background-color: #43596c; color: white;" value="{{order.sales_order_date|date:'Y-m-d'}}">
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">End Date:</label>
-                    <input type="text" id="endDate" class="form-control" value="{{estimate.exp_date|date:'d-m-Y'}}" name="end_date" style="background-color: #43596c; color: white;" readonly>
+                    <input type="text" id="endDate" class="form-control" value="{{order.exp_ship_date|date:'d-m-Y'}}" name="end_date" style="background-color: #43596c; color: white;" readonly>
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Terms </label>
@@ -162,7 +162,7 @@
                         <select class="form-control" name="payment_term" style="background-color: #43596c; color: white;" id="paymentTerm" required>
                             <option value="" selected> Select Payment Term</option>
                             {% for term in pTerms %}
-                                {% if estimate.payment_terms.id == term.id %}
+                                {% if order.payment_terms.id == term.id %}
                                 <option value="{{term.id}}" text="{{term.days}}" selected>{{term.term_name}}</option>
                                 {% else %}
                                 <option value="{{term.id}}" text="{{term.days}}">{{term.term_name}}</option>
@@ -188,7 +188,7 @@
 
                 <div class="col-md-4 mt-3">
                     <label class="" for="orderNum"> Order Number: </label> 
-                    <input class="form-control" type="text" value="" name="order_number" id="orderNum">
+                    <input class="form-control" type="text" value="{{order.sales_order_no}}" name="order_number" id="orderNum">
                 </div>
 
                 <div class="col-md-4 mt-3">
@@ -205,15 +205,15 @@
                 </div>
                 <div class="col-md-4 mt-3" style="display:none;"  id="chequediv">
                     <label class="" >Cheque No</label>
-                    <input type="text" class="form-control" value="{{estimate.cheque_no}}" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
+                    <input type="text" class="form-control" value="{{order.cheque_no}}" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
                 </div>
                 <div class="col-md-4 mt-3"  style="display:none;" id="upidiv">
                     <label class="" >UPI ID</label>
-                    <input type="text" class="form-control" value="{{estimate.upi_no}}" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
+                    <input type="text" class="form-control" value="{{order.upi_no}}" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
                 </div>
                 <div class="col-md-4 mt-3"  style="display:none;" id="bnkdiv">
                     <label class="" >Account#</label>
-                    <input type="text" class="form-control" value="{{estimate.bank_acc_no}}" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" value="{{order.bank_acc_no}}" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
                 </div>
             </div>
 
@@ -258,7 +258,7 @@
                             </tr>
                         </thead>
                         <tbody id="items-table-body">
-                            {% for itm in estItems %}
+                            {% for itm in orderItems %}
                             <tr id='tab_row{{forloop.counter}}'>
                                 <td class="nnum" style="text-align: center;">{{forloop.counter}}</td>
                                 <td style="width: 20%;">
@@ -339,7 +339,7 @@
             </div>
             <div class="row clearfix" style="margin-top:20px">
                 <div class="col-md-6">
-                    <textarea class="form-control mt-3"  id="" name="note" placeholder="Note" style="height: 190px;">{{estimate.note}}</textarea>
+                    <textarea class="form-control mt-3"  id="" name="note" placeholder="Note" style="height: 190px;">{{order.note}}</textarea>
                     <input type="file" name="file"  style="margin-top: 10px; width: 70%;">
                 </div>            
                 <div class="col-md-1"></div>
@@ -348,43 +348,43 @@
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label class="text-center">Sub Total</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='subtotal' value={{estimate.subtotal}} readonly style="background-color: #37444f;" class="form-control" id="sub_total"></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='subtotal' value={{order.subtotal}} readonly style="background-color: #37444f;" class="form-control" id="sub_total"></div>
                         </div>
                         <div class="row container-fluid p-2 m-0" id="taxamountIGST" style="display: flex;">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">IGST</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='igst' step="any" id="igstAmount" value={{estimate.igst}} readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='igst' step="any" id="igstAmount" value={{order.igst}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0" style="display: none;" id="taxamountCGST">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">CGST</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='cgst' step="any" id="cgstAmount" value={{estimate.cgst}} readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='cgst' step="any" id="cgstAmount" value={{order.cgst}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0" style="display: none;" id="taxamountSGST">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">SGST</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='sgst' step="any" id="sgstAmount" value={{estimate.sgst}} readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='sgst' step="any" id="sgstAmount" value={{order.sgst}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Tax Amount</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='taxamount' id="tax_amount" value={{estimate.tax_amount}} readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='taxamount' id="tax_amount" value={{order.tax_amount}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                         
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Shipping Charge</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='ship' id="ship" value={{estimate.shipping_charge}} class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='ship' id="ship" value={{order.shipping_charge}} class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Adjustment</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='adj' id="adj" value={{estimate.adjustment}} class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='adj' id="adj" value={{order.adjustment}} class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Grand Total</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='grandtotal' id="grandtotal" value={{estimate.grandtotal}} readonly style="background-color: #37444f;" class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='grandtotal' id="grandtotal" value={{order.grandtotal}} readonly style="background-color: #37444f;" class="form-control"/></div>
                         </div>
                     </div>
                 </div>
@@ -396,12 +396,12 @@
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Paid Off</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='advance' id="advance"  value=0 class="form-control"/></div>
+                            <div class="col-sm-7 mt-2"><input type="number" step="any" name='advance' id="advance"  value={{order.paid_off}} class="form-control"/></div>
                         </div>
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Balance</label></div>
                             <div class="col-sm-1 mt-2">:</div>
-                            <div class="col-sm-7 mt-2"><input type="number" name='balance' id="balance" value={{estimate.grandtotal}} readonly style="background-color: #37444f;" class="form-control" readonly /></div>
+                            <div class="col-sm-7 mt-2"><input type="number" name='balance' id="balance" value={{order.balance}} readonly style="background-color: #37444f;" class="form-control" readonly /></div>
                         </div>
                     </div>
                 </div>
@@ -418,7 +418,7 @@
                 </div>
                 <div class="col-md-5 mt-3 d-flex">
                     <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="CONVERT">
-                    <input type="reset" class="btn btn-outline-secondary w-50 ml-1 text-light" onclick="window.location.href=`{% url 'Fin_estimates' %}`" value="CANCEL">
+                    <input type="reset" class="btn btn-outline-secondary w-50 ml-1 text-light" onclick="window.location.href=`{% url 'Fin_salesOrder' %}`" value="CANCEL">
                 </div>
             </div>
             <div class="notices mt-3">
@@ -1268,11 +1268,11 @@
 <script>
     $(document).ready(function(){
 
-        getCustomerDetails(`{{estimate.Customer.id}}`,`{{estimate.Customer.title}} {{estimate.Customer.first_name}} {{estimate.Customer.last_name}}`);
+        getCustomerDetails(`{{order.Customer.id}}`,`{{order.Customer.title}} {{order.Customer.first_name}} {{order.Customer.last_name}}`);
 
 
-        document.querySelector('#placeOfSupply').value = `{{estimate.place_of_supply}}`;
-        document.querySelector('#entryType').value = `{{estimate.entry_type}}`;
+        document.querySelector('#placeOfSupply').value = `{{order.place_of_supply}}`;
+        document.querySelector('#entryType').value = `{{order.entry_type}}`;
 
         
     });
@@ -1316,7 +1316,7 @@
                         document.getElementById('gstInDisplay').style.display = 'none';
                         document.getElementById('gstin').value = '';
                     }
-                    if(`{{estimate.price_list_applied}}` != "True"){
+                    if(`{{order.price_list_applied}}` != "True"){
                         $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
                     }
                     if(data.priceList){

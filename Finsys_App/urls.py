@@ -258,6 +258,8 @@ urlpatterns = [
     path('Fin_share_sales_order_to_email/<int:id>',views.Fin_shareSalesOrderToEmail, name='Fin_shareSalesOrderToEmail'),
     path('Fin_convert_sales_order_to_invoice/<int:id>',views.Fin_convertSalesOrderToInvoice, name='Fin_convertSalesOrderToInvoice'),
     path('Fin_sales_order_convert_invoice/<int:id>',views.Fin_salesOrderConvertInvoice, name='Fin_salesOrderConvertInvoice'),
+    path('Fin_convert_sales_order_to_rec_invoice/<int:id>',views.Fin_convertSalesOrderToRecInvoice, name='Fin_convertSalesOrderToRecInvoice'),
+    path('Fin_sales_order_convert_rec_invoice/<int:id>',views.Fin_salesOrderConvertRecInvoice, name='Fin_salesOrderConvertRecInvoice'),
 
     # -------------Shemeem--------Estimate-------------------------------
     path('Fin_estimates',views.Fin_estimates, name='Fin_estimates'),
