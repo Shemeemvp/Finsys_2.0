@@ -8872,8 +8872,8 @@ def Fin_checkRecurringInvoiceNumber(request):
                     nxtInv = st+ str(inv_num)
             else:
                 nxtInv = st+ str(inv_num)
-        else:
-            nxtInv = 'RI01'
+        # else:
+        #     nxtInv = 'RI01'
 
         PatternStr = []
         for word in RecInvNo:

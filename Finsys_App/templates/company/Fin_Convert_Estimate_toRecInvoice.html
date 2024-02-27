@@ -720,7 +720,7 @@
                                 <label for="priceList">Price List</label>
                                 <select name="price_list" id="priceList" class="form-control">
                                     <option value="" selected>Choose</option>
-                                    {% for l in list %}
+                                    {% for l in priceListItems %}
                                     <option value="{{l.id}}">{{l.name}}</option>
                                     {% endfor %}
                                 </select>

@@ -88,6 +88,7 @@
                         <option value="">Select Entry Type</option>
                         <option value="Invoice">Invoice</option>
                         <option value="Bill of Supply">Bill of Supply</option>
+
                     </select>
                 </div>
                 <div class="col-md-4 mt-3">
@@ -728,7 +729,7 @@
                                 <label for="priceList">Price List</label>
                                 <select name="price_list" id="priceList" class="form-control">
                                     <option value="" selected>Choose</option>
-                                    {% for l in list %}
+                                    {% for l in priceListItems %}
                                     <option value="{{l.id}}">{{l.name}}</option>
                                     {% endfor %}
                                 </select>
@@ -1285,10 +1286,12 @@
             $('#custPriceListName').css('display','inline-flex');
             checkPriceList();
         }
+        var paymentMeth = `{{recInvoice.payment_method}}`;
+        var entryType = `{{recInvoice.entry_type}}`;
 
         document.querySelector('#placeOfSupply').value = `{{recInvoice.place_of_supply}}`;
-        document.querySelector('#paymentMethod').value = `{{recInvoice.payment_method}}`;
-        document.querySelector('#entryType').value = `{{recInvoice.entry_type}}`;
+        paymentMeth == 'None' ? document.querySelector('#paymentMethod').value = "" : document.querySelector('#paymentMethod').value = `{{recInvoice.payment_method}}`;
+        entryType == 'None' ? document.querySelector('#entryType').value ="" : document.querySelector('#entryType').value = `{{recInvoice.entry_type}}`;
 
         var x='{{recInvoice.payment_method}}';
         if(x==='Cash'){
