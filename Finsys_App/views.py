@@ -9387,3 +9387,97 @@ def Fin_updateRecurringInvoice(request, id):
             return redirect(Fin_editRecurringInvoice, id)
     else:
        return redirect('/')
+
+# < ------------- Shemeem -------- > Purchase Order < ------------------------------- >
+        
+def Fin_purchaseOrder(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+        purchaseOrders = Fin_Purchase_Order.objects.filter(Company = cmp)
+        return render(request,'company/Fin_Purchase_Order.html',{'allmodules':allmodules,'com':com, 'cmp':cmp,'data':data,'purchase_orders':purchaseOrders})
+    else:
+       return redirect('/')
+
+def Fin_addPurchaseOrder(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        vend = Fin_Vendors.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+
+        # Fetching last pur. order and assigning upcoming ref no as current + 1
+        # Also check for if any bill is deleted and ref no is continuos w r t the deleted pur. order
+        latest_po = Fin_Purchase_Order.objects.filter(Company = cmp).order_by('-id').first()
+
+        new_number = int(latest_po.reference_no) + 1 if latest_po else 1
+
+        if Fin_Purchase_Order_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_Purchase_Order_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.reference_no) >= new_number:
+                    new_number+=1
+
+        # Finding next PO number w r t last PO number if exists.
+        nxtPO = ""
+        lastPO = Fin_Purchase_Order.objects.filter(Company = cmp).last()
+        if lastPO:
+            purchaseOrder_no = str(lastPO.purchase_order_no)
+            numbers = []
+            stri = []
+            for word in purchaseOrder_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            p_order_num = int(num)+1
+
+            if num[0] == '0':
+                if p_order_num <10:
+                    nxtPO = st+'0'+ str(p_order_num)
+                else:
+                    nxtPO = st+ str(p_order_num)
+            else:
+                nxtPO = st+ str(p_order_num)
+        else:
+            nxtPO = 'PO01'
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend, 'items':itms, 'pTerms':trms,'list':lst,
+            'ref_no':new_number,'banks':bnk,'PONo':nxtPO,'units':units, 'accounts':acc
+        }
+        return render(request,'company/Fin_Add_Purchase_Order.html',context)
+    else:
+       return redirect('/')

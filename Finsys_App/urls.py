@@ -318,6 +318,10 @@ urlpatterns = [
     path('Fin_new_repeat_every_type',views.Fin_newRepeatEveryType, name='Fin_newRepeatEveryType'),
     path('Fin_edit_recurring_invoice/<int:id>',views.Fin_editRecurringInvoice, name='Fin_editRecurringInvoice'),
     path('Fin_update_recurring_invoice/<int:id>',views.Fin_updateRecurringInvoice, name='Fin_updateRecurringInvoice'),
+
+    # < ------------- Shemeem -------- > Purchase Order < ------------------------------- >
+    path('Fin_purchase_order',views.Fin_purchaseOrder, name='Fin_purchaseOrder'),
+    path('Fin_add_purchase_order',views.Fin_addPurchaseOrder, name='Fin_addPurchaseOrder'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
