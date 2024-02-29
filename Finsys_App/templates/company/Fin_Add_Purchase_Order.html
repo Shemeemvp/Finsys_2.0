@@ -27,7 +27,7 @@
 
 </style>
 
-<form action="" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+<form action="{% url 'Fin_createPurchaseOrder' %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
   {% csrf_token %}
   <div class="page-content">
     <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_purchaseOrder' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
@@ -41,19 +41,19 @@
     </div>
     <div class="card radius-15">
       <div class="card-body">
-        <div id="salesOrder">
+        <div id="purchaseOrder">
             <div class="card-title">
                 <h4 class="mb-0">Vendor Details</h4>
             </div>
             <hr/>
             <div class="row">
                 <div class="col-md-4 mt-3">
-                    <label class="">Select Vendor</label><span class="text-danger ml-3" id="vndErr"></span>
+                    <label class="">Select Vendor</label><span class="text-danger ml-3" id="vendErr"></span>
                     <input type="hidden" name="vendorId" id="vendorId" value="">
                     <div class="d-flex">
                         <div class="w-100">
                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                <input required type="text" id="vendor" value="" name="vendor" class="dropdown-toggle form-control vendors-display" onkeyup="filterVendors($(this).val())" data-toggle="dropdown" aria-expanded="false" placeholder="Select Vendor.." autocomplete="off">
+                                <input required type="text" id="vendorInp" name="vendor" class="dropdown-toggle form-control vendors-display" onkeyup="filterVendors()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Vendor.." autocomplete="off" />
                                 <ul class="dropdown-menu w-100 vendors-available position-absolute" id="vnd_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                     <li class="dropdown-item vendors-options" onclick="getVendorDetails('','')">Select Vendor</li>
                                     {% for vnd in vendors %}
@@ -73,9 +73,50 @@
                 <div class="col-md-4 mt-3">
                     <label class="">Email</label>
                     <input class="form-control" type="email" name="vendorEmail" placeholder="Email" style="background-color: #43596c; color: white;" id="vendorEmail" readonly>
-                    <div class="mt-3" id="gstInDisplay" style="display: block;">
-                        <label class="">GSTIN</label>
-                        <input type="text" class="form-control" id="vendorGstin" name="vendor_gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                    <div class="mt-3">
+                        <input hidden value="{{cmp.State}}" id="cmpstate">
+                        <label class="">Source of supply</label>
+                        <select type="text" class="form-control" id="sourceOfSupply" name="source_of_supply" style="background-color: #43596c; color: white;" required>
+                            <option value="" selected>--Choose--</option>
+                            <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islads</option>
+                            <option value="Andhra Predhesh">Andhra Predhesh</option>
+                            <option value="Arunachal Predesh">Arunachal Predesh</option>
+                            <option value="Assam">Assam</option>
+                            <option value="Bihar">Bihar</option>
+                            <option value="Chandigarh">Chandigarh</option>
+                            <option value="Chhattisgarh">Chhattisgarh</option>
+                            <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                            <option value="Damn anad Diu">Damn anad Diu</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Goa">Goa</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Haryana">Haryana</option>
+                            <option value="Himachal Predesh">Himachal Predesh</option>
+                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                            <option value="Jharkhand">Jharkhand</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Kerala">Kerala</option>
+                            <option value="Ladakh">Ladakh</option>
+                            <option value="Lakshadweep">Lakshadweep</option>
+                            <option value="Madhya Predesh">Madhya Predesh</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Manipur">Manipur</option>
+                            <option value="Meghalaya">Meghalaya</option>
+                            <option value="Mizoram">Mizoram</option>
+                            <option value="Nagaland">Nagaland</option>
+                            <option value="Odisha">Odisha</option>
+                            <option value="Puducherry">Puducherry</option>
+                            <option value="Punjab">Punjab</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                            <option value="Sikkim">Sikkim</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Tripura">Tripura</option>
+                            <option value="Uttar Predesh">Uttar Predesh</option>
+                            <option value="Uttarakhand">Uttarakhand</option>
+                            <option value="West Bengal">West Bengal</option>
+                            <option value="Other Territory">Other Territory</option>
+                        </select>
                     </div>
                 </div>
 
@@ -85,49 +126,10 @@
                 </div>
 
                 <div class="col-md-4 mt-3">
-                    <input hidden value="{{cmp.State}}" id="cmpstate">
-                    <label class="">Source of supply</label>
-                    <select type="text" class="form-control" id="sourceOfSupply" name="source_of_supply" style="background-color: #43596c; color: white;" required>
-                        <option value="" selected>--Choose--</option>
-                        <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islads</option>
-                        <option value="Andhra Predhesh">Andhra Predhesh</option>
-                        <option value="Arunachal Predesh">Arunachal Predesh</option>
-                        <option value="Assam">Assam</option>
-                        <option value="Bihar">Bihar</option>
-                        <option value="Chandigarh">Chandigarh</option>
-                        <option value="Chhattisgarh">Chhattisgarh</option>
-                        <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
-                        <option value="Damn anad Diu">Damn anad Diu</option>
-                        <option value="Delhi">Delhi</option>
-                        <option value="Goa">Goa</option>
-                        <option value="Gujarat">Gujarat</option>
-                        <option value="Haryana">Haryana</option>
-                        <option value="Himachal Predesh">Himachal Predesh</option>
-                        <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                        <option value="Jharkhand">Jharkhand</option>
-                        <option value="Karnataka">Karnataka</option>
-                        <option value="Kerala">Kerala</option>
-                        <option value="Ladakh">Ladakh</option>
-                        <option value="Lakshadweep">Lakshadweep</option>
-                        <option value="Madhya Predesh">Madhya Predesh</option>
-                        <option value="Maharashtra">Maharashtra</option>
-                        <option value="Manipur">Manipur</option>
-                        <option value="Meghalaya">Meghalaya</option>
-                        <option value="Mizoram">Mizoram</option>
-                        <option value="Nagaland">Nagaland</option>
-                        <option value="Odisha">Odisha</option>
-                        <option value="Puducherry">Puducherry</option>
-                        <option value="Punjab">Punjab</option>
-                        <option value="Rajasthan">Rajasthan</option>
-                        <option value="Sikkim">Sikkim</option>
-                        <option value="Tamil Nadu">Tamil Nadu</option>
-                        <option value="Telangana">Telangana</option>
-                        <option value="Tripura">Tripura</option>
-                        <option value="Uttar Predesh">Uttar Predesh</option>
-                        <option value="Uttarakhand">Uttarakhand</option>
-                        <option value="West Bengal">West Bengal</option>
-                        <option value="Other Territory">Other Territory</option>
-                    </select>
+                    <div class="" id="vendorGstInDisplay" style="display: block;">
+                        <label class="">GSTIN</label>
+                        <input type="text" class="form-control" id="vendorGstin" name="vendor_gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                    </div>
                 </div>
             </div>
 
@@ -148,15 +150,15 @@
                     <input type="text" class="form-control" name="reference_number" value="{{ref_no}}" style="background-color: #43596c;" readonly>
                 </div>
                 <div class="col-md-4 mt-3">
-                    <label class="">Sales Order Date:</label>
-                    <input type="date" class="form-control" name="sales_order_date" id="salesOrderDate" style="background-color: #43596c; color: white;" value="{% now 'Y-m-d' %}">
+                    <label class="">Purchase Order Date:</label>
+                    <input type="date" class="form-control" name="purchase_order_date" id="purchaseOrderDate" style="background-color: #43596c; color: white;" value="{% now 'Y-m-d' %}">
                 </div>
                 <div class="col-md-4 mt-3">
-                    <label class="">Expected Shipment Date:</label>
-                    <input type="text" id="shipmentDate" class="form-control" name="shipment_date" style="background-color: #43596c; color: white; " readonly>
+                    <label class="">Due Date:</label>
+                    <input type="text" id="dueDate" class="form-control" name="due_date" style="background-color: #43596c; color: white; " readonly>
                 </div>
                 <div class="col-md-4 mt-3">
-                    <label class="">Terms </label>
+                    <label class="">Payment Terms </label>
                     <div class="d-flex">
                         <select class="form-control" name="payment_term" style="background-color: #43596c; color: white;" id="paymentTerm" required>
                             <option value="" selected> Select Payment Term</option>
@@ -226,9 +228,49 @@
                 <div class="col-md-4 mt-3">
                     <label class="">Email</label>
                     <input class="form-control" type="email" name="customerEmail" placeholder="Email" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
-                    <div class="mt-3" id="gstInDisplay" style="display: block;">
-                        <label class="">GSTIN</label>
-                        <input type="text" class="form-control" id="gstin" name="gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                    <div class="mt-3">
+                        <label class="">Place of supply</label>
+                        <select type="text" class="form-control" id="placeOfSupply" name="place_of_supply" style="background-color: #43596c; color: white;" required>
+                            <option value="" selected>--Choose--</option>
+                            <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islads</option>
+                            <option value="Andhra Predhesh">Andhra Predhesh</option>
+                            <option value="Arunachal Predesh">Arunachal Predesh</option>
+                            <option value="Assam">Assam</option>
+                            <option value="Bihar">Bihar</option>
+                            <option value="Chandigarh">Chandigarh</option>
+                            <option value="Chhattisgarh">Chhattisgarh</option>
+                            <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                            <option value="Damn anad Diu">Damn anad Diu</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Goa">Goa</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Haryana">Haryana</option>
+                            <option value="Himachal Predesh">Himachal Predesh</option>
+                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                            <option value="Jharkhand">Jharkhand</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Kerala">Kerala</option>
+                            <option value="Ladakh">Ladakh</option>
+                            <option value="Lakshadweep">Lakshadweep</option>
+                            <option value="Madhya Predesh">Madhya Predesh</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Manipur">Manipur</option>
+                            <option value="Meghalaya">Meghalaya</option>
+                            <option value="Mizoram">Mizoram</option>
+                            <option value="Nagaland">Nagaland</option>
+                            <option value="Odisha">Odisha</option>
+                            <option value="Puducherry">Puducherry</option>
+                            <option value="Punjab">Punjab</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                            <option value="Sikkim">Sikkim</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Tripura">Tripura</option>
+                            <option value="Uttar Predesh">Uttar Predesh</option>
+                            <option value="Uttarakhand">Uttarakhand</option>
+                            <option value="West Bengal">West Bengal</option>
+                            <option value="Other Territory">Other Territory</option>
+                        </select>
                     </div>
                 </div>
 
@@ -237,54 +279,16 @@
                     <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly></textarea>
                 </div>
                 <div class="col-md-4 mt-3">
-                    <label class="">Place of supply</label>
-                    <select type="text" class="form-control" id="placeOfSupply" name="place_of_supply" style="background-color: #43596c; color: white;" required>
-                        <option value="" selected>--Choose--</option>
-                        <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islads</option>
-                        <option value="Andhra Predhesh">Andhra Predhesh</option>
-                        <option value="Arunachal Predesh">Arunachal Predesh</option>
-                        <option value="Assam">Assam</option>
-                        <option value="Bihar">Bihar</option>
-                        <option value="Chandigarh">Chandigarh</option>
-                        <option value="Chhattisgarh">Chhattisgarh</option>
-                        <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
-                        <option value="Damn anad Diu">Damn anad Diu</option>
-                        <option value="Delhi">Delhi</option>
-                        <option value="Goa">Goa</option>
-                        <option value="Gujarat">Gujarat</option>
-                        <option value="Haryana">Haryana</option>
-                        <option value="Himachal Predesh">Himachal Predesh</option>
-                        <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                        <option value="Jharkhand">Jharkhand</option>
-                        <option value="Karnataka">Karnataka</option>
-                        <option value="Kerala">Kerala</option>
-                        <option value="Ladakh">Ladakh</option>
-                        <option value="Lakshadweep">Lakshadweep</option>
-                        <option value="Madhya Predesh">Madhya Predesh</option>
-                        <option value="Maharashtra">Maharashtra</option>
-                        <option value="Manipur">Manipur</option>
-                        <option value="Meghalaya">Meghalaya</option>
-                        <option value="Mizoram">Mizoram</option>
-                        <option value="Nagaland">Nagaland</option>
-                        <option value="Odisha">Odisha</option>
-                        <option value="Puducherry">Puducherry</option>
-                        <option value="Punjab">Punjab</option>
-                        <option value="Rajasthan">Rajasthan</option>
-                        <option value="Sikkim">Sikkim</option>
-                        <option value="Tamil Nadu">Tamil Nadu</option>
-                        <option value="Telangana">Telangana</option>
-                        <option value="Tripura">Tripura</option>
-                        <option value="Uttar Predesh">Uttar Predesh</option>
-                        <option value="Uttarakhand">Uttarakhand</option>
-                        <option value="West Bengal">West Bengal</option>
-                        <option value="Other Territory">Other Territory</option>
-                    </select>
+                    <div id="gstInDisplay" style="display: block;">
+                        <label class="">GSTIN</label>
+                        <input type="text" class="form-control" id="gstin" name="gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                    </div>
                 </div>
             </div>
 
             <div class="row clearfix ">
                 <div class="col-md-12 table-responsive-md mt-3">
-                    <table class="table table-bordered table-hover mt-3" id="salesOrderItemsTable">
+                    <table class="table table-bordered table-hover mt-3" id="purchaseOrderItemsTable">
                         <thead>
                             <tr>
                                 <th class="text-center">#</th>
@@ -375,7 +379,7 @@
                     <input type="file" name="file"  style="margin-top: 10px; width: 70%;">
                 </div>            
                 <div class="col-md-1"></div>
-                <div class="col-md-5 table-responsive-md mt-3 " id="salesOrderItemsTableTotal" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
+                <div class="col-md-5 table-responsive-md mt-3 " id="purchaseOrderItemsTableTotal" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
                     <div class="p-3">
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label class="text-center">Sub Total</label></div>
@@ -423,7 +427,7 @@
             </div>
             <div class="row">
                 <div class="col-md-7"></div>
-                <div class="col-md-5 table-responsive-md mt-3 " id="salesOrderItemsTablePaid" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
+                <div class="col-md-5 table-responsive-md mt-3 " id="purchaseOrderItemsTablePaid" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
                     <div class="p-3">
                         <div class="row container-fluid p-2 m-0">
                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Paid Off</label></div>
@@ -457,7 +461,7 @@
                 <div class="text-muted">NOTICE:</div>
                 <div class="text-muted">Fin sYs Terms and Conditions Apply</div>
             </div>
-            <footer class="text-muted">Sales Order was created on a computer and is valid without the signature and seal.</footer>
+            <footer class="text-muted">Purchase Order was created on a computer and is valid without the signature and seal.</footer>
         </div>
       </div>
     </div>
@@ -1283,13 +1287,11 @@
         return cust;
     }
 
-    function filterVendors(value){
+    function filterVendors(){
         var vndOptions = $('#vnd_drop').children();
-        // console.log($("#vendor").val())
-        // var search_text = $("#vendor").val().toLowerCase();
-        // console.log(search_text)
+        var search_text = $("#vendorInp").val().toLowerCase();
         vndOptions.each(function(){
-            if($(this).text().toLowerCase().includes(value)){
+            if($(this).text().toLowerCase().includes(search_text)){
                 $(this).show()
             }else{
                 $(this).hide()
@@ -1336,7 +1338,6 @@
                         document.getElementById('gstInDisplay').style.display = 'none';
                         document.getElementById('gstin').value = '';
                     }
-                    refreshTax();
                 }
             });
         }else{
@@ -1351,13 +1352,14 @@
 
 
     function getVendorDetails(vendorId, name){
-        $('#vendor').val(name)
         console.log('name',name);
-        if($('#vendor').val() != ""){
+        console.log('id',vendorId);
+        $('#vendorInp').val(name);
+        if($('#vendorInp').val() != ""){
             $('#vendErr').text('');
             $.ajax({
                 type : 'POST',
-                url: "{% url 'Fin_getInvoiceCustomerData' %}",
+                url: "{% url 'Fin_getVendorData' %}",
                 data: {
                     id: vendorId,
                     csrfmiddlewaretoken: '{{ csrf_token }}',
@@ -1365,28 +1367,28 @@
                 
                 success: function(data){
                     console.log('AJAX-Response-->',data);
-                    document.getElementById('customerId').value = data.id;
-                    document.getElementById('customerEmail').value = data.email;
-                    document.getElementById('placeOfSupply').value = data.shipState;
-                    document.getElementById('gstType').value = data.gstType;
-                    document.getElementById('billAddress').value = data.street + ',' + data.city + '\n' + data.state + '\n' + data.country  + '\n' + data.pincode ;
+                    document.getElementById('vendorId').value = data.id;
+                    document.getElementById('vendorEmail').value = data.email;
+                    document.getElementById('sourceOfSupply').value = data.shipState;
+                    document.getElementById('vendorGstType').value = data.gstType;
+                    document.getElementById('vendorBillAddress').value = data.street + ',' + data.city + '\n' + data.state + '\n' + data.country  + '\n' + data.pincode ;
                     if(data.gstin){
-                        document.getElementById('gstInDisplay').style.display = 'block';
-                        document.getElementById('gstin').value = data.gstNo;
+                        document.getElementById('vendorGstInDisplay').style.display = 'block';
+                        document.getElementById('vendorGstin').value = data.gstNo;
                     }else{
-                        document.getElementById('gstInDisplay').style.display = 'none';
-                        document.getElementById('gstin').value = '';
+                        document.getElementById('vendorGstInDisplay').style.display = 'none';
+                        document.getElementById('vendorGstin').value = '';
                     }
                     refreshTax();
                 }
             });
         }else{
-            document.getElementById('customerEmail').value = "";
-            document.getElementById('placeOfSupply').value = "";
-            document.getElementById('gstType').value = "";
-            document.getElementById('billAddress').value ="";
-            document.getElementById('gstin').value = "";
-            $('#custErr').text('Select a customer..');
+            document.getElementById('vendorEmail').value = "";
+            document.getElementById('sourceOfSupply').value = "";
+            document.getElementById('vendorGstType').value = "";
+            document.getElementById('vendorBillAddress').value ="";
+            document.getElementById('vendorGstin').value = "";
+            $('#vendErr').text('Select a Vendor..');
         }
     }
 
@@ -1426,7 +1428,7 @@
                             }
                         });
 
-                        findShipmentDate();
+                        findDueDate();
 
                     }else{
                         alert("Something went wrong.!")
@@ -1439,9 +1441,9 @@
         }
     });
 
-    function findShipmentDate(){
+    function findDueDate(){
         var days = parseInt($('#paymentTerm').find(":selected").attr('text'))
-        order_date =new Date($('#salesOrderDate').val())
+        order_date =new Date($('#purchaseOrderDate').val())
         console.log(days);
         console.log(order_date);
         if (!isNaN(order_date.getTime())) {
@@ -1456,7 +1458,7 @@
 
             const formattedDate = `${day}-${month}-${year}`;
 
-            document.getElementById("shipmentDate").value = formattedDate;
+            document.getElementById("dueDate").value = formattedDate;
         } else {
                 alert("Please enter a valid date.");
                 $('#paymentTerm').val('')
@@ -1464,16 +1466,16 @@
     }
 
     $('#paymentTerm').on('change', function () {
-        findShipmentDate();
+        findDueDate();
     });
 
-    $('#salesOrderDate').on('change', function() {
-        findShipmentDate();
+    $('#purchaseOrderDate').on('change', function() {
+        findDueDate();
     });
 
     function refreshTax(){
         var cmpState = $('#cmpstate').val();
-        var plc = $('#placeOfSupply').val();
+        var plc = $('#sourceOfSupply').val();
         if(cmpState == plc){
             $('.tax_ref').css('display','none');
             $('.tax_ref_gst').css('display','block');
@@ -1491,14 +1493,14 @@
 
     $(document).on('change','#purchaseOrderNumber', function() {
         $('#PONoErr').text('');
-        var so_num = $(this).val();
-        if(so_num != ""){
-            console.log(so_num);
+        var po_num = $(this).val();
+        if(po_num != ""){
+            console.log(po_num);
             $.ajax({
                 type: "GET",
-                url: "{% url 'Fin_checkSalesOrderNumber' %}",
+                url: "{% url 'Fin_checkPurchaseOrderNumber' %}",
                 data: {
-                    SONum : so_num,
+                    PONum : po_num,
                 },
                 success: function (response) {
                     if (response.status){
@@ -1560,7 +1562,7 @@
         });
     });
 
-    $(document).on('change','#placeOfSupply',function()   {
+    $(document).on('change','#sourceOfSupply',function()   {
         refreshTax();
         calc();
     });
@@ -1580,7 +1582,7 @@
     function getItemDetails(inpId, value){
         var itm = value;
         var exists = false;
-        var plc = $('#placeOfSupply').val();
+        var plc = $('#sourceOfSupply').val();
         console.log('clicked',value);
 
         $('#items-table-body tr').each(function () {
@@ -1613,7 +1615,7 @@
                         $('#'+inpId).val(value);
                         document.getElementById('itemId'+n).value = response.id;
                         document.getElementById('hsn'+n).value = response.hsn;
-                        document.getElementById('price'+n).value = response.sales_rate;
+                        document.getElementById('price'+n).value = response.purchase_rate;
                         document.getElementById('taxGST'+n).value = response.gst;
                         document.getElementById('taxIGST'+n).value = response.igst;
                         refreshTax();
@@ -1622,10 +1624,10 @@
                 },
                 });
             }else{
-                alert('Select Place of Supply.!')
+                alert('Select Source of Supply.!')
             }
         }else{
-            alert('Item already exists in the SALES ORDER, choose another or change quantity.!')
+            alert('Item already exists in the PURCHASE ORDER, choose another or change quantity.!')
         }
 
     }
@@ -1651,7 +1653,7 @@
     // calculation---------------------------
 
     function calc() {
-        $('#salesOrderItemsTable tbody tr').each(function () {
+        $('#purchaseOrderItemsTable tbody tr').each(function () {
             var html = $(this).html();
             if (html != '') {
                 var qty = $(this).find('.qty').val();
@@ -1661,7 +1663,7 @@
                     var price = $(this).find('.price').val();
                 }
                 var dis = $(this).find('.disc').val();
-                var bc = $("#placeOfSupply").val();
+                var bc = $("#sourceOfSupply").val();
                 var compstate = $("#cmpstate").val();
 
                 if(bc==compstate){
@@ -1702,7 +1704,7 @@
     }
 
     function splitTax(){
-        var bc = $("#placeOfSupply").val();
+        var bc = $("#sourceOfSupply").val();
         var compstate = $("#cmpstate").val();
         d=0
         if (bc == compstate  ) {
@@ -1887,25 +1889,21 @@ $(document).ready(function(){
             return false;
         }
 
-        var customers = $('#cust_drop').children();
-        var search_text = $("#customer").val().toLowerCase();
-        console.log('customerssss---');
-        console.log(customers);
-        var cust = false;
-        customers.each(function(){
+        var vendors = $('#vnd_drop').children();
+        var search_text = $("#vendorInp").val().toLowerCase();
+        
+        var vend = false;
+        vendors.each(function(){
             if($(this).text().toLowerCase() == search_text){
-                cust = true;
+                vend = true;
             }
-            console.log('Cust--',$(this).text().toLowerCase());
-            console.log('search--',search_text);
-            console.log('cust status--',cust);
         })
 
-        if(! cust){
-            $('#custErr').text('Select a customer..');
-            $("#customer").val("");
-            alert('Choose a valid customer from the list..')
-            customers.each(function(){
+        if(! vend){
+            $('#vendErr').text('Select a Vendor..');
+            $("#vendorInp").val("");
+            alert('Choose a valid Vendor from the list..')
+            vendors.each(function(){
                 $(this).show()
             })
             return false;
@@ -2684,24 +2682,24 @@ function reloadItems() {
 
         success: function(data) {
             $('#items-table-body tr').each(function () {
-            var currentRow = $(this);
-            var html = currentRow.html();
-            
-            if (html !== '') {
-                currentRow.find(".items-available").find("li").remove();
+                var currentRow = $(this);
+                var html = currentRow.html();
+                
+                if (html !== '') {
+                    currentRow.find(".items-available").find("li").remove();
 
-                $.each(data, function(key, value) {
-                    for (let i = 0; i < value.length; i++) {
-                        currentRow.find(".items-available").append(`
-                            <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'), '${value[i]}')">
-                                ${value[i]}
-                            </li>`
-                        );
-                    }
-                });
+                    $.each(data, function(key, value) {
+                        for (let i = 0; i < value.length; i++) {
+                            currentRow.find(".items-available").append(`
+                                <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'), '${value[i]}')">
+                                    ${value[i]}
+                                </li>`
+                            );
+                        }
+                    });
 
-                console.log('Success');
-            }
+                    console.log('Success');
+                }
         });
 
 

@@ -62,7 +62,7 @@
         </thead>
         <tbody>
           {% for a in purchase_orders %}
-          <tr class="clickable-row" data-href="" style="cursor: pointer;">
+          <tr class="clickable-row" data-href="{% url 'Fin_viewPurchaseOrder' a.id %}" style="cursor: pointer;">
             <td>{{ forloop.counter }}</td>
             <td>{{ a.purchase_order_date }}</td>
             <td>{{ a.purchase_order_no }}</td>

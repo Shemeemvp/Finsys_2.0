@@ -4857,6 +4857,7 @@ def Fin_getInvItemDetails(request):
             'id': item.id,
             'hsn':item.hsn,
             'sales_rate':item.selling_price,
+            'purchase_rate':item.purchase_price,
             'avl':item.current_stock,
             'tax': True if item.tax_reference == 'taxable' else False,
             'gst':item.intra_state_tax,
@@ -9481,3 +9482,305 @@ def Fin_addPurchaseOrder(request):
         return render(request,'company/Fin_Add_Purchase_Order.html',context)
     else:
        return redirect('/')
+
+def Fin_getVendorData(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+        
+        vndId = request.POST['id']
+        vend = Fin_Vendors.objects.get(id = vndId)
+
+        if vend:
+            context = {
+                'status':True, 'id':vend.id, 'email':vend.email, 'gstType':vend.gst_type,'shipState':vend.place_of_supply,'gstin':False if vend.gstin == "" or vend.gstin == None else True, 'gstNo':vend.gstin,
+                'street':vend.billing_street, 'city':vend.billing_city, 'state':vend.billing_state, 'country':vend.billing_country, 'pincode':vend.billing_pincode
+            }
+            return JsonResponse(context)
+        else:
+            return JsonResponse({'status':False, 'message':'Something went wrong..!'})
+    else:
+       return redirect('/')
+
+def Fin_checkPurchaseOrderNumber(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        PurOrdNo = request.GET['PONum']
+
+        # Finding next pur_order number w r t last pur_order number if exists.
+        nxtPO = ""
+        lastPO = Fin_Purchase_Order.objects.filter(Company = com).last()
+        if lastPO:
+            po_no = str(lastPO.purchase_order_no)
+            numbers = []
+            stri = []
+            for word in po_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            p_order_num = int(num)+1
+
+            if num[0] == '0':
+                if p_order_num <10:
+                    nxtPO = st+'0'+ str(p_order_num)
+                else:
+                    nxtPO = st+ str(p_order_num)
+            else:
+                nxtPO = st+ str(p_order_num)
+
+        PatternStr = []
+        for word in PurOrdNo:
+            if word.isdigit():
+                pass
+            else:
+                PatternStr.append(word)
+        
+        pattern = ''
+        for j in PatternStr:
+            pattern += j
+
+        pattern_exists = checkPurchaseOrderNumberPattern(pattern)
+
+        if pattern !="" and pattern_exists:
+            return JsonResponse({'status':False, 'message':'Pur. Order No. Pattern already Exists.!'})
+        elif Fin_Purchase_Order.objects.filter(Company = com, purchase_order_no__iexact = PurOrdNo).exists():
+            return JsonResponse({'status':False, 'message':'Pur. Order No. already Exists.!'})
+        elif nxtPO != "" and PurOrdNo != nxtPO:
+            return JsonResponse({'status':False, 'message':'Pur. Order No. is not continuous.!'})
+        else:
+            return JsonResponse({'status':True, 'message':'Number is okay.!'})
+    else:
+       return redirect('/')
+
+def checkPurchaseOrderNumberPattern(pattern):
+    models = [Fin_Invoice, Fin_Sales_Order, Fin_Estimate, Fin_Purchase_Bill, Fin_Manual_Journal, Fin_Recurring_Invoice]
+
+    for model in models:
+        field_name = model.getNumFieldName(model)
+        if model.objects.filter(**{f"{field_name}__icontains": pattern}).exists():
+            return True
+    return False
+
+def Fin_createPurchaseOrder(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            PONum = request.POST['purchase_order_no']
+            if Fin_Purchase_Order.objects.filter(Company = com, purchase_order_no__iexact = PONum).exists():
+                res = f'<script>alert("Purchase Order Number `{PONum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            POrder = Fin_Purchase_Order(
+                Company = com,
+                LoginDetails = com.Login_Id,
+                Vendor = None if request.POST['vendorId'] == "" else Fin_Vendors.objects.get(id = request.POST['vendorId']),
+                vendor_email = request.POST['vendorEmail'],
+                vendor_address = request.POST['vendor_bill_address'],
+                vendor_gst_type = request.POST['vendor_gst_type'],
+                vendor_gstin = request.POST['vendor_gstin'],
+                vendor_source_of_supply = request.POST['source_of_supply'],
+
+                Customer = None if request.POST['customerId'] == "" else Fin_Customers.objects.get(id = request.POST['customerId']),
+                customer_name = request.POST['customer'],
+                customer_email = request.POST['customerEmail'],
+                customer_address = request.POST['bill_address'],
+                customer_gst_type = request.POST['gst_type'],
+                customer_gstin = request.POST['gstin'],
+                customer_place_of_supply = request.POST['place_of_supply'],
+
+                reference_no = request.POST['reference_number'],
+                purchase_order_no = PONum,
+                payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term']),
+                purchase_order_date = request.POST['purchase_order_date'],
+                due_date = datetime.strptime(request.POST['due_date'], '%d-%m-%Y').date(),
+                payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method'],
+                cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id'],
+                upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id'],
+                bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id'],
+                subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal']),
+                igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst']),
+                cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst']),
+                sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst']),
+                tax_amount = 0.0 if request.POST['taxamount'] == "" else float(request.POST['taxamount']),
+                adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj']),
+                shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship']),
+                grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal']),
+                paid_off = 0.0 if request.POST['advance'] == "" else float(request.POST['advance']),
+                balance = request.POST['grandtotal'] if request.POST['balance'] == "" else float(request.POST['balance']),
+                note = request.POST['note']
+            )
+
+            POrder.save()
+
+            if len(request.FILES) != 0:
+                POrder.file=request.FILES.get('file')
+            POrder.save()
+
+            if 'Draft' in request.POST:
+                POrder.status = "Draft"
+            elif "Save" in request.POST:
+                POrder.status = "Saved" 
+            POrder.save()
+
+            # Save Sales Order items.
+
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("price[]")
+            tax = request.POST.getlist("taxGST[]") if request.POST['source_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
+
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total) and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total)
+                mapped = list(mapped)
+                for ele in mapped:
+                    itm = Fin_Items.objects.get(id = int(ele[0]))
+                    Fin_Purchase_Order_Items.objects.create(PurchaseOrder = POrder, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                    # itm.current_stock -= int(ele[3])
+                    # itm.save()
+            
+            # Save transaction
+                    
+            Fin_Purchase_Order_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                PurchaseOrder = POrder,
+                action = 'Created'
+            )
+
+            return redirect(Fin_purchaseOrder)
+        else:
+            return redirect(Fin_addPurchaseOrder)
+    else:
+       return redirect('/')
+
+def Fin_viewPurchaseOrder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        purchaseOrder = Fin_Purchase_Order.objects.get(id = id)
+        cmt = Fin_Purchase_Order_Comments.objects.filter(PurchaseOrder = purchaseOrder)
+        hist = Fin_Purchase_Order_History.objects.filter(PurchaseOrder = purchaseOrder).last()
+        POItems = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = purchaseOrder)
+        try:
+            created = Fin_Purchase_Order_History.objects.get(PurchaseOrder = purchaseOrder, action = 'Created')
+        except:
+            created = None
+        
+        return render(request,'company/Fin_View_Purchase_Order.html',{'allmodules':allmodules,'com':com,'cmp':cmp, 'data':data, 'order':purchaseOrder,'orderItems':POItems, 'history':hist, 'comments':cmt, 'created':created})
+    else:
+       return redirect('/')
+
+def Fin_convertPurchaseOrder(request,id):
+    if 's_id' in request.session:
+
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        salesOrder.status = 'Saved'
+        salesOrder.save()
+        return redirect(Fin_viewSalesOrder, id)
+
+def Fin_addPurchaseOrderComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_Sales_Order_Comments.objects.create(Company = com, SalesOrder = salesOrder, comments = cmt)
+            return redirect(Fin_viewSalesOrder, id)
+        return redirect(Fin_viewSalesOrder, id)
+    return redirect('/')
+
+def Fin_deletePurchaseOrderComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_Sales_Order_Comments.objects.get(id = id)
+        orderId = cmt.SalesOrder.id
+        cmt.delete()
+        return redirect(Fin_viewSalesOrder, orderId)
+    
+def Fin_purchaseOrderHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        his = Fin_Sales_Order_History.objects.filter(SalesOrder = salesOrder)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/Fin_Sales_Order_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'order':salesOrder})
+    else:
+       return redirect('/')
+    
+def Fin_deletePurchaseOrder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        salesOrder = Fin_Sales_Order.objects.get( id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder).delete()
+
+        # Storing ref number to deleted table
+        # if entry exists and lesser than the current, update and save => Only one entry per company
+        if Fin_Sales_Order_Reference.objects.filter(Company = com).exists():
+            deleted = Fin_Sales_Order_Reference.objects.get(Company = com)
+            if int(salesOrder.reference_no) > int(deleted.reference_no):
+                deleted.reference_no = salesOrder.reference_no
+                deleted.save()
+        else:
+            Fin_Sales_Order_Reference.objects.create(Company = com, reference_no = salesOrder.reference_no)
+        
+        salesOrder.delete()
+        return redirect(Fin_salesOrder)

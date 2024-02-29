@@ -322,6 +322,17 @@ urlpatterns = [
     # < ------------- Shemeem -------- > Purchase Order < ------------------------------- >
     path('Fin_purchase_order',views.Fin_purchaseOrder, name='Fin_purchaseOrder'),
     path('Fin_add_purchase_order',views.Fin_addPurchaseOrder, name='Fin_addPurchaseOrder'),
+    path('Fin_check_purchase_order_number',views.Fin_checkPurchaseOrderNumber, name='Fin_checkPurchaseOrderNumber'),
+    path('Fin_get_vendor_data',views.Fin_getVendorData, name='Fin_getVendorData'),
+    path('Fin_create_purchase_order',views.Fin_createPurchaseOrder, name='Fin_createPurchaseOrder'),
+    path('Fin_view_purchase_order/<int:id>',views.Fin_viewPurchaseOrder, name='Fin_viewPurchaseOrder'),
+
+    path('Fin_convert_purchase_order/<int:id>',views.Fin_convertPurchaseOrder, name='Fin_convertPurchaseOrder'),
+    path('Fin_add_purchase_order_comment/<int:id>',views.Fin_addPurchaseOrderComment, name='Fin_addPurchaseOrderComment'),
+    path('Fin_delete_purchase_order_comment/<int:id>',views.Fin_deletePurchaseOrderComment, name='Fin_deletePurchaseOrderComment'),
+    path('Fin_purchase_order_history/<int:id>',views.Fin_purchaseOrderHistory, name='Fin_purchaseOrderHistory'),
+    path('Fin_delete_purchase_order/<int:id>',views.Fin_deletePurchaseOrder, name= 'Fin_deletePurchaseOrder'),
+    # path('Fin_attach_purchase_order_file/<int:id>',views.Fin_attachPurchaseOrderFile, name='Fin_attachPurchaseOrderFile'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
