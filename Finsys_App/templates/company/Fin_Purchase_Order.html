@@ -73,7 +73,7 @@
             <td>{{ a.balance }}</td>
             <td>
               {% if a.converted_to_bill != None %}
-              <span class="text-info font-weight-bolder text-center" onclick="window.location.href=``">Converted to <br>Invoice - #{{a.converted_to_bill.bill_no}}</span>
+              <span class="text-info font-weight-bolder text-center" onclick="window.location.href=`{% url 'Fin_View_Purchase_Bill' a.converted_to_bill.bill_no %}`">Converted to <br>Bill - #{{a.converted_to_bill.bill_no}}</span>
               {% elif a.converted_to_rec_bill != None %}
               <span class="text-info font-weight-bolder text-center" onclick="window.location.href=``">Converted to <br>Recurring Invoice - #</span>
               {% else %}
@@ -82,7 +82,7 @@
                       Convert
                   </button>
                   <ul class="dropdown-menu">
-                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=``">To Bill</button></li>
+                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertPurchaseOrderToBill' a.id %}`">To Bill</button></li>
                     <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=``">To Recurring Bill</button></li>
                   </ul>
               </div>

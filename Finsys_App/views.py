@@ -23,6 +23,7 @@ from datetime import date,datetime
 from django.db.models import Sum,F,IntegerField,Q
 from django.db.models.functions import ExtractMonth,ExtractYear,Cast
 from django.core.mail import EmailMessage
+import re
 
 def Fin_index(request):
     return render(request,'Fin_index.html')
@@ -4613,6 +4614,744 @@ def holiday_update(request,pk):
         return render(request,'company/Holiday_List.html',{'allmodules':allmodules})
 
 # harikrishnan end ---------------
+
+#---------------------------- Purchase Bill --------------------------------# 
+
+def Fin_List_Purchase_Bill(request):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        allmodules = Fin_Modules_List.objects.get(Login_Id = com.id)
+    pbill = Fin_Purchase_Bill.objects.filter(company=com)
+    context = {'allmodules':allmodules, 'data':data, 'com':com, 'pbill':pbill}
+    return render(request,'company/Fin_Pbill_List.html', context)
+    
+def Fin_List_Purchase_Add(request):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        allmodules = Fin_Modules_List.objects.get(Login_Id = com.id)
+    ven = Fin_Vendors.objects.filter(Company = com, status = 'Active')
+    cust = Fin_Customers.objects.filter(Company = com, status = 'Active')
+    bnk = Fin_Banking.objects.filter(company = com, bank_status = 'Active')
+    itm = Fin_Items.objects.filter(Company = com, status = 'Active')
+    plist = Fin_Price_List.objects.filter(Company = com, type = 'Purchase', status = 'Active')
+    terms = Fin_Company_Payment_Terms.objects.filter(Company = com)
+    units = Fin_Units.objects.filter(Company = com)
+    account = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=com).order_by('account_name')
+    tod = datetime.now().strftime('%Y-%m-%d')
+    if Fin_Purchase_Bill.objects.filter(company = com):
+        try:
+            ref_no = int(Fin_Purchase_Bill_Ref_No.objects.filter(company = com).last().ref_no) + 1
+        except:
+            ref_no =  1
+        bill_no = Fin_Purchase_Bill.objects.filter(company = com).last().bill_no
+        match = re.search(r'^(\d+)|(\d+)$', bill_no)
+        if match:
+            numeric_part = match.group(0)
+            incremented_numeric = str(int(numeric_part) + 1).zfill(len(numeric_part))
+            bill_no = re.sub(r'\d+', incremented_numeric, bill_no, count=1)
+    else:
+        try:
+            ref_no = int(Fin_Purchase_Bill_Ref_No.objects.filter(company = com).last().ref_no) + 1
+        except:
+            ref_no =  1
+        bill_no = 1000
+    context = {'allmodules':allmodules, 'data':data, 'com':com, 'ven':ven, 'cust':cust, 'bnk':bnk, 'units':units,
+               'account':account, 'itm':itm, 'tod':tod, 'plist':plist, 'ref_no': ref_no, 'bill_no':bill_no, 'terms':terms}
+    return render(request,'company/Fin_Pbill_Add.html', context)
+
+def Fin_Price_List_Data(request):
+    plist_id = request.GET.get('plist_id')
+    itm_id = request.GET.get('itm_id')
+    plist = Fin_Price_List.objects.get(id=plist_id)
+    itm = Fin_Items.objects.get(id=itm_id)
+    if plist.item_rate == 'Markup/Markdown by a percentage':
+        if plist.up_or_down == 'Markup':
+            price = float(itm.purchase_price) + (float(itm.purchase_price)*float(plist.percentage)/100)
+        else:
+            price = float(itm.purchase_price) - (float(itm.purchase_price)*float(plist.percentage)/100)
+    else:
+        try:
+            price = Fin_PriceList_Items.objects.get(list = plist, item = itm).custom_rate
+        except:
+            price = itm.purchase_price
+    return JsonResponse({'price':price})
+    
+def Fin_Create_Purchase_Bill(request):
+  if request.method == 'POST': 
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+    
+    ven = Fin_Vendors.objects.get(id = request.POST.get('ven_name'))
+    if request.POST.get('cust_name') == "" or request.POST.get('cust_name') == 'none':
+        cust = None
+    else:
+        cust = Fin_Customers.objects.get(id = request.POST.get('cust_name'))
+    plist = None if request.POST.get('price_list') == "" else Fin_Price_List.objects.get(id = request.POST.get('price_list'))
+    term = None if request.POST.get('pay_terms') == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST.get('pay_terms'))
+    pbill = Fin_Purchase_Bill(vendor = ven,
+                              customer = cust,
+                              pricelist = plist,
+                              ven_psupply = request.POST.get('ven_psupply'),
+                              cust_psupply = request.POST.get('cust_psupply'),
+                              bill_no = request.POST.get('bill_no'),
+                              ref_no = request.POST.get('ref_no'),
+                            #   porder_no = request.POST.get('pord_no'),
+                              bill_date = request.POST.get('bill_date'),
+                              due_date = request.POST.get('due_date'),
+                              pay_term = term,
+                              pay_type = request.POST.get('pay_type'),
+                              cheque_no = request.POST.get('cheque_id'),
+                              upi_no = request.POST.get('upi_id'),
+                              bank_no = request.POST.get('bnk_no'),
+                              subtotal = request.POST.get('sub_total'),
+                              igst = request.POST.get('igst'),
+                              cgst = request.POST.get('cgst'),
+                              sgst = request.POST.get('sgst'),
+                              taxamount = request.POST.get('tax_amount'),
+                              ship_charge = request.POST.get('shipcharge'),
+                              adjust = request.POST.get('adjustment'),
+                              grandtotal = request.POST.get('grand_total'),
+                              paid = request.POST.get('paid'),
+                              balance = request.POST.get('bal_due'),
+                              company = com,
+                              logindetails = data)
+    if 'Draft' in request.POST:
+        pbill.status = "Draft"
+    if "Save" in request.POST:
+        pbill.status = "Save"  
+    if len(request.FILES) != 0:
+        pbill.file=request.FILES.get('file')  
+
+    pbill.save()
+        
+    item = tuple(request.POST.getlist("product[]"))
+    qty =  tuple(request.POST.getlist("qty[]"))
+    price =  tuple(request.POST.getlist("price[]"))
+    if request.POST.getlist("intra_tax[]")[0] != '':
+        tax = tuple(request.POST.getlist("intra_tax[]"))
+    else:
+        tax = tuple(request.POST.getlist("inter_tax[]"))
+    discount =  tuple(request.POST.getlist("discount[]"))
+    total =  tuple(request.POST.getlist("total[]"))
+
+    if len(item)==len(qty)==len(price)==len(tax)==len(discount)==len(total):
+        mapped=zip(item,qty,price,tax,discount,total)
+        mapped=list(mapped)
+        for ele in mapped:
+            itm = Fin_Items.objects.get(id=ele[0])
+            Fin_Purchase_Bill_Item.objects.create(item = itm,qty = ele[1],price = ele[2],tax = ele[3],discount = ele[4],total = ele[5],pbill = pbill,company = com)
+            itm.current_stock = int(itm.current_stock) + int(ele[1])
+            itm.save()
+
+    Fin_Purchase_Bill_Ref_No.objects.create(company = com, logindetails = data, ref_no = request.POST.get('ref_no'))
+    Fin_Purchase_Bill_History.objects.create(company =com, logindetails = data, pbill = pbill, action='Created')
+    return redirect('Fin_List_Purchase_Bill')
+  else:
+    return redirect('Fin_List_Purchase_Add')
+  
+def Fin_Check_Pbill_No(request):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+    bill_no = request.GET.get('no')
+    id = request.GET.get('id')
+    if id:
+        bill_list = Fin_Purchase_Bill.objects.filter(company = com).exclude(id = id)
+    else:
+        bill_list = Fin_Purchase_Bill.objects.filter(company = com)
+    for b in bill_list:
+        if str(b.bill_no).upper() == str(bill_no).upper():
+            return JsonResponse({'message':'Used'})
+
+    bill = re.search(r'[a-zA-Z]+', bill_no)
+    if bill:
+        bill = bill.group()
+
+    sale_no = Fin_Sales_Order.objects.filter(Company = com)
+    for no in sale_no:
+        sale = re.search(r'[a-zA-Z]+', no.sales_order_no)
+        if sale:
+            sale = sale.group()
+        if sale.upper() == bill.upper():
+            return JsonResponse({'message':'Invalid'})
+    return JsonResponse({'message':'Valid'})
+
+def Fin_New_Vendor(request):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+    if request.method == 'GET':
+        vnd = Fin_Vendors(
+            Company = com,
+            LoginDetails = com.Login_Id,
+            title = request.GET.get('title'),
+            first_name = request.GET.get('fname'),
+            last_name = request.GET.get('lname'),
+            company = request.GET.get('cname'),
+            location = request.GET.get('loc'),
+            email = request.GET.get('email'),
+            website = request.GET.get('site'),
+            mobile = request.GET.get('phone'),
+            gst_type = request.GET.get('gst_type'),
+            gstin = None if request.GET.get('gst_type') == "Unregistered Business" or request.GET.get('gst_type') == 'Overseas' or request.GET.get('gst_type') == 'Consumer' else request.GET.get('gst_in'),
+            pan_no = request.GET.get('pan'),
+            place_of_supply = request.GET.get('psupply'),
+            currency = request.GET.get('currency'),
+            open_balance_type = request.GET.get('bal_type'),
+            opening_balance = 0 if request.GET.get('bal') == "" else float(request.GET.get('bal')),
+            current_balance = 0 if request.GET.get('bal') == "" else float(request.GET.get('bal')),
+            credit_limit = 0 if request.GET.get('limit') == "" else float(request.GET.get('limit')),
+            payment_terms = None if request.GET.get('terms') == "" else Fin_Company_Payment_Terms.objects.get(id = request.GET.get('terms')),
+            price_list = None if request.GET.get('plist') ==  "" else Fin_Price_List.objects.get(id = request.GET.get('plist')),
+            billing_street = request.GET.get('street'),
+            billing_city = request.GET.get('city'),
+            billing_state = request.GET.get('state'),
+            billing_pincode = request.GET.get('pinco'),
+            billing_country = request.GET.get('country'),
+            ship_street = request.GET.get('shipstreet'),
+            ship_city = request.GET.get('shipcity'),
+            ship_state = request.GET.get('shipstate'),
+            ship_pincode = request.GET.get('shippinco'),
+            ship_country = request.GET.get('shipcountry'),
+            status = 'Active'
+        )
+        vnd.save()
+
+        Fin_Vendor_History.objects.create(
+            Company = com,
+            LoginDetails = data,
+            Vendor = vnd,
+            action = 'Created'
+        )
+        return JsonResponse({'id':vnd.id})
+
+    else:
+        return JsonResponse({'message':'Error'})
+
+def Fin_New_Customer(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'GET':
+            cust = Fin_Customers(
+                Company = com,
+                LoginDetails = data,
+                title = request.GET.get('title'),
+                first_name = request.GET.get('fname'),
+                last_name = request.GET.get('lname'),
+                company = request.GET.get('cname'),
+                location = request.GET.get('loc'),
+                place_of_supply = request.GET.get('psupply'),
+                gst_type = request.GET.get('gst_type'),
+                gstin = None if request.GET.get('gst_type') == "Unregistered Business" or request.GET.get('gst_type') == 'Overseas' or request.GET.get('gst_type') == 'Consumer' else request.GET.get('gst_in'),
+                pan_no = request.GET.get('pan'),
+                email = request.GET.get('email'),
+                mobile = request.GET.get('phone'),
+                website = request.GET.get('site'),
+                price_list = None if request.GET.get('plist') ==  "" else Fin_Price_List.objects.get(id = request.GET.get('plist')),
+                payment_terms = None if request.GET.get('terms') == "" else Fin_Company_Payment_Terms.objects.get(id = request.GET.get('terms')),
+                opening_balance = 0 if request.GET.get('bal') == "" else float(request.GET.get('bal')),
+                open_balance_type = request.GET.get('bal_type'),
+                current_balance = 0 if request.GET.get('bal') == "" else float(request.GET.get('bal')),
+                credit_limit = 0 if request.GET.get('limit') == "" else float(request.GET.get('limit')),
+                billing_street = request.GET.get('street'),
+                billing_city = request.GET.get('city'),
+                billing_state = request.GET.get('state'),
+                billing_pincode = request.GET.get('pinco'),
+                billing_country = request.GET.get('country'),
+                ship_street = request.GET.get('shipstreet'),
+                ship_city = request.GET.get('shipcity'),
+                ship_state = request.GET.get('shipstate'),
+                ship_pincode = request.GET.get('shippinco'),
+                ship_country = request.GET.get('shipcountry'),
+                status = 'Active'
+            )
+            cust.save()
+
+            Fin_Customers_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                customer = cust,
+                action = 'Created'
+            )
+
+        return JsonResponse({'id':cust.id})
+    else:
+        return JsonResponse({'message':'Error'})
+
+def Fin_New_Payment_Term(request):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+    days = request.GET.get('days')
+    term_name = request.GET.get('term_name')
+    terms = Fin_Company_Payment_Terms.objects.create(Company = com, term_name = term_name, days = days)
+    return JsonResponse({'id':terms.id})
+
+def Fin_Check_New_Item_Name(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        name = request.POST['itm_name']
+
+        if Fin_Items.objects.filter(Company = com, name__iexact = name).exists():
+            msg = f'{name} already exists, Try another.!'
+            return JsonResponse({'is_exist':True, 'message':msg})
+        else:
+            return JsonResponse({'is_exist':False})
+    else:
+        return redirect('/')
+
+def Fin_Check_New_Item_HSN(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        hsn = request.POST['itm_hsn']
+
+        if Fin_Items.objects.filter(Company = com, hsn__iexact = hsn).exists():
+            msg = f'{hsn} already exists, Try another.!'
+            return JsonResponse({'is_exist':True, 'message':msg})
+        else:
+            return JsonResponse({'is_exist':False})
+    else:
+        return redirect('/')
+
+def Fin_New_Item(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'GET':
+            name = request.GET.get('name')
+            type = request.GET.get('type')
+            unit = request.GET.get('unit')
+            hsn = request.GET.get('hsn')
+            tax = request.GET.get('taxref')
+            gstTax = 0 if tax == 'non taxable' else request.GET.get('intra_st')
+            igstTax = 0 if tax == 'non taxable' else request.GET.get('inter_st')
+            purPrice = request.GET.get('pcost')
+            purAccount = None if not 'pur_account' in request.GET or request.GET.get('pur_account') == "" else request.GET.get('pur_account')
+            purDesc = request.GET.get('pur_desc')
+            salePrice = request.GET.get('salesprice')
+            saleAccount = None if not 'sale_account' in request.GET or request.GET.get('sale_account') == "" else request.GET.get('sale_account')
+            saleDesc = request.GET.get('sale_desc')
+            inventory = request.GET.get('invacc')
+            stock = 0 if request.GET.get('stock') == "" else request.GET.get('stock')
+            stockUnitRate = 0 if request.GET.get('stock_rate') == "" else request.GET.get('stock_rate')
+            minStock = request.GET.get('min_stock')
+            createdDate = date.today()
+            
+            item = Fin_Items(
+                Company = com,
+                LoginDetails = data,
+                name = name,
+                item_type = type,
+                unit = unit,
+                hsn = hsn,
+                tax_reference = tax,
+                intra_state_tax = gstTax,
+                inter_state_tax = igstTax,
+                sales_account = saleAccount,
+                selling_price = salePrice,
+                sales_description = saleDesc,
+                purchase_account = purAccount,
+                purchase_price = purPrice,
+                purchase_description = purDesc,
+                item_created = createdDate,
+                min_stock = minStock,
+                inventory_account = inventory,
+                opening_stock = stock,
+                current_stock = stock,
+                stock_in = 0,
+                stock_out = 0,
+                stock_unit_rate = stockUnitRate,
+                status = 'Active'
+            )
+            item.save()
+
+            Fin_Items_Transaction_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                item = item,
+                action = 'Created'
+            )
+                
+            return JsonResponse({'id': item.id})
+        return JsonResponse({'message':'Error'})
+
+def Fin_View_Purchase_Bill(request,id):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        allmodules = Fin_Modules_List.objects.get(Login_Id = com.id)
+    pbill = Fin_Purchase_Bill.objects.get(id=id)
+    itm = Fin_Purchase_Bill_Item.objects.filter(pbill=pbill)
+    hist = Fin_Purchase_Bill_History.objects.get(company = com, pbill = pbill, action = 'Created')
+    comments = Fin_Purchase_Bill_Comment.objects.filter(pbill = pbill)
+    context = {'allmodules':allmodules, 'data':data, 'com':com,'pbill':pbill, 'itm':itm, 'hist':hist, 'comments':comments }
+    return render(request, 'company/Fin_Pbill_View.html', context)
+
+def Fin_Purchase_Bill_Edit(request,id):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        allmodules = Fin_Modules_List.objects.get(Login_Id = com.id)
+    ven = Fin_Vendors.objects.filter(Company = com, status = 'Active')
+    cust = Fin_Customers.objects.filter(Company = com, status = 'Active')
+    bnk = Fin_Banking.objects.filter(company = com, bank_status = 'Active')
+    itm = Fin_Items.objects.filter(Company = com, status = 'Active')
+    plist = Fin_Price_List.objects.filter(Company = com, type = 'Purchase', status = 'Active')
+    terms = Fin_Company_Payment_Terms.objects.filter(Company = com)
+    units = Fin_Units.objects.filter(Company = com)
+    account = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=com).order_by('account_name')
+    pbill = Fin_Purchase_Bill.objects.get(id = id)
+    pitm = Fin_Purchase_Bill_Item.objects.filter(pbill = pbill)
+    bill_no = pbill.bill_no
+    context = {'allmodules':allmodules, 'data':data, 'com':com, 'ven':ven, 'cust':cust, 'bnk':bnk, 'units':units,'pbill':pbill, 'bill_no':bill_no,
+               'account':account, 'itm':itm, 'plist':plist, 'terms':terms, 'pitm':pitm}
+    return render(request, 'company/Fin_Pbill_Edit.html', context)
+
+def Fin_Update_Purchase_Bill(request, id):
+    if request.method == 'POST': 
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        ven = Fin_Vendors.objects.get(id = request.POST.get('ven_name'))
+        if request.POST.get('cust_name') == "" or request.POST.get('cust_name') == 'none':
+            cust = None
+        else:
+            cust = Fin_Customers.objects.get(id = request.POST.get('cust_name'))
+        plist = None if request.POST.get('price_list') == "" else Fin_Price_List.objects.get(id = request.POST.get('price_list'))
+        term = None if request.POST.get('pay_terms') == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST.get('pay_terms'))
+        pbill = Fin_Purchase_Bill.objects.get(id = id)
+
+        pbill.vendor = ven
+        pbill.customer = cust
+        pbill.pricelist = plist
+        pbill.ven_psupply = request.POST.get('ven_psupply')
+        pbill.cust_psupply = request.POST.get('cust_psupply')
+        pbill.bill_no = request.POST.get('bill_no')
+        pbill.ref_no = request.POST.get('ref_no')
+    #   pbill.porder_no = request.POST.get('pord_no')
+        pbill.bill_date = request.POST.get('bill_date')
+        pbill.due_date = request.POST.get('due_date')
+        pbill.pay_term = term
+        pbill.pay_type = request.POST.get('pay_type')
+        pbill.cheque_no = request.POST.get('cheque_id')
+        pbill.upi_no = request.POST.get('upi_id')
+        pbill.bank_no = request.POST.get('bnk_no')
+        pbill.subtotal = request.POST.get('sub_total')
+        pbill.igst = request.POST.get('igst')
+        pbill.cgst = request.POST.get('cgst')
+        pbill.sgst = request.POST.get('sgst')
+        pbill.taxamount = request.POST.get('tax_amount')
+        pbill.ship_charge = request.POST.get('shipcharge')
+        pbill.adjust = request.POST.get('adjustment')
+        pbill.grandtotal = request.POST.get('grand_total')
+        pbill.paid = request.POST.get('paid')
+        pbill.balance = request.POST.get('bal_due')
+        pbill.company = com
+        pbill.logindetails = data
+
+        if len(request.FILES) != 0:
+            pbill.file=request.FILES.get('file')  
+
+        pbill.save()
+            
+        bill_item_list = Fin_Purchase_Bill_Item.objects.filter(company = com, pbill = pbill)
+        for bill_item in bill_item_list:
+            bill_item.item.current_stock = bill_item.item.current_stock - bill_item.qty
+            bill_item.item.save()
+        bill_item_list.delete()
+
+        item = tuple(request.POST.getlist("product[]"))
+        qty =  tuple(request.POST.getlist("qty[]"))
+        price =  tuple(request.POST.getlist("price[]"))
+        if request.POST.getlist("intra_tax[]")[0] != '':
+            tax = tuple(request.POST.getlist("intra_tax[]"))
+        else:
+            tax = tuple(request.POST.getlist("inter_tax[]"))
+        discount =  tuple(request.POST.getlist("discount[]"))
+        total =  tuple(request.POST.getlist("total[]"))
+
+        if len(item)==len(qty)==len(price)==len(tax)==len(discount)==len(total):
+            mapped=zip(item,qty,price,tax,discount,total)
+            mapped=list(mapped)
+            for ele in mapped:
+                itm = Fin_Items.objects.get(id=ele[0])
+                Fin_Purchase_Bill_Item.objects.create(item = itm,qty = ele[1],price = ele[2],tax = ele[3],discount = ele[4],total = ele[5],pbill = pbill,company = com)
+                itm.current_stock = int(itm.current_stock) + int(ele[1])
+                itm.save()
+
+        Fin_Purchase_Bill_History.objects.create(company =com, logindetails = data, pbill = pbill, action='Updated')
+        return redirect('Fin_View_Purchase_Bill', id)
+    else:
+        return redirect('Fin_View_Purchase_Bill', id)
+
+def Fin_Purchase_Bill_Add_Edit_Comment(request, id):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+    pbill = Fin_Purchase_Bill.objects.get(id = id)
+    if 'comment_save' in request.POST:
+        pbill_com = Fin_Purchase_Bill_Comment(company = com,
+                                            logindetails = data,
+                                            comment = request.POST.get('comment'),
+                                            pbill = pbill)
+        pbill_com.save()
+    else:
+        com_id = request.POST.get('comment_id')
+        comm = Fin_Purchase_Bill_Comment.objects.get(id = com_id)
+        comm.logindetails = data
+        comm.comment = request.POST.get('comment')
+        comm.save()
+    return redirect('Fin_View_Purchase_Bill', id)
+
+def Fin_Purchase_Bill_Delete_Comment(request, id):
+    comm = Fin_Purchase_Bill_Comment.objects.get(id = id)
+    bill = comm.pbill.id
+    comm.delete()
+    return redirect('Fin_View_Purchase_Bill', bill)
+
+def Fin_Delete_Purchase_Bill(request,id):
+    pbill = Fin_Purchase_Bill.objects.get(id=id)
+    Fin_Purchase_Bill_Item.objects.filter(pbill = pbill).delete()
+    Fin_Purchase_Bill_History.objects.filter(pbill = pbill).delete()
+    Fin_Purchase_Bill_Comment.objects.filter(pbill = pbill).delete()
+    pbill.delete()
+    return redirect('Fin_List_Purchase_Bill')
+
+def Fin_Add_Additional_Files(request,id):
+    pbill = Fin_Purchase_Bill.objects.get(id=id)
+    if request.method == 'POST':
+        if len(request.FILES) != 0:
+            pbill.file = request.FILES['file']
+            pbill.save()
+        return redirect('Fin_View_Purchase_Bill',id)
+    
+def Fin_Purchase_List_History(request,id):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        allmodules = Fin_Modules_List.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        allmodules = Fin_Modules_List.objects.get(Login_Id = com.id)
+    pbill = Fin_Purchase_Bill.objects.get(id=id)
+    hist = Fin_Purchase_Bill_History.objects.filter(company = com, pbill = pbill)
+    context = {'allmodules':allmodules, 'data':data, 'com':com, 'hist':hist, 'pbill':pbill}
+    return render(request, 'company/Fin_Pbill_History.html', context)
+
+def Fin_Convert_To_Active(request,id):
+    pbill = Fin_Purchase_Bill.objects.get(id = id)
+    pbill.status = 'Save'
+    pbill.save()
+    return redirect('Fin_View_Purchase_Bill', id)
+
+def Fin_Check_New_Unit(request):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+    name = str(request.GET.get('unit_name')).upper()
+    if Fin_Units.objects.filter(Company = com, name = name).exists():
+        return JsonResponse({'is_exist':True, 'message':'Already Present !!!'})
+    return JsonResponse({'is_exist':False})
+
+def Fin_New_Unit(request):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+    name = str(request.GET.get('unit_name')).upper()
+    if Fin_Units.objects.filter(Company = com, name = name).exists():
+        return JsonResponse({'message': 'Error'})
+    Fin_Units.objects.create(Company = com, name = name)
+    return JsonResponse({'message': 'Success'})
+
+
+
+def Fin_Check_New_Term(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        name = request.GET.get('name')
+        days = request.GET.get('days')
+
+        if Fin_Company_Payment_Terms.objects.filter(Company = com, term_name__iexact = name).exists():
+            msg = f'{name} already exists, Try another.!'
+            return JsonResponse({'name_is_exist':True, 'message':msg})
+        else:
+            if Fin_Company_Payment_Terms.objects.filter(Company = com, days__iexact = days).exists():
+                msg = f'{days} already exists, Try another.!'
+                return JsonResponse({'name_is_exist':False, 'days_is_exist':True, 'message':msg})
+            return JsonResponse({'name_is_exist':False, 'days_is_exist':False})
+
+def Fin_Share_Purchase_Bill(request,id):
+    if request.user:
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+
+                s_id = request.session['s_id']
+                data = Fin_Login_Details.objects.get(id = s_id)
+                if data.User_Type == "Company":
+                    com = Fin_Company_Details.objects.get(Login_Id = s_id)
+                else:
+                    com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+                pbill = Fin_Purchase_Bill.objects.get(id = id)
+                itms = Fin_Purchase_Bill_Item.objects.filter(pbill = pbill)
+            
+                context = {'pbill': pbill, 'itms':itms, }
+                template_path = 'company/Fin_Pbill_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)#, link_callback=fetch_resources)
+                pdf = result.getvalue()
+                filename = f'Sales Bill - {pbill.bill_no}.pdf'
+                subject = f"SALES BILL - {pbill.bill_no}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached SALES BILL - Bill-{pbill.bill_no}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Bill has been shared via email successfully..!')
+                return redirect(Fin_View_Purchase_Bill)
+        except Exception as e:
+            messages.error(request, f'{e}')
+            return redirect(Fin_View_Purchase_Bill)
+            
+            
+def Fin_New_Account(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'GET':
+            name = request.GET.get('account_name')
+            type = request.GET.get('account_type')
+            subAcc = True if 'subAccountCheckBox' in request.POST else False
+            parentAcc = request.GET.get('parent_account') if 'subAccountCheckBox' in request.POST else None
+            accCode = request.GET.get('account_code')
+            bankAccNum = None if request.GET.get('account_number') == "" else request.GET.get('account_number')
+            desc = request.GET.get('description')
+            
+            createdDate = date.today()
+            
+            #save account and transaction if account doesn't exists already
+            if Fin_Chart_Of_Account.objects.filter(Company=com, account_name__iexact=name).exists():
+                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
+                return JsonResponse({'status':False,'message':res})
+            else:
+                account = Fin_Chart_Of_Account(
+                    Company = com,
+                    LoginDetails = data,
+                    account_type = type,
+                    account_name = name,
+                    account_code = accCode,
+                    description = desc,
+                    balance = 0.0,
+                    balance_type = None,
+                    credit_card_no = None,
+                    sub_account = subAcc,
+                    parent_account = parentAcc,
+                    bank_account_no = bankAccNum,
+                    date = createdDate,
+                    create_status = 'added',
+                    status = 'active'
+                )
+                account.save()
+
+                #save transaction
+
+                Fin_ChartOfAccount_History.objects.create(
+                    Company = com,
+                    LoginDetails = data,
+                    account = account,
+                    action = 'Created'
+                )
+                
+                return JsonResponse({'status':True})
+    
+#End
 
 
 # -------------Shemeem--------Invoice & Vendors-------------------------------
@@ -9713,10 +10452,10 @@ def Fin_viewPurchaseOrder(request, id):
 def Fin_convertPurchaseOrder(request,id):
     if 's_id' in request.session:
 
-        salesOrder = Fin_Sales_Order.objects.get(id = id)
-        salesOrder.status = 'Saved'
-        salesOrder.save()
-        return redirect(Fin_viewSalesOrder, id)
+        pOrder = Fin_Purchase_Order.objects.get(id = id)
+        pOrder.status = 'Saved'
+        pOrder.save()
+        return redirect(Fin_viewPurchaseOrder, id)
 
 def Fin_addPurchaseOrderComment(request, id):
     if 's_id' in request.session:
@@ -9727,28 +10466,28 @@ def Fin_addPurchaseOrderComment(request, id):
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
-        salesOrder = Fin_Sales_Order.objects.get(id = id)
+        pOrder = Fin_Purchase_Order.objects.get(id = id)
         if request.method == "POST":
             cmt = request.POST['comment'].strip()
 
-            Fin_Sales_Order_Comments.objects.create(Company = com, SalesOrder = salesOrder, comments = cmt)
-            return redirect(Fin_viewSalesOrder, id)
-        return redirect(Fin_viewSalesOrder, id)
+            Fin_Purchase_Order_Comments.objects.create(Company = com, PurchaseOrder = pOrder, comments = cmt)
+            return redirect(Fin_viewPurchaseOrder, id)
+        return redirect(Fin_viewPurchaseOrder, id)
     return redirect('/')
 
 def Fin_deletePurchaseOrderComment(request,id):
     if 's_id' in request.session:
-        cmt = Fin_Sales_Order_Comments.objects.get(id = id)
-        orderId = cmt.SalesOrder.id
+        cmt = Fin_Purchase_Order_Comments.objects.get(id = id)
+        orderId = cmt.PurchaseOrder.id
         cmt.delete()
-        return redirect(Fin_viewSalesOrder, orderId)
+        return redirect(Fin_viewPurchaseOrder, orderId)
     
 def Fin_purchaseOrderHistory(request,id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
-        salesOrder = Fin_Sales_Order.objects.get(id = id)
-        his = Fin_Sales_Order_History.objects.filter(SalesOrder = salesOrder)
+        pOrder = Fin_Purchase_Order.objects.get(id = id)
+        his = Fin_Purchase_Order_History.objects.filter(PurchaseOrder = pOrder)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
@@ -9756,7 +10495,7 @@ def Fin_purchaseOrderHistory(request,id):
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
         
-        return render(request,'company/Fin_Sales_Order_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'order':salesOrder})
+        return render(request,'company/Fin_Purchase_Order_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'order':pOrder})
     else:
        return redirect('/')
     
@@ -9764,23 +10503,484 @@ def Fin_deletePurchaseOrder(request, id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
-        salesOrder = Fin_Sales_Order.objects.get( id = id)
+        pOrder = Fin_Purchase_Order.objects.get( id = id)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
         
-        Fin_Sales_Order_Items.objects.filter(SalesOrder = salesOrder).delete()
+        Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = pOrder).delete()
 
         # Storing ref number to deleted table
         # if entry exists and lesser than the current, update and save => Only one entry per company
-        if Fin_Sales_Order_Reference.objects.filter(Company = com).exists():
-            deleted = Fin_Sales_Order_Reference.objects.get(Company = com)
-            if int(salesOrder.reference_no) > int(deleted.reference_no):
-                deleted.reference_no = salesOrder.reference_no
+        if Fin_Purchase_Order_Reference.objects.filter(Company = com).exists():
+            deleted = Fin_Purchase_Order_Reference.objects.get(Company = com)
+            if int(pOrder.reference_no) > int(deleted.reference_no):
+                deleted.reference_no = pOrder.reference_no
                 deleted.save()
         else:
-            Fin_Sales_Order_Reference.objects.create(Company = com, reference_no = salesOrder.reference_no)
+            Fin_Purchase_Order_Reference.objects.create(Company = com, reference_no = pOrder.reference_no, LoginDetails = com.Login_Id)
         
-        salesOrder.delete()
-        return redirect(Fin_salesOrder)
+        pOrder.delete()
+        return redirect(Fin_purchaseOrder)
+
+def Fin_attachPurchaseOrderFile(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        pOrder = Fin_Purchase_Order.objects.get(id = id)
+
+        if request.method == 'POST' and len(request.FILES) != 0:
+            pOrder.file = request.FILES.get('file')
+            pOrder.save()
+
+        return redirect(Fin_viewPurchaseOrder, id)
+    else:
+        return redirect('/')
+
+def Fin_purchaseOrderPdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        pOrder = Fin_Purchase_Order.objects.get(id = id)
+        itms = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = pOrder)
+    
+        context = {'order':pOrder, 'orderItems':itms,'cmp':com}
+        
+        template_path = 'company/Fin_Purchase_Order_Pdf.html'
+        fname = 'Purchase_Order_'+pOrder.purchase_order_no
+        # return render(request, 'company/Fin_Invoice_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_sharePurchaseOrderToEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        pOrder = Fin_Purchase_Order.objects.get(id = id)
+        itms = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = pOrder)
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                context = {'order':pOrder, 'orderItems':itms,'cmp':com}
+                template_path = 'company/Fin_Purchase_Order_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Purchase_Order_{pOrder.purchase_order_no}'
+                subject = f"Purchase_Order_{pOrder.purchase_order_no}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Purchase Order for - #-{pOrder.purchase_order_no}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Purchase Order details has been shared via email successfully..!')
+                return redirect(Fin_viewPurchaseOrder,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_viewPurchaseOrder, id)
+
+def Fin_createVendorAjax(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        fName = request.POST['first_name']
+        lName = request.POST['last_name']
+        gstIn = request.POST['gstin']
+        pan = request.POST['pan_no']
+        email = request.POST['email']
+        phn = request.POST['mobile']
+
+        if Fin_Vendors.objects.filter(Company = com, first_name__iexact = fName, last_name__iexact = lName).exists():
+            res = f"Vendor `{fName} {lName}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif gstIn != "" and Fin_Vendors.objects.filter(Company = com, gstin__iexact = gstIn).exists():
+            res = f"GSTIN `{gstIn}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Vendors.objects.filter(Company = com, pan_no__iexact = pan).exists():
+            res = f"PAN No `{pan}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Vendors.objects.filter(Company = com, mobile__iexact = phn).exists():
+            res = f"Phone Number `{phn}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Vendors.objects.filter(Company = com, email__iexact = email).exists():
+            res = f"Email `{email}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+
+        vnd = Fin_Vendors(
+            Company = com,
+            LoginDetails = com.Login_Id,
+            title = request.POST['title'],
+            first_name = fName,
+            last_name = lName,
+            company = request.POST['company_name'],
+            location = request.POST['location'],
+            place_of_supply = request.POST['place_of_supply'],
+            gst_type = request.POST['gst_type'],
+            gstin = None if request.POST['gst_type'] == "Unregistered Business" or request.POST['gst_type'] == 'Overseas' or request.POST['gst_type'] == 'Consumer' else gstIn,
+            pan_no = pan,
+            email = email,
+            mobile = phn,
+            website = request.POST['website'],
+            price_list = None if request.POST['price_list'] ==  "" else Fin_Price_List.objects.get(id = request.POST['price_list']),
+            payment_terms = None if request.POST['payment_terms'] == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_terms']),
+            opening_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
+            open_balance_type = request.POST['balance_type'],
+            current_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
+            credit_limit = 0 if request.POST['credit_limit'] == "" else abs(float(request.POST['credit_limit'])) * -1,
+            currency = request.POST['currency'],
+            billing_street = request.POST['street'],
+            billing_city = request.POST['city'],
+            billing_state = request.POST['state'],
+            billing_pincode = request.POST['pincode'],
+            billing_country = request.POST['country'],
+            ship_street = request.POST['shipstreet'],
+            ship_city = request.POST['shipcity'],
+            ship_state = request.POST['shipstate'],
+            ship_pincode = request.POST['shippincode'],
+            ship_country = request.POST['shipcountry'],
+            status = 'Active'
+        )
+        vnd.save()
+
+        #save transaction
+
+        Fin_Vendor_History.objects.create(
+            Company = com,
+            LoginDetails = data,
+            Vendor = vnd,
+            action = 'Created'
+        )
+
+        return JsonResponse({'status': True})
+    
+    else:
+        return redirect('/')
+    
+def Fin_getVendors(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        options = {}
+        option_objects = Fin_Vendors.objects.filter(Company = com, status = 'Active')
+        for option in option_objects:
+            options[option.id] = [option.id , option.title, option.first_name, option.last_name]
+
+        return JsonResponse(options)
+    else:
+        return redirect('/')
+
+def Fin_editPurchaseOrder(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+        pOrder = Fin_Purchase_Order.objects.get(id = id)
+        POItms = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = pOrder)
+
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        vend = Fin_Vendors.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'order':pOrder, 'orderItems':POItms, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'banks':bnk,'units':units, 'accounts':acc, 'vendors':vend
+        }
+        return render(request,'company/Fin_Edit_Purchase_Order.html',context)
+    else:
+       return redirect('/')
+
+def Fin_updatePurchaseOrder(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        pOrder = Fin_Purchase_Order.objects.get(id = id)
+        if request.method == 'POST':
+            PONum = request.POST['purchase_order_no']
+            if pOrder.purchase_order_no != PONum and Fin_Purchase_Order.objects.filter(Company = com, purchase_order_no__iexact = PONum).exists():
+                res = f'<script>alert("Purchase Order Number `{PONum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            pOrder.Vendor = None if request.POST['vendorId'] == "" else Fin_Vendors.objects.get(id = request.POST['vendorId'])
+            pOrder.vendor_email = request.POST['vendorEmail']
+            pOrder.vendor_address = request.POST['vendor_bill_address']
+            pOrder.vendor_gst_type = request.POST['vendor_gst_type']
+            pOrder.vendor_gstin = request.POST['vendor_gstin']
+            pOrder.vendor_source_of_supply = request.POST['source_of_supply']
+
+            pOrder.Customer = None if request.POST['customerId'] == "" else Fin_Customers.objects.get(id = request.POST['customerId'])
+            pOrder.customer_name = request.POST['customer']
+            pOrder.customer_email = request.POST['customerEmail']
+            pOrder.customer_address = request.POST['bill_address']
+            pOrder.customer_gst_type = request.POST['gst_type']
+            pOrder.customer_gstin = request.POST['gstin']
+            pOrder.customer_place_of_supply = request.POST['place_of_supply']
+
+            pOrder.reference_no = request.POST['reference_number']
+            pOrder.purchase_order_no = PONum
+            pOrder.payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term'])
+            pOrder.purchase_order_date = request.POST['purchase_order_date']
+            pOrder.due_date = datetime.strptime(request.POST['due_date'], '%d-%m-%Y').date()
+
+            pOrder.payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method']
+            pOrder.cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id']
+            pOrder.upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id']
+            pOrder.bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id']
+
+            pOrder.subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal'])
+            pOrder.igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst'])
+            pOrder.cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst'])
+            pOrder.sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst'])
+            pOrder.tax_amount = 0.0 if request.POST['taxamount'] == "" else float(request.POST['taxamount'])
+            pOrder.adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj'])
+            pOrder.shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship'])
+            pOrder.grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal'])
+            pOrder.paid_off = 0.0 if request.POST['advance'] == "" else float(request.POST['advance'])
+            pOrder.balance = request.POST['grandtotal'] if request.POST['balance'] == "" else float(request.POST['balance'])
+            
+            pOrder.note = request.POST['note']
+
+            if len(request.FILES) != 0:
+                pOrder.file=request.FILES.get('file')
+
+            pOrder.save()
+
+            # Save Purchase order items.
+
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("price[]")
+            tax = request.POST.getlist("taxGST[]") if request.POST['source_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
+            po_item_ids = request.POST.getlist("id[]")
+            POItem_ids = [int(id) for id in po_item_ids]
+
+            order_items = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = pOrder)
+            object_ids = [obj.id for obj in order_items]
+
+            ids_to_delete = [obj_id for obj_id in object_ids if obj_id not in POItem_ids]
+
+            Fin_Purchase_Order_Items.objects.filter(id__in=ids_to_delete).delete()
+            
+            count = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = pOrder).count()
+
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total)==len(POItem_ids) and POItem_ids and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total,POItem_ids)
+                mapped = list(mapped)
+                for ele in mapped:
+                    if int(len(itemId))>int(count):
+                        if ele[8] == 0:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_Purchase_Order_Items.objects.create(PurchaseOrder = pOrder, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                        else:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_Purchase_Order_Items.objects.filter( id = int(ele[8])).update(PurchaseOrder = pOrder, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                    else:
+                        itm = Fin_Items.objects.get(id = int(ele[0]))
+                        Fin_Purchase_Order_Items.objects.filter( id = int(ele[8])).update(PurchaseOrder = pOrder, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+            
+            # Save transaction
+                    
+            Fin_Purchase_Order_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                PurchaseOrder = pOrder,
+                action = 'Edited'
+            )
+
+            return redirect(Fin_viewPurchaseOrder, id)
+        else:
+            return redirect(Fin_editPurchaseOrder, id)
+    else:
+       return redirect('/')
+
+def Fin_convertPurchaseOrderToBill(request,id):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        cmp = com
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+        cmp = com.company_id
+
+    allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+    ven = Fin_Vendors.objects.filter(Company = cmp, status = 'Active')
+    cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+    bnk = Fin_Banking.objects.filter(company = cmp, bank_status = 'Active')
+    itm = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+    plist = Fin_Price_List.objects.filter(Company = cmp, type = 'Purchase', status = 'Active')
+    terms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+    units = Fin_Units.objects.filter(Company = cmp)
+    account = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+    tod = datetime.now().strftime('%Y-%m-%d')
+    if Fin_Purchase_Bill.objects.filter(company = cmp):
+        try:
+            ref_no = int(Fin_Purchase_Bill_Ref_No.objects.filter(company = cmp).last().ref_no) + 1
+        except:
+            ref_no =  1
+        bill_no = Fin_Purchase_Bill.objects.filter(company = cmp).last().bill_no
+        match = re.search(r'^(\d+)|(\d+)$', bill_no)
+        if match:
+            numeric_part = match.group(0)
+            incremented_numeric = str(int(numeric_part) + 1).zfill(len(numeric_part))
+            bill_no = re.sub(r'\d+', incremented_numeric, bill_no, count=1)
+    else:
+        try:
+            ref_no = int(Fin_Purchase_Bill_Ref_No.objects.filter(company = cmp).last().ref_no) + 1
+        except:
+            ref_no =  1
+        bill_no = 1000
+
+    pbill = Fin_Purchase_Order.objects.get(id = id)
+    pitm = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = pbill)
+    context = {
+        'allmodules':allmodules, 'data':data, 'com':com, 'ven':ven, 'cust':cust, 'bnk':bnk, 'units':units,
+        'account':account, 'itm':itm, 'tod':tod, 'plist':plist, 'ref_no': ref_no, 'bill_no':bill_no, 'terms':terms,
+        'pbill':pbill, 'pitm':pitm
+    }
+
+    return render(request, 'company/Fin_Convert_PurchaseOrder_toBill.html', context)
+
+def Fin_purchaseOrderConvertBill(request, id):
+  if request.method == 'POST': 
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+    
+    purchaseOrder = Fin_Purchase_Order.objects.get(id = id)
+
+    ven = Fin_Vendors.objects.get(id = request.POST.get('ven_name'))
+    if request.POST.get('cust_name') == "" or request.POST.get('cust_name') == 'none':
+        cust = None
+    else:
+        cust = Fin_Customers.objects.get(id = request.POST.get('cust_name'))
+    plist = None if request.POST.get('price_list') == "" else Fin_Price_List.objects.get(id = request.POST.get('price_list'))
+    term = None if request.POST.get('pay_terms') == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST.get('pay_terms'))
+    pbill = Fin_Purchase_Bill(vendor = ven,
+        customer = cust,
+        pricelist = plist,
+        ven_psupply = request.POST.get('ven_psupply'),
+        cust_psupply = request.POST.get('cust_psupply'),
+        bill_no = request.POST.get('bill_no'),
+        ref_no = request.POST.get('ref_no'),
+        porder_no = request.POST.get('pord_no'),
+        bill_date = request.POST.get('bill_date'),
+        due_date = request.POST.get('due_date'),
+        pay_term = term,
+        pay_type = request.POST.get('pay_type'),
+        cheque_no = request.POST.get('cheque_id'),
+        upi_no = request.POST.get('upi_id'),
+        bank_no = request.POST.get('bnk_no'),
+        subtotal = request.POST.get('sub_total'),
+        igst = request.POST.get('igst'),
+        cgst = request.POST.get('cgst'),
+        sgst = request.POST.get('sgst'),
+        taxamount = request.POST.get('tax_amount'),
+        ship_charge = request.POST.get('shipcharge'),
+        adjust = request.POST.get('adjustment'),
+        grandtotal = request.POST.get('grand_total'),
+        paid = request.POST.get('paid'),
+        balance = request.POST.get('bal_due'),
+        status = "Save",
+        company = com,
+        logindetails = com.Login_Id
+    )
+
+    pbill.save()
+        
+    item = tuple(request.POST.getlist("product[]"))
+    qty =  tuple(request.POST.getlist("qty[]"))
+    price =  tuple(request.POST.getlist("price[]"))
+    if request.POST.getlist("intra_tax[]")[0] != '':
+        tax = tuple(request.POST.getlist("intra_tax[]"))
+    else:
+        tax = tuple(request.POST.getlist("inter_tax[]"))
+    discount =  tuple(request.POST.getlist("discount[]"))
+    total =  tuple(request.POST.getlist("total[]"))
+
+    if len(item)==len(qty)==len(price)==len(tax)==len(discount)==len(total):
+        mapped=zip(item,qty,price,tax,discount,total)
+        mapped=list(mapped)
+        for ele in mapped:
+            itm = Fin_Items.objects.get(id=ele[0])
+            Fin_Purchase_Bill_Item.objects.create(item = itm,qty = ele[1],price = float(ele[2]),tax = ele[3],discount = float(ele[4]),total = float(ele[5]),pbill = pbill,company = com)
+            itm.current_stock = int(itm.current_stock) + int(ele[1])
+            itm.save()
+
+    Fin_Purchase_Bill_Ref_No.objects.create(company = com, logindetails = data, ref_no = request.POST.get('ref_no'))
+    Fin_Purchase_Bill_History.objects.create(company =com, logindetails = data, pbill = pbill, action='Created')
+
+    # Save Bill details to Purchase Order
+
+    purchaseOrder.converted_to_bill = pbill
+    purchaseOrder.save()
+
+    return redirect(Fin_purchaseOrder)
+  else:
+    return redirect(Fin_purchaseOrder)

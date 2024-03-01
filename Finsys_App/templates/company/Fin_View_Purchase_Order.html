@@ -259,7 +259,7 @@
         margin: 0;
     }
     .slip-container{
-        width: 105mm;
+        width: 110mm;
         margin: 2rem auto;
         padding: 2rem;
         border: 1px dotted black;
@@ -295,7 +295,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
 
 <div class="page-content " id="page-content">
-    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_salesOrder' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_purchaseOrder' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
     <div class="card radius-15">
         <div class="card-body" style="width:100%;">
             <div class="card-title">
@@ -312,12 +312,11 @@
                             <div class="dropdown p-0 nav-item"  id="convertBtn" style="display: block;">
                                 <li  class="dropdown-toggle btn btn-outline-secondary text-grey fa fa-exchange" data-toggle="dropdown">&nbsp;Convert</li>
                                 <ul class="dropdown-menu" style="background-color: black;" id="">
-                                    <a class="dropdown-item" href="{% url 'Fin_convertSalesOrder' order.id %}">Saved</a>
+                                    <a class="dropdown-item" href="{% url 'Fin_convertPurchaseOrder' order.id %}">Saved</a>
                                 </ul>
                             </div>
                             {% endif %}
-                            <a class="ml-2 btn btn-outline-secondary text-grey fa fa-table" role="button" id="exportBtn" style="display: none;" onclick="ExportToExcel('xlsx')">&nbsp;Export</a>
-                            <a href="{% url 'Fin_salesOrderPdf' order.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
+                            <a href="{% url 'Fin_purchaseOrderPdf' order.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" onclick="slipPDF()" id="slipPdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('whatToPrint')">&nbsp;Print</a>
                             <div class="dropdown p-0 nav-item"  id="shareBtn" style="display: none;">
@@ -327,10 +326,10 @@
                                     <li style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</li>
                                 </ul>
                             </div>
-                            <a href="{% url 'Fin_editSalesOrder' order.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
-                            <a href="{% url 'Fin_deleteSalesOrder' order.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Sales Order - {{order.sales_order_no}}.?')">&nbsp;Delete</a>
+                            <a href="{% url 'Fin_editPurchaseOrder' order.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
+                            <a href="{% url 'Fin_deletePurchaseOrder' order.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Sales Order - {{order.sales_order_no}}.?')">&nbsp;Delete</a>
                             <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
-                            <a href="{% url 'Fin_salesOrderHistory' order.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
+                            <a href="{% url 'Fin_purchaseOrderHistory' order.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                             <div class="dropdown p-0 nav-item"  id="attachBtn" style="display: block;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-paperclip" data-toggle="dropdown">&nbsp;Attach</li>
                                 <ul class="dropdown-menu" style="background-color: black;">
@@ -423,33 +422,33 @@
                                     <div class="col-md-4 mt-3"></div>
     
                                     <div class="col-md-3 mt-3">
-                                        <h6 class="mb-0">Sales Order No,</h6>
+                                        <h6 class="mb-0">Purchase Order No.</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <p class="mb-0 text-right">{{ order.sales_order_no  }}</p>
+                                        <p class="mb-0 text-right">{{ order.purchase_order_no  }}</p>
                                     </div>
     
                                     <div class="col-md-3 mt-3 vl">
-                                        <h6 class="mb-0">Customer Name</h6>
+                                        <h6 class="mb-0">Vendor Name</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <p class="mb-0 text-right">{{order.Customer.title}}. {{order.Customer.first_name}} {{order.Customer.last_name}}</p>
+                                        <p class="mb-0 text-right">{{order.Vendor.title}}. {{order.Vendor.first_name}} {{order.Vendor.last_name}}</p>
                                     </div>
                                     
                                 </div>
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
                                     <div class="col-md-3 mt-3">
-                                        <h6 class="mb-0">Sales Order Date</h6>
+                                        <h6 class="mb-0">Purchase Order Date</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <p class="mb-0 text-right">{{order.sales_order_date | date:'d-m-Y'}}</p>
+                                        <p class="mb-0 text-right">{{order.purchase_order_date | date:'d-m-Y'}}</p>
                                     </div>
     
                                     <div class="col-md-3 mt-3 vl">
-                                        <h6 class="mb-0">Shipment Date</h6>
+                                        <h6 class="mb-0">Expiry Date</h6>
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <p class="mb-0 text-right">{{order.exp_ship_date | date:'d-m-Y'}}</p>
+                                        <p class="mb-0 text-right">{{order.due_date | date:'d-m-Y'}}</p>
                                     </div>
                                 </div>
                                 <div class="row mb-4 d-flex justify-content-start align-items-center">
@@ -457,7 +456,7 @@
                                         <h6 class="mb-0">Address</h6>
                                     </div>
                                     <div class="col-md-3 mt-3 vr">
-                                        <p class="mb-0">{{order.billing_address}}</p>
+                                        <p class="mb-0">{{order.vendor_address}}</p>
                                     </div>
                                     <div class="col-md-3 mt-3 vl">
                                         <h6 class="mb-0">Payment Method</h6>
@@ -467,6 +466,45 @@
                                     </div>
                                 </div>
                                 
+                                <hr>
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-4 mt-3">
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Deliver To Details</h5>
+                                    </div>
+                                    <div class="col-md-4 mt-3"></div>
+                                    <div class="col-md-4 mt-3"></div>
+    
+                                    <div class="col-md-3 mt-3">
+                                        <h6 class="mb-0">Customer Name</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{order.Customer.title}}. {{order.Customer.first_name}} {{order.Customer.last_name}}</p>
+                                    </div>
+    
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">Address</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{order.customer_address}}</p>
+                                    </div>
+                                    
+                                </div>
+                                <div class="row mb-4 d-flex justify-content-start align-items-center">
+                                    <div class="col-md-3 mt-3"> 
+                                        <h6 class="mb-0">Email</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3 vr">
+                                        <p class="mb-0">{{order.customer_email}}</p>
+                                    </div>
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">Place Of Supply</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{order.customer_place_of_supply}}</p>
+                                    </div>
+                                </div>
+
                                 <hr>
 
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
@@ -611,10 +649,10 @@
                                     </div>
                                     <div class="top-left">
                                         <div class="graphic-path">
-                                            <p>Sales Order</p>
+                                            <p>Purchase Order</p>
                                         </div>
                                         <div class="position-relative">
-                                            <p> Sales Order No. <span>{{ order.sales_order_no }}</span></p>
+                                            <p> Purchase Order No. <span>{{ order.purchase_order_no }}</span></p>
                                         </div>
                                     </div>
                                 </section>
@@ -633,19 +671,19 @@
                                                 
                                             </div>
                                             <div class="col-5">
-                                                <p>TO,</p>
+                                                <p>Deliver To,</p>
                                                 <h5>{{order.Customer.title}} {{order.Customer.first_name}} {{order.Customer.last_name}}</h5>
-                                                <p class="address col-9" style="margin-left: -14px;" > {{ order.billing_address}} </p>
+                                                <p class="address col-9" style="margin-left: -14px;" > {{ order.customer_address}} </p>
                                                 
                                             </div>
                                         </div>
                                         <div class="row extra-info pt-3">
                                             <div class="col-6">
-                                                <p>Sales oder Date: <span>{{order.sales_order_date | date:'d-m-Y'}}</span></p>
+                                                <p>Purchase oder Date: <span>{{order.purchase_order_date | date:'d-m-Y'}}</span></p>
                                                 <p>Payment Method: <span>{{order.payment_method}}</span></p>
                                             </div>
                                             <div class="col-6">
-                                                <p>Expected Shipment Date : <span>{{order.exp_ship_date | date:'d-m-Y'}}</span></p>
+                                                <p>Expiry Date : <span>{{order.due_date | date:'d-m-Y'}}</span></p>
                                             </div>
                                         </div>
                                     </div>
@@ -764,11 +802,11 @@
                                       <div class="text-white d-flex align-items-center px-5" style="border-radius: 1vh; background-color:#999999">{{order.status}}<!----></div>
                                   </div>
                                   <div class="col-md-4 d-flex justify-content-center">
-                                      <center class="h3 text-white"><b>Sales Order</b></center>
+                                      <center class="h3 text-white"><b>Purchase Order</b></center>
                                   </div>  
                                   <div class="col-md-4 d-flex justify-content-end">
                                       <div class="text-white">
-                                          <p class="mb-0 mt-2">Sales Order No: <b>{{order.sales_order_no }}</b></p>
+                                          <p class="mb-0 mt-2">Purchase Order No: <b>{{order.purchase_order_no }}</b></p>
                                       </div>
                                   </div>
                               </div>
@@ -791,14 +829,14 @@
                                               </div>
                                               <div class="col-4"></div>
                                               <div class="col-4 pr-0">
-                                                  <label class="text-white w-100 p-1" style="border-top-right-radius: 4vh; border-bottom-right-radius: 4vh; background-color: #999999;" ><b>SHIPPING ADDRESS</b></label>
+                                                  <label class="text-white w-100 p-1" style="border-top-right-radius: 4vh; border-bottom-right-radius: 4vh; background-color: #999999;" ><b>DELIVER DETAILS</b></label>
                                                   <h5 class="text-secondary" style="font-weight: bold;">{{order.Customer.title}} {{order.Customer.first_name}} {{order.Customer.last_name}}</h5>
-                                                  <p class="address" style="font-weight: bold;color: #000;">{{ order.billing_address | linebreaksbr}} </p>
+                                                  <p class="address" style="font-weight: bold;color: #000;">{{ order.customer_address | linebreaksbr}} </p>
                                               </div>
                                           </div>
                                           <div class="row my-3">
                                             <div class="col-12">
-                                                <p>Order Date: <span>{{order.sales_order_date}}</span></p>
+                                                <p>Order Date: <span>{{order.purchase_order_date}}</span></p>
                                                 <p>Payment Method: <span>{{order.payment_method}}</span></p>
                                             </div>
                                           </div>
@@ -929,7 +967,7 @@
                         <div class="my-5 page"  size="A4" >
                             <div class="" id="printdiv3">
                                 <div class="row">
-                                    <div class="col-sm-12" style="background-image: linear-gradient(#1b83e8, black); color: white;">
+                                    <div class="col-sm-12 py-2" style="background-image: linear-gradient(#1b83e8, black); color: white;">
                                         <p style="font-size: 4vh; text-align: center;">SALES ORDER</p>
                                         <p style=" text-align: center;"> {{cmp.Company_name}} <br>
                                             {{cmp.Address}} <br>
@@ -944,32 +982,32 @@
                                         <div class="col-md-1"></div>
                                         <div class="col-5">
                                             <br><br><br>
-                                            <p style="color:black;"> <span style=" font-weight: bold;">To: </span><br>
+                                            <p style="color:black;"> <span style=" font-weight: bold;">Deliver To: </span><br>
                                             {{order.Customer.title}} {{order.Customer.first_name}} {{order.Customer.last_name}}<br>
-                                            {{order.billing_address|linebreaksbr }}
+                                            {{order.customer_address|linebreaksbr }}
                                             </p>
                                         </div>
-                                        <div class="col-md-1"></div>
-                                        <div class="col-5">
+                                        <!-- <div class="col-md-1"></div> -->
+                                        <div class="col-6">
                                             <br><br><br>
                                             <table class="table table-borderless">
                                                 <tbody>
                                                     <tr >
-                                                        <td style="color: #000; font-weight: bold;">Sales Order No.</td>
+                                                        <td style="color: #000; font-weight: bold;">Purchase Order No.</td>
                                                         <td style="color: #000;">:</td>
-                                                        <td class="text-right" style="color: #000;">{{ order.sales_order_no }}</td>
+                                                        <td class="text-right" style="color: #000;">{{ order.purchase_order_no }}</td>
                                                     </tr>
 
                                                     <tr >
-                                                        <td style="color: #000; font-weight: bold;">Sales Order Date</td>
+                                                        <td style="color: #000; font-weight: bold;">Purchase Order Date</td>
                                                         <td style="color: #000;">:</td>
-                                                        <td class="text-right" style="color: #000;">{{order.sales_order_date | date:'d-m-Y'}}<td>
+                                                        <td class="text-right" style="color: #000;">{{order.purchase_order_date | date:'d-m-Y'}}<td>
                                                     </tr>
      
                                                     <tr>
-                                                        <td style="color: #000; font-weight: bold;">Shipment Date</td>
+                                                        <td style="color: #000; font-weight: bold;">Expiry Date</td>
                                                         <td style="color: #000;">:</td>
-                                                        <td class="text-right" style="color: #000;">{{order.exp_ship_date | date:'d-m-Y'}}</td>
+                                                        <td class="text-right" style="color: #000;">{{order.due_date | date:'d-m-Y'}}</td>
                                                         
                                                     </tr>
                                                     <tr>
@@ -1108,20 +1146,20 @@
 
                         <div class="ml-4 mt-2" style="color: black;">
                             <div class="row">
-                                <div class="col-md-6 text-left">Sales Order No:</div>
-                                <div class="col-md-5 text-right">{{order.sales_order_no}}</div>
+                                <div class="col-md-6 text-left">Purchase Order No:</div>
+                                <div class="col-md-5 text-right">{{order.purchase_order_no}}</div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 text-left">Customer Name:</div>
                                 <div class="col-md-5 text-right">{{order.Customer.first_name}} {{order.Customer.last_name}}</div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 text-left">Sales Order Date :</div>
-                                <div class="col-md-5 text-right">{{order.sales_order_date | date:'d-m-Y'}}</div>
+                                <div class="col-md-6 text-left">Purchase Order Date :</div>
+                                <div class="col-md-5 text-right">{{order.purchase_order_date | date:'d-m-Y'}}</div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 text-left">Shipment Date:</div>
-                                <div class="col-md-5 text-right">{{order.exp_ship_date | date:'d-m-Y'}}</div>
+                                <div class="col-md-6 text-left">Expiry Date:</div>
+                                <div class="col-md-5 text-right">{{order.due_date | date:'d-m-Y'}}</div>
                             </div>
                         </div>
 
@@ -1251,7 +1289,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{% url 'Fin_attachSalesOrderFile' order.id %}" method="post" enctype="multipart/form-data" class="needs-validation">
+            <form action="{% url 'Fin_attachPurchaseOrderFile' order.id %}" method="post" enctype="multipart/form-data" class="needs-validation">
                 <div class="modal-body">
                     <div class="card p-3">
                         
@@ -1284,7 +1322,7 @@
             </div>
             <div class="modal-body">
                 <div class="card p-3">
-                    <form action="{% url 'Fin_shareSalesOrderToEmail' order.id %}" method="post" class="needs-validation" id="share_to_email_form">
+                    <form action="{% url 'Fin_sharePurchaseOrderToEmail' order.id %}" method="post" class="needs-validation" id="share_to_email_form">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="emailIds">Email IDs</label>
@@ -1315,7 +1353,7 @@
                 </button>
             </div>
 
-            <form action="{% url 'Fin_addSalesOrderComment' order.id %}" method="post">
+            <form action="{% url 'Fin_addPurchaseOrderComment' order.id %}" method="post">
                 {% csrf_token %}
                 <div class="modal-body">
                     <textarea type="text" class="form-control" name="comment" placeholder="Add Comments.." required></textarea>
@@ -1336,7 +1374,7 @@
                                 <tr class="">
                                     <td class="text-center">{{forloop.counter }}</td>
                                     <td class="text-center">{{c.comments}}</td>
-                                    <td class="text-center"><a class="text-danger" href="{% url 'Fin_deleteSalesOrderComment' c.id %}" onclick="return confirm('Are you sure you want to delete.?')"><i class="fa fa-trash" style="font-size: 1.1rem;"></i></a></td>
+                                    <td class="text-center"><a class="text-danger" href="{% url 'Fin_deletePurchaseOrderComment' c.id %}" onclick="return confirm('Are you sure you want to delete.?')"><i class="fa fa-trash" style="font-size: 1.1rem;"></i></a></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -1458,69 +1496,6 @@
             }
         })
     });
-    
-
-    var $rows = $('#dataTable tbody tr');
-    $('#search').keyup(function() {
-        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-        
-        $rows.show().filter(function() {
-        var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
-        return !~text.indexOf(val);
-        }).hide();
-    });
-
-    function filterSearchValues(col, fieldId, ele) {
-        var table = document.getElementById("dataTable");
-        
-        var rows = table.getElementsByTagName("tr");
-        
-        var filterValue = $('#' + fieldId).val().toLowerCase();
-
-        if (filterValue !== "") {
-            for (var i = 1; i < rows.length; i++) {
-                var statusCell = rows[i].getElementsByTagName("td")[col];
-
-                if (statusCell.textContent.toLowerCase() == filterValue) {
-                    rows[i].style.display = "";
-                } else {
-                    rows[i].style.display = "none";
-                }
-            }
-        }
-        $(ele).closest('.dropdown').find('.dropdown-menu').removeClass('show');
-    }
-
-    function filterAmount(col, fieldId, ele) {
-        var table = document.getElementById("dataTable");
-        
-        var rows = table.getElementsByTagName("tr");
-        
-        var filterValue = parseFloat($('#' + fieldId).val());
-
-        if (!isNaN(filterValue)) {
-            for (var i = 1; i < rows.length; i++) {
-                var statusCell = rows[i].getElementsByTagName("td")[col];
-
-                if (parseFloat(statusCell.textContent.toLowerCase()) == filterValue) {
-                    rows[i].style.display = "";
-                } else {
-                    rows[i].style.display = "none";
-                }
-            }
-        }
-        $(ele).closest('.dropdown').find('.dropdown-menu').removeClass('show');
-    }
-
-    function clearSearch(fieldId,ele) {
-        var table = document.getElementById("dataTable");
-        var rows = table.getElementsByTagName("tr");
-        for (var i = 1; i < rows.length; i++) {
-            rows[i].style.display = "";
-        }
-        $('#' + fieldId).val("");
-        $(ele).closest('.dropdown').find('.dropdown-menu').removeClass('show');
-    }
 
     function updateDateTime() {
         var currentDate = new Date();
@@ -1583,12 +1558,12 @@
     }
 
     function slipPDF(){
-        var salesOrderNo = `{{order.sales_order_no }}`;
+        var purchaseOrderNo = `{{order.purchase_order_no }}`;
         var element = document.getElementById('slip');
         var opt =
         {
             margin: 1,
-            filename: 'Sales_Order_Slip_'+ salesOrderNo + '.pdf',
+            filename: 'Purchase_Order_Slip_'+ purchaseOrderNo + '.pdf',
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }

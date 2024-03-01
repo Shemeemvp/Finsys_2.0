@@ -692,6 +692,7 @@ class Fin_Banking(models.Model):
     opening_balance = models.IntegerField(null=True,default=0)
     date = models.DateTimeField(auto_now_add=False,null=True)
     current_balance = models.IntegerField(null=True,default=0)
+    bank_status = models.CharField(max_length=255,null=True,blank=True) 
 
 class Fin_CNotification(models.Model): 
     Login_Id = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
@@ -958,7 +959,7 @@ class Fin_Purchase_Bill(models.Model):
     pay_term = models.ForeignKey(Fin_Company_Payment_Terms, on_delete = models.SET_NULL,null=True)
     bill_no = models.CharField(max_length=100, null=True, blank=True)
     ref_no = models.IntegerField(null=True, blank=True)
-    porder_no = models.IntegerField(null=True, blank=True)
+    porder_no = models.CharField(max_length=20, null=True, blank=True) #updated shemeem -> Handle Purchase order numbers with char patterns.
     bill_date = models.DateField(null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
     pay_type = models.CharField(max_length=100, null=True, blank=True)

@@ -194,6 +194,37 @@ urlpatterns = [
     
     # harikrishnan (end)--------------------------------
 
+    #---------------------------- Purchase Bill --------------------------------#
+
+    path('Purchase_Bill_List/',views.Fin_List_Purchase_Bill,name='Fin_List_Purchase_Bill'),
+    path('Purchase_Bill_Add/',views.Fin_List_Purchase_Add,name='Fin_List_Purchase_Add'),
+    path('Price_List_Data/',views.Fin_Price_List_Data,name='Fin_Price_List_Data'),
+    path('Purchase_Bill_Create/',views.Fin_Create_Purchase_Bill,name='Fin_Create_Purchase_Bill'),
+    path('Purchase_Bill_No_Check/',views.Fin_Check_Pbill_No,name='Fin_Check_Pbill_No'),
+    path('Purchase_Bill_Vendor/',views.Fin_New_Vendor,name='Fin_New_Vendor'),
+    path('Purchase_Bill_Customer/',views.Fin_New_Customer,name='Fin_New_Customer'),
+    path('Purchase_Bill_Payment_Term/',views.Fin_New_Payment_Term,name='Fin_New_Payment_Term'),
+    path('Purchase_Bill_Check_Item_Name/',views.Fin_Check_New_Item_Name,name='Fin_Check_New_Item_Name'),
+    path('Purchase_Bill_Check_Item_HSN/',views.Fin_Check_New_Item_HSN,name='Fin_Check_New_Item_HSN'),
+    path('Purchase_Bill_Item/',views.Fin_New_Item,name='Fin_New_Item'),
+    path('Purchase_Bill_View/<int:id>',views.Fin_View_Purchase_Bill,name='Fin_View_Purchase_Bill'),
+    path('Purchase_Bill_Edit/<int:id>',views.Fin_Purchase_Bill_Edit,name='Fin_Purchase_Bill_Edit'),
+    path('Purchase_Bill_Update/<int:id>',views.Fin_Update_Purchase_Bill,name='Fin_Update_Purchase_Bill'),
+    path('Purchase_Bill_Comment_Create/<int:id>',views.Fin_Purchase_Bill_Add_Edit_Comment,name='Fin_Purchase_Bill_Add_Edit_Comment'),
+    path('Purchase_Bill_Comment_Delete/<int:id>',views.Fin_Purchase_Bill_Delete_Comment,name='Fin_Purchase_Bill_Delete_Comment'),
+    path('Purchase_Bill_Delete/<int:id>',views.Fin_Delete_Purchase_Bill,name='Fin_Delete_Purchase_Bill'),
+    path('Purchase_Bill_Add_File/<int:id>',views.Fin_Add_Additional_Files,name='Fin_Add_Additional_Files'),
+    path('Purchase_Bill_History/<int:id>',views.Fin_Purchase_List_History,name='Fin_Purchase_List_History'),
+    path('Purchase_Bill_Convert/<int:id>',views.Fin_Convert_To_Active,name='Fin_Convert_To_Active'),
+    path('Purchase_Bill_Check_Unit_Name',views.Fin_Check_New_Unit,name='Fin_Check_New_Unit'),
+    path('Purchase_Bill_Check_Term',views.Fin_Check_New_Term,name='Fin_Check_New_Term'),
+    path('Purchase_Bill_New_Unit',views.Fin_New_Unit,name='Fin_New_Unit'),
+    path('Purchase_Bill_Share_Bill/<int:id>',views.Fin_Share_Purchase_Bill,name='Fin_Share_Purchase_Bill'),
+    
+    path('Purchase_Bill_New_Account',views.Fin_New_Account,name='Fin_New_Account'),
+    
+    #End
+
     # -------------Shemeem--------Invoice & Vendors-------------------------------
     # Invoice
 
@@ -326,13 +357,20 @@ urlpatterns = [
     path('Fin_get_vendor_data',views.Fin_getVendorData, name='Fin_getVendorData'),
     path('Fin_create_purchase_order',views.Fin_createPurchaseOrder, name='Fin_createPurchaseOrder'),
     path('Fin_view_purchase_order/<int:id>',views.Fin_viewPurchaseOrder, name='Fin_viewPurchaseOrder'),
-
     path('Fin_convert_purchase_order/<int:id>',views.Fin_convertPurchaseOrder, name='Fin_convertPurchaseOrder'),
     path('Fin_add_purchase_order_comment/<int:id>',views.Fin_addPurchaseOrderComment, name='Fin_addPurchaseOrderComment'),
     path('Fin_delete_purchase_order_comment/<int:id>',views.Fin_deletePurchaseOrderComment, name='Fin_deletePurchaseOrderComment'),
     path('Fin_purchase_order_history/<int:id>',views.Fin_purchaseOrderHistory, name='Fin_purchaseOrderHistory'),
     path('Fin_delete_purchase_order/<int:id>',views.Fin_deletePurchaseOrder, name= 'Fin_deletePurchaseOrder'),
-    # path('Fin_attach_purchase_order_file/<int:id>',views.Fin_attachPurchaseOrderFile, name='Fin_attachPurchaseOrderFile'),
+    path('Fin_attach_purchase_order_file/<int:id>',views.Fin_attachPurchaseOrderFile, name='Fin_attachPurchaseOrderFile'),
+    path('Fin_purchase_order_pdf/<int:id>',views.Fin_purchaseOrderPdf, name='Fin_purchaseOrderPdf'),
+    path('Fin_share_purchase_order_to_email/<int:id>',views.Fin_sharePurchaseOrderToEmail, name='Fin_sharePurchaseOrderToEmail'),
+    path('Fin_create_vendor_ajax',views.Fin_createVendorAjax, name='Fin_createVendorAjax'),
+    path('Fin_get_vendors',views.Fin_getVendors, name='Fin_getVendors'),
+    path('Fin_edit_purchase_order/<int:id>',views.Fin_editPurchaseOrder, name='Fin_editPurchaseOrder'),
+    path('Fin_update_purchase_order/<int:id>',views.Fin_updatePurchaseOrder, name='Fin_updatePurchaseOrder'),
+    path('Fin_convert_purchase_order_to_bill/<int:id>',views.Fin_convertPurchaseOrderToBill, name='Fin_convertPurchaseOrderToBill'),
+    path('Fin_purchase_order_convert_bill/<int:id>',views.Fin_purchaseOrderConvertBill, name='Fin_purchaseOrderConvertBill'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
