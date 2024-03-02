@@ -132,9 +132,9 @@
                     <div class="col-md-4 mt-4">
                         <label for="">Place of Supply</label>
                         <select class="custom-select form-control" id="ven_psupply" name="ven_psupply">
-                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                            <option value="Andhra Pradesh">Andhra Pradesh</option>
-                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                            <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islads</option>
+                            <option value="Andhra Predhesh">Andhra Predhesh</option>
+                            <option value="Arunachal Predesh">Arunachal Predesh</option>
                             <option value="Assam">Assam</option>
                             <option value="Bihar">Bihar</option>
                             <option value="Chandigarh">Chandigarh</option>
@@ -145,14 +145,14 @@
                             <option value="Goa">Goa</option>
                             <option value="Gujarat">Gujarat</option>
                             <option value="Haryana">Haryana</option>
-                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                            <option value="Himachal Predesh">Himachal Predesh</option>
                             <option value="Jammu and Kashmir">Jammu and Kashmir</option>
                             <option value="Jharkhand">Jharkhand</option>
                             <option value="Karnataka">Karnataka</option>
                             <option value="Kerala">Kerala</option>
                             <option value="Ladakh">Ladakh</option>
                             <option value="Lakshadweep">Lakshadweep</option>
-                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                            <option value="Madhya Predesh">Madhya Predesh</option>
                             <option value="Maharashtra">Maharashtra</option>
                             <option value="Manipur">Manipur</option>
                             <option value="Meghalaya">Meghalaya</option>
@@ -166,7 +166,7 @@
                             <option value="Tamil Nadu">Tamil Nadu</option>
                             <option value="Telangana">Telangana</option>
                             <option value="Tripura">Tripura</option>
-                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="Uttar Predesh">Uttar Predesh</option>
                             <option value="Uttarakhand">Uttarakhand</option>
                             <option value="West Bengal">West Bengal</option>
                             <option value="Other Territory">Other Territory</option>
@@ -264,9 +264,9 @@
                         <label for="">Place of Supply</label>
                         <select class="custom-select form-control" id="cust_psupply" name="cust_psupply">
                             <option value="" selected hidden>Place of Supply</option>
-                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                            <option value="Andhra Pradesh">Andhra Pradesh</option>
-                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                            <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islads</option>
+                            <option value="Andhra Predhesh">Andhra Predhesh</option>
+                            <option value="Arunachal Predesh">Arunachal Predesh</option>
                             <option value="Assam">Assam</option>
                             <option value="Bihar">Bihar</option>
                             <option value="Chandigarh">Chandigarh</option>
@@ -277,14 +277,14 @@
                             <option value="Goa">Goa</option>
                             <option value="Gujarat">Gujarat</option>
                             <option value="Haryana">Haryana</option>
-                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                            <option value="Himachal Predesh">Himachal Predesh</option>
                             <option value="Jammu and Kashmir">Jammu and Kashmir</option>
                             <option value="Jharkhand">Jharkhand</option>
                             <option value="Karnataka">Karnataka</option>
                             <option value="Kerala">Kerala</option>
                             <option value="Ladakh">Ladakh</option>
                             <option value="Lakshadweep">Lakshadweep</option>
-                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                            <option value="Madhya Predesh">Madhya Predesh</option>
                             <option value="Maharashtra">Maharashtra</option>
                             <option value="Manipur">Manipur</option>
                             <option value="Meghalaya">Meghalaya</option>
@@ -298,7 +298,7 @@
                             <option value="Tamil Nadu">Tamil Nadu</option>
                             <option value="Telangana">Telangana</option>
                             <option value="Tripura">Tripura</option>
-                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="Uttar Predesh">Uttar Predesh</option>
                             <option value="Uttarakhand">Uttarakhand</option>
                             <option value="West Bengal">West Bengal</option>
                             <option value="Other Territory">Other Territory</option>
@@ -1783,7 +1783,9 @@
     $('#ven_email').val('{{pbill.Vendor.email}}')
     ven_gst = '{{pbill.Vendor.gst_type}}'
     $('#ven_gst_type').val(ven_gst)
-    $('#ven_psupply').val('{{pbill.vendor_source_of_supply}}')
+    // console.log(`{{pbill.vendor_source_of_supply}}`)
+    document.querySelector('#ven_psupply').value = '{{pbill.vendor_source_of_supply}}';
+    // $('#ven_psupply').val('{{pbill.vendor_source_of_supply}}')
     if(ven_gst != "Unregistered Business" && ven_gst != 'Overseas' && ven_gst != 'Consumer'){
         $('#ven_gst_in_div').show()
         $('#ven_gst_in').val('{{pbill.Vendor.gstin}}')
@@ -1797,9 +1799,11 @@
     $('#cust_address').val(`${'{{pbill.Customer.billing_street}}'}\n${'{{pbill.Customer.billing_state}}'}\n${'{{pbill.Customer.billing_pincode}}'}\n${'{{pbill.Customer.billing_country}}'}`)
     $('#cust_email').val('{{pbill.Customer.email}}')
     cust_gst = '{{pbill.Customer.gst_type}}'
+    console.log(cust_gst)
     $('#cust_gst_type').val(cust_gst)
-    $('#cust_psupply').val('{{pbill.customer_place_of_supply}}')
-    if(cust_gst == "Unregistered Business" && cust_gst == 'Overseas' && cust_gst == 'Consumer'){
+    document.querySelector('#cust_psupply').value = `{{pbill.customer_place_of_supply}}`;
+    // $('#cust_psupply').val('{{pbill.customer_place_of_supply}}')
+    if(cust_gst != "Unregistered Business" && cust_gst != 'Overseas' && cust_gst != 'Consumer'){
         $('#cust_gst_in_div').show()
         $('#cust_gst_in').val('{{pbill.Customer.gstin}}')
     }else{
