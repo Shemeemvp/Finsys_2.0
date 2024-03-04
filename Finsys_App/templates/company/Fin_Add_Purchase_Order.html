@@ -1032,7 +1032,7 @@
                             <div class="col-md-3">
                                 <label for="vendWebsite">Website</label>
                                 <input type="text" class="form-control" id="vendWebsite" required placeholder="www.finsys.com" onchange="checkVendWebsite(this)" name="website" style="background-color: #43596c;color: white;">
-                                <div id="warnweb" class="text-danger"></div>
+                                <div id="warnvendweb" class="text-danger"></div>
                             </div>
                             <div class="col-md-3">
                                 <label for="vendMobile">Mobile</label>
@@ -1361,7 +1361,7 @@
                         <div class="row mt-4">
                             <div class="col-4"></div>
                             <div class="col-4 d-flex justify-content-center">
-                                <button class="btn btn-outline-secondary text-grey w-75" data-dismiss="modal" type="button" id="newVendorSave">Save</button>
+                                <button class="btn btn-outline-secondary text-grey w-75" type="button" id="newVendorSave">Save</button>
                             </div>
                             <div class="col-4"></div>
                         </div>
@@ -2473,13 +2473,16 @@ $(document).ready(function(){
     }
 
     function checkweb(element) {
+        document.getElementById('warnweb').innerHTML = '';
         var webinput = element.value;
         var webregexp = "www."
-        if (webinput.startsWith(webregexp)) {
-            document.getElementById('warnweb').innerHTML = '';
-        } else {
-            document.getElementById('warnweb').innerHTML = 'Please provide a valid Website Address';
-            alert('Please provide a valid Website Address')
+        if(webinput != ""){
+            if (webinput.startsWith(webregexp)) {
+                document.getElementById('warnweb').innerHTML = '';
+            } else {
+                document.getElementById('warnweb').innerHTML = 'Please provide a valid Website Address';
+                alert('Please provide a valid Website Address')
+            }
         }
     }
 
@@ -3072,23 +3075,32 @@ $(document).on("click","#saveVendorPaymentTerm",function(){
     }
 
     function checkVendWebsite(element) {
+        document.getElementById('warnvendweb').innerHTML = '';
         var webinput = element.value;
         var webregexp = "www."
-        if (webinput.startsWith(webregexp)) {
-            document.getElementById('warnweb').innerHTML = '';
-        } else {
-            document.getElementById('warnweb').innerHTML = 'Please provide a valid Website Address';
-            alert('Please provide a valid Website Address')
+        if(webinput != ""){
+            if (webinput.startsWith(webregexp)) {
+                document.getElementById('warnvendweb').innerHTML = '';
+            } else {
+                document.getElementById('warnvendweb').innerHTML = 'Please provide a valid Website Address';
+                alert('Please provide a valid Website Address')
+            }
         }
     }
 
     function checkVendPhone(element) {
         var phoneinput = element.value;
         var phoneregexp = /^\d{10}$/;
+
         if (phoneinput.match(phoneregexp)) {
             document.getElementById('warnphone').innerHTML = '';
             checkVendorPhone(phoneinput)
         } else {
+            if (phoneinput.length > 10){
+                alert('Number should be 10 digit.')
+                element.value = phoneinput.substring(0, 10);
+                return
+            }
             document.getElementById('warnphone').innerHTML = 'Please provide a valid Phone Number';
             alert('Please provide a valid Phone Number')
         }
@@ -3124,6 +3136,11 @@ $(document).on("click","#saveVendorPaymentTerm",function(){
 
         if(gstType != "Unregistered Business" && gstType != 'Overseas' && gstType != 'Consumer' && gstIN == ""){
             alert('Fill all required fields..!')
+            return
+        }
+
+        if(Mob.length != 10){
+            alert('Invalid Mobile Number.!')
             return
         }
 
@@ -3168,7 +3185,9 @@ $(document).on("click","#saveVendorPaymentTerm",function(){
                         console.log("AJAX Success",response)
                         document.getElementById("newVendorForm").reset();
 
-
+                        if($('#newVendor').hasClass('show')){
+                            $('#newVendor').modal('toggle')
+                        }
                         reloadVendor(title,fName,lName);
                     }else{
                         alert(response.message)
