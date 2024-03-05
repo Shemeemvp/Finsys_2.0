@@ -10984,3 +10984,323 @@ def Fin_purchaseOrderConvertBill(request, id):
     return redirect(Fin_purchaseOrder)
   else:
     return redirect(Fin_purchaseOrder)
+
+# < ------------- Shemeem -------- > Expense < ------------------------------- >
+        
+def Fin_expense(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+        exp = Fin_Expense.objects.filter(Company = cmp)
+        return render(request,'company/Fin_Expense.html',{'allmodules':allmodules,'com':com, 'cmp':cmp,'data':data,'expenses':exp})
+    else:
+       return redirect('/')
+
+def Fin_addExpense(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        vend = Fin_Vendors.objects.filter(Company = cmp, status = 'Active')
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+
+        # Fetching last Expnse and assigning upcoming ref no as current + 1
+        # Also check for if any bill is deleted and ref no is continuos w r t the deleted Expnse
+        latest_exp = Fin_Expense.objects.filter(Company = cmp).order_by('-id').first()
+
+        new_number = int(latest_exp.reference_no) + 1 if latest_exp else 1
+
+        if Fin_Expense_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_Expense_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.reference_no) >= new_number:
+                    new_number+=1
+
+        # Finding next EXP number w r t last EXP number if exists.
+        nxtEXP = ""
+        lastEXP = Fin_Expense.objects.filter(Company = cmp).last()
+        if lastEXP:
+            expense_no = str(lastEXP.expense_no)
+            numbers = []
+            stri = []
+            for word in expense_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            exp_num = int(num)+1
+
+            if num[0] == '0':
+                if exp_num <10:
+                    nxtEXP = st+'0'+ str(exp_num)
+                else:
+                    nxtEXP = st+ str(exp_num)
+            else:
+                nxtEXP = st+ str(exp_num)
+        else:
+            nxtEXP = 'EXP01'
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend,
+            'ref_no':new_number,'banks':bnk,'EXPNo':nxtEXP, 'accounts':acc, 'pTerms': trms, 'list':lst,
+        }
+        return render(request,'company/Fin_Add_Expense.html',context)
+    else:
+       return redirect('/')
+
+def Fin_createNewExpenseAccount(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            name = request.POST['account_name']
+            type = request.POST['account_type']
+            subAcc = True if request.POST['subAccountCheckBox'] == 'true' else False
+            parentAcc = request.POST['parent_account'] if subAcc == True else None
+            accCode = request.POST['account_code']
+            bankAccNum = None
+            desc = request.POST['description']
+            
+            createdDate = date.today()
+            
+            #save account and transaction if account doesn't exists already
+            if Fin_Chart_Of_Account.objects.filter(Company=com, account_name__iexact=name).exists():
+                res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
+                msg = f"{name} already exists, try another!"
+                return JsonResponse({'status':False, 'message':msg})
+            else:
+                account = Fin_Chart_Of_Account(
+                    Company = com,
+                    LoginDetails = data,
+                    account_type = type,
+                    account_name = name,
+                    account_code = accCode,
+                    description = desc,
+                    balance = 0.0,
+                    balance_type = None,
+                    credit_card_no = None,
+                    sub_account = subAcc,
+                    parent_account = parentAcc,
+                    bank_account_no = bankAccNum,
+                    date = createdDate,
+                    create_status = 'added',
+                    status = 'active'
+                )
+                account.save()
+
+                #save transaction
+
+                Fin_ChartOfAccount_History.objects.create(
+                    Company = com,
+                    LoginDetails = data,
+                    account = account,
+                    action = 'Created'
+                )
+                
+                list= []
+                account_objects = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+
+                for account in account_objects:
+                    
+                    accounts = {
+                        'id':account.id,
+                        'name': account.account_name
+                    }
+                    list.append(accounts)
+
+                return JsonResponse({'status':True,'accounts':list},safe=False)
+
+        return JsonResponse({'status':False, 'message':'Something went wrong.!'})
+    else:
+       return redirect('/')
+
+def Fin_checkExpenseNumber(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        ExpNo = request.GET['ExpNum']
+
+        # Finding next exp number w r t last exp number if exists.
+        nxtEXP = ""
+        lastEXP = Fin_Expense.objects.filter(Company = com).last()
+        if lastEXP:
+            exp_no = str(lastEXP.expense_no)
+            numbers = []
+            stri = []
+            for word in exp_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            exp_num = int(num)+1
+
+            if num[0] == '0':
+                if exp_num <10:
+                    nxtEXP = st+'0'+ str(exp_num)
+                else:
+                    nxtEXP = st+ str(exp_num)
+            else:
+                nxtEXP = st+ str(exp_num)
+
+        PatternStr = []
+        for word in ExpNo:
+            if word.isdigit():
+                pass
+            else:
+                PatternStr.append(word)
+        
+        pattern = ''
+        for j in PatternStr:
+            pattern += j
+
+        pattern_exists = checkExpenseNumberPattern(pattern)
+
+        if pattern !="" and pattern_exists:
+            return JsonResponse({'status':False, 'message':'Expense No. Pattern already Exists.!'})
+        elif Fin_Expense.objects.filter(Company = com, expense_no__iexact = ExpNo).exists():
+            return JsonResponse({'status':False, 'message':'Expense No. already Exists.!'})
+        elif nxtEXP != "" and ExpNo != nxtEXP:
+            return JsonResponse({'status':False, 'message':'Expense No. is not continuous.!'})
+        else:
+            return JsonResponse({'status':True, 'message':'Number is okay.!'})
+    else:
+       return redirect('/')
+
+def checkExpenseNumberPattern(pattern):
+    models = [Fin_Invoice, Fin_Sales_Order, Fin_Estimate, Fin_Purchase_Bill, Fin_Manual_Journal, Fin_Recurring_Invoice, Fin_Purchase_Order]
+
+    for model in models:
+        field_name = model.getNumFieldName(model)
+        if model.objects.filter(**{f"{field_name}__icontains": pattern}).exists():
+            return True
+    return False
+
+def Fin_createExpense(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            EXPNum = request.POST['expense_no']
+            if Fin_Expense.objects.filter(Company = com, expense_no__iexact = EXPNum).exists():
+                res = f'<script>alert("Expense Number `{EXPNum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            vendorSupply = request.POST['source_of_supply']
+            customerSupply = request.POST['place_of_supply']
+
+            exp = Fin_Expense(
+                Company = com,
+                LoginDetails = com.Login_Id,
+                Vendor = None if request.POST['vendorId'] == "" else Fin_Vendors.objects.get(id = request.POST['vendorId']),
+                vendor_name = request.POST['vendor'],
+                vendor_email = request.POST['vendorEmail'],
+                vendor_address = request.POST['vendor_bill_address'],
+                vendor_gst_type = request.POST['vendor_gst_type'],
+                vendor_gstin = request.POST['vendor_gstin'],
+                vendor_source_of_supply = vendorSupply,
+
+                Customer = None if request.POST['customerId'] == "" else Fin_Customers.objects.get(id = request.POST['customerId']),
+                customer_name = request.POST['customer'],
+                customer_email = request.POST['customerEmail'],
+                customer_address = request.POST['bill_address'],
+                customer_gst_type = request.POST['gst_type'],
+                customer_gstin = request.POST['gstin'],
+                customer_place_of_supply = customerSupply,
+
+                reference_no = request.POST['reference_number'],
+                expense_no = EXPNum,
+                expense_date = request.POST['expense_date'],
+                Account = None if request.POST['accountId'] == "" else Fin_Chart_Of_Account.objects.get(id = request.POST['accountId']),
+                expense_account = request.POST['expense_account'],
+                expense_type = request.POST['expense_type'],
+                hsn_number = request.POST['hsn'],
+                sac_number = request.POST['sac'],
+                tax_rate = request.POST['taxGST'] if vendorSupply == customerSupply else request.POST['taxIGST'],
+
+                payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method'],
+                cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id'],
+                upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id'],
+                bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id'],
+                amount = 0.0 if request.POST['amount'] == "" else float(request.POST['amount']),
+                note = request.POST['note']
+            )
+
+            exp.save()
+
+            if len(request.FILES) != 0:
+                exp.file=request.FILES.get('file')
+            exp.save()
+
+            if 'Draft' in request.POST:
+                exp.status = "Draft"
+            elif "Save" in request.POST:
+                exp.status = "Saved" 
+            exp.save()
+            
+            # Save transaction
+                    
+            Fin_Expense_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                Expense = exp,
+                action = 'Created'
+            )
+
+            return redirect(Fin_expense)
+        else:
+            return redirect(Fin_addExpense)
+    else:
+       return redirect('/')

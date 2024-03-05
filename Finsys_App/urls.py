@@ -372,6 +372,14 @@ urlpatterns = [
     path('Fin_convert_purchase_order_to_bill/<int:id>',views.Fin_convertPurchaseOrderToBill, name='Fin_convertPurchaseOrderToBill'),
     path('Fin_purchase_order_convert_bill/<int:id>',views.Fin_purchaseOrderConvertBill, name='Fin_purchaseOrderConvertBill'),
     # End
+
+    # < ------------- Shemeem -------- > Expense < ------------------------------- >
+    path('Fin_expense',views.Fin_expense, name='Fin_expense'),
+    path('Fin_add_expense',views.Fin_addExpense, name='Fin_addExpense'),
+    path('Fin_create_new_expense_account',views.Fin_createNewExpenseAccount, name='Fin_createNewExpenseAccount'),
+    path('Fin_check_expense_number',views.Fin_checkExpenseNumber, name='Fin_checkExpenseNumber'),
+    path('Fin_create_expense',views.Fin_createExpense, name='Fin_createExpense'),
+    # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 ]

@@ -1251,3 +1251,72 @@ class Employee_Blood_Group(models.Model):
     blood_group = models.CharField(max_length=255,null=True,blank=True)
     company = models.ForeignKey(Fin_Company_Details,on_delete=models.CASCADE,null=True,blank=True)
     login = models.ForeignKey(Fin_Login_Details,on_delete=models.CASCADE,null=True,blank=True)
+
+# < ------------- Shemeem -------- > Expense < ------------------------------- >
+
+class Fin_Expense(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+
+    reference_no = models.IntegerField(null=True, blank=True)
+    expense_no = models.CharField(max_length=100)
+    expense_date = models.DateField(null=True, blank=True)
+    Account = models.ForeignKey(Fin_Chart_Of_Account, on_delete=models.SET_NULL, null=True)
+    expense_account = models.CharField(max_length=150, null=True, blank=True)
+    expense_type = models.CharField(max_length=150, null=True, blank=True)
+    hsn_number = models.CharField(max_length=50, null=True, blank=True)
+    sac_number = models.CharField(max_length=50, null=True, blank=True)
+    amount = models.FloatField(default=0.0, null=True, blank=True)
+    tax_rate = models.CharField(max_length=50, null=True, blank=True)
+
+    payment_method = models.CharField(max_length=100, null=True, blank=True)
+    cheque_no = models.CharField(max_length=100, null=True, blank=True)
+    upi_no = models.CharField(max_length=100, null=True, blank=True)
+    bank_acc_no = models.CharField(max_length=100, null=True, blank=True)
+
+    Vendor = models.ForeignKey(Fin_Vendors, on_delete=models.CASCADE, null=True)
+    vendor_name = models.CharField(max_length=200, null=True, blank=True)
+    vendor_email = models.EmailField(max_length=100, null=True, blank=True)
+    vendor_address = models.TextField(null=True, blank=True)
+    vendor_gst_type = models.CharField(max_length=100, null=True, blank=True)
+    vendor_gstin = models.CharField(max_length=100, null=True, blank=True)
+    vendor_source_of_supply = models.CharField(max_length=100, null=True, blank=True)
+
+    Customer = models.ForeignKey(Fin_Customers, on_delete=models.CASCADE, null=True)
+    customer_name = models.CharField(max_length=200, null=True, blank=True)
+    customer_email = models.EmailField(max_length=100, null=True, blank=True)
+    customer_address = models.TextField(null=True, blank=True)
+    customer_gst_type = models.CharField(max_length=100, null=True, blank=True)
+    customer_gstin = models.CharField(max_length=100, null=True, blank=True)
+    customer_place_of_supply = models.CharField(max_length=100, null=True, blank=True)
+    
+    note = models.TextField(null=True, blank=True)
+    file = models.FileField(upload_to='expense', null=True, default=None)
+    status =models.CharField(max_length=150,default='Draft')
+
+    def getNumFieldName(self):
+        return 'expense_no'
+
+
+class Fin_Expense_Reference(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    reference_no = models.BigIntegerField(null = False, blank=False)
+
+
+class Fin_Expense_History(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Expense = models.ForeignKey(Fin_Expense,on_delete=models.CASCADE, null=True)
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True)
+    action_choices = [
+        ('Created', 'Created'),
+        ('Edited', 'Edited'),
+    ]
+    action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
+
+
+class Fin_Expense_Comments(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    Expense = models.ForeignKey(Fin_Expense,on_delete=models.CASCADE, null=True)
+    comments = models.CharField(max_length=500,null=True,blank=True)
