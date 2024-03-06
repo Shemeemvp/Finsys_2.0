@@ -379,6 +379,17 @@ urlpatterns = [
     path('Fin_create_new_expense_account',views.Fin_createNewExpenseAccount, name='Fin_createNewExpenseAccount'),
     path('Fin_check_expense_number',views.Fin_checkExpenseNumber, name='Fin_checkExpenseNumber'),
     path('Fin_create_expense',views.Fin_createExpense, name='Fin_createExpense'),
+    path('Fin_view_expense/<int:id>',views.Fin_viewExpense, name='Fin_viewExpense'),
+    path('Fin_convert_expense/<int:id>',views.Fin_convertExpense, name='Fin_convertExpense'),
+    path('Fin_add_expense_comment/<int:id>',views.Fin_addExpenseComment, name='Fin_addExpenseComment'),
+    path('Fin_delete_expense_comment/<int:id>',views.Fin_deleteExpenseComment, name='Fin_deleteExpenseComment'),
+    path('Fin_expense_history/<int:id>',views.Fin_expenseHistory, name='Fin_expenseHistory'),
+    path('Fin_delete_expense/<int:id>',views.Fin_deleteExpense, name= 'Fin_deleteExpense'),
+    path('Fin_attach_expense_file/<int:id>',views.Fin_attachExpenseFile, name='Fin_attachExpenseFile'),
+    path('Fin_expense_pdf/<int:id>',views.Fin_expensePdf, name='Fin_expensePdf'),
+    path('Fin_share_expense_to_email/<int:id>',views.Fin_shareExpenseToEmail, name='Fin_shareExpenseToEmail'),
+    path('Fin_edit_expense/<int:id>',views.Fin_editExpense, name='Fin_editExpense'),
+    path('Fin_update_expense/<int:id>',views.Fin_updateExpense, name='Fin_updateExpense'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

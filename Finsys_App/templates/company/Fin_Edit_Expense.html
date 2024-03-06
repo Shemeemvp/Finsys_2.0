@@ -27,14 +27,14 @@
 
 </style>
 
-<form action="{% url 'Fin_createExpense' %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+<form action="{% url 'Fin_updateExpense' expense.id %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
   {% csrf_token %}
   <div class="page-content pt-0">
-    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_expense' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+    <!-- <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_expense' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span> -->
     <div class="card radius-15">
       <div class="card-body">
         <div class="card-title">
-          <center><h3 class="mb-0">CREATE EXPENSE</h3></center>
+          <center><h3 class="mb-0">EDIT EXPENSE</h3></center>
         </div>
         <hr />
       </div>
@@ -50,15 +50,15 @@
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <label class="">Expense Date:</label>
-                    <input type="date" class="form-control" name="expense_date" id="purchaseOrderDate" style="background-color: #43596c; color: white;" value="{% now 'Y-m-d' %}">
+                    <input type="date" class="form-control" name="expense_date" id="purchaseOrderDate" style="background-color: #43596c; color: white;" value="{{expense.expense_date|date:'Y-m-d'}}">
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Expense Account</label><span class="text-danger ml-3" id="accErr"></span>
-                    <input type="hidden" name="accountId" id="accountId" value="">
+                    <input type="hidden" name="accountId" id="accountId" value="{{expense.Account.id}}">
                     <div class="d-flex">
                         <div class="w-100">
                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                <input required type="text" id="accInp" name="expense_account" class="dropdown-toggle form-control account-display" onkeyup="filterAccounts()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Account.." autocomplete="off" />
+                                <input required type="text" id="accInp" value="{{expense.expense_account}}" name="expense_account" class="dropdown-toggle form-control account-display" onkeyup="filterAccounts()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Account.." autocomplete="off" />
                                 <ul class="dropdown-menu w-100 accounts-available position-absolute" id="acc_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                     <li class="dropdown-item account-options" onclick="getAccountDetails('','')">Select Vendor</li>
                                     {% for acc in accounts %}
@@ -74,28 +74,34 @@
                 <div class="col-md-4 mt-3">
                     <label class="">Expense Type </label>
                     <select class="form-control" name="expense_type" style="background-color: #43596c; color: white;" id="expenseType" required>
-                        <option value="" selected> Select Expense Type</option>
+                        <option value=""> Select Expense Type</option>
+                        {% if expense.expense_type == 'Goods' %}
+                        <option value="Goods" selected> Goods </option>
+                        {% elif expense.expense_type == 'Service' %}
+                        <option value="Service" selected> Service </option>
+                        {% else %}
                         <option value="Goods"> Goods </option>
                         <option value="Service"> Service </option>
+                        {% endif %}
                     </select>
                 </div>
                 <div class="col-md-4 mt-3" id="hsnNoField" style="display:  none;">
                     <label class="">HSN</label>
-                    <input type="text" class="form-control" name="hsn" style="background-color: #43596c;">
+                    <input type="text" class="form-control" value="{{expense.hsn_number}}" name="hsn" style="background-color: #43596c;">
                 </div>
                 <div class="col-md-4 mt-3" id="sacNoField" style="display:  none;">
                     <label class="">SAC</label>
-                    <input type="text" class="form-control" name="sac" style="background-color: #43596c;">
+                    <input type="text" class="form-control" value="{{expense.sac_number}}" name="sac" style="background-color: #43596c;">
                 </div>
                 <div class="col-md-4 mt-3">
                     <div class="d-flex">
                         <label class="">Expense No.</label><span class="text-danger ml-3" id="EXPNoErr"></span>
                     </div>
-                    <input type="text" class="form-control" name="expense_no"  id="expenseNumber" style="background-color: #43596c;" placeholder="{{EXPNo}}" required>
+                    <input type="text" class="form-control" name="expense_no" value="{{expense.expense_no}}" id="expenseNumber" style="background-color: #43596c;" placeholder="{{expense.expense_no}}" required>
                 </div>
                 <div class="col-md-4 mt-3">
                     <label class="">Reference Number</label>
-                    <input type="text" class="form-control" name="reference_number" value="{{ref_no}}" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" name="reference_number" value="{{expense.reference_no}}" style="background-color: #43596c;" readonly>
                 </div>
 
             </div>
@@ -107,11 +113,11 @@
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <label class="">Select Vendor</label><span class="text-danger ml-3" id="vendErr"></span>
-                    <input type="hidden" name="vendorId" id="vendorId" value="">
+                    <input type="hidden" name="vendorId" id="vendorId" value="{{expense.Vendor.id}}">
                     <div class="d-flex">
                         <div class="w-100">
                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                <input required type="text" id="vendorInp" name="vendor" class="dropdown-toggle form-control vendors-display" onkeyup="filterVendors()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Vendor.." autocomplete="off" />
+                                <input required type="text" id="vendorInp" value="{{expense.vendor_name}}" name="vendor" class="dropdown-toggle form-control vendors-display" onkeyup="filterVendors()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Vendor.." autocomplete="off" />
                                 <ul class="dropdown-menu w-100 vendors-available position-absolute" id="vnd_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                     <li class="dropdown-item vendors-options" onclick="getVendorDetails('','')">Select Vendor</li>
                                     {% for vnd in vendors %}
@@ -125,12 +131,12 @@
                     </div>
 
                     <label class="mt-3">GST Type</label>
-                    <input type="text" class="form-control" id="vendorGstType" name="vendor_gst_type" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" id="vendorGstType" value="{{expense.vendor_gst_type}}" name="vendor_gst_type" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
                 </div>
 
                 <div class="col-md-4 mt-3">
                     <label class="">Email</label>
-                    <input class="form-control" type="email" name="vendorEmail" placeholder="Email" style="background-color: #43596c; color: white;" id="vendorEmail" readonly>
+                    <input class="form-control" type="email" name="vendorEmail" value="{{expense.vendor_email}}" placeholder="Email" style="background-color: #43596c; color: white;" id="vendorEmail" readonly>
                     <div class="mt-3">
                         <input hidden value="{{cmp.State}}" id="cmpstate">
                         <label class="">Source of supply</label>
@@ -180,13 +186,13 @@
 
                 <div class="col-md-4 mt-3">
                     <label class="">Billing Address</label>
-                    <textarea class="form-control" name="vendor_bill_address" id="vendorBillAddress" rows="4" style="background-color: #43596c; color: white;" readonly></textarea>
+                    <textarea class="form-control" name="vendor_bill_address" id="vendorBillAddress" rows="4" style="background-color: #43596c; color: white;" readonly>{{expense.vendor_address}}</textarea>
                 </div>
 
                 <div class="col-md-4 mt-3">
                     <div class="" id="vendorGstInDisplay" style="display: block;">
                         <label class="">GSTIN</label>
-                        <input type="text" class="form-control" id="vendorGstin" name="vendor_gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                        <input type="text" class="form-control" value="{{expense.vendor_gstin}}" id="vendorGstin" name="vendor_gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
                     </div>
                 </div>
             </div>
@@ -199,7 +205,7 @@
                         <select name="" id="" class="form-control" style="width: 75px;">
                             <option value="INR">INR</option>
                         </select>
-                        <input type="number" class="form-control ml-1" name="amount" id="amount" step="any" style="background-color: #43596c;color: white;" required>
+                        <input type="number" class="form-control ml-1" value="{{expense.amount}}" name="amount" id="amount" step="any" style="background-color: #43596c;color: white;" required>
                     </div>
                 </div>
                 <div class="col-md-3 mt-3">
@@ -209,7 +215,7 @@
                         <option value="28.0% GST">28.0% GST</option>
                         <option value="18.0% GST">18.0% GST</option>
                         <option value="12.0% GST">12.0% GST</option>
-                        <option value="5.0% GST">5.0% GST</option>
+                        <option value="3.0% GST">5.0% GST</option>
                         <option value="3.0% GST">3.0% GST</option>
                         <option value="0.0% GST">0.0% GST</option>
                     </select>
@@ -237,15 +243,15 @@
                 </div>
                 <div class="col-md-3 mt-3" style="display:none;"  id="chequediv">
                     <label class="" >Cheque No</label>
-                    <input type="text" class="form-control" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
+                    <input type="text" class="form-control" value="{{expense.cheque_no}}" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
                 </div>
                 <div class="col-md-3 mt-3"  style="display:none;" id="upidiv">
                     <label class="" >UPI ID</label>
-                    <input type="text" class="form-control" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
+                    <input type="text" class="form-control" value="{{expense.upi_no}}" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
                 </div>
                 <div class="col-md-3 mt-3"  style="display:none;" id="bnkdiv">
                     <label class="" >Account#</label>
-                    <input type="text" class="form-control" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" value="{{expense.bank_acc_no}}" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
                 </div>
             </div>
 
@@ -257,11 +263,11 @@
             <div class="row">
                 <div class="col-md-4 mt-3">
                     <label class="">Select Customer</label><span class="text-danger ml-3" id="custErr"></span>
-                    <input type="hidden" name="customerId" id="customerId" value="">
+                    <input type="hidden" name="customerId" id="customerId" value="{{expense.Customer.id}}">
                     <div class="d-flex">
                         <div class="w-100">
                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                <input required type="text" id="customer" value="" name="customer" class="dropdown-toggle form-control customers-display" onkeyup="filterCustomers()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Customer.." autocomplete="off">
+                                <input required type="text" id="customer" value="{{expense.customer_name}}" name="customer" class="dropdown-toggle form-control customers-display" onkeyup="filterCustomers()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Customer.." autocomplete="off">
                                 <ul class="dropdown-menu w-100 customers-available position-absolute" id="cust_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                     <li class="dropdown-item customers-options" onclick="getCustomerDetails('','')">Select Customer</li>
                                     {% for cust in customers %}
@@ -275,12 +281,12 @@
                     </div>
 
                     <label class="mt-3">GST Type</label>
-                    <input type="text" class="form-control" id="gstType" name="gst_type" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
+                    <input type="text" class="form-control" id="gstType" value="{{expense.customer_gst_type}}" name="gst_type" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
                 </div>
 
                 <div class="col-md-4 mt-3">
                     <label class="">Email</label>
-                    <input class="form-control" type="email" name="customerEmail" placeholder="Email" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
+                    <input class="form-control" type="email" name="customerEmail" value="{{expense.customer_email}}" placeholder="Email" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
                     <div class="mt-3">
                         <label class="">Place of supply</label>
                         <select type="text" class="form-control" id="placeOfSupply" name="place_of_supply" style="background-color: #43596c; color: white;" required>
@@ -329,12 +335,12 @@
 
                 <div class="col-md-4 mt-3">
                     <label class="">Billing Address</label>
-                    <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly></textarea>
+                    <textarea class="form-control" name="bill_address" id="billAddress" rows="4" style="background-color: #43596c; color: white;" readonly>{{expense.customer_address}}</textarea>
                 </div>
                 <div class="col-md-4 mt-3">
                     <div id="gstInDisplay" style="display: block;">
                         <label class="">GSTIN</label>
-                        <input type="text" class="form-control" id="gstin" name="gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                        <input type="text" class="form-control" value="{{expense.customer_gstin}}" id="gstin" name="gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
                     </div>
                 </div>
             </div>
@@ -344,7 +350,7 @@
             <div class="row clearfix" style="margin-top:20px">
                 <div class="col-md-6">
                     <input type="file" name="file"  style="margin-bottom: 10px; width: 100%;">
-                    <textarea class="form-control mt-3"  id="" name="note" placeholder="Note" style="height: 100px;"></textarea>
+                    <textarea class="form-control mt-3"  id="" name="note" placeholder="Note" style="height: 100px;">{{expense.note}}</textarea>
                 </div>
                 <div class="col-md-6"></div>
             </div>
@@ -359,8 +365,8 @@
                 </div>
                 <div class="col-md-3"></div>
                 <div class="col-md-6 mt-3 d-flex">
-                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" name="Draft" value="Draft">
-                    <input type="submit" class="btn btn-outline-secondary w-50 ml-1 text-light" name="Save" value="Save">
+                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="SAVE">
+                    <input type="reset" onclick="window.location.href=`{% url 'Fin_viewExpense' expense.id %}`" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL">
                 </div>
                 <div class="col-md-3"></div>
             </div>
@@ -1332,6 +1338,91 @@
 
 
 <script>
+
+$(document).ready(function(){
+        getVendorDetails(`{{expense.Vendor.id}}`,`{{expense.Vendor.title}} {{expense.Vendor.first_name}} {{expense.Vendor.last_name}}`);
+        getCustomerDetails(`{{expense.Customer.id}}`,`{{expense.Customer.title}} {{expense.Customer.first_name}} {{expense.Customer.last_name}}`);
+
+        document.querySelector('#sourceOfSupply').value = `{{expense.vendor_source_of_supply}}`;
+        document.querySelector('#placeOfSupply').value = `{{expense.customer_place_of_supply}}`;
+        var paymentMeth = `{{expense.payment_method}}`;
+        paymentMeth == 'None' ? document.querySelector('#paymentMethod').value = "" : document.querySelector('#paymentMethod').value = `{{expense.payment_method}}`;
+
+        if(`{{expense.expense_type}}` == 'Goods'){
+            $('#sacNoField').hide();
+            $('#hsnNoField').show();
+        }else if(`{{expense.expense_type}}` == 'Service'){
+            $('#hsnNoField').hide();
+            $('#sacNoField').show();
+        }else{
+            $('#hsnNoField').hide();
+            $('#sacNoField').hide();
+        }
+
+        var x='{{expense.payment_method}}';
+        if(x==='Cash'){
+            $('#chequediv').hide()
+            $('#bnkdiv').hide()
+            $('#upidiv').hide()
+            document.getElementById('cheque_id').value=""
+            document.getElementById('upi_id').value=""
+            document.getElementById('bnk_id').value=""
+        }else if(x==='Cheque'){
+            $('#chequediv').show()
+            $('#bnkdiv').hide()
+            $('#upidiv').hide()
+            document.getElementById('upi_id').value=""
+            document.getElementById('bnk_id').value=""
+        }else if(x==='UPI'){
+            $('#upidiv').show()
+            $('#bnkdiv').hide()
+            $('#chequediv').hide()
+            document.getElementById('cheque_id').value=""
+            document.getElementById('bnk_id').value=""
+        }else if(x==='None'){
+            $('#bnkdiv').hide()
+            $('#chequediv').hide()
+            $('#upidiv').hide()
+            document.getElementById("bnk_id").value = "";
+            document.getElementById('cheque_id').value="";
+            document.getElementById('upi_id').value="";
+        }else{
+            $('#bnkdiv').show()
+            $('#chequediv').hide()
+            $('#upidiv').hide()
+            document.getElementById('cheque_id').value=""
+            document.getElementById('upi_id').value=""
+
+            $.ajax({
+                type: "GET",
+                url: "{% url 'Fin_getBankAccount' %}",
+                data: {
+                    id: $('#paymentMethod').find(':selected').attr('text'),
+                },
+                success: function (response) {
+                    if (response.status){
+                        document.getElementById('cheque_id').value="";
+                        document.getElementById('upi_id').value="";
+                        document.getElementById("bnk_id").value = response.account;
+                    }else{
+                        alert(response.message);
+                    }
+                }
+            });
+        }
+        
+         refreshTax();
+        var custPlace = `{{expense.customer_place_of_supply}}`;
+        var vendPlace = `{{expense.vendor_source_of_supply}}`;
+
+        var tax_rate = `{{expense.tax_rate}}`;
+        if(custPlace == vendPlace){
+            tax_rate != "" ? document.querySelector('#taxGST').value = tax_rate : document.querySelector('#taxGST').value = "";
+        }else{
+            tax_rate != "" ? document.querySelector('#taxIGST').value = tax_rate : document.querySelector('#taxIGST').value = "";
+        }
+    });
+
     function filterAccounts(){
         var vndOptions = $('#acc_drop').children();
         var search_text = $("#accInp").val().toLowerCase();

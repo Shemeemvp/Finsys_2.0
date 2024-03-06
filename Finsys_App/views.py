@@ -11304,3 +11304,285 @@ def Fin_createExpense(request):
             return redirect(Fin_addExpense)
     else:
        return redirect('/')
+
+def Fin_viewExpense(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        exp = Fin_Expense.objects.get(id = id)
+        cmt = Fin_Expense_Comments.objects.filter(Expense = exp)
+        hist = Fin_Expense_History.objects.filter(Expense = exp).last()
+        
+        return render(request,'company/Fin_View_Expense.html',{'allmodules':allmodules,'com':com,'cmp':cmp, 'data':data, 'expense':exp, 'history':hist, 'comments':cmt})
+    else:
+       return redirect('/')
+
+def Fin_convertExpense(request,id):
+    if 's_id' in request.session:
+
+        exp = Fin_Expense.objects.get(id = id)
+        exp.status = 'Saved'
+        exp.save()
+        return redirect(Fin_viewExpense, id)
+
+def Fin_addExpenseComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        exp = Fin_Expense.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_Expense_Comments.objects.create(Company = com, Expense = exp, comments = cmt)
+            return redirect(Fin_viewExpense, id)
+        return redirect(Fin_viewExpense, id)
+    return redirect('/')
+
+def Fin_deleteExpenseComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_Expense_Comments.objects.get(id = id)
+        expId = cmt.Expense.id
+        cmt.delete()
+        return redirect(Fin_viewExpense, expId)
+    
+def Fin_expenseHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        exp = Fin_Expense.objects.get(id = id)
+        his = Fin_Expense_History.objects.filter(Expense = exp)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/Fin_Expense_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'expense':exp})
+    else:
+       return redirect('/')
+    
+def Fin_deleteExpense(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        exp = Fin_Expense.objects.get( id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        # Storing ref number to deleted table
+        # if entry exists and lesser than the current, update and save => Only one entry per company
+        if Fin_Expense_Reference.objects.filter(Company = com).exists():
+            deleted = Fin_Expense_Reference.objects.get(Company = com)
+            if int(exp.reference_no) > int(deleted.reference_no):
+                deleted.reference_no = exp.reference_no
+                deleted.save()
+        else:
+            Fin_Expense_Reference.objects.create(Company = com, reference_no = exp.reference_no, LoginDetails = com.Login_Id)
+        
+        exp.delete()
+        return redirect(Fin_expense)
+
+def Fin_attachExpenseFile(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        exp = Fin_Expense.objects.get(id = id)
+
+        if request.method == 'POST' and len(request.FILES) != 0:
+            exp.file = request.FILES.get('file')
+            exp.save()
+
+        return redirect(Fin_viewExpense, id)
+    else:
+        return redirect('/')
+
+def Fin_expensePdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        exp = Fin_Expense.objects.get(id = id)
+    
+        context = {'expense':exp, 'cmp':com}
+        
+        template_path = 'company/Fin_Expense_Pdf.html'
+        fname = 'Expense_'+exp.expense_no
+        # return render(request, 'company/Fin_Expense_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_shareExpenseToEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        exp = Fin_Expense.objects.get(id = id)
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                context = {'expense':exp, 'cmp':com}
+                template_path = 'company/Fin_Expense_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Expense_{exp.expense_no}'
+                subject = f"Expense_{exp.expense_no}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Expense for - #-{exp.expense_no}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Expense details has been shared via email successfully..!')
+                return redirect(Fin_viewExpense,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_viewExpense, id)
+
+def Fin_editExpense(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+        exp = Fin_Expense.objects.get(id = id)
+
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        vend = Fin_Vendors.objects.filter(Company = cmp, status = 'Active')
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'expense':exp, 'customers':cust, 'pTerms':trms,'list':lst,
+            'banks':bnk, 'accounts':acc, 'vendors':vend
+        }
+        return render(request,'company/Fin_Edit_Expense.html',context)
+    else:
+       return redirect('/')
+
+def Fin_updateExpense(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            exp = Fin_Expense.objects.get(id = id)
+            EXPNum = request.POST['expense_no']
+            if exp.expense_no != EXPNum and Fin_Expense.objects.filter(Company = com, expense_no__iexact = EXPNum).exists():
+                res = f'<script>alert("Expense Number `{EXPNum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            vendorSupply = request.POST['source_of_supply']
+            customerSupply = request.POST['place_of_supply']
+
+            exp.Vendor = None if request.POST['vendorId'] == "" else Fin_Vendors.objects.get(id = request.POST['vendorId'])
+            exp.vendor_name = request.POST['vendor']
+            exp.vendor_email = request.POST['vendorEmail']
+            exp.vendor_address = request.POST['vendor_bill_address']
+            exp.vendor_gst_type = request.POST['vendor_gst_type']
+            exp.vendor_gstin = request.POST['vendor_gstin']
+            exp.vendor_source_of_supply = vendorSupply
+
+            exp.Customer = None if request.POST['customerId'] == "" else Fin_Customers.objects.get(id = request.POST['customerId'])
+            exp.customer_name = request.POST['customer']
+            exp.customer_email = request.POST['customerEmail']
+            exp.customer_address = request.POST['bill_address']
+            exp.customer_gst_type = request.POST['gst_type']
+            exp.customer_gstin = request.POST['gstin']
+            exp.customer_place_of_supply = customerSupply
+
+            exp.reference_no = request.POST['reference_number']
+            exp.expense_no = EXPNum
+            exp.expense_date = request.POST['expense_date']
+            exp.Account = None if request.POST['accountId'] == "" else Fin_Chart_Of_Account.objects.get(id = request.POST['accountId'])
+            exp.expense_account = request.POST['expense_account']
+            exp.expense_type = request.POST['expense_type']
+            exp.hsn_number = request.POST['hsn']
+            exp.sac_number = request.POST['sac']
+            exp.tax_rate = request.POST['taxGST'] if vendorSupply == customerSupply else request.POST['taxIGST']
+
+            exp.payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method']
+            exp.cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id']
+            exp.upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id']
+            exp.bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id']
+            exp.amount = 0.0 if request.POST['amount'] == "" else float(request.POST['amount'])
+            exp.note = request.POST['note']
+
+            if len(request.FILES) != 0:
+                exp.file=request.FILES.get('file')
+
+            exp.save()
+            
+            # Save transaction
+                    
+            Fin_Expense_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                Expense = exp,
+                action = 'Edited'
+            )
+
+            return redirect(Fin_viewExpense, id)
+        else:
+            return redirect(Fin_editExpense, id)
+    else:
+       return redirect('/')

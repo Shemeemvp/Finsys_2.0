@@ -59,7 +59,7 @@
         </thead>
         <tbody>
           {% for a in expenses %}
-          <tr class="clickable-row" data-href="#" style="cursor: pointer;">
+          <tr class="clickable-row" data-href="{% url 'Fin_viewExpense' a.id %}" style="cursor: pointer;">
             <td>{{ a.expense_date }}</td>
             <td>{{ a.expense_account }}</td>
             <td>{{ a.expense_type }}</td>
