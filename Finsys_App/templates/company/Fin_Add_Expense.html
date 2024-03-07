@@ -60,7 +60,7 @@
                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
                                 <input required type="text" id="accInp" name="expense_account" class="dropdown-toggle form-control account-display" onkeyup="filterAccounts()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Account.." autocomplete="off" />
                                 <ul class="dropdown-menu w-100 accounts-available position-absolute" id="acc_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
-                                    <li class="dropdown-item account-options" onclick="getAccountDetails('','')">Select Vendor</li>
+                                    <li class="dropdown-item account-options" onclick="getAccountDetails('','')">Select Account</li>
                                     {% for acc in accounts %}
                                     <li class="dropdown-item account-options" onclick="getAccountDetails(`{{acc.id}}`,this.innerHTML)">{{ acc.account_name }}</li>
                                     {% endfor %}
@@ -74,7 +74,7 @@
                 <div class="col-md-4 mt-3">
                     <label class="">Expense Type </label>
                     <select class="form-control" name="expense_type" style="background-color: #43596c; color: white;" id="expenseType" required>
-                        <option value="" selected> Select Expense Type</option>
+                        <option value="" selected disabled> Select Expense Type</option>
                         <option value="Goods"> Goods </option>
                         <option value="Service"> Service </option>
                     </select>
@@ -2710,7 +2710,7 @@ $(document).on("click","#saveNewAccount",function(){
                     
                     var dropdown = $('#acc_drop');
                     dropdown.find('li').remove();
-                    dropdown.append(`<li class="dropdown-item account-options" onclick="getAccountDetails('','')">Select Vendor</li>`);
+                    dropdown.append(`<li class="dropdown-item account-options" onclick="getAccountDetails('','')">Select Account</li>`);
                     $.each(response.accounts, function(key, value) {
                         var ID = value.id
                         var acc_name = value.name

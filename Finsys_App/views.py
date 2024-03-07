@@ -11132,7 +11132,7 @@ def Fin_createNewExpenseAccount(request):
                 )
                 
                 list= []
-                account_objects = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense'), Company=com).order_by('account_name')
+                account_objects = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=com).order_by('account_name')
 
                 for account in account_objects:
                     
