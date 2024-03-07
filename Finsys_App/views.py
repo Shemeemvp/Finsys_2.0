@@ -11021,7 +11021,8 @@ def Fin_addExpense(request):
         bnk = Fin_Banking.objects.filter(company = cmp)
         acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
         trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
-        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        custLst = Fin_Price_List.objects.filter(Company = cmp, type = 'Sales', status = 'Active')
+        vendLst = Fin_Price_List.objects.filter(Company = cmp, type = 'Purchase', status = 'Active')
 
         # Fetching last Expnse and assigning upcoming ref no as current + 1
         # Also check for if any bill is deleted and ref no is continuos w r t the deleted Expnse
@@ -11071,7 +11072,7 @@ def Fin_addExpense(request):
 
         context = {
             'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend,
-            'ref_no':new_number,'banks':bnk,'EXPNo':nxtEXP, 'accounts':acc, 'pTerms': trms, 'list':lst,
+            'ref_no':new_number,'banks':bnk,'EXPNo':nxtEXP, 'accounts':acc, 'pTerms': trms, 'custList':custLst, 'vendList': vendLst,
         }
         return render(request,'company/Fin_Add_Expense.html',context)
     else:
@@ -11233,9 +11234,18 @@ def Fin_createExpense(request):
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         if request.method == 'POST':
+            expType = request.POST['expense_type']
+            HSN = request.POST['hsn']
+            SAC = request.POST['sac']
             EXPNum = request.POST['expense_no']
             if Fin_Expense.objects.filter(Company = com, expense_no__iexact = EXPNum).exists():
                 res = f'<script>alert("Expense Number `{EXPNum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif expType == 'Goods' and Fin_Expense.objects.filter(Company = com, hsn_number__iexact = HSN).exists():
+                res = f'<script>alert("HSN Number `{HSN}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif expType == 'Service' and Fin_Expense.objects.filter(Company = com, sac_number__iexact = SAC).exists():
+                res = f'<script>alert("SAC Number `{SAC}` already exists, try another!");window.history.back();</script>'
                 return HttpResponse(res)
 
             vendorSupply = request.POST['source_of_supply']
@@ -11265,9 +11275,9 @@ def Fin_createExpense(request):
                 expense_date = request.POST['expense_date'],
                 Account = None if request.POST['accountId'] == "" else Fin_Chart_Of_Account.objects.get(id = request.POST['accountId']),
                 expense_account = request.POST['expense_account'],
-                expense_type = request.POST['expense_type'],
-                hsn_number = request.POST['hsn'],
-                sac_number = request.POST['sac'],
+                expense_type = expType,
+                hsn_number = HSN,
+                sac_number = SAC,
                 tax_rate = request.POST['taxGST'] if vendorSupply == customerSupply else request.POST['taxIGST'],
 
                 payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method'],
@@ -11505,10 +11515,11 @@ def Fin_editExpense(request,id):
         bnk = Fin_Banking.objects.filter(company = cmp)
         acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
         trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
-        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        custLst = Fin_Price_List.objects.filter(Company = cmp, type = 'Sales', status = 'Active')
+        vendLst = Fin_Price_List.objects.filter(Company = cmp, type = 'Purchase', status = 'Active')
 
         context = {
-            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'expense':exp, 'customers':cust, 'pTerms':trms,'list':lst,
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'expense':exp, 'customers':cust, 'pTerms':trms,'custList':custLst, 'vendList': vendLst,
             'banks':bnk, 'accounts':acc, 'vendors':vend
         }
         return render(request,'company/Fin_Edit_Expense.html',context)
@@ -11525,10 +11536,19 @@ def Fin_updateExpense(request, id):
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         if request.method == 'POST':
+            expType = request.POST['expense_type']
+            HSN = request.POST['hsn']
+            SAC = request.POST['sac']
             exp = Fin_Expense.objects.get(id = id)
             EXPNum = request.POST['expense_no']
             if exp.expense_no != EXPNum and Fin_Expense.objects.filter(Company = com, expense_no__iexact = EXPNum).exists():
                 res = f'<script>alert("Expense Number `{EXPNum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif exp.hsn_number != HSN and expType == 'Goods' and Fin_Expense.objects.filter(Company = com, hsn_number__iexact = HSN).exists():
+                res = f'<script>alert("HSN Number `{HSN}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+            elif exp.sac_number != SAC and expType == 'Service' and Fin_Expense.objects.filter(Company = com, sac_number__iexact = SAC).exists():
+                res = f'<script>alert("SAC Number `{SAC}` already exists, try another!");window.history.back();</script>'
                 return HttpResponse(res)
 
             vendorSupply = request.POST['source_of_supply']
@@ -11555,9 +11575,9 @@ def Fin_updateExpense(request, id):
             exp.expense_date = request.POST['expense_date']
             exp.Account = None if request.POST['accountId'] == "" else Fin_Chart_Of_Account.objects.get(id = request.POST['accountId'])
             exp.expense_account = request.POST['expense_account']
-            exp.expense_type = request.POST['expense_type']
-            exp.hsn_number = request.POST['hsn']
-            exp.sac_number = request.POST['sac']
+            exp.expense_type = expType
+            exp.hsn_number = HSN
+            exp.sac_number = SAC
             exp.tax_rate = request.POST['taxGST'] if vendorSupply == customerSupply else request.POST['taxIGST']
 
             exp.payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method']
@@ -11584,5 +11604,42 @@ def Fin_updateExpense(request, id):
             return redirect(Fin_viewExpense, id)
         else:
             return redirect(Fin_editExpense, id)
+    else:
+       return redirect('/')
+
+def Fin_checkExpenseHSN(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        hsnNo = request.GET['hsn']
+        print(hsnNo)
+
+        if hsnNo != "" and Fin_Expense.objects.filter(Company = com, hsn_number__iexact = hsnNo).exists():
+            return JsonResponse({'status':True, 'is_exists':True, 'message':'HSN Number already exists.!'})
+        else:
+            return JsonResponse({'status':True, 'is_exists':False, 'message':''})
+    else:
+       return redirect('/')
+
+def Fin_checkExpenseSAC(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        sacNo = request.GET['sac']
+
+        if sacNo != "" and Fin_Expense.objects.filter(Company = com, sac_number__iexact = sacNo).exists():
+            return JsonResponse({'status':True, 'is_exists':True, 'message':'SAC Number already exists.!'})
+        else:
+            return JsonResponse({'status':True, 'is_exists':False, 'message':''})
     else:
        return redirect('/')

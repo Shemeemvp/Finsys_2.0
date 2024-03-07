@@ -80,12 +80,12 @@
                     </select>
                 </div>
                 <div class="col-md-4 mt-3" id="hsnNoField" style="display:  none;">
-                    <label class="">HSN</label>
-                    <input type="text" class="form-control" name="hsn" style="background-color: #43596c;">
+                    <label class="">HSN</label><span class="text-danger ml-3" id="hsnErr"></span>
+                    <input type="text" class="form-control" name="hsn" id="hsnInput" style="background-color: #43596c;">
                 </div>
                 <div class="col-md-4 mt-3" id="sacNoField" style="display:  none;">
-                    <label class="">SAC</label>
-                    <input type="text" class="form-control" name="sac" style="background-color: #43596c;">
+                    <label class="">SAC</label><span class="text-danger ml-3" id="sacErr"></span>
+                    <input type="text" class="form-control" name="sac" id="sacInput" style="background-color: #43596c;">
                 </div>
                 <div class="col-md-4 mt-3">
                     <div class="d-flex">
@@ -96,6 +96,61 @@
                 <div class="col-md-4 mt-3">
                     <label class="">Reference Number</label>
                     <input type="text" class="form-control" name="reference_number" value="{{ref_no}}" style="background-color: #43596c;" readonly>
+                </div>
+
+                <div class="col-md-4 mt-3">
+                    <label for="">Amount</label>
+                    <div class="d-flex">
+                        <select name="" id="" class="form-control" style="width: 75px;">
+                            <option value="INR">INR</option>
+                        </select>
+                        <input type="number" class="form-control ml-1" name="amount" id="amount" step="any" style="background-color: #43596c;color: white;" required>
+                    </div>
+                </div>
+                <div class="col-md-4 mt-3">
+                    <label class="">Tax Rate</label>
+                    <select name='taxGST' id="taxGST" class="form-control tax_ref tax_ref_gst" style="display: block;">
+                        <option value="">Select GST</option>
+                        <option value="28.0% GST">28.0% GST</option>
+                        <option value="18.0% GST">18.0% GST</option>
+                        <option value="12.0% GST">12.0% GST</option>
+                        <option value="5.0% GST">5.0% GST</option>
+                        <option value="3.0% GST">3.0% GST</option>
+                        <option value="0.0% GST">0.0% GST</option>
+                    </select>
+                    <select name='taxIGST' id="taxIGST" class="form-control tax_ref tax_ref_igst" style="display: none;">
+                        <option value="">Select IGST</option>
+                        <option value="28.0% IGST">28.0% IGST</option>
+                        <option value="18.0% IGST">18.0% IGST</option>
+                        <option value="12.0% IGST">12.0% IGST</option>
+                        <option value="3.0% IGST">5.0% IGST</option>
+                        <option value="3.0% IGST">3.0% IGST</option>
+                        <option value="0.0% IGST">0.0% IGST</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mt-3">
+                    <label class="">Payment Type</label>
+                    <select class="form-control my-select" id="paymentMethod" name="payment_method" style="background-color: #43596c;">
+                        <option value="" selected>Select Payment Method</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="UPI">UPI</option>
+                        {% for b in banks %}
+                        <option value="{{ b.bank_name }}" text="{{ b.id }}">{{ b.bank_name }} (XXX{{ b.account_number|slice:"-4:" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mt-3" style="display:none;"  id="chequediv">
+                    <label class="" >Cheque No</label>
+                    <input type="text" class="form-control" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
+                </div>
+                <div class="col-md-4 mt-3"  style="display:none;" id="upidiv">
+                    <label class="" >UPI ID</label>
+                    <input type="text" class="form-control" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
+                </div>
+                <div class="col-md-4 mt-3"  style="display:none;" id="bnkdiv">
+                    <label class="" >Account#</label>
+                    <input type="text" class="form-control" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
                 </div>
 
             </div>
@@ -190,64 +245,11 @@
                     </div>
                 </div>
             </div>
-            <hr/>
+            <!-- <hr/> -->
 
-            <div class="row">
-                <div class="col-md-3 mt-3">
-                    <label for="">Amount</label>
-                    <div class="d-flex">
-                        <select name="" id="" class="form-control" style="width: 75px;">
-                            <option value="INR">INR</option>
-                        </select>
-                        <input type="number" class="form-control ml-1" name="amount" id="amount" step="any" style="background-color: #43596c;color: white;" required>
-                    </div>
-                </div>
-                <div class="col-md-3 mt-3">
-                    <label class="">Tax Rate</label>
-                    <select name='taxGST' id="taxGST" class="form-control tax_ref tax_ref_gst" style="display: block;">
-                        <option value="">Select GST</option>
-                        <option value="28.0% GST">28.0% GST</option>
-                        <option value="18.0% GST">18.0% GST</option>
-                        <option value="12.0% GST">12.0% GST</option>
-                        <option value="5.0% GST">5.0% GST</option>
-                        <option value="3.0% GST">3.0% GST</option>
-                        <option value="0.0% GST">0.0% GST</option>
-                    </select>
-                    <select name='taxIGST' id="taxIGST" class="form-control tax_ref tax_ref_igst" style="display: none;">
-                        <option value="">Select IGST</option>
-                        <option value="28.0% IGST">28.0% IGST</option>
-                        <option value="18.0% IGST">18.0% IGST</option>
-                        <option value="12.0% IGST">12.0% IGST</option>
-                        <option value="3.0% IGST">5.0% IGST</option>
-                        <option value="3.0% IGST">3.0% IGST</option>
-                        <option value="0.0% IGST">0.0% IGST</option>
-                    </select>
-                </div>
-                <div class="col-md-3 mt-3">
-                    <label class="">Payment Type</label>
-                    <select class="form-control my-select" id="paymentMethod" name="payment_method" style="background-color: #43596c;">
-                        <option value="" selected>Select Payment Method</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="UPI">UPI</option>
-                        {% for b in banks %}
-                        <option value="{{ b.bank_name }}" text="{{ b.id }}">{{ b.bank_name }} (XXX{{ b.account_number|slice:"-4:" }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3 mt-3" style="display:none;"  id="chequediv">
-                    <label class="" >Cheque No</label>
-                    <input type="text" class="form-control" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
-                </div>
-                <div class="col-md-3 mt-3"  style="display:none;" id="upidiv">
-                    <label class="" >UPI ID</label>
-                    <input type="text" class="form-control" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
-                </div>
-                <div class="col-md-3 mt-3"  style="display:none;" id="bnkdiv">
-                    <label class="" >Account#</label>
-                    <input type="text" class="form-control" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
-                </div>
-            </div>
+            <!-- <div class="row">
+                
+            </div> -->
 
             <div class="card-title mt-4">
                 <h4 class="mb-0">Customer Details</h4>
@@ -582,7 +584,7 @@
                                 <label for="priceList">Price List</label>
                                 <select name="price_list" id="priceList" class="form-control">
                                     <option value="" selected>Choose</option>
-                                    {% for l in list %}
+                                    {% for l in custList %}
                                     <option value="{{l.id}}">{{l.name}}</option>
                                     {% endfor %}
                                 </select>
@@ -1037,7 +1039,7 @@
                                 <label for="vendPriceList">Price List</label>
                                 <select name="price_list" id="vendPriceList" class="form-control">
                                     <option value="" selected>Choose</option>
-                                    {% for l in list %}
+                                    {% for l in vendList %}
                                     <option value="{{l.id}}">{{l.name}}</option>
                                     {% endfor %}
                                 </select>
@@ -1462,13 +1464,88 @@
             if($(this).val() == 'Goods'){
                 $('#sacNoField').hide();
                 $('#hsnNoField').show();
+                $('#hsnInput').prop('required', true);
+                $('#sacInput').prop('required', false);
             }else if($(this).val() == 'Service'){
                 $('#hsnNoField').hide();
                 $('#sacNoField').show();
+                $('#hsnInput').prop('required', false);
+                $('#sacInput').prop('required', true);
             }else{
                 $('#hsnNoField').hide();
                 $('#sacNoField').hide();
+                $('#hsnInput').prop('required', false);
+                $('#sacInput').prop('required', false);
                 alert('Select an Expense Type.!')
+            }
+        });
+
+        $('#hsnInput').on('blur', function(){
+            $('#hsnErr').text('');
+            var hsn = $(this).val().trim();
+            if(hsn != ""){
+                if(!isNaN(hsn)){
+                    if(hsn.length < 6){
+                        $('#hsnErr').text('Enter a valid HSN');
+                        alert('HSN should be 6 digits or above.!');
+                        return
+                    }else{
+                        $('#hsnErr').text('');
+                        $.ajax({
+                            type: 'GET',
+                            url: "{% url 'Fin_checkExpenseHSN' %}",
+                            data:{
+                                hsn: hsn,
+                            },
+                            success: function(data){
+                                if(data.status){
+                                    if(!data.is_exists){
+                                        $('#hsnErr').text('');
+                                    }else{
+                                        $('#hsnErr').text(data.message);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+                else{
+                    $('#hsnErr').text('HSN Number should be digits');
+                }
+            }
+        });
+
+        $('#sacInput').on('blur', function(){
+            $('#sacErr').text('');
+            var sac = $(this).val().trim();
+            if(sac != ""){
+                if(!isNaN(sac)){
+                    if(sac.length < 6){
+                        $('#sacErr').text('Enter a valid SAC');
+                        alert('SAC should be 6 digits or above.!');
+                    }else{
+                        $('#sacErr').text('');
+                        $.ajax({
+                            type: 'GET',
+                            url: "{% url 'Fin_checkExpenseSAC' %}",
+                            data:{
+                                sac: sac,
+                            },
+                            success: function(data){
+                                if(data.status){
+                                    if(!data.is_exists){
+                                        $('#sacErr').text('');
+                                    }else{
+                                        $('#sacErr').text(data.message);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+                else{
+                    $('#sacErr').text('SAC Number should be digits');
+                }
             }
         });
     });
@@ -1647,7 +1724,15 @@
             return false;
         }
 
-        
+        if($('#expenseType').val() =='Goods' && $('#hsnErr').text() != ""){
+            alert('Invalid HSN')
+            return false;
+        }
+
+        if($('#expenseType').val() =='Service' && $('#sacErr').text() != ""){
+            alert('Invalid SAC')
+            return false;
+        }
     }
 
   
@@ -2731,6 +2816,7 @@ $(document).on("click","#saveNewAccount",function(){
         alert('Account name or Type cannot be blank.!')
     }
 });
+
 </script>
 
 {% endblock %}

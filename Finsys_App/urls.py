@@ -390,6 +390,8 @@ urlpatterns = [
     path('Fin_share_expense_to_email/<int:id>',views.Fin_shareExpenseToEmail, name='Fin_shareExpenseToEmail'),
     path('Fin_edit_expense/<int:id>',views.Fin_editExpense, name='Fin_editExpense'),
     path('Fin_update_expense/<int:id>',views.Fin_updateExpense, name='Fin_updateExpense'),
+    path('Fin_check_expense_hsn',views.Fin_checkExpenseHSN, name='Fin_checkExpenseHSN'),
+    path('Fin_check_expense_sac',views.Fin_checkExpenseSAC, name='Fin_checkExpenseSAC'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
