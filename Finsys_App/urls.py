@@ -1,3 +1,4 @@
+#Finsys Final
 from . import views
 from django.urls import path,re_path
 from django.conf import settings
@@ -65,8 +66,8 @@ urlpatterns = [
     path('Dnoti_Overview/<id>',views.Fin_Dnoti_Overview,name='Fin_Dnoti_Overview'), 
     path('DModule_Updation_Accept/<id>',views.Fin_DModule_Updation_Accept,name='Fin_DModule_Updation_Accept'),
     path('DModule_Updation_Reject/<id>',views.Fin_DModule_Updation_Reject,name='Fin_DModule_Updation_Reject'),
-    path('ADpayment_terms_Updation_Accept/<id>',views.Fin_Dpayment_terms_Updation_Accept,name='Fin_Dpayment_terms_Updation_Accept'),
-    path('ADpayment_terms_Updation_Reject/<id>',views.Fin_ADpayment_terms_Updation_Reject,name='Fin_ADpayment_terms_Updation_Reject'),
+    path('ADpayment_terms_Updation_Accept/<int:id>',views.Fin_ADpayment_terms_Updation_Accept,name='Fin_ADpayment_terms_Updation_Accept'),
+    path('ADpayment_terms_Updation_Reject/<int:id>',views.Fin_ADpayment_terms_Updation_Reject,name='Fin_ADpayment_terms_Updation_Reject'),
     path('Cnotification',views.Fin_Cnotification,name='Fin_Cnotification'),
     path('Wrong',views.Fin_Wrong,name='Fin_Wrong'),
     path('Wrong_Action',views.Fin_Wrong_Action,name='Fin_Wrong_Action'),
@@ -128,8 +129,12 @@ urlpatterns = [
     path('Fin_Editbankholder/<int:id>/',views.Fin_Editbankholder,name='Fin_Editbankholder'),
     path('Fin_deleteholder/<int:id>/',views.Fin_deleteholder,name='Fin_deleteholder'),
     path('Fin_addcomment/<int:id>/', views.Fin_addcomment, name='Fin_addcomment'),
-    path('Fin_deletecomment/<int:comment_id>/', views.Fin_deletecomment, name='Fin_deletecomment'),
-    path('Fin_Bankhistory/<int:account_id>/', views.Fin_Bankhistory, name='Fin_Bankhistory'),
+    path('Fin_deletecomment/<int:id>/', views.Fin_deletecomment, name='Fin_deletecomment'),
+    path('Fin_Bankhistory/<int:holder_id>/', views.Fin_Bankhistory, name='Fin_Bankhistory'),
+    
+    path('Fin_fetchaccountnumbers/', views.Fin_fetchaccountnumbers, name='Fin_fetchaccountnumbers'),
+    path('Fin_fetchallbanks/', views.Fin_fetchallbanks, name='Fin_fetchallbanks'),
+    path('Fin_AddBankinHolder/', views.Fin_AddBankinHolder, name='Fin_AddBankinHolder'),
     
     # -------------Shemeem--------Price List & Customers-------------------------------
     
@@ -175,7 +180,7 @@ urlpatterns = [
     path('employee_save',views.employee_save,name="employee_save"),
     path('employee_overview/<int:pk>',views.employee_overview,name="employee_overview"),
     path('activate/<int:pk>',views.activate,name="activate"),
-    path('employee_edit_page/<int:pk>',views.employee_edit_page,name="employee_edit_page"),
+    path('employee_edit_page/<int:pk>/',views.employee_edit_page,name="employee_edit_page"),
     path('employee_update/<int:pk>',views.employee_update,name="employee_update"),
     path('employee_comment/<int:pk>',views.employee_comment,name="employee_comment"),
     path('employee_comment_view/<int:pk>',views.employee_comment_view,name="employee_comment_view"),
@@ -188,43 +193,64 @@ urlpatterns = [
     path('holiday_create_page',views.holiday_create_page,name="holiday_create_page"),
     path('holiday_add',views.holiday_add,name="holiday_add"),
     path('holiday_calendar_view/<int:mn>/<int:yr>', views.holiday_calendar_view, name='holiday_calendar_view'),
-    path('holiday_edit_page/<int:pk>', views.holiday_edit_page, name='holiday_edit_page'),
-    path('holiday_update/<int:pk>',views.holiday_update,name="holiday_update"),
+    path('holiday_edit_page/<int:pk>/<int:mn>/<int:yr>', views.holiday_edit_page, name='holiday_edit_page'), 
+    path('holiday_update/<int:pk>/<int:mn>/<int:yr>',views.holiday_update,name="holiday_update"),
     path('holiday_delete/<int:pk>',views.holiday_delete,name="holiday_delete"),
+    path('holiday_history/<int:month>/<int:year>',views.holiday_history,name="holiday_history"),
+    path('employee_overview_print/<int:pk>',views.employee_overview_print,name="employee_overview_print"),
     
     # harikrishnan (end)--------------------------------
-
-    #---------------------------- Purchase Bill --------------------------------#
-
-    path('Purchase_Bill_List/',views.Fin_List_Purchase_Bill,name='Fin_List_Purchase_Bill'),
-    path('Purchase_Bill_Add/',views.Fin_List_Purchase_Add,name='Fin_List_Purchase_Add'),
-    path('Price_List_Data/',views.Fin_Price_List_Data,name='Fin_Price_List_Data'),
-    path('Purchase_Bill_Create/',views.Fin_Create_Purchase_Bill,name='Fin_Create_Purchase_Bill'),
-    path('Purchase_Bill_No_Check/',views.Fin_Check_Pbill_No,name='Fin_Check_Pbill_No'),
-    path('Purchase_Bill_Vendor/',views.Fin_New_Vendor,name='Fin_New_Vendor'),
-    path('Purchase_Bill_Customer/',views.Fin_New_Customer,name='Fin_New_Customer'),
-    path('Purchase_Bill_Payment_Term/',views.Fin_New_Payment_Term,name='Fin_New_Payment_Term'),
-    path('Purchase_Bill_Check_Item_Name/',views.Fin_Check_New_Item_Name,name='Fin_Check_New_Item_Name'),
-    path('Purchase_Bill_Check_Item_HSN/',views.Fin_Check_New_Item_HSN,name='Fin_Check_New_Item_HSN'),
-    path('Purchase_Bill_Item/',views.Fin_New_Item,name='Fin_New_Item'),
-    path('Purchase_Bill_View/<int:id>',views.Fin_View_Purchase_Bill,name='Fin_View_Purchase_Bill'),
-    path('Purchase_Bill_Edit/<int:id>',views.Fin_Purchase_Bill_Edit,name='Fin_Purchase_Bill_Edit'),
-    path('Purchase_Bill_Update/<int:id>',views.Fin_Update_Purchase_Bill,name='Fin_Update_Purchase_Bill'),
-    path('Purchase_Bill_Comment_Create/<int:id>',views.Fin_Purchase_Bill_Add_Edit_Comment,name='Fin_Purchase_Bill_Add_Edit_Comment'),
-    path('Purchase_Bill_Comment_Delete/<int:id>',views.Fin_Purchase_Bill_Delete_Comment,name='Fin_Purchase_Bill_Delete_Comment'),
-    path('Purchase_Bill_Delete/<int:id>',views.Fin_Delete_Purchase_Bill,name='Fin_Delete_Purchase_Bill'),
-    path('Purchase_Bill_Add_File/<int:id>',views.Fin_Add_Additional_Files,name='Fin_Add_Additional_Files'),
-    path('Purchase_Bill_History/<int:id>',views.Fin_Purchase_List_History,name='Fin_Purchase_List_History'),
-    path('Purchase_Bill_Convert/<int:id>',views.Fin_Convert_To_Active,name='Fin_Convert_To_Active'),
-    path('Purchase_Bill_Check_Unit_Name',views.Fin_Check_New_Unit,name='Fin_Check_New_Unit'),
-    path('Purchase_Bill_Check_Term',views.Fin_Check_New_Term,name='Fin_Check_New_Term'),
-    path('Purchase_Bill_New_Unit',views.Fin_New_Unit,name='Fin_New_Unit'),
-    path('Purchase_Bill_Share_Bill/<int:id>',views.Fin_Share_Purchase_Bill,name='Fin_Share_Purchase_Bill'),
     
-    path('Purchase_Bill_New_Account',views.Fin_New_Account,name='Fin_New_Account'),
+    # End
     
-    #End
+    # harikrishnan (start)--------------------------------
 
+    path('employee_blood_group',views.employee_blood_group,name="employee_blood_group"),
+    path('holiday_comment/<int:mn>/<int:yr>',views.holiday_comment,name="holiday_comment"),
+    path('holiday_comment_delete/<int:pk>/<int:mn>/<int:yr>/',views.holiday_comment_delete,name="holiday_comment_delete"),
+    path('employee_comment_delete/<int:pk>/<int:id>/',views.employee_comment_delete,name="employee_comment_delete"),
+    path('bloodgroup_data',views.bloodgroup_data,name="bloodgroup_data"),
+    
+    # harikrishnan (end)--------------------------------
+    
+    # ---------------------------Start Banking------------------------------------ 
+
+    path('Banking_listout',views.Fin_banking_listout,name='Fin_banking_listout'),
+    path('Banking_sort_by_balance',views.Fin_banking_sort_by_balance,name='Fin_banking_sort_by_balance'),
+    path('Banking_sort_by_name',views.Fin_banking_sort_by_name,name='Fin_banking_sort_by_name'),
+    path('Banking_filter_active',views.Fin_banking_filter_active,name='Fin_banking_filter_active'),
+    path('Banking_filter_inactive',views.Fin_banking_filter_inactive,name='Fin_banking_filter_inactive'),
+
+    path('Create_bank',views.Fin_create_bank,name='Fin_create_bank'),
+    path('Banking_check_account_number',views.Fin_banking_check_account_number,name='Fin_banking_check_account_number'),
+    path('Create_bank_account',views.Fin_create_bank_account,name='Fin_create_bank_account'),
+
+    path('View_Bank/<int:id>',views.Fin_view_bank,name='Fin_view_bank'),
+    path('Bank_to_cash/<int:id>',views.Fin_bank_to_cash,name='Fin_bank_to_cash'),
+    path('Save_bankTocash',views.Fin_save_bankTocash,name='Fin_save_bankTocash'),
+
+    path('Cash_to_bank/<int:id>',views.Fin_cash_to_bank,name='Fin_cash_to_bank'),
+    path('Save_cashTobank',views.Fin_save_cashTobank,name='Fin_save_cashTobank'),
+
+    path('Bank_to_bank/<int:id>',views.Fin_bank_to_bank,name='Fin_bank_to_bank'),
+    path('Save_bankTobank/<int:id>',views.Fin_save_bankTobank,name='Fin_save_bankTobank'),
+
+    path('Bank_adjust/<int:id>',views.Fin_bank_adjust,name='Fin_bank_adjust'),
+    path('Save_bank_adjust',views.Fin_save_bank_adjust,name='Fin_save_bank_adjust'),
+
+    path('Edit_bank/<int:id>',views.Fin_edit_bank,name='Fin_edit_bank'),
+    path('Edit_bank_account/<int:id>',views.Fin_edit_bank_account,name='Fin_edit_bank_account'),
+    path('Change_bank_status/<int:id>',views.Fin_change_bank_status,name='Fin_change_bank_status'),
+    path('Delete_bank/<int:id>',views.Fin_delete_bank,name='Fin_delete_bank'),
+
+    path('Banking_add_file/<int:id>',views.Fin_banking_add_file,name='Fin_banking_add_file'),
+    path('Banking_add_comment/<int:id>',views.Fin_banking_add_comment,name='Fin_banking_add_comment'),
+    path('Banking_delete_comment/<int:id>',views.Fin_banking_delete_comment,name='Fin_banking_delete_comment'),
+    path('Banking_history/<int:id>',views.Fin_banking_history,name='Fin_banking_history'),
+    path('ShareBankingStatementToEmail/<int:id>',views.Fin_shareBankingStatementToEmail,name='Fin_shareBankingStatementToEmail'),
+    path('Render_pdfstatment_view/<int:id>',views.Fin_render_pdfstatment_view,name='Fin_render_pdfstatment_view'),
+    #End    
+    
     # -------------Shemeem--------Invoice & Vendors-------------------------------
     # Invoice
 
@@ -270,7 +296,8 @@ urlpatterns = [
     path('Fin_vendor_transactions_pdf/<int:id>',views.Fin_vendorTransactionsPdf, name='Fin_vendorTransactionsPdf'),
     path('Fin_share_vendor_transactions_to_email/<int:id>',views.Fin_shareVendorTransactionsToEmail, name='Fin_shareVendorTransactionsToEmail'),
     path('Fin_update_vendor/<int:id>',views.Fin_updateVendor, name='Fin_updateVendor'),
-
+    # End
+    
     # -------------Shemeem--------Sales Order-------------------------------
     path('Fin_sales_orders',views.Fin_salesOrder, name='Fin_salesOrder'),
     path('Fin_add_sales_order',views.Fin_addSalesOrder, name='Fin_addSalesOrder'),
@@ -291,7 +318,111 @@ urlpatterns = [
     path('Fin_sales_order_convert_invoice/<int:id>',views.Fin_salesOrderConvertInvoice, name='Fin_salesOrderConvertInvoice'),
     path('Fin_convert_sales_order_to_rec_invoice/<int:id>',views.Fin_convertSalesOrderToRecInvoice, name='Fin_convertSalesOrderToRecInvoice'),
     path('Fin_sales_order_convert_rec_invoice/<int:id>',views.Fin_salesOrderConvertRecInvoice, name='Fin_salesOrderConvertRecInvoice'),
+    # End
+    
+    #  ----------------------------- TINTO urls LOAN  sTART-----------------------------
 
+    path('employee_loan_list',views.employee_loan_list,name="employee_loan_list"),
+    path('employee_loan_sort_by_employeename',views.employee_loan_sort_by_employeename,name="employee_loan_sort_by_employeename"),
+    path('employee_loan_sort_by_balance',views.employee_loan_sort_by_balance,name="employee_loan_sort_by_balance"),
+    path('employee_loan_filter_by_active',views.employee_loan_filter_by_active,name="employee_loan_filter_by_active"),
+    path('employee_loan_filter_by_inactive',views.employee_loan_filter_by_inactive,name="employee_loan_filter_by_inactive"),
+    path('employee_loan_create_page',views.employee_loan_create_page,name="employee_loan_create_page"),
+    path('employeedata', views.employeedata, name='employeedata'),
+    path('employee_loan_save', views.employee_loan_save, name='employee_loan_save'),
+    path('emploanoverview/<int:pk>',views.emploanoverview,name='emploanoverview'),
+    path('emploanedit/<int:pk>',views.emploanedit,name='emploanedit'),
+    path('emploanrepayment/<int:pk>',views.emploanrepayment,name='emploanrepayment'),
+    path('emploanrepaymentsave/<int:pk>',views.emploanrepaymentsave,name='emploanrepaymentsave'),
+    path('emploanrepaymentedit/<int:pk>',views.emploanrepaymentedit,name='emploanrepaymentedit'),
+    path('emploanaddtional/<int:pk>',views.emploanaddtional,name='emploanaddtional'),
+    path('emploanadditionalsave/<int:pk>',views.emploanadditionalsave,name='emploanadditionalsave'),
+    path('emploanadditionedit/<int:pk>',views.emploanadditionedit,name='emploanadditionedit'),
+    path('addemp', views.addemp, name='addemp'),
+    path('add_term', views.add_term, name='add_term'),
+    path('term_dropdown', views.term_dropdown, name='term_dropdown'),
+    path('emp_dropdown', views.emp_dropdown, name='emp_dropdown'),
+    path('laon_status_edit/<int:pk>',views.laon_status_edit,name='laon_status_edit'),
+    path('add_loan_comment/<int:pk>',views.add_loan_comment,name='add_loan_comment'),
+    path('delete_loan_comment/<int:ph>/<int:pr>',views.delete_loan_comment,name='delete_loan_comment'),
+    path('attach_loan_file/<int:pk>',views.attach_loan_file,name='attach_loan_file'),
+    path('delete_loan/<int:pk>',views.delete_loan,name='delete_loan'),
+    path('shareloanToEmail/<int:pk>',views.shareloanToEmail,name='shareloanToEmail'),
+    path('termdata', views.termdata, name='termdata'),
+    path('bankdata', views.bankdata, name='bankdata'),
+    path('get_repayment_data',views.get_repayment_data,name='get_repayment_data'),
+    path('get_addition_data',views.get_addition_data,name='get_addition_data'),
+    path('delete_loan_repayment/<int:pk>',views.delete_loan_repayment,name='delete_loan_repayment'),
+    path('delete_loan_additional/<int:pk>',views.delete_loan_additional,name='delete_loan_additional'),
+ #  ----------------------------- TINTO urls LOAN  END-----------------------------
+ 
+    # CREATED BY AISWARYA
+    path('Fin_Eway_bills',views.Fin_Eway_bills, name='Fin_Eway_bills'),
+    path('Fin_load_CreateEwaybill',views.Fin_load_CreateEwaybill, name='Fin_load_CreateEwaybill'),
+    path('Fin_CreateEwaybill',views.Fin_CreateEwaybill, name='Fin_CreateEwaybill'),
+    path('Fin_getEwayCustomerData',views.Fin_getEwayCustomerData, name='Fin_getEwayCustomerData'),
+    path('Fin_checkEwayNumber',views.Fin_checkEwayNumber, name='Fin_checkEwayNumber'),
+    path('Fin_getEwayItemDetails',views.Fin_getEwayItemDetails, name='Fin_getEwayItemDetails'),
+    path('Fin_createEwayCustomer',views.Fin_createEwayCustomer, name='Fin_createEwayCustomer'),
+    path('Fin_getEwayCustomers',views.Fin_getEwayCustomers, name='Fin_getEwayCustomers'),
+    path('Fin_createEwayItem',views.Fin_createEwayItem, name='Fin_createEwayItem'),
+    path('Fin_getEwayItems',views.Fin_getEwayItems, name='Fin_getEwayItems'),
+    path('Fin_new_transport_mode',views.Fin_new_transport_mode, name='Fin_new_transport_mode'),
+    path('Fin_get_transport_data',views.Fin_get_transport_data, name='Fin_get_transport_data'),
+    path('Fin_transportation_modes',views.Fin_transportation_modes, name='Fin_transportation_modes'),
+    path('Fin_EwayOverview/<int:id>/',views.Fin_EwayOverview, name='Fin_EwayOverview'),
+    path('Fin_EwayPdf/<int:id>',views.Fin_EwayPdf, name='Fin_EwayPdf'),
+    path('Fin_shareEwayToEmail/<int:id>',views.Fin_shareEwayToEmail, name='Fin_shareEwayToEmail'),
+    path('Fin_EwayDelete/<int:id>',views.Fin_EwayDelete, name='Fin_EwayDelete'),
+    path('Fin_EwayHistory/<int:id>',views.Fin_EwayHistory, name='Fin_EwayHistory'),
+    path('Fin_EditEway/<int:id>',views.Fin_EditEway, name='Fin_EditEway'),
+    path('Fin_EditEwaybills/<int:id>',views.Fin_EditEwaybills, name='Fin_EditEwaybills'),
+    path('Fin_EwayConvert/<int:id>',views.Fin_EwayConvert, name='Fin_EwayConvert'),
+    #End
+             
+    #---------------------------- Purchase Bill --------------------------------#
+
+    path('Purchase_Bill_List/',views.Fin_List_Purchase_Bill,name='Fin_List_Purchase_Bill'),
+    path('Purchase_Bill_Add/',views.Fin_List_Purchase_Add,name='Fin_List_Purchase_Add'),
+    path('Price_List_Data/',views.Fin_Price_List_Data,name='Fin_Price_List_Data'),
+    path('Purchase_Bill_Create/',views.Fin_Create_Purchase_Bill,name='Fin_Create_Purchase_Bill'),
+    path('Purchase_Bill_No_Check/',views.Fin_Check_Pbill_No,name='Fin_Check_Pbill_No'),
+    path('Purchase_Bill_Vendor/',views.Fin_New_Vendor,name='Fin_New_Vendor'),
+    path('Purchase_Bill_Customer/',views.Fin_New_Customer,name='Fin_New_Customer'),
+    path('Purchase_Bill_Payment_Term/',views.Fin_New_Payment_Term,name='Fin_New_Payment_Term'),
+    path('Purchase_Bill_Check_Item_Name/',views.Fin_Check_New_Item_Name,name='Fin_Check_New_Item_Name'),
+    path('Purchase_Bill_Check_Item_HSN/',views.Fin_Check_New_Item_HSN,name='Fin_Check_New_Item_HSN'),
+    path('Purchase_Bill_Item/',views.Fin_New_Item,name='Fin_New_Item'),
+    path('Purchase_Bill_View/<int:id>',views.Fin_View_Purchase_Bill,name='Fin_View_Purchase_Bill'),
+    path('Purchase_Bill_Edit/<int:id>',views.Fin_Purchase_Bill_Edit,name='Fin_Purchase_Bill_Edit'),
+    path('Purchase_Bill_Update/<int:id>',views.Fin_Update_Purchase_Bill,name='Fin_Update_Purchase_Bill'),
+    path('Purchase_Bill_Comment_Create/<int:id>',views.Fin_Purchase_Bill_Add_Edit_Comment,name='Fin_Purchase_Bill_Add_Edit_Comment'),
+    path('Purchase_Bill_Comment_Delete/<int:id>',views.Fin_Purchase_Bill_Delete_Comment,name='Fin_Purchase_Bill_Delete_Comment'),
+    path('Purchase_Bill_Delete/<int:id>',views.Fin_Delete_Purchase_Bill,name='Fin_Delete_Purchase_Bill'),
+    path('Purchase_Bill_Add_File/<int:id>',views.Fin_Add_Additional_Files,name='Fin_Add_Additional_Files'),
+    path('Purchase_Bill_History/<int:id>',views.Fin_Purchase_List_History,name='Fin_Purchase_List_History'),
+    path('Purchase_Bill_Convert/<int:id>',views.Fin_Convert_To_Active,name='Fin_Convert_To_Active'),
+    
+    #End
+    
+    # ---------------Admin updates----------------
+    path('remove_payment_terms/<int:pk>',views.Fin_remove_payment_terms,name='Fin_remove_payment_terms'),
+    path('Clients_under_Distributors',views.Fin_Clients_under_distributors,name='Fin_Clients_under_distributors'),
+    path('getClients_Under_Distributor',views.get_clients_under_distributor,name='get_clients_under_distributor'),
+    path('Distributor/client/details/<int:pk>',views.distributor_client_profile_details,name='distributor_client_profile_details'),
+    path('Admin/Trial_Period/Section',views.Fin_Admin_trial_period_section,name='Fin_Admin_trial_period_section'),
+    path('Admin/Trial_Period/Clients',views.Fin_Admin_trial_period_clients,name='Fin_Admin_trial_period_clients'),
+    path('Admin/Trial_Period/Distributor-Clients',views.Fin_Admin_trial_period_distributor_clients,name='Fin_Admin_trial_period_distributor_clients'),
+    
+    # ---------------Distributor updates----------------
+    path('DClient/Trial_Period/Details',views.Fin_trial_periodclients,name='Fin_trial_periodclients'),
+    path('Dpayment_terms_Updation_Accept/<int:id>',views.Fin_Dpayment_terms_Updation_Accept,name='Fin_Dpayment_terms_Updation_Accept'),
+    path('Dpayment_terms_Updation_Reject/<int:id>',views.Fin_Dpayment_terms_Updation_Reject,name='Fin_Dpayment_terms_Updation_Reject'),
+ 
+    # ---------------Company updates----------------
+    path('Company/Trial/Review',views.Fin_company_trial_feedback,name='Fin_company_trial_feedback'),
+    #End
+    
     # -------------Shemeem--------Estimate-------------------------------
     path('Fin_estimates',views.Fin_estimates, name='Fin_estimates'),
     path('Fin_add_estimate',views.Fin_addEstimate, name='Fin_addEstimate'),
@@ -314,7 +445,19 @@ urlpatterns = [
     path('Fin_estimate_convert_sales_order/<int:id>',views.Fin_estimateConvertSalesOrder, name='Fin_estimateConvertSalesOrder'),
     path('Fin_convert_estimate_to_recurring_invoice/<int:id>',views.Fin_convertEstimateToRecurringInvoice, name='Fin_convertEstimateToRecurringInvoice'),
     path('Fin_estimate_convert_rec_invoice/<int:id>',views.Fin_estimateConvertRecInvoice, name='Fin_estimateConvertRecInvoice'),
-
+    #End
+    
+    path('Purchase_Bill_Check_Unit_Name',views.Fin_Check_New_Unit,name='Fin_Check_New_Unit'),
+    path('Purchase_Bill_Check_Term',views.Fin_Check_New_Term,name='Fin_Check_New_Term'),
+    path('Purchase_Bill_New_Unit',views.Fin_New_Unit,name='Fin_New_Unit'),
+    path('Purchase_Bill_Share_Bill/<int:id>',views.Fin_Share_Purchase_Bill,name='Fin_Share_Purchase_Bill'),
+    
+    path('Purchase_Bill_New_Account',views.Fin_New_Account,name='Fin_New_Account'),
+    
+    # ---------------Company updates----------------
+    path('Company/Profile/Edit/gsttype',views.company_gsttype_change,name='company_gsttype_change'),
+    #End
+    
     # < ------------- Shemeem -------- > Manual Journals < ------------------------------- >
     path('Fin_manual_journals',views.Fin_manualJournals, name='Fin_manualJournals'),
     path('Fin_add_journal',views.Fin_addJournal, name='Fin_addJournal'),
@@ -332,7 +475,12 @@ urlpatterns = [
     path('Fin_delete_journal/<int:id>',views.Fin_deleteJournal, name= 'Fin_deleteJournal'),
     path('Fin_journal_pdf/<int:id>',views.Fin_journalPdf, name='Fin_journalPdf'),
     path('Fin_share_journal_to_email/<int:id>',views.Fin_shareJournalToEmail, name='Fin_shareJournalToEmail'),
-
+    #End
+    
+    path('Fin_attachEwaybillFile/<int:id>/',views.Fin_attachEwaybillFile, name='Fin_attachEwaybillFile'),
+    path('Fin_addEwayComment/<int:id>',views.Fin_addEwayComment, name='Fin_addEwayComment'),
+    path('Fin_deleteEwayComment/<int:id>',views.Fin_deleteEwayComment, name='Fin_deleteEwayComment'),
+    
     # < ------------- Shemeem -------- > Recurring Invoice < ------------------------------- >
     path('Fin_recurring_invoice',views.Fin_recurringInvoice, name='Fin_recurringInvoice'),
     path('Fin_add_recurring_invoice',views.Fin_addRecurringInvoice, name='Fin_addRecurringInvoice'),
@@ -349,7 +497,29 @@ urlpatterns = [
     path('Fin_new_repeat_every_type',views.Fin_newRepeatEveryType, name='Fin_newRepeatEveryType'),
     path('Fin_edit_recurring_invoice/<int:id>',views.Fin_editRecurringInvoice, name='Fin_editRecurringInvoice'),
     path('Fin_update_recurring_invoice/<int:id>',views.Fin_updateRecurringInvoice, name='Fin_updateRecurringInvoice'),
-
+    
+    # End
+    path('Fin_Attendance',views.Fin_Attendance,name='Fin_Attendance'),
+    path('Fin_Add_Attendance',views.Fin_Add_Attendance,name='Fin_Add_Attendance'),
+    path('Fin_Holiday_check_for_attendance',views.Fin_Holiday_check_for_attendance,name='Fin_Holiday_check_for_attendance'),
+    path('Fin_attendance_save',views.Fin_attendance_save,name='Fin_attendance_save'),
+    path('fin_employee_save_atndnce',views.fin_employee_save_atndnce,name='fin_employee_save_atndnce'),
+    path('Fin_Attendanceview/<mn>/<yr>/<id>',views.Fin_Attendanceview,name='Fin_Attendanceview'),
+    path('Fin_editAttendance/<id>/<mn>/<yr>/<pk>',views.Fin_editAttendance,name='Fin_editAttendance'),
+    path('Fin_deleteAttendance/<id>/<mn>/<yr>/<pk>',views.Fin_deleteAttendance,name='Fin_deleteAttendance'),
+    path('Fin_attendance_history/<id>/<mn>/<yr>',views.Fin_attendance_history,name='Fin_attendance_history'),
+    path('Fin_addcommentstoleave/<id>/<mn>/<yr>/<pk>',views.Fin_addcommentstoleave,name='Fin_addcommentstoleave'),
+    path('Fin_attendancecomments',views.Fin_attendancecomments,name='Fin_attendancecomments'),
+    path('Fin_shareLeaveStatementToEmail/<mn>/<yr>/<id>',views.Fin_shareLeaveStatementToEmail,name='Fin_shareLeaveStatementToEmail'),
+    
+    path('Fin_edit_bank_to_cash/<int:id>',views.Fin_edit_bank_to_cash,name='Fin_edit_bank_to_cash'),
+    path('Fin_edit_cash_to_bank/<int:id>',views.Fin_edit_cash_to_bank,name='Fin_edit_cash_to_bank'),
+    path('Fin_edit_bank_to_bank/<int:transfer_id>',views.Fin_edit_bank_to_bank,name='Fin_edit_bank_to_bank'),
+    path('Fin_edit_bank_adjust/<int:id>',views.Fin_edit_bank_adjust,name='Fin_edit_bank_adjust'),
+    path('Fin_edit_bank_trans/<int:id>',views.Fin_edit_bank_trans,name='Fin_edit_bank_trans'),
+    path('Fin_bank_transcation_history/<int:id>',views.Fin_bank_transcation_history,name='Fin_bank_transcation_history'),
+    path('Fin_bank_transaction_delete/<int:id>',views.Fin_bank_transaction_delete,name='Fin_bank_transaction_delete'),
+    
     # < ------------- Shemeem -------- > Purchase Order < ------------------------------- >
     path('Fin_purchase_order',views.Fin_purchaseOrder, name='Fin_purchaseOrder'),
     path('Fin_add_purchase_order',views.Fin_addPurchaseOrder, name='Fin_addPurchaseOrder'),
@@ -372,7 +542,51 @@ urlpatterns = [
     path('Fin_convert_purchase_order_to_bill/<int:id>',views.Fin_convertPurchaseOrderToBill, name='Fin_convertPurchaseOrderToBill'),
     path('Fin_purchase_order_convert_bill/<int:id>',views.Fin_purchaseOrderConvertBill, name='Fin_purchaseOrderConvertBill'),
     # End
-
+    path('StockAdjustment',views.StockAdjustment,name='StockAdjustment'),
+    path('AddStockAdjustment',views.AddStockAdjustment,name='AddStockAdjustment'),
+    path('getitemdata1',views.getitemdata1,name='getitemdata1'),
+    path('getitemdata2',views.getitemdata2,name='getitemdata2'),
+    path('add_reason',views.add_reason,name='add_reason'),
+    path('Stk_adjHistory/<int:id>',views.Stk_adjHistory,name='Stk_adjHistory'),
+    path('filterbySave',views.filterbySave,name='filterbySave'),
+    path('filterbyDraft',views.filterbyDraft,name='filterbyDraft'),
+    path('Fin_StockAdjustmentView',views.Fin_StockAdjustmentView,name='Fin_StockAdjustmentView'),
+    path('create_stockadjustment',views.create_stockadjustment,name='create_stockadjustment'),
+    path('StockAdjustmentOverview/<int:id>',views.StockAdjustmentOverview,name='StockAdjustmentOverview'),
+    path('del_stockadj/<int:id>',views.del_stockadj,name='del_stockadj'),
+    path('stockadj_comment/<int:id>',views.stockadj_comment,name='stockadj_comment'),
+    path('del_stockcmnt/<int:id>',views.del_stockcmnt,name='del_stockcmnt'),
+    path('convert_stockadj/<int:id>',views.convert_stockadj,name='convert_stockadj'),
+    path('edit_stockadj/<int:id>',views.edit_stockadj,name='edit_stockadj'),
+    path('updatedStockAdj/<int:id>',views.updatedStockAdj,name='updatedStockAdj'),
+    path('deleteitem/<int:id>',views.deleteitem,name='deleteitem'),
+    path('stock_attachFile/<int:id>',views.stock_attachFile,name='stock_attachFile'),
+    path('stockadjToEmail/<int:id>',views.stockadjToEmail,name='stockadjToEmail'),
+    
+    # 	By tinto mt delivery_challan
+    path('deliverylist', views.deliverylist, name='deliverylist'),
+    path('newdeliverychallan', views.newdeliverychallan, name='newdeliverychallan'),
+    path('createdeliverychallan', views.createdeliverychallan, name='createdeliverychallan'),
+    path('Fin_createchallanCustomer',views.Fin_createchallanCustomer, name='Fin_createchallanCustomer'),
+    path('Fin_getCustomerschallan',views.Fin_getCustomerschallan, name='Fin_getCustomerschallan'),
+    path('customerdata', views.customerdata, name='customerdata'),
+    path('challan_overview/<int:id>',views.challan_overview,name='challan_overview'),
+    path('editchallan/<int:id>',views.editchallan,name='editchallan'),
+    path('Fin_editchallanto/<int:id>',views.Fin_editchallanto,name='Fin_editchallanto'),
+    path('Fin_deleteChallan/<int:id>',views.Fin_deleteChallan, name= 'Fin_deleteChallan'),
+    path('Fin_addchallanComment/<int:id>',views.Fin_addchallanComment, name= 'Fin_addchallanComment'),
+    path('Fin_deletechallanComment/<int:id>',views.Fin_deletechallanComment, name='Fin_deletechallanComment'),
+    path('Fin_attachchallanFile/<int:id>',views.Fin_attachchallanFile, name='Fin_attachchallanFile'),
+    path('Fin_convertchallan/<int:id>',views.Fin_convertchallan, name='Fin_convertchallan'),
+    path('Fin_convertchallanToInvoice/<int:id>',views.Fin_convertchallanToInvoice, name='Fin_convertchallanToInvoice'),
+    path('Fin_estimatechallanInvoice/<int:id>',views.Fin_estimatechallanInvoice, name='Fin_estimatechallanInvoice'),
+    path('Fin_convertchallanToRecurringInvoice/<int:id>',views.Fin_convertchallanToRecurringInvoice, name='Fin_convertchallanToRecurringInvoice'),
+    path('Fin_challanConvertRecInvoice/<int:id>',views.Fin_challanConvertRecInvoice, name='Fin_challanConvertRecInvoice'),
+    path('Fin_sharechallanToEmail/<int:id>',views.Fin_sharechallanToEmail, name='Fin_sharechallanToEmail'),
+    path('Fin_checkchallanNumber',views.Fin_checkchallanNumber, name='Fin_checkchallanNumber'),
+    path('customer_dropdown',views.customer_dropdown, name='customer_dropdown'),
+    #End
+    
     # < ------------- Shemeem -------- > Expense < ------------------------------- >
     path('Fin_expense',views.Fin_expense, name='Fin_expense'),
     path('Fin_add_expense',views.Fin_addExpense, name='Fin_addExpense'),
@@ -393,6 +607,172 @@ urlpatterns = [
     path('Fin_check_expense_hsn',views.Fin_checkExpenseHSN, name='Fin_checkExpenseHSN'),
     path('Fin_check_expense_sac',views.Fin_checkExpenseSAC, name='Fin_checkExpenseSAC'),
     # End
+    path('Fin_getItems2',views.Fin_getItems2, name='Fin_getItems2'),
+    path('Fin_getInvItemDetails2',views.Fin_getInvItemDetails2, name='Fin_getInvItemDetails2'),
+    
+    path('fin_employee_save_atndnce_EDIT/<mn>/<yr>/<pk>',views.fin_employee_save_atndnce_EDIT,name='fin_employee_save_atndnce_EDIT'),
+    path('Fin_editAttendanceVIEW/<mn>/<yr>/<id>/<pk>',views.Fin_editAttendanceVIEW,name='Fin_editAttendanceVIEW'),
+    
+    #----------------------------start Loan Account------------------------
+    
+    path('loan_ac_listoutpage',views.loan_ac_listoutpage,name='loan_ac_listoutpage'),
+    path('loan_create_page',views.loan_create_page,name='loan_create_page'),
+    path('loan_bankdata', views.loan_bankdata, name='loan_bankdata'),
+    path('create_loan_ac', views.create_loan_ac, name='create_loan_ac'),
+    path('loan_check', views.loan_check, name='loan_check'),
+    path('loan_list/<int:id>', views.loan_list, name='loan_list'),
+    path('inactive_status/<int:id>', views.inactive_status, name='inactive_status'),
+    path('active_status/<int:id>', views.active_status, name='active_status'),
+    path('loanaccont_trans/<int:id>', views.loanaccont_trans, name='loanaccont_trans'),
+    path('create_loanac_trans/<int:id>', views.create_loanac_trans, name='create_loanac_trans'),
+    path('additional_loan_approve/<int:id>', views.additional_loan_approve, name='additional_loan_approve'),
+    path('additional_loan_transaction/<int:id>', views.additional_loan_transaction, name='additional_loan_transaction'),
+    path('edit_loan_ac_repayment/<int:id>', views.edit_loan_ac_repayment, name='edit_loan_ac_repayment'),
+    path('save_edit_loan_repayment/<int:id>', views.save_edit_loan_repayment, name='save_edit_loan_repayment'),
+    path('delete_loanac_payment/<int:id>', views.delete_loanac_payment, name='delete_loanac_payment'),
+    path('Fin_LoanAccountHistory/<int:id>', views.Fin_LoanAccountHistory, name='Fin_LoanAccountHistory'),
+    path('edit_additional_Loan/<int:id>', views.edit_additional_Loan, name='edit_additional_Loan'),
+    path('save_edit_additional_loan/<int:id>', views.save_edit_additional_loan, name='save_edit_additional_loan'),
+    path('delet_loanaccount/<int:id>', views.delet_loanaccount, name='delet_loanaccount'),
+    path('edit_loan_account/<int:id>', views.edit_loan_account, name='edit_loan_account'),
+    path('Fin_Share_loanaccount/<int:id>', views.Fin_Share_loanaccount, name='Fin_Share_loanaccount'),
+    path('loanac_attachFile/<int:id>', views.loanac_attachFile, name='loanac_attachFile'),
+    path('loan_lists_edit/<int:id>', views.loan_lists_edit, name='loan_lists_edit'),
+    path('get_loanaddition_data/', views.get_loanaddition_data, name='get_loanaddition_data'),
+    path('get_loanrepayment_data/', views.get_loanrepayment_data, name='get_loanrepayment_data'),
+    path('save_account',views.save_account,name='save_account'),
+    path('loanac_dropdown',views.loanac_dropdown,name='loanac_dropdown'),
+    #End
+    # url debit note tinto mt
+    path('Fin_debitnotelist', views.Fin_debitnotelist, name='Fin_debitnotelist'),
+    path('Fin_debitnoteadd', views.Fin_debitnoteadd, name='Fin_debitnoteadd'),
+    path('vendordata', views.vendordata, name='vendordata'),
+    path('Fin_newdebitnote', views.Fin_newdebitnote, name='Fin_newdebitnote'),
+    path('Fin_checkdebitNumber',views.Fin_checkdebitNumber, name='Fin_checkdebitNumber'),
+    path('billdata', views.billdata, name='billdata'),
+    path('Fin_debit_overview/<int:id>',views.Fin_debit_overview,name='Fin_debit_overview'),
+    path('Fin_editdebitnote/<int:id>',views.Fin_editdebitnote,name='Fin_editdebitnote'),
+    path('editdebit/<int:id>',views.editdebit,name='editdebit'),
+    path('Fin_deletedebit/<int:id>',views.Fin_deletedebit, name= 'Fin_deletedebit'),
+    path('Fin_adddebitComment/<int:id>',views.Fin_adddebitComment, name= 'Fin_adddebitComment'),
+    path('Fin_deletedebitComment/<int:id>',views.Fin_deletedebitComment, name='Fin_deletedebitComment'),
+    path('Fin_attachdebitFile/<int:id>',views.Fin_attachdebitFile, name='Fin_attachdebitFile'),
+    path('Fin_sharedebitToEmail/<int:id>',views.Fin_sharedebitToEmail, name='Fin_sharedebitToEmail'),
+    path('Fin_convertdebit/<int:id>',views.Fin_convertdebit, name='Fin_convertdebit'),
+    path('checkitem', views.checkitem, name='checkitem'),
+    #End
+    
+    # harikrishnan---------------------
+    path('Fin_createVendor_modal',views.Fin_createVendor_modal,name='Fin_createVendor_modal'),
+    path('Fin_createCustomer_modal',views.Fin_createCustomer_modal,name='Fin_createCustomer_modal'),
+    path('Fin_createNewItem_modal',views.Fin_createNewItem_modal,name='Fin_createNewItem_modal'),
+    path('Fin_unit_reload_modal/',views.Fin_unit_reload_modal,name='Fin_unit_reload_modal'),
+    path('Fin_new_unit_modal/',views.Fin_new_unit_modal,name='Fin_new_unit_modal'),
+    path('Fin_new_payment_terms_recurring',views.Fin_new_payment_terms_recurring,name='Fin_new_payment_terms_recurring'),
+    path('Fin_saveItemUnit_modal',views.Fin_saveItemUnit_modal,name='Fin_saveItemUnit_modal'),
+    path('Fin_recurring_bill_list',views.Fin_recurring_bill_list,name="Fin_recurring_bill_list"),
+    path('Fin_recurring_bill_create_page',views.Fin_recurring_bill_create_page,name="Fin_recurring_bill_create_page"),
+    path('Fin_recurring_bill_overview/<int:pk>/',views.Fin_recurring_bill_overview,name="Fin_recurring_bill_overview"),
+    path('Fin_recurring_bill_save',views.Fin_recurring_bill_save,name="Fin_recurring_bill_save"),
+    path('Fin_get_vendor_details/<int:vendor_id>/',views.Fin_get_vendor_details,name='Fin_get_vendor_details'),
+    path('Fin_get_customer_details/<int:customer_id>/',views.Fin_get_customer_details,name='Fin_get_customer_details'),
+    path('Fin_get_item_details/<int:item_id>/',views.Fin_get_item_details,name='Fin_get_item_details'),
+    path('Fin_check_recurring_bill_number',views.Fin_check_recurring_bill_number,name='Fin_check_recurring_bill_number'),
+    path('Fin_recurring_bill_delete/<int:pk>',views.Fin_recurring_bill_delete,name="Fin_recurring_bill_delete"),
+    path('Fin_recurring_bill_attach_file/<int:pk>/', views.Fin_recurring_bill_attach_file, name='Fin_recurring_bill_attach_file'),
+    path('Fin_recurring_bill_edit_page/<int:pk>/',views.Fin_recurring_bill_edit_page,name="Fin_recurring_bill_edit_page"),
+    path('Fin_recurring_bill_edit_save/<int:pk>/',views.Fin_recurring_bill_edit_save,name="Fin_recurring_bill_edit_save"),
+    path('Fin_end_date',views.Fin_end_date,name="Fin_end_date"),
+    path('Fin_recurring_bill_email',views.Fin_recurring_bill_email,name="Fin_recurring_bill_email"),
+    path('Fin_recurring_bill_comment',views.Fin_recurring_bill_comment,name='Fin_recurring_bill_comment'),
+    path('Fin_recurring_bill_comment_delete/<int:pk>/<int:id>/',views.Fin_recurring_bill_comment_delete,name='Fin_recurring_bill_comment_delete'),
+    path('Fin_recurring_bill_history/<int:pk>',views.Fin_recurring_bill_history,name='Fin_recurring_bill_history'),
+    path('Fin_recurring_bill_convert/<int:pk>',views.Fin_recurring_bill_convert,name='Fin_recurring_bill_convert'),
+    path('Fin_recurring_bill_usercheck',views.Fin_recurring_bill_usercheck,name='Fin_recurring_bill_usercheck'),
+    path('Fin_shareRBToEmail/<int:id>',views.Fin_shareRBToEmail,name='Fin_shareRBToEmail'),
+    path('Fin_check_recurring_bill_number_editpage/<int:pk>',views.Fin_check_recurring_bill_number_editpage,name='Fin_check_recurring_bill_number_editpage'),
+    path('Fin_get_bank_details/<str:bankNum>',views.Fin_get_bank_details,name="Fin_get_bank_details"),
+    path('Fin_check_hsn_RB',views.Fin_check_hsn_RB,name="Fin_check_hsn_RB"),
+    path('Fin_get_pricelist_details/<int:price_id>/<int:items_id>/',views.Fin_get_pricelist_details,name='Fin_get_pricelist_details'),
+    # harikrishnankb end ------------
+    path('loan_bankdata_repayment',views.loan_bankdata_repayment,name='loan_bankdata_repayment'),
+    
+    # ...............Payement Recevied.........................Antony.........
+    path('Fin_view_payment_received',views.Fin_view_payment_received,name='Fin_view_payment_received'),
+    path('Fin_add_payment_received',views.Fin_add_payment_received,name='Fin_add_payment_received'),
+    path('Fin_paymentreceivecustomer',views.Fin_paymentreceivecustomer,name='Fin_paymentreceivecustomer'),
+    path('Fin_create_receivepayment_customer',views.Fin_create_receivepayment_customer,name='Fin_create_receivepayment_customer'),
+    path('Fin_getpaymentreceivecustomers',views.Fin_getpaymentreceivecustomers,name='Fin_getpaymentreceivecustomers'),
+    path('Fin_newCustomerPaymentReceivedTerm',views.Fin_newCustomerPaymentReceivedTerm,name='Fin_newCustomerPaymentReceivedTerm'),
+    path('Fin_check_paymentreceived_CustomerName',views.Fin_check_paymentreceived_CustomerName,name='Fin_check_paymentreceived_CustomerName'),
+    path('Fin_check_paymentreceived_CustomerGSTIN',views.Fin_check_paymentreceived_CustomerGSTIN,name='Fin_check_paymentreceived_CustomerGSTIN'),
+    path('Fin_check_paymentreceived_CustomerPAN',views.Fin_check_paymentreceived_CustomerPAN,name='Fin_check_paymentreceived_CustomerPAN'),
+    path('Fin_check_paymentreceived_CustomerPhone',views.Fin_check_paymentreceived_CustomerPhone,name='Fin_check_paymentreceived_CustomerPhone'),
+    path('Fin_check_paymentreceived_CustomerEmail',views.Fin_check_paymentreceived_CustomerEmail,name='Fin_check_paymentreceived_CustomerEmail'),
+    path('Fin_Create_Payment_Received',views.Fin_Create_Payment_Received,name='Fin_Create_Payment_Received'),
+    path('Fin_overview_payment_received/<int:id>',views.Fin_overview_payment_received,name='Fin_overview_payment_received'),
+    path('Fin_Payment_Received_History/<int:id>',views.Fin_Payment_Received_History,name='Fin_Payment_Received_History'),
+    path('Fin_payment_received_Comment/<int:id>',views.Fin_payment_received_Comment,name='Fin_payment_received_Comment'),
+    path('Fin_deletePaymentComment/<int:id>',views.Fin_deletePaymentComment,name='Fin_deletePaymentComment'),
+    path('Fin_deletePayment/<int:id>',views.Fin_deletePayment,name='Fin_deletePayment'),
+    path('Fin_convertpaymentsave/<int:id>',views.Fin_convertpaymentsave,name='Fin_convertpaymentsave'),
+    path('Fin_sharePaymentToEmail/<int:id>',views.Fin_sharePaymentToEmail,name='Fin_sharePaymentToEmail'),
+    path('fetch_invoice_data',views.fetch_invoice_data,name='fetch_invoice_data'),
+    path('get_payemnt_bankacc_num',views.get_payemnt_bankacc_num,name='get_payemnt_bankacc_num'),
+    path('Fin_edit_payment_received/<int:id>',views.Fin_edit_payment_received,name='Fin_edit_payment_received'),
+    path('Fin_Update_Payment_Received/<int:id>',views.Fin_Update_Payment_Received,name='Fin_Update_Payment_Received'),
+    path('payment_add_file/<int:id>',views.payment_add_file,name='payment_add_file'),
+    #End
+    #------------------Salary Details---------------------------#
+    path('Fin_salary_details',views.Fin_salary_details,name='Fin_salary_details'),
+    path('sort_employee_name_salary/',views.sort_employee_name_salary, name='sort_employee_name_salary'),
+    path('payroll_sort_employeesalary_by_month/',views.payroll_sort_employeesalary_by_month, name='payroll_sort_employeesalary_by_month'),
+    path('filter_by_status_save/', views.filter_by_status_save, name='filter_by_status_save'),
+    path('filter_by_status_draft/', views.filter_by_status_draft, name='filter_by_status_draft'),
+    path('payroll_addsalarydetails/', views.payroll_addsalarydetails, name='payroll_addsalarydetails'),
+    path('listemployee_salary',views.listemployee_salary,name='listemployee_salary'),
+    path('AddEmployeeInSalaryPage',views.AddEmployeeInSalaryPage,name='AddEmployeeInSalaryPage'),
+    path('getDays',views.getDays,name='getDays'),
+    path('calculate_salary/', views.calculate_salary, name='calculate_salary'),
+    path('item_dropdown', views.item_dropdown, name='item_dropdown'),
+    re_path(r'^itemdata$', views.itemdata, name='itemdata'),
+    path('Fin_salary_overview/<str:employee_id>/<int:salary_id>/', views.Fin_salary_overview, name='Fin_salary_overview'),
+    path('Fin_salarypdf/<int:employee_id>/<int:salary_id>/', views.Fin_salarypdf, name='Fin_salarypdf'),
+    path('Fin_shareSalaryToEmail/<int:employee_id>/<int:salary_id>/', views.Fin_shareSalaryToEmail, name='Fin_shareSalaryToEmail'),
+    path('Fin_deletesalary/<str:employee_id>/<int:salary_id>/', views.Fin_deletesalary, name='Fin_deletesalary'),
+    path('Fin_addEmployeeComment/<int:employee_id>/<int:salary_id>/',views.Fin_addEmployeeComment, name='Fin_addEmployeeComment'),
+    path('Fin_deleteEmployeeComment/<int:id>/<int:salary_id>/',views.Fin_deleteEmployeeComment, name='Fin_deleteEmployeeComment'),
+    path('Fin_salaryedit/<int:employee_id>/<int:salary_id>/', views.Fin_salaryedit, name ='Fin_salaryedit'),
+    path('Fin_SalaryHistory/<int:id>',views.Fin_SalaryHistory, name='Fin_SalaryHistory'),
+    #-------------------------------------------------End---------------------#
+    # ...............Payement Recevied.........................Antony.........
+    path('Fin_checkpaymentNumber',views.Fin_checkpaymentNumber,name='Fin_checkpaymentNumber'),
+    #End
+    path('Fin_paymentmade', views.Fin_paymentmade, name='Fin_paymentmade'),
+    path('Fin_addpaymentmade', views.Fin_addpaymentmade, name='Fin_addpaymentmade'),
+    path('Fin_PaymentMade_getVendorData', views.Fin_PaymentMade_getVendorData, name='Fin_PaymentMade_getVendorData'),
+    path('Fin_checkPaymentMadeNumber', views.Fin_checkPaymentMadeNumber, name='Fin_checkPaymentMadeNumber'),
+    
+    path('Fin_createPaymentMade', views.Fin_createPaymentMade, name='Fin_createPaymentMade'),
+    path('Fin_ViewPaymentMade/<int:id>/', views.Fin_ViewPaymentMade, name='Fin_ViewPaymentMade'),
+    path('Fin_convertPaymentMade/<int:id>', views.Fin_convertPaymentMade, name='Fin_convertPaymentMade'),
+    path('Fin_addPaymentMadeComment/<int:id>', views.Fin_addPaymentMadeComment, name='Fin_addPaymentMadeComment'),
+    path('Fin_deletePaymentMadeComment/<int:id>', views.Fin_deletePaymentMadeComment, name='Fin_deletePaymentMadeComment'),
+    path('Fin_PaymentMadeHistory/<int:id>', views.Fin_PaymentMadeHistory, name='Fin_PaymentMadeHistory'),
+    path('Fin_deletePaymentMade/<int:id>', views.Fin_deletePaymentMade, name='Fin_deletePaymentMade'),
+    path('Fin_attachPaymentMadeFile/<int:id>', views.Fin_attachPaymentMadeFile, name='Fin_attachPaymentMadeFile'),
+    path('Fin_PaymentMadePdf/<int:id>', views.Fin_PaymentMadePdf, name='Fin_PaymentMadePdf'),
+    path('Fin_sharePaymentMadeToEmail/<int:id>', views.Fin_sharePaymentMadeToEmail, name='Fin_sharePaymentMadeToEmail'),
+    path('Fin_PaymentMade_getVendors', views.Fin_PaymentMade_getVendors, name='Fin_PaymentMade_getVendors'),
+    path('Fin_PaymentMade_createVendorAjax', views.Fin_PaymentMade_createVendorAjax, name='Fin_PaymentMade_createVendorAjax'),
+    path('Fin_EditPaymentMade/<int:id>', views.Fin_EditPaymentMade, name='Fin_EditPaymentMade'),
+    path('Fin_UpdatePaymentMade/<int:id>', views.Fin_UpdatePaymentMade, name='Fin_UpdatePaymentMade'),
+    path('Fin_SaveBills', views.Fin_SaveBills, name='Fin_SaveBills'),
+    path('Fin_VendorPaymentDetails_Edit/', views.Fin_VendorPaymentDetails_Edit, name='Fin_VendorPaymentDetails_Edit'), 
+    path('fetch_payments/', views.fetch_payments, name='fetch_payments'),
+    
+    path('Purchase_Bill_All_Items_Add',views.Fin_Get_All_Items_Add,name='Fin_Get_All_Items_Add'),
+    path('Purchase_Bill_All_Items_Edit',views.Fin_Get_All_Items_Edit,name='Fin_Get_All_Items_Edit'),
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 ]

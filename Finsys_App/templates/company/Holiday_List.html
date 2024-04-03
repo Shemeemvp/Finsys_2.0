@@ -4,6 +4,10 @@
 
 <!-- harikrishnan -->
 
+  <!-- fontawesome icons -->
+  <link href="{% static 'assets/fontawesome/css/fontawesome.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/brands.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/solid.css' %}" rel="stylesheet">
 
 <!-- Include xlsx library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
@@ -20,15 +24,10 @@
     }
 
 </style>
-
+    <!-- <div style="float: right;font-size: larger;" class="mr-5">Company : {{companyName}}</div> -->
     <div class="page-content ">
         <div class="card radius-15">
-            <div class="ml-auto"><a style="cursor: pointer;" title="Close" onclick="goBack()" ><i class="fa-solid fa-circle-xmark fa-2xl"></i></a></div>
-        <script>
-            function goBack() {
-      window.history.back();
-    }
-        </script>
+            
             <div class="card-body">
                 <center><h2>ALL HOLIDAYS </h2></center><br>
                 
@@ -38,8 +37,8 @@
                     </div>
 
                     <div class="dropdown show">
-                        <a class="btn btn-secondary " href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          <i class="fa-solid fa-up-down"></i>
+                        <a class="btn btn-outline-secondary text-grey" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-sort"></i> Sort by
                         </a>
                       
                         <div class="dropdown-menu"  >
@@ -50,9 +49,8 @@
                       </div>
 
                     <div class="col-3 ml-auto">
-                        <button class="btn btn-secondary" id="exportButton">Export <i class="fa-solid fa-file-excel"></i></button>
-                        <!-- <button class="btn btn-secondary">Import</button> -->
-                        <a class="btn btn-secondary" href="{% url 'holiday_create_page' %}"> <i class="fa-solid fa-plus fa-2xs"></i> New </a>
+                        <button class="btn btn-outline-secondary text-grey" id="exportButton"><i class="fa fa-table"></i> Export To Excel</button>
+                        <a class="btn btn-outline-secondary text-grey" href="{% url 'holiday_create_page' %}"><i class="fa fa-plus font-weight-light"></i> New </a>
                     </div>
                     
                 </div>
@@ -177,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Subtract the number of leave & sundays from the total dates
             const leave = parseInt(leaveCell.textContent, 10) || 0;
-            const remainingDays = totalDates - (leave + numberOfSundays);
+            const remainingDays = totalDates - (leave ); // add + numberOfSundays for adding sundays holiday
 
             
 

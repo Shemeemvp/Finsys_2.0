@@ -1,0 +1,2299 @@
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+
+    {% load static %}
+    <style>
+        input {
+            background-color: #2f516f;
+            border: 0;
+            border-radius: 5px;
+            color: white;
+          }
+        .selectize-input.full {
+            background-color: #43596c !important;
+            color: white !important;
+            border: 1px solid rgb(255 255 255 / 35%) !important;
+           }
+    </style>
+    <div class="page-content">
+        <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_overview_payment_received' payment.id %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+        <div class="card radius-15">
+            <div class="card-body">
+                <div class="card-title">
+                    <center><h2 class="mb-0" style="text-transform: uppercase;;">received payment</h2></center>
+                </div>
+                <hr/>
+            </div>
+        </div>
+        <form action="{% url 'Fin_Update_Payment_Received' payment.id %}" novalidate method="post">
+            {% csrf_token %}
+            <div class="card radius-15">
+                <div class="card-body">
+                    <div id="invoice">
+
+                        <header>
+                            <!-- <div class="row mt-3">
+                                <div class="col">
+                                    <center><h2>Fin sYs</h2></center>
+                                </div>
+                            </div> -->
+                        </header>
+                        <div class="row mt-5">
+                            <div class="col-md-4 mt-5">
+                                <div class="d-flex">
+                                    <select name="customer" id="customer" class="form-control" required>
+                                        <option value="{{payment.customer.id}}"   selected >{{ payment.customer.title }} {{ payment.customer.first_name }} {{ payment.customer.last_name }}</option>
+                                        {% for cust in customer %}
+                                        <option  value="{{ cust.id }}" > {{ cust.title }} {{ cust.first_name }} {{ cust.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" data-toggle="modal" data-target="#newCustomer" class="btn btn-outline-secondary ml-1">+</button>
+                                </div>
+            
+                                <label class="mt-4">GST Treatment</label>
+                                <input type="text" class="form-control" id="gstType" name="gst_treatment" value="{{ payment.customer.gst_type }}" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
+                            </div>
+            
+                            <div class="col-md-4 mt-3">
+                                <label class="">Email</label>
+                                <input class="form-control" type="email" name="customerEmail" value="{{ payment.customer.email }}" placeholder="Email" style="background-color: #43596c; color: white;" id="customerEmail" readonly>
+                                <div class="mt-4" id="gstInDisplay" style="display: block;">
+                                    <label class="">GST Number</label>
+                                    <input type="text" class="form-control" id="gstin" name="gstin" value="{{ payment.customer.gstin }}"  placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                                </div>
+                            </div>
+            
+                            <div class="col-md-4 mt-3">
+                                <label class="">Billing Address</label>
+                                <textarea class="form-control" name="bill_address" id="billAddress"  rows="4" style="background-color: #43596c; color: white;" readonly>{{ payment.customer.billing_street }}
+{{ payment.customer.billing_city }}
+{{ payment.customer.billing_state }}
+{{ payment.customer.billing_country }}</textarea>
+                            </div>
+                        </div>
+            
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-4 mt-3">
+                                <label class="col-form-label">Payment Date</label>
+                                <input type="date" name="paymdate" value="{{ payment.payment_date|date:'Y-m-d' }}" class="form-control">
+                            </div>
+                            <div class="col-md-4 mt-3">
+                                <label class="col-form-label">Payment No</label><span class="text-danger ml-1" id="PaymentNoErr"></span>
+                                <input type="text" name="payment_num" id="payment_number" value="{{ payment.payment_no }}" class="form-control">
+                                <span id="payment_warning" class="text-danger"></span>
+                            </div>
+                            
+
+                            <div class=" col-md-4 mt-3">
+                                <label class="scol-form-label">Referance Number</label>
+                                <input type="text" name="ref_num" id="ref_num" value="{{ payment.referance_no }}" style="background-color: #43596c; color: white;" readonly class="form-control" placeholder="Referance Number">
+                            </div>
+                            <div class="col-md-4 mt-3"></div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mt-3">
+                                <label class="col-form-label">Payment Method</label>
+                                <div class="d-flex">
+                                    <select name="pmethod" id="paymeth" onclick="showinp('newmethod', this)"class="form-control">
+                                        <option value="{{payment.payment_method}}" selected >{{payment.payment_method}}</option>
+                                       
+                                        <option value="Cash">Cash</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="UPI">UPI</option>
+                                        {% for i in bnk_acnt %}
+                                        <option text="{{i.id}}" value="{{i.bank_name}}">{{i.bank_name}}</option>
+                                        {%endfor%}
+                                        {% comment %} {% for i in pmthds %}
+                                        <option value="{{i.bank_name}}">{{i.bank_name}}</option>
+                                        {%endfor%}
+                                        <option id="newmth"></option> {% endcomment %}
+                                    </select>
+                                    {% comment %} <a class="btn btn-outline-secondary ml-1" data-target="#pymntmeth" data-toggle="modal" role="button">+</a> {% endcomment %}
+                                </div>
+                            </div>
+                            <div class="col-md-4 mt-3">
+                                {% if payment.bank_no != 'NULL' %}
+                                <div class="pymnt-methd-inp" id="bank-field" style=" flex-direction: column;">
+                                    <label class="scol-form-label">Account #</label>
+                                    <input type="text" name="bank_acc" id="bankacc_inp" value="{{ payment.bank_no }}" class="form-control" style="background-color: #43596c; color: white;" placeholder="Account #" readonly>
+                                </div>
+                                {% else %}
+                                <div class="pymnt-methd-inp" id="bank-field" style="display: none; flex-direction: column;">
+                                    <label class="scol-form-label">Account #</label>
+                                    <input type="text" name="bank_acc" id="bankacc_inp" value="{{ payment.bank_no }}" style="background-color: #43596c; color: white;" class="form-control" placeholder="Account #" readonly>
+                                </div>
+                                {% endif %}
+                                
+                                {% if payment.cheque_no != 'NULL' %}
+                                <div class="pymnt-methd-inp" id="cheq-field" style=" flex-direction: column;">
+                                    <label class="scol-form-label">Cheque ID</label>
+                                    <input type="text" name="chq_id" id="chequeid_inp" value="{{ payment.cheque_no }}" style="background-color: #43596c; color: white;" class="form-control" placeholder="Cheque ID" >
+                                </div>
+                                {% else %}
+                                <div class="pymnt-methd-inp" id="cheq-field" style="display: none;  flex-direction: column;">
+                                    <label class="scol-form-label">Cheque ID</label>
+                                    <input type="text" name="chq_id" id="chequeid_inp" value="{{ payment.cheque_no }}" style="background-color: #43596c; color: white;" class="form-control" placeholder="Cheque ID" >
+                                </div>
+                                {% endif %}
+                                
+                                {% if payment.upi_no != 'NULL'%}
+                                <div class="pymnt-methd-inp" id="upi-field" style=" flex-direction: column;">
+                                    <label class="scol-form-label">UPI ID</label>
+                                    <input type="text" name="upiid" id="upi_inp" value="{{ payment.upi_no }}" style="background-color: #43596c; color: white;" class="form-control" placeholder="UPI ID" >
+                                </div>
+                                {% else %}
+                                <div class="pymnt-methd-inp" id="upi-field" style=" display: none; flex-direction: column;">
+                                    <label class="scol-form-label">UPI ID</label>
+                                    <input type="text" name="upiid" id="upi_inp" value="{{ payment.upi_no }}" style="background-color: #43596c; color: white;" class="form-control" placeholder="UPI ID">
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4">
+                               
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <input type="text" id="newmethod" onchange="addtemopt(this)" class="form-control"
+                                       style="display: none;">
+                            </div>
+                        </div>
+                     
+                        <div class="row clearfix">
+                            <div class="col-md-12 table-responsive-md">
+                                <table class="table table-bordered table-hover" id="tab_logic">
+                                    <thead>
+                                    <tr>
+                                        <th class="text-center"> #</th>
+                                        <th class="text-center"> Date</th>
+                                        <th class="text-center">Due Date</th>
+                                        <th class="text-center"> Invoice Type</th>
+                                        <th class="text-center"> Invoice Number</th>
+                                        <th class="text-center"> Invoice Amount</th>
+                                        <th class="text-center"> Payment</th>
+                                        <th class="text-center"> Balance</th>
+
+                                    </tr>
+                                    </thead>
+                                    <!-- <tbody id='customerdata'>
+                                       
+                                    </tbody> -->
+                                    <tbody id='invoicedata'>
+                                        {% for  i in payemnt_invoice %}
+
+                                        <tr 'addr{{forloop.counter}}'>
+                                            <td>{{forloop.counter}}</td>
+                                            <td style="position: relative;"><input type="text" readonly name="inv_date[]" id="" value="{{i.pdate | date:'Y-m-d' }}" class="form-control" style="background-color: #43596c; color: white;" />  </td>
+                                            <td><input type="text" readonly name='duedate[]' id="" value="{{i.pduedate| date:'Y-m-d' }}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                            <td><input type="text" readonly name='inv_type[]' id="" value="{{i.pinvoice_type}}" class="form-control" style="background-color: #43596c; color: white;" /></td>                                
+                                            <td><input type="text" readonly name='trans_no[]' value="{{i.pinvoice_no}}" id="" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                            <td><input type="number" readonly name='inv_amount[]' id="" value="{{i.pinvoice_amount}}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                            <td><input type="number" readonly name='inv_payment[]' id="" value="{{i.pinvoice_payment}}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                            <td><input type="number" readonly name='inv_balance[]' id="inv_balance${parseInt(key) + 1}" value="{{i.p_invoice_balance}}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                        </tr>
+                                        {% endfor %}
+                                       
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7"></div>
+                            <div class="col-md-5 table-responsive-md mt-3 " id="tab_logic_total" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
+                                <div class="p-3">
+                                    <div class="row container-fluid p-2 m-0">
+                                        <div class="col-sm-4 mt-2"><label for="a" class="text-center">Total Amount</label></div>
+                                        <div class="col-sm-1 mt-2">:</div>
+                                        <div class="col-sm-7 mt-2"><input type="number" name='tamount' id="tamount" min="0" step="any" value="{{payment.total_amount}}" class="form-control" style="background-color: #43596c; color: white;" readonly></div>
+                                    </div>
+                                    <div class="row container-fluid p-2 m-0" >
+                                        <div class="col-sm-4 mt-2"><label for="a" class="text-center">Total Payment</label></div>
+                                        <div class="col-sm-1 mt-2">:</div>
+                                        <div class="col-sm-7 mt-2"><input type="number" min="0" step="any" name='tpayment' id="tpayment" value="{{payment.total_payment}}" class="form-control" style="background-color: #43596c; color: white;" readonly></div>
+                                    </div>
+                                    <div class="row container-fluid p-2 m-0">
+                                        <div class="col-sm-4 mt-2"><label for="a" class="text-center">Total Balance</label></div>
+                                        <div class="col-sm-1 mt-2">:</div>
+                                        <div class="col-sm-7 mt-2"><input type="number" min="0" step="any" name='tbalance' id="tbalance" value="{{payment.total_balance}}" class="form-control" style="background-color: #43596c; color: white;" readonly></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="row">
+                            <div class="col-md-7 mt-3">
+                                <div class="notices">
+                                    <div class="text-muted">NOTICE:</div>
+                                    <div class="notice text-muted">
+                                        Fin sYs Terms and Conditions Apply
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5 mt-3 d-flex">
+                                <input type="submit" class="btn btn-outline-secondary w-50 ml-1 text-light" name="save_as_saved" value="Save">
+                                <input type="button" class="btn btn-outline-secondary w-50 ml-1 text-light" value="Cancel" onclick="window.location.href=`{% url 'Fin_overview_payment_received' payment.id %}`">
+                            </div>
+                            
+                        </div>
+             
+                      
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- New Cust Payment Term Modal -->
+
+<div class="modal fade" id="newCustomerPaymentTerm">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">New Customer Payment Term</h5>
+                <button type="button" class="close" data-toggle="modal" data-target="#newCustomer" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form method="post" id="newCustomerPaymentTermForm">
+                        {% csrf_token %}
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <label for="name">Term Name</label>
+                                <input type="text" name="term_name" id="custTermName" class="form-control w-100">
+                            </div>
+                            <div class="col-6">
+                                <label for="name">Days</label>
+                                <input type="number" name="days" id="custTermDays" class="form-control w-100" min="0" step="1">
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-4"></div>
+                            <div class="col-4 d-flex justify-content-center">
+                                <button class="btn btn-outline-secondary text-grey w-75" data-toggle="modal" data-target="#newCustomer" type="button" id="saveCustomerPaymentTerm">Save</button>
+                            </div>
+                            <div class="col-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
+
+    <!-- new payment method modal -->
+    <div class="modal fade" id="pymntmeth">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background-color: #213b52;">
+                    <div class="modal-header">
+                        <h3 class="m-3">New Payment Method</h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="card p-3 m-3">
+                            <form autocomplete="off" id="new_payment_form">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-8 mt-2">
+                                        <input type="text" id="newpmethod" name="newmethod" class="form-control">
+                                    </div>
+                                    <div class="col-md-2 mt-2">
+                                        <button class="btn btn-outline-info text-grey mb-3" data-dismiss="modal" id="savepaymentmethod" type="button">Save</button>
+                                    </div>
+                                </div>
+                            </form>  
+                        </div>
+                    </div>
+                </div>   
+            </div>
+        </div>   
+    </div>
+
+<!-- New Customer Modal -->
+
+<div class="modal fade" id="newCustomer">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">New Customer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form method="post" id="newCustomerForm">
+                        {% csrf_token %}
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <label for="title">Title</label>
+                                <select name="title" id="title" class="form-control">
+                                    <option value="Mr">Mr</option>
+                                    <option value="Mrs">Mrs</option>
+                                    <option value="Miss">Miss</option>
+                                    <option value="Ms">Ms</option>
+                                </select>
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="firstName">First Name*</label>
+                                <input type="text" class="form-control" id="firstName" name="first_name" required style="background-color: #43596c;color: white;">
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="lastName">Last Name*</label>
+                                <input type="text" class="form-control" id="lastName" name="last_name" required style="background-color: #43596c;color: white;">
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                        </div>
+    
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <label for="companyName">Company</label>
+                                <input type="text" class="form-control" id="companyName" name="company_name" style="background-color: #43596c;color: white;">
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="location">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" style="background-color: #43596c;color: white;">
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="custPlaceOfSupply">Place of Supply*</label>
+                                <select class="custom-select form-control" id="custPlaceOfSupply" name="place_of_supply" style="background-color: #43596c; color: white;" required>
+                                    <option selected value="">Select Place of Supply</option>
+                                    <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islands</option>
+                                    <option value="Andhra Predhesh">Andhra Predhesh</option>
+                                    <option value="Arunachal Predesh">Arunachal Predesh</option>
+                                    <option value="Assam">Assam</option>
+                                    <option value="Bihar">Bihar</option>
+                                    <option value="Chandigarh">Chandigarh</option>
+                                    <option value="Chhattisgarh">Chhattisgarh</option>
+                                    <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                    <option value="Damn anad Diu">Damn anad Diu</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Goa">Goa</option>
+                                    <option value="Gujarat">Gujarat</option>
+                                    <option value="Haryana">Haryana</option>
+                                    <option value="Himachal Predesh">Himachal Predesh</option>
+                                    <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                    <option value="Jharkhand">Jharkhand</option>
+                                    <option value="Karnataka">Karnataka</option>
+                                    <option value="Kerala">Kerala</option>
+                                    <option value="Ladakh">Ladakh</option>
+                                    <option value="Lakshadweep">Lakshadweep</option>
+                                    <option value="Madhya Predesh">Madhya Predesh</option>
+                                    <option value="Maharashtra">Maharashtra</option>
+                                    <option value="Manipur">Manipur</option>
+                                    <option value="Meghalaya">Meghalaya</option>
+                                    <option value="Mizoram">Mizoram</option>
+                                    <option value="Nagaland">Nagaland</option>
+                                    <option value="Odisha">Odisha</option>
+                                    <option value="Puducherry">Puducherry</option>
+                                    <option value="Punjab">Punjab</option>
+                                    <option value="Rajasthan">Rajasthan</option>
+                                    <option value="Sikkim">Sikkim</option>
+                                    <option value="Tamil Nadu">Tamil Nadu</option>
+                                    <option value="Telangana">Telangana</option>
+                                    <option value="Tripura">Tripura</option>
+                                    <option value="Uttar Predesh">Uttar Predesh</option>
+                                    <option value="Uttarakhand">Uttarakhand</option>
+                                    <option value="West Bengal">West Bengal</option>
+                                    <option value="Other Territory">Other Territory</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a valid registration type.</div>
+                            </div>
+                        </div>
+    
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <label for="gstType">GST Type*</label>
+                                <select class="form-control" id="custGstType" name="gst_type" style="background-color: #43596c; color: white;" required>
+                                    <option selected value="">Select GST Type</option>
+                                    <option value="Registered Business - Regular">Registered Business - Regular <span><i>(Business that is registered under gst)</i></span></option>
+                                    <option value="Registered Business - Composition">Registered Business - Composition (Business that is registered under composition scheme in gst)</option>
+                                    <option value="Unregistered Business">Unregistered Business (Business that has not been registered under gst)</option>
+                                    <option value="Overseas">Overseas (Import/Export of supply outside india)</option>
+                                    <option value="Consumer">Consumer</option>
+                                    <option value="Special Economic Zone (SEZ)">Special Economic Zone (SEZ) (Business that is located in a special economic zone of india or a SEZ developer)</option>
+                                    <option value="Demed Exports">Demed Exports (Supply of woods to an exports oriented unit or againsed advanced authorization or export promotion capital woods)</option>
+                                    <option value="Tax Deductor">Tax Deductor (State of central gov,government agencies or local authority)</option>
+                                    <option value="SEZ Developer">SEZ Developer (A person or organization who owns atleast 26% equality in creating business units in special economic zone)</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a valid registration type.</div>
+                            </div>
+    
+                            <div class="col-md-4 gstrow d-block" id="gstInValue">
+                                <div>
+                                    <label for="custGstIN">GSTIN*</label>
+                                    <input type="text" class="form-control" onchange="checkgst(this)" id="custGstIN" name="gstin" style="background-color: #43596c;color: white;" placeholder="29APPCK7465F1Z1">
+                                    <a data-toggle="modal" href="#exampleModal" style="color:#3dd5f3">Get Taxpayer Details</a>
+                                    <div class="text-danger m-2" id="warngst"></div>
+                                </div>
+                            </div>
+    
+                            <div class="col-md-4">
+                                <label for="panNo">PAN No.*</label>
+                                <input type="text" class="form-control" id="panNo" name="pan_no" style="background-color: #43596c;color: white;" required onchange="checkpan(this)" placeholder="APPCK7465F">
+                                <div class="text-danger m-2" id="warnpan"></div>
+                            </div>
+                        </div>
+    
+                        <div class="row">
+                            <div class="col-md-4 mt-3">
+                                <label for="validationCustom05">Opening Balance</label>
+                                <div class="d-flex">
+                                    <select name="balance_type" id="bal" class="form-select text-white mr-1" style="background-color: #243e54; width: 25%; border-radius: 5px;">
+                                        <option value="debit">Debit</option>
+                                        <option value="credit">Credit</option>
+                                    </select>
+                                    <input type="text" class="form-control" name="open_balance" id="openbalance" step="any" style="background-color: #43596c;color: white;">
+                                    <div class="text-danger m-2" ></div>
+                                </div>
+                            </div>
+    
+                            <div class="col-md-4 mt-3">
+                                <label for="creditLimit">Credit Limit</label>
+                                <input type="text" class="form-control" name="credit_limit" style="background-color: #43596c;color: white;" step="any" id="creditLimit">
+                                <div class="text-danger m-2" ></div>
+                            </div>
+    
+                            <div class="col-md-4 mt-3">
+                                <label for="custPaymentTerms">Payment Terms</label>
+                                <div class="d-flex">
+                                    <select name="payment_terms" id="custPaymentTerms" class="form-control">
+                                        <option value="" selected>Choose</option>
+                                        {% for p in pTerms %}
+                                        <option value="{{p.id}}">{{p.term_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <a href="#newCustomerPaymentTerm" data-dismiss="modal" data-toggle="modal" class="btn btn-outline-secondary ml-1">+</a>
+                                </div>
+                            </div>
+    
+                            <div class="col-md-4 mt-3">
+                                <label for="priceList">Price List</label>
+                                <select name="price_list" id="priceList" class="form-control">
+                                    <option value="" selected>Choose</option>
+                                    {% for l in list %}
+                                    <option value="{{l.id}}">{{l.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+    
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <label for="custEmail">Email*</label>
+                                <input type="email" class="form-control" required id="custEmail" name="email" onchange="checkemail(this)" style="background-color: #43596c;color: white;" placeholder="finsys@gmail.com">
+                                <div id="warnemail" class="text-danger"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="custWebsite">Website</label>
+                                <input type="text" class="form-control" id="custWebsite" required placeholder="www.finsys.com" onchange="checkweb(this)" name="website" style="background-color: #43596c;color: white;">
+                                <div id="warnweb" class="text-danger"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="custMobile">Mobile*</label>
+                                <input type="text" class="form-control" id="custMobile" required onchange="checkphone(this)" name="mobile" style="background-color: #43596c;color: white;">
+                                <div class="text-danger m-2" id="warnphone"></div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row mt-5">
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-12 card-title">
+                                        <h5 class="mb-0">Billing Address</h5>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mt-3">
+                                        <div class="form-row">
+                                            <label for="street">Street*</label>
+                                            <textarea class="form-control street" required id="street" name="street" style="background-color: #43596c;color: white;"></textarea>
+                                            <div class="invalid-feedback">Please provide a valid Street</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="city">City*</label>
+                                            <input type="text" class="form-control" required id="city" name="city" style="background-color: #43596c;color: white;" placeholder="City">
+                                            <div class="invalid-feedback">Please provide a valid City</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="state">State*</label>
+                                            <select type="text" class="form-control" id="state" name="state" required style="background-color: #43596c; color: white;">
+                                                <option value="" selected hidden>Choose</option>
+                                                <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islands</option>
+                                                <option value="Andhra Predhesh">Andhra Predhesh</option>
+                                                <option value="Arunachal Predesh">Arunachal Predesh</option>
+                                                <option value="Assam">Assam</option>
+                                                <option value="Bihar">Bihar</option>
+                                                <option value="Chandigarh">Chandigarh</option>
+                                                <option value="Chhattisgarh">Chhattisgarh</option>
+                                                <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                                <option value="Damn anad Diu">Damn anad Diu</option>
+                                                <option value="Delhi">Delhi</option>
+                                                <option value="Goa">Goa</option>
+                                                <option value="Gujarat">Gujarat</option>
+                                                <option value="Haryana">Haryana</option>
+                                                <option value="Himachal Predesh">Himachal Predesh</option>
+                                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                                <option value="Jharkhand">Jharkhand</option>
+                                                <option value="Karnataka">Karnataka</option>
+                                                <option value="Kerala">Kerala</option>
+                                                <option value="Ladakh">Ladakh</option>
+                                                <option value="Lakshadweep">Lakshadweep</option>
+                                                <option value="Madhya Predesh">Madhya Predesh</option>
+                                                <option value="Maharashtra">Maharashtra</option>
+                                                <option value="Manipur">Manipur</option>
+                                                <option value="Meghalaya">Meghalaya</option>
+                                                <option value="Mizoram">Mizoram</option>
+                                                <option value="Nagaland">Nagaland</option>
+                                                <option value="Odisha">Odisha</option>
+                                                <option value="Puducherry">Puducherry</option>
+                                                <option value="Punjab">Punjab</option>
+                                                <option value="Rajasthan">Rajasthan</option>
+                                                <option value="Sikkim">Sikkim</option>
+                                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                                <option value="Telangana">Telangana</option>
+                                                <option value="Tripura">Tripura</option>
+                                                <option value="Uttar Predesh">Uttar Predesh</option>
+                                                <option value="Uttarakhand">Uttarakhand</option>
+                                                <option value="West Bengal">West Bengal</option>
+                                                <option value="Other Territory">Other Territory</option>
+                                            </select>
+                                            <div class="invalid-feedback">Please provide a valid State</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="pinco">Pin Code*</label>
+                                            <input type="text" class="form-control" required id="pinco" name="pincode" style="background-color: #43596c;color: white;" placeholder="PIN code">
+                                            <div class="invalid-feedback">Please provide a valid Pin Code</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="country">Country*</label>
+                                            <input type="text" class="form-control" required id="country" name="country" style="background-color: #43596c;color: white;" placeholder="Country">
+                                            <div class="invalid-feedback">Please provide a valid Country</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-12 d-flex">
+                                        <h5>Shipping Address</h5>
+                                        <input class="ml-4 ml-5" type="checkbox" onclick="placeShipAddress()" id="shipAddress" name="ship_address">
+                                        <label class="ml-2 mt-1 ml-2" for="shipAddress">Same As Billing Address</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mt-3">
+                                        <div class="form-row">
+                                            <label for="shipstreet">Street</label>
+                                            <textarea class="form-control" id="shipstreet" name="shipstreet" style="background-color: #43596c;color: white;"></textarea>
+                                            <div class="invalid-feedback">Please provide a valid Street</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="shipcity">City</label>
+                                            <input type="text" class="form-control" id="shipcity" name="shipcity" style="background-color: #43596c;color: white;" placeholder="City">
+                                            <div class="invalid-feedback">Please provide a valid City</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="shipstate">State</label>
+                                            <select type="text" class="form-control" id="shipState" name="shipstate" style="background-color: #43596c; color: white;">
+                                                <option value="" selected>Choose</option>
+                                                <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islands</option>
+                                                <option value="Andhra Predhesh">Andhra Predhesh</option>
+                                                <option value="Arunachal Predesh">Arunachal Predesh</option>
+                                                <option value="Assam">Assam</option>
+                                                <option value="Bihar">Bihar</option>
+                                                <option value="Chandigarh">Chandigarh</option>
+                                                <option value="Chhattisgarh">Chhattisgarh</option>
+                                                <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                                <option value="Damn anad Diu">Damn anad Diu</option>
+                                                <option value="Delhi">Delhi</option>
+                                                <option value="Goa">Goa</option>
+                                                <option value="Gujarat">Gujarat</option>
+                                                <option value="Haryana">Haryana</option>
+                                                <option value="Himachal Predesh">Himachal Predesh</option>
+                                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                                <option value="Jharkhand">Jharkhand</option>
+                                                <option value="Karnataka">Karnataka</option>
+                                                <option value="Kerala">Kerala</option>
+                                                <option value="Ladakh">Ladakh</option>
+                                                <option value="Lakshadweep">Lakshadweep</option>
+                                                <option value="Madhya Predesh">Madhya Predesh</option>
+                                                <option value="Maharashtra">Maharashtra</option>
+                                                <option value="Manipur">Manipur</option>
+                                                <option value="Meghalaya">Meghalaya</option>
+                                                <option value="Mizoram">Mizoram</option>
+                                                <option value="Nagaland">Nagaland</option>
+                                                <option value="Odisha">Odisha</option>
+                                                <option value="Puducherry">Puducherry</option>
+                                                <option value="Punjab">Punjab</option>
+                                                <option value="Rajasthan">Rajasthan</option>
+                                                <option value="Sikkim">Sikkim</option>
+                                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                                <option value="Telangana">Telangana</option>
+                                                <option value="Tripura">Tripura</option>
+                                                <option value="Uttar Predesh">Uttar Predesh</option>
+                                                <option value="Uttarakhand">Uttarakhand</option>
+                                                <option value="West Bengal">West Bengal</option>
+                                                <option value="Other Territory">Other Territory</option>
+                                            </select>
+                                            <div class="invalid-feedback">Please provide a valid State</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="shippinco">Pin Code</label>
+                                            <input type="text" class="form-control" id="shippinco" name="shippincode" style="background-color: #43596c;color: white;" placeholder="PIN code">
+                                            <div class="invalid-feedback">Please provide a valid Pin Code</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="shipcountry">Country</label>
+                                            <input type="text" class="form-control" id="shipcountry" name="shipcountry" style="background-color: #43596c;color: white;" placeholder="Country">
+                                            <div class="invalid-feedback">Please provide a valid Country</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-4"></div>
+                            <div class="col-4 d-flex justify-content-center">
+                                <button class="btn btn-outline-secondary text-grey w-75" data-dismiss="modal" type="button" id="newCustomerSave">Save</button>
+                            </div>
+                            <div class="col-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#customer').selectize({
+                sortField: 'value'
+            });
+        });  
+    
+        function refreshCustomerDetails(){
+            console.log($('#customer').text());
+            if($('#customer').val() != 0){
+                $('#custErr').text('');
+                $.ajax({
+                    type : 'POST',
+                    url: "{% url 'Fin_paymentreceivecustomer' %}",
+                    data: {
+                        id: $('#customer').val(),
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    
+                    success: function(data){
+                        console.log('AJAX-Response-->',data);
+                        document.getElementById('customerEmail').value = data.email;
+                        document.getElementById('gstType').value = data.gstType;
+                        document.getElementById('billAddress').value = data.street + '\n' + data.city + '\n' + data.state + '\n' + data.country  + '\n' + data.pincode ;
+                        if(data.gstin){
+                            document.getElementById('gstInDisplay').style.display = 'block';
+                            document.getElementById('gstin').value = data.gstNo;
+                        }else{
+                            document.getElementById('gstInDisplay').style.display = 'none';
+                            document.getElementById('gstin').value = '';
+                        }
+                        $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
+                        if(data.priceList){
+                            $('#applyPriceListSection').show();
+                            $('#customerPriceListId').val(data.ListId);
+                            $('#custPriceListName').text('Applied: '+data.ListName)
+                        }else{
+                            $('#applyPriceListSection').hide();
+                            $('#customerPriceListId').val("");
+                        }
+                  
+                        checkPriceList();
+                    }
+                });
+            }else{
+                document.getElementById('customerEmail').value = "";
+                document.getElementById('placeOfSupply').value = "";
+                document.getElementById('gstType').value = "";
+                document.getElementById('billAddress').value ="";
+                document.getElementById('gstin').value = "";
+                $('#customerPriceListId').val("");
+                $('#custErr').text('Select a customer..');
+            }
+        }
+    
+        $(document).ready(function () {
+            $('#customer').on('change', function() {
+                refreshCustomerDetails();
+            });
+        });
+
+        function placeShipAddress() {
+            var chkbtn = document.getElementById('shipAddress');
+            if (chkbtn.checked == true) {
+                document.getElementById('shipstreet').value = document.getElementById('street').value;
+                document.getElementById('shipcity').value = document.getElementById('city').value;
+                document.getElementById('shippinco').value = document.getElementById('pinco').value;
+                document.getElementById('shipcountry').value = document.getElementById('country').value;
+                document.getElementById('shipState').value = document.getElementById('state').value;
+            } else {
+                document.getElementById('shipstreet').value = '';
+                document.getElementById('shipcity').value = '';
+                document.getElementById('shippinco').value = '';
+                document.getElementById('shipcountry').value = '';
+                document.getElementById('shipState').value = '';
+                
+            }
+        }
+    
+    </script>
+
+    <script>
+
+        $(document).ready(function() {
+            $("#custGstType").change(function() {
+                var x=$('#custGstType').val();
+                if(x == "Unregistered Business" || x == 'Overseas' || x == 'Consumer'){
+                    $(".gstrow").removeClass('d-block');
+                    $(".gstrow").addClass('d-none');
+                    $('#custGstIN').prop('required',false);
+                }else {
+                    $('#custGstIN').prop('required',true);
+                    $(".gstrow").removeClass('d-none');
+                    $(".gstrow").addClass('d-block');
+                }
+            });
+        });
+    
+            
+        function showMessage(input) {
+            const gstin = input.value;
+    
+            if (gstin.length === 15) {
+                // document.getElementById("message").textContent = "Please wait, validating GSTIN format...";
+                setTimeout(() => checkgst(input), 1000);  // Wait for a second and then validate GSTIN
+            } else {
+                document.getElementById("message").textContent = "";
+            }
+        }
+    
+        function checkgst(element) {
+            var gstinput = element.value;
+            var gstregexp = "[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9A-Za-z]{1}[Z]{1}[0-9a-zA-Z]{1}";
+    
+            if (gstinput.length === 15) {
+                if (gstinput.match(gstregexp)) {
+                    document.getElementById('warngst').innerHTML = '';
+                    checkCustomerGSTIN(gstinput)
+                } else {
+                    document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
+                    alert('Please provide a valid GST Number');
+                }
+            }
+                else {
+                document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
+                alert('Please provide a valid GST Number');
+            }
+        }
+    
+        function checkpan(element) {
+            var paninput = element.value;
+            var panregexp = ["[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}"]
+            if (paninput.match(panregexp)) {
+                document.getElementById('warnpan').innerHTML = '';
+                checkCustomerPAN(paninput)
+            } else {
+                document.getElementById('warnpan').innerHTML = 'Please provide a valid PAN Number';
+                alert('Please provide a valid PAN Number')
+            }
+        }
+    
+        function checkweb(element) {
+            var webinput = element.value;
+            var webregexp = "www."
+            if (webinput.startsWith(webregexp)) {
+                document.getElementById('warnweb').innerHTML = '';
+            } else {
+                document.getElementById('warnweb').innerHTML = 'Please provide a valid Website Address';
+                alert('Please provide a valid Website Address')
+            }
+        }
+    
+        function checkphone(element) {
+            var phoneinput = element.value;
+            var phoneregexp = /^\d{10}$/;
+            if (phoneinput.match(phoneregexp)) {
+                document.getElementById('warnphone').innerHTML = '';
+                checkCustomerPhone(phoneinput)
+            } else {
+                document.getElementById('warnphone').innerHTML = 'Please provide a valid Phone Number';
+                alert('Please provide a valid Phone Number')
+            }
+        }
+    
+        function checkemail(element) {
+            var emailinput = element.value;
+            var emailregexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+            if (emailinput.match(emailregexp)) {
+                document.getElementById('warnemail').innerHTML = '';
+                checkCustomerEmail(emailinput)
+            } else {
+                document.getElementById('warnemail').innerHTML = 'Please provide a valid Email ID';
+                alert('Please provide a valid Email id')
+            }
+        }
+    
+        $(document).on('change', '#openbalance',function () {
+            openbal = $("#openbalance").val()
+            if($('#bal').val()=='credit'){
+                if(openbal.slice(0,1) != '-'){
+                    if(parseFloat(openbal) != 0){
+                        document.getElementById("openbalance").value = "-"+openbal
+                    }else{
+                        document.getElementById("openbalance").value = openbal
+                    }
+                }else{
+                    if(parseFloat(openbal) != 0){
+                        document.getElementById("openbalance").value = openbal
+                    }else{
+                        document.getElementById("openbalance").value = -1 * parseFloat(openbal)
+                    }
+                }
+            }else{
+                document.getElementById("openbalance").value = openbal
+            }
+        });
+    
+        $(document).on('change', '#bal',function () {
+            openbal = $("#openbalance").val()
+            if(openbal != ""){
+                if($('#bal').val()=='credit'){
+                    openbal = $("#openbalance").val()
+                    if (parseFloat(openbal) != 0){
+                        document.getElementById("openbalance").value = "-"+openbal
+                    }else{
+                        document.getElementById("openbalance").value = openbal
+                    }
+                }else{
+                    openbal = $("#openbalance").val()
+                    document.getElementById("openbalance").value = -1*(parseFloat(openbal))
+                }
+            }
+        });
+    
+        $(document).ready(function(){
+            $('#lastName').on('change',()=>{
+                var fName = $('#firstName').val().replace(/\d/g, '');
+                var lName = $('#lastName').val().replace(/\d/g, '');
+                if(fName !="" && lName !=""){
+                    checkCustomerName(fName,lName)
+                }else{
+                    alert('Please enter a valid Full Name.!')
+                    return false
+                }
+            });
+    
+            $('#firstName').on('change',()=>{
+                var fName = $('#firstName').val().replace(/\d/g, '');
+                var lName = $('#lastName').val().replace(/\d/g, '');
+                if(fName !="" && lName !=""){
+                    checkCustomerName(fName,lName)
+                }else if(fName == "" && lName !=""){
+                    alert('Please enter a valid First Name.!')
+                }
+    
+            })
+        });
+    
+        function checkCustomerName(fname,lname){
+            if (fname != "" && lname !=""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_check_paymentreceived_CustomerName' %}",
+                    data:{
+                        'fname' : fname,
+                        'lname' : lname,
+    
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+        function checkCustomerGSTIN(gstin){
+            var gstNo = gstin;
+            if (gstNo != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_check_paymentreceived_CustomerGSTIN' %}",
+                    data:{
+                        'gstin' : gstNo,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+        function checkCustomerPAN(pan){
+            var panNo = pan;
+            if (panNo != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_check_paymentreceived_CustomerPAN' %}",
+                    data:{
+                        'pan' : panNo,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+        function checkCustomerPhone(phone){
+            var phoneNo = phone;
+            if (phoneNo != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_check_paymentreceived_CustomerPhone' %}",
+                    data:{
+                        'phone' : phoneNo,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+        function checkCustomerEmail(email){
+            var custEmail = email;
+            if (custEmail != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_check_paymentreceived_CustomerEmail' %}",
+                    data:{
+                        'email' : custEmail,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+
+
+        $(document).on("click", "#newCustomerSave", function(){
+            var fName = $('#firstName').val();
+            var lName = $('#lastName').val();
+            var placeSupply = $('#custPlaceOfSupply').val();
+            var gstType = $("#custGstType").val();
+            var gstIN = $("#custGstIN").val();
+            var panNo = $("#panNo").val();
+            var Email = $("#custEmail").val();
+            var Mob = $("#custMobile").val();
+            var street = $("#street").val();
+            var city = $("#city").val();
+            var state = $("#state").val();
+            var pin = $("#pinco").val();
+            var country = $("#country").val();
+    
+            if(gstType != "Unregistered Business" && gstType != 'Overseas' && gstType != 'Consumer' && gstIN == ""){
+                alert('Fill all required fields..!')
+                return
+            }
+    
+            if(fName != "" && lName != "" && placeSupply != "" && gstType != "" && panNo != "" && Email != "" && Mob != "" && street != "" && city != "" && state != "" && pin != "" && country != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_create_receivepayment_customer' %}",
+                    data:{
+                        title : $('#title').val(),
+                        first_name : fName,
+                        last_name : lName,
+                        company_name : $("#companyName").val(),
+                        location : $("#location").val(),
+                        place_of_supply : placeSupply,
+                        gst_type : gstType,
+                        gstin : gstIN,
+                        pan_no : panNo,
+                        price_list :$('#priceList').val(),
+                        payment_terms :$('#custPaymentTerms').val(),
+                        open_balance : $("#openbalance").val(),
+                        balance_type : $("#bal").val(),
+                        credit_limit : $("#creditLimit").val(),
+                        email : Email,
+                        website :$("#custWebsite").val(),
+                        mobile : Mob,
+                        street : street,
+                        city : $("#city").val(),
+                        state : $("#state").val(),
+                        country : $("#country").val(),
+                        pincode : $("#pinco").val(),
+                        shipstreet : $("#shipstreet").val(),
+                        shipcity : $("#shipcity").val(),
+                        shipstate : $("#shipState").val(),
+                        shipcountry : $("#shipcountry").val(),
+                        shippincode : $("#shippinco").val(),
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+    
+                    success: function(response) {
+                        if(response.status){
+                            console.log("AJAX Success",response)
+                            document.getElementById("newCustomerForm").reset();
+    
+                            reloadCustomer();
+                        }else{
+                            alert(response.message)
+                        }
+                    },
+                });
+            }else{
+                alert('Fill all required fields..!')
+                return
+            }
+        });
+    
+        function reloadCustomer() {
+            $.ajax({
+                url: "{% url 'Fin_getpaymentreceivecustomers' %}",
+                type: "GET",
+                dataType: "json",
+                data: {},
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+    
+                success: function(data) {
+                    var $select = $(document.getElementById('customer'));
+                    var selectize = $select[0].selectize;
+                    $.each(data, function(key, value) {
+                        selectize.addOption({value:value[0],text:value[1]+' '+value[2]+' '+value[3]});
+                        selectize.addItem(value[0]); 
+                    });
+    
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+    
+            });
+            refreshCustomerDetails();
+    
+            if ($('#newCustomerPaymentTerm').hasClass('show')){
+                $('#newCustomerPaymentTerm').modal('toggle');
+            }
+        }
+
+        $(document).on("click","#saveCustomerPaymentTerm",function(){
+            var trm = $('#custTermName').val();
+            var dys = $("#custTermDays").val();
+            if (trm !="" && dys !=""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_newCustomerPaymentReceivedTerm' %}",
+                    data:{
+                        'term' : trm,
+                        'days' : dys,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.status){
+                            document.getElementById("newCustomerPaymentTermForm").reset();
+                            
+                            var dropdown = $('#custPaymentTerms');
+                            dropdown.empty();
+                            dropdown.append(`<option value="" selected>Choose</option>`);
+                            $.each(response, function(key, value) {
+                                for(let i=0; i<value.length; i++){
+                                    if(value[i].name == trm){
+                                        dropdown.append($('<option selected></option>').text(value[i].name).val(value[i].id))
+                                    }else{
+                                        dropdown.append($('<option></option>').text(value[i].name).val(value[i].id))
+                                    }   
+                                }
+                            });
+    
+                        }else{
+                            alert("Something went wrong.!")
+                        }
+                    },         
+                });
+            }else{
+                alert('Invalid')
+            }
+        });
+    </script>
+
+    {% comment %} <script>
+        document.getElementById("payment_num").addEventListener("input", function() {
+            var paymentNum = this.value.trim();
+            var lastNum = parseInt("{{ next_payment_number }}");
+    
+            // Check if the entered payment number is not continuous
+            if (paymentNum !== 'PL-' + lastNum) {
+                document.getElementById("payment_warning").innerText = "Payment number is not continuous.";
+            } else {
+                document.getElementById("payment_warning").innerText = "";
+            }
+        });
+    </script> {% endcomment %}
+
+    <script>
+        function showinp(divId, element) {
+            if (element.value == 'Add New') {
+                document.getElementById(divId).style.display = 'block';
+            } else {
+                document.getElementById(divId).style.display = 'none';
+            }
+        }
+
+        
+
+        function addtemopt(element) {
+            var opt = document.getElementById('newmth');
+            if (element.value) {
+                opt.value = element.value;
+                opt.innerHTML = element.value;
+            } else {
+                pass
+            }
+        }
+
+
+        
+    </script>
+    <script>
+        $(document).ready(()=>{
+            $(document).on("click","#savepaymentmethod",function(){
+                var mthd = $("#newpmethod").val();
+                if (mthd !=""){
+                    $.ajax({
+                    type : 'POST',
+                    url:"",
+                    data:{
+                        new_payment : mthd,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        console.log("AJAX Success - Response Data:", response);
+                        document.getElementById("new_payment_form").reset();
+                        reloadPaymentMethod();
+                    },         
+                });
+                }
+                else{
+                    alert('Invalid')
+                }
+            });
+
+            function reloadPaymentMethod() {
+            // console.log("reload pymnt Function Called");
+            $.ajax({
+            url: "",
+            type: "GET",
+            dataType: "json",
+            data: $(this).serialize(),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+
+            success: function(data) {
+                console.log("AJAX Success - Dropdown Data:", data);
+                var dropdown = $('#paymeth');
+                dropdown.empty()
+                dropdown.append(
+                    `<option value="NILL" selected disabled>Choose Payment Method</option>`,
+                    `{% for i in bank %}<option value="{{i.bankname}}">{{i.bankname}}</option>{%endfor%}`,
+                    `<option value="Cash">Cash</option>`,
+                    `<option value="Cheque">Cheque</option>`,
+                    `<option value="Credit Card">Credit Card</option>`,
+                    );
+                $.each(data, function(key, value) {
+                dropdown.append($('<option></option>').attr('value', key).text(value).val(value));
+                });
+            },
+            error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+            }
+            });
+            }
+        })
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#paymeth').on('change', function() {
+            var select = $('#paymeth').val();
+            var bnkId = $(this).find(":selected").attr('text');
+            if(bnkId != undefined){
+                $('.pymnt-methd-inp').addClass('d-none');
+                $('.pymnt-methd-inp').removeClass('d-flex');
+                $.ajax({
+                    url: "{% url 'get_payemnt_bankacc_num' %}",
+                    type: "POST",
+                    data: {
+                        bankId : bnkId,
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+
+                    success: function(data) {
+                        if(data.status){
+                            $('#bank-field').removeClass('d-none');
+                            $('#bank-field').addClass('d-flex');
+                            $('#bankacc_inp').val(data.accountNumber)
+                        }
+                        else{
+                            alert('Something went wrong.!')
+                        }
+                    }
+                });
+            }
+            else{
+                if(select === 'Cash'){
+                $('.pymnt-methd-inp').addClass('d-none');
+                $('.pymnt-methd-inp').removeClass('d-flex');
+                
+                }else if(select === 'Cheque'){
+                    $('.pymnt-methd-inp').addClass('d-none');
+                    $('.pymnt-methd-inp').removeClass('d-flex');
+
+                    $('#cheq-field').removeClass('d-none');
+                    $('#cheq-field').addClass('d-flex');
+                }else if(select === 'Credit Card'){
+                    $('.pymnt-methd-inp').addClass('d-none');
+                    $('.pymnt-methd-inp').removeClass('d-flex');
+
+                    $('#cc-field').removeClass('d-none');
+                    $('#cc-field').addClass('d-flex');
+                }else if(select === 'UPI'){
+                    $('.pymnt-methd-inp').addClass('d-none');
+                    $('.pymnt-methd-inp').removeClass('d-flex');
+
+                    $('#upi-field').removeClass('d-none');
+                    $('#upi-field').addClass('d-flex');
+                }else{
+                    $('.pymnt-methd-inp').removeClass('d-flex');
+                    $('.pymnt-methd-inp').addClass('d-none');
+
+                    // $('#upi-field').removeClass('d-none');
+                    // $('#upi-field').addClass('d-flex');
+                }   
+            }
+            });
+        });
+
+        
+    </script>
+    <script>
+    $(document).on('keyup', '#payment_number', function() {
+        $('#PaymentNoErr').text('');
+        var inv_num = $(this).val();
+        if (inv_num != "") {
+            console.log(inv_num);
+            $.ajax({
+                type: "GET",
+                url: "{% url 'Fin_checkpaymentNumber' %}",
+                data: {
+                    payment_num: inv_num, // Correct parameter name
+                },
+                success: function(response) {
+                    if (response.status) {
+                        $('#PaymentNoErr').text('');
+                    } else {
+                        $('#PaymentNoErr').text(response.message);
+                    }
+                }
+            })
+        }
+    });
+
+    </script> 
+    <script>
+        $(document).ready(function() {
+            $('#select').on('change', function() {
+            select = $('#select').val();
+            $.ajax({
+                type: "GET",
+                url: "",
+                data: {
+                id: select
+                }
+            }).done(function(response) {
+                var json_data = JSON.parse(response);
+                for (key in json_data) {
+                document.getElementById('email').value = json_data[key]['email'];
+
+                $('#gst_trt_inp').val("" + json_data[key]['gsttype']);
+                
+                if (json_data[key]['gsttype'] === "unregistered Business" || json_data[key]['gsttype'] === "Consumer" || json_data[key]['gsttype'] === "Overseas") {
+                            $("#gstin_row").addClass('d-none');
+                            $("#gstin_row").removeClass('d-flex');
+                    } else {
+                        $("#gstin_row").removeClass('d-none');
+                        $("#gstin_row").addClass('d-flex');
+                        $('#gstin_inp').val("" + json_data[key]['gstin']);
+                    }
+                }
+            })
+            });
+        });
+    </script>
+    <!-- Your HTML template -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function getCustomerInvoice(customerId) {
+        if (customerId !== "0") {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'fetch_invoice_data' %}",
+                data: {
+                    'customer': customerId,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                },
+                success: function (data) {
+                    console.log(data);
+                    $('#invoicedata').empty();
+                    var invdata = JSON.parse(data);
+                    var totalAmount = 0;
+                    var totalBalance = 0;
+                    for (key in invdata) {
+                        totalAmount += parseFloat(invdata[key]['inv_amount']);
+                        totalBalance += parseFloat(invdata[key]['inv_balance']);
+                        $('#invoicedata').append(
+                            `
+                            <tr id='addr${parseInt(key) + 1}' style="height:6rem;">
+                                <td>${parseInt(key) + 1}</td>
+                                <td style="position: relative;"><input type="text" readonly name="inv_date[]" id="" value="${formatDate(invdata[key]['date'])}" class="form-control" style="background-color: #43596c; color: white;" />  </td>
+                                <td><input type="text" readonly name='duedate[]' id="duedate_${key}" value="${formatDate(invdata[key]['date'])}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                <td><input type="text" readonly name='inv_type[]' id="" value="${invdata[key]['inv_type']}" class="form-control" style="background-color: #43596c; color: white;" /></td>                                
+                                <td><input type="text" readonly name='trans_no[]' value="${invdata[key]['trans_no']}" id="" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                <td><input type="number" readonly name='inv_amount[]' id="inv_amount${parseInt(key) + 1}" value="${invdata[key]['inv_amount']}" class="form-control" style="background-color: #43596c; color: white;"/></td>
+                                <td><input type="number" readonly name='inv_payment[]' id="inv_payment${parseInt(key) + 1}" value="${invdata[key]['inv_payment']}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                <td><input type="number" readonly name='inv_balance[]' id="inv_balance${parseInt(key) + 1}" value="${invdata[key]['inv_balance']}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                            </tr>
+                            `
+                        );
+                    }
+                    // Set total amount and total balance in their respective input boxes
+                    $('#tamount').val(totalAmount.toFixed(2));
+                    $('#tbalance').val(totalBalance.toFixed(2));
+                }
+            });
+        }
+    }
+    
+    $(document).ready(function () {
+        $('#customer').on('change', function () {
+            var customerId = $(this).val(); // Get selected customer ID
+            console.log(customerId); // Log the customer ID to verify
+            getCustomerInvoice(customerId); // Call the function to fetch customer invoices
+        });
+    });
+    
+
+        function formatDate(dateString) {
+            // Parse the input string as a date
+            var date = new Date(dateString);
+            // Get year, month, and day components
+            var year = date.getFullYear();
+            var month = (date.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed, so we add 1
+            var day = date.getDate().toString().padStart(2, '0');
+            // Return formatted date in YYYY/MM/DD format
+            return `${year}-${month}-${day}`;
+        }
+       
+        
+    
+        // ==================== Calculate payment balance ================
+
+        function calcBalance(rowId){
+            var amount = $('#inv_amount'+rowId).val();
+            var paid = $('#payment'+rowId).val();
+            bal = $('#balance'+rowId);
+
+            var balAmount = parseFloat(amount) - parseFloat(paid)
+            bal.val(balAmount.toFixed(2));
+
+            calcApplyAmount()
+            calcCreditAmount()
+        }
+        
+        function calcApplyAmount(){
+            var payments = $(".pymnt_rcvd");
+            var totAmountToApply = 0;
+            for(var i = 0; i < payments.length; i++){
+                totAmountToApply += Number($(payments[i]).val());
+            }
+            $('#amtoapply').val(totAmountToApply.toFixed(2));
+        }
+
+        function calcCreditAmount(){
+            var balances = $(".blnc_amnts");
+            var totAmountToCredit = 0;
+
+            for(var i = 0; i < balances.length; i++){
+                totAmountToCredit += Number($(balances[i]).val())
+            }
+            $('#amtcredit').val(totAmountToCredit.toFixed(2));
+        }
+
+
+        function showinnum(divId, element) {
+            if (element.value) {
+                document.getElementById(divId).innerHTML = element.value;
+                
+                if (j==null){
+                    k=parseInt(l)-1
+                }else if(m==null){
+                    
+                    k=j
+                    
+                }
+                    
+                
+                
+                if(k==0){
+                    
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                }else if(k==1){
+                    
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+
+                    var opnbal1 = parseFloat(document.getElementById('openbal1').value)
+                    if (opnbal1 >= bal) {
+                        document.getElementById('payment1').value = bal
+                    } else if (openbal1 == '0.0') {
+                        document.getElementById('payment1').value = '0'
+                    } else {
+                        document.getElementById('payment1').value = opnbal1
+                    }
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                    var payment1 = parseFloat(document.getElementById('payment1').value);
+                    var bal1 = parseFloat(element.value) - (payment + payment1);
+                } else if(k==2){
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+
+                    var opnbal1 = parseFloat(document.getElementById('openbal1').value)
+                    if (opnbal1 >= bal) {
+                        document.getElementById('payment1').value = bal
+                    } else if (openbal1 == '0.0') {
+                        document.getElementById('payment1').value = '0'
+                    } else {
+                        document.getElementById('payment1').value = opnbal1
+                    }
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                    var payment1 = parseFloat(document.getElementById('payment1').value);
+                    var bal1 = parseFloat(element.value) - (payment + payment1);
+                    var opnbal2 = parseFloat(document.getElementById('openbal2').value)
+                    if (opnbal2 >= bal1) {
+                        document.getElementById('payment2').value = bal1
+                    } else {
+                        document.getElementById('payment2').value = opnbal2
+                    }
+                    var payment2 = parseFloat(document.getElementById('payment2').value)
+                    var bal2 = parseFloat(element.value) - (payment + payment1 + payment2)
+                }else if(k==3){
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+
+                    var opnbal1 = parseFloat(document.getElementById('openbal1').value)
+                    if (opnbal1 >= bal) {
+                        document.getElementById('payment1').value = bal
+                    } else if (openbal1 == '0.0') {
+                        document.getElementById('payment1').value = '0'
+                    } else {
+                        document.getElementById('payment1').value = opnbal1
+                    }
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                    var payment1 = parseFloat(document.getElementById('payment1').value);
+                    var bal1 = parseFloat(element.value) - (payment + payment1);
+                    var opnbal2 = parseFloat(document.getElementById('openbal2').value)
+                    if (opnbal2 >= bal1) {
+                        document.getElementById('payment2').value = bal1
+                    } else {
+                        document.getElementById('payment2').value = opnbal2
+                    }
+                    var payment2 = parseFloat(document.getElementById('payment2').value)
+                    var bal2 = parseFloat(element.value) - (payment + payment1 + payment2)
+                    var opnbal3 = parseFloat(document.getElementById('openbal3').value)
+                    if (opnbal3 >= bal2) {
+                        document.getElementById('payment3').value = bal2
+                    } else {
+                        document.getElementById('payment3').value = opnbal3
+                    }
+                    var payment3 = parseFloat(document.getElementById('payment3').value)
+                    var bal3 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3)
+                }else if(k==4){
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+
+                    var opnbal1 = parseFloat(document.getElementById('openbal1').value)
+                    if (opnbal1 >= bal) {
+                        document.getElementById('payment1').value = bal
+                    } else if (openbal1 == '0.0') {
+                        document.getElementById('payment1').value = '0'
+                    } else {
+                        document.getElementById('payment1').value = opnbal1
+                    }
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                    var payment1 = parseFloat(document.getElementById('payment1').value);
+                    var bal1 = parseFloat(element.value) - (payment + payment1);
+                    var opnbal2 = parseFloat(document.getElementById('openbal2').value)
+                    if (opnbal2 >= bal1) {
+                        document.getElementById('payment2').value = bal1
+                    } else {
+                        document.getElementById('payment2').value = opnbal2
+                    }
+                    var payment2 = parseFloat(document.getElementById('payment2').value)
+                    var bal2 = parseFloat(element.value) - (payment + payment1 + payment2)
+                    var opnbal3 = parseFloat(document.getElementById('openbal3').value)
+                    if (opnbal3 >= bal2) {
+                        document.getElementById('payment3').value = bal2
+                    } else {
+                        document.getElementById('payment3').value = opnbal3
+                    }
+                    var payment3 = parseFloat(document.getElementById('payment3').value)
+                    var bal3 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3)
+                    var opnbal4 = parseFloat(document.getElementById('openbal4').value)
+                    if (opnbal4 >= bal3) {
+                        document.getElementById('payment4').value = bal3
+                    } else {
+                        document.getElementById('payment4').value = opnbal4
+                    }
+                    var payment4 = parseFloat(document.getElementById('payment4').value)
+                    var bal4 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4)
+                }else if(k==5){
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+
+                    var opnbal1 = parseFloat(document.getElementById('openbal1').value)
+                    if (opnbal1 >= bal) {
+                        document.getElementById('payment1').value = bal
+                    } else if (openbal1 == '0.0') {
+                        document.getElementById('payment1').value = '0'
+                    } else {
+                        document.getElementById('payment1').value = opnbal1
+                    }
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                    var payment1 = parseFloat(document.getElementById('payment1').value);
+                    var bal1 = parseFloat(element.value) - (payment + payment1);
+                    var opnbal2 = parseFloat(document.getElementById('openbal2').value)
+                    if (opnbal2 >= bal1) {
+                        document.getElementById('payment2').value = bal1
+                    } else {
+                        document.getElementById('payment2').value = opnbal2
+                    }
+                    var payment2 = parseFloat(document.getElementById('payment2').value)
+                    var bal2 = parseFloat(element.value) - (payment + payment1 + payment2)
+                    var opnbal3 = parseFloat(document.getElementById('openbal3').value)
+                    if (opnbal3 >= bal2) {
+                        document.getElementById('payment3').value = bal2
+                    } else {
+                        document.getElementById('payment3').value = opnbal3
+                    }
+                    var payment3 = parseFloat(document.getElementById('payment3').value)
+                    var bal3 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3)
+                    var opnbal4 = parseFloat(document.getElementById('openbal4').value)
+                    if (opnbal4 >= bal3) {
+                        document.getElementById('payment4').value = bal3
+                    } else {
+                        document.getElementById('payment4').value = opnbal4
+                    }
+                    var payment4 = parseFloat(document.getElementById('payment4').value)
+                    var bal4 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4)
+                    var opnbal5 = parseFloat(document.getElementById('openbal5').value)
+                    if (opnbal5 >= bal4) {
+                        document.getElementById('payment5').value = bal4
+                    } else {
+                        document.getElementById('payment5').value = opnbal5
+                    }
+                    var payment5 = parseFloat(document.getElementById('payment5').value)
+                    var bal5 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5)
+                }else if(k==6){
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+
+                    var opnbal1 = parseFloat(document.getElementById('openbal1').value)
+                    if (opnbal1 >= bal) {
+                        document.getElementById('payment1').value = bal
+                    } else if (openbal1 == '0.0') {
+                        document.getElementById('payment1').value = '0'
+                    } else {
+                        document.getElementById('payment1').value = opnbal1
+                    }
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                    var payment1 = parseFloat(document.getElementById('payment1').value);
+                    var bal1 = parseFloat(element.value) - (payment + payment1);
+                    var opnbal2 = parseFloat(document.getElementById('openbal2').value)
+                    if (opnbal2 >= bal1) {
+                        document.getElementById('payment2').value = bal1
+                    } else {
+                        document.getElementById('payment2').value = opnbal2
+                    }
+                    var payment2 = parseFloat(document.getElementById('payment2').value)
+                    var bal2 = parseFloat(element.value) - (payment + payment1 + payment2)
+                    var opnbal3 = parseFloat(document.getElementById('openbal3').value)
+                    if (opnbal3 >= bal2) {
+                        document.getElementById('payment3').value = bal2
+                    } else {
+                        document.getElementById('payment3').value = opnbal3
+                    }
+                    var payment3 = parseFloat(document.getElementById('payment3').value)
+                    var bal3 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3)
+                    var opnbal4 = parseFloat(document.getElementById('openbal4').value)
+                    if (opnbal4 >= bal3) {
+                        document.getElementById('payment4').value = bal3
+                    } else {
+                        document.getElementById('payment4').value = opnbal4
+                    }
+                    var payment4 = parseFloat(document.getElementById('payment4').value)
+                    var bal4 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4)
+                    var opnbal5 = parseFloat(document.getElementById('openbal5').value)
+                    if (opnbal5 >= bal4) {
+                        document.getElementById('payment5').value = bal4
+                    } else {
+                        document.getElementById('payment5').value = opnbal5
+                    }
+                    var payment5 = parseFloat(document.getElementById('payment5').value)
+                    var bal5 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5)
+                    var opnbal6 = parseFloat(document.getElementById('openbal6').value)
+                    if (opnbal6 >= bal5) {
+                        document.getElementById('payment6').value = bal5
+                    } else {
+                        document.getElementById('payment6').value = opnbal6
+                    }
+                    var payment6 = parseFloat(document.getElementById('payment6').value)
+                    var bal6 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5 + payment6)
+                }else if(k==7){
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+
+                    var opnbal1 = parseFloat(document.getElementById('openbal1').value)
+                    if (opnbal1 >= bal) {
+                        document.getElementById('payment1').value = bal
+                    } else if (openbal1 == '0.0') {
+                        document.getElementById('payment1').value = '0'
+                    } else {
+                        document.getElementById('payment1').value = opnbal1
+                    }
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                    var payment1 = parseFloat(document.getElementById('payment1').value);
+                    var bal1 = parseFloat(element.value) - (payment + payment1);
+                    var opnbal2 = parseFloat(document.getElementById('openbal2').value)
+                    if (opnbal2 >= bal1) {
+                        document.getElementById('payment2').value = bal1
+                    } else {
+                        document.getElementById('payment2').value = opnbal2
+                    }
+                    var payment2 = parseFloat(document.getElementById('payment2').value)
+                    var bal2 = parseFloat(element.value) - (payment + payment1 + payment2)
+                    var opnbal3 = parseFloat(document.getElementById('openbal3').value)
+                    if (opnbal3 >= bal2) {
+                        document.getElementById('payment3').value = bal2
+                    } else {
+                        document.getElementById('payment3').value = opnbal3
+                    }
+                    var payment3 = parseFloat(document.getElementById('payment3').value)
+                    var bal3 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3)
+                    var opnbal4 = parseFloat(document.getElementById('openbal4').value)
+                    if (opnbal4 >= bal3) {
+                        document.getElementById('payment4').value = bal3
+                    } else {
+                        document.getElementById('payment4').value = opnbal4
+                    }
+                    var payment4 = parseFloat(document.getElementById('payment4').value)
+                    var bal4 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4)
+                    var opnbal5 = parseFloat(document.getElementById('openbal5').value)
+                    if (opnbal5 >= bal4) {
+                        document.getElementById('payment5').value = bal4
+                    } else {
+                        document.getElementById('payment5').value = opnbal5
+                    }
+                    var payment5 = parseFloat(document.getElementById('payment5').value)
+                    var bal5 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5)
+                    var opnbal6 = parseFloat(document.getElementById('openbal6').value)
+                    if (opnbal6 >= bal5) {
+                        document.getElementById('payment6').value = bal5
+                    } else {
+                        document.getElementById('payment6').value = opnbal6
+                    }
+                    var payment6 = parseFloat(document.getElementById('payment6').value)
+                    var bal6 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5 + payment6)
+                    var opnbal7 = parseFloat(document.getElementById('openbal7').value)
+                    if (opnbal7 >= bal6) {
+                        document.getElementById('payment7').value = bal6
+                    } else {
+                        document.getElementById('payment7').value = opnbal7
+                    }
+                    var payment7 = parseFloat(document.getElementById('payment7').value)
+                    var bal7 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5 + payment6 + payment7)
+                }else if(k==8){
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+
+                    var opnbal1 = parseFloat(document.getElementById('openbal1').value)
+                    if (opnbal1 >= bal) {
+                        document.getElementById('payment1').value = bal
+                    } else if (openbal1 == '0.0') {
+                        document.getElementById('payment1').value = '0'
+                    } else {
+                        document.getElementById('payment1').value = opnbal1
+                    }
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                    var payment1 = parseFloat(document.getElementById('payment1').value);
+                    var bal1 = parseFloat(element.value) - (payment + payment1);
+                    var opnbal2 = parseFloat(document.getElementById('openbal2').value)
+                    if (opnbal2 >= bal1) {
+                        document.getElementById('payment2').value = bal1
+                    } else {
+                        document.getElementById('payment2').value = opnbal2
+                    }
+                    var payment2 = parseFloat(document.getElementById('payment2').value)
+                    var bal2 = parseFloat(element.value) - (payment + payment1 + payment2)
+                    var opnbal3 = parseFloat(document.getElementById('openbal3').value)
+                    if (opnbal3 >= bal2) {
+                        document.getElementById('payment3').value = bal2
+                    } else {
+                        document.getElementById('payment3').value = opnbal3
+                    }
+                    var payment3 = parseFloat(document.getElementById('payment3').value)
+                    var bal3 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3)
+                    var opnbal4 = parseFloat(document.getElementById('openbal4').value)
+                    if (opnbal4 >= bal3) {
+                        document.getElementById('payment4').value = bal3
+                    } else {
+                        document.getElementById('payment4').value = opnbal4
+                    }
+                    var payment4 = parseFloat(document.getElementById('payment4').value)
+                    var bal4 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4)
+                    var opnbal5 = parseFloat(document.getElementById('openbal5').value)
+                    if (opnbal5 >= bal4) {
+                        document.getElementById('payment5').value = bal4
+                    } else {
+                        document.getElementById('payment5').value = opnbal5
+                    }
+                    var payment5 = parseFloat(document.getElementById('payment5').value)
+                    var bal5 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5)
+                    var opnbal6 = parseFloat(document.getElementById('openbal6').value)
+                    if (opnbal6 >= bal5) {
+                        document.getElementById('payment6').value = bal5
+                    } else {
+                        document.getElementById('payment6').value = opnbal6
+                    }
+                    var payment6 = parseFloat(document.getElementById('payment6').value)
+                    var bal6 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5 + payment6)
+                    var opnbal7 = parseFloat(document.getElementById('openbal7').value)
+                    if (opnbal7 >= bal6) {
+                        document.getElementById('payment7').value = bal6
+                    } else {
+                        document.getElementById('payment7').value = opnbal7
+                    }
+                    var payment7 = parseFloat(document.getElementById('payment7').value)
+                    var bal7 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5 + payment6 + payment7)
+                    var opnbal8 = parseFloat(document.getElementById('openbal8').value)
+                    if (opnbal8 >= bal7) {
+                        document.getElementById('payment8').value = bal7
+                    } else {
+                        document.getElementById('payment8').value = opnbal8
+                    }
+                    var payment8 = parseFloat(document.getElementById('payment8').value)
+                    var bal8 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5 + payment6 + payment7 + payment8)
+                }else if(k==9){
+                    var opnbal = parseFloat(document.getElementById('openbal0').value)
+                
+                    if (opnbal >= parseFloat(element.value)) {
+                        document.getElementById('payment0').value = parseFloat(element.value)
+                    } 
+                    // else if (openbal == 0) {
+                    //     document.getElementById('payment0').value = '0'
+                    // } 
+                    else {
+                        document.getElementById('payment0').value = opnbal
+                    }
+                    var bal = parseFloat(element.value) - parseFloat(document.getElementById('payment0').value);
+
+                    var opnbal1 = parseFloat(document.getElementById('openbal1').value)
+                    if (opnbal1 >= bal) {
+                        document.getElementById('payment1').value = bal
+                    } else if (openbal1 == '0.0') {
+                        document.getElementById('payment1').value = '0'
+                    } else {
+                        document.getElementById('payment1').value = opnbal1
+                    }
+                    var payment = parseFloat(document.getElementById('payment0').value)
+                    var payment1 = parseFloat(document.getElementById('payment1').value);
+                    var bal1 = parseFloat(element.value) - (payment + payment1);
+                    var opnbal2 = parseFloat(document.getElementById('openbal2').value)
+                    if (opnbal2 >= bal1) {
+                        document.getElementById('payment2').value = bal1
+                    } else {
+                        document.getElementById('payment2').value = opnbal2
+                    }
+                    var payment2 = parseFloat(document.getElementById('payment2').value)
+                    var bal2 = parseFloat(element.value) - (payment + payment1 + payment2)
+                    var opnbal3 = parseFloat(document.getElementById('openbal3').value)
+                    if (opnbal3 >= bal2) {
+                        document.getElementById('payment3').value = bal2
+                    } else {
+                        document.getElementById('payment3').value = opnbal3
+                    }
+                    var payment3 = parseFloat(document.getElementById('payment3').value)
+                    var bal3 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3)
+                    var opnbal4 = parseFloat(document.getElementById('openbal4').value)
+                    if (opnbal4 >= bal3) {
+                        document.getElementById('payment4').value = bal3
+                    } else {
+                        document.getElementById('payment4').value = opnbal4
+                    }
+                    var payment4 = parseFloat(document.getElementById('payment4').value)
+                    var bal4 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4)
+                    var opnbal5 = parseFloat(document.getElementById('openbal5').value)
+                    if (opnbal5 >= bal4) {
+                        document.getElementById('payment5').value = bal4
+                    } else {
+                        document.getElementById('payment5').value = opnbal5
+                    }
+                    var payment5 = parseFloat(document.getElementById('payment5').value)
+                    var bal5 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5)
+                    var opnbal6 = parseFloat(document.getElementById('openbal6').value)
+                    if (opnbal6 >= bal5) {
+                        document.getElementById('payment6').value = bal5
+                    } else {
+                        document.getElementById('payment6').value = opnbal6
+                    }
+                    var payment6 = parseFloat(document.getElementById('payment6').value)
+                    var bal6 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5 + payment6)
+                    var opnbal7 = parseFloat(document.getElementById('openbal7').value)
+                    if (opnbal7 >= bal6) {
+                        document.getElementById('payment7').value = bal6
+                    } else {
+                        document.getElementById('payment7').value = opnbal7
+                    }
+                    var payment7 = parseFloat(document.getElementById('payment7').value)
+                    var bal7 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5 + payment6 + payment7)
+                    var opnbal8 = parseFloat(document.getElementById('openbal8').value)
+                    if (opnbal8 >= bal7) {
+                        document.getElementById('payment8').value = bal7
+                    } else {
+                        document.getElementById('payment8').value = opnbal8
+                    }
+                    var payment8 = parseFloat(document.getElementById('payment8').value)
+                    var bal8 = parseFloat(element.value) - (payment + payment1 + payment2 + payment3 + payment4 + payment5 + payment6 + payment7 + payment8)
+                    var opnbal9 = parseFloat(document.getElementById('openbal9').value)
+                    if (opnbal9 >= bal8) {
+                        document.getElementById('payment9').value = bal8
+                    } else {
+                        document.getElementById('payment9').value = opnbal9
+                    }
+                    var payment9 = parseFloat(document.getElementById('payment9').value)
+            
+                }
+                    var paymentlistunsorted = [payment, payment1, payment2, payment3, payment4, payment5, payment6, payment7, payment8, payment9]
+                
+                    var paymentlist = []
+                    for (i in paymentlistunsorted) {
+                        if (isNaN(paymentlistunsorted[i]) == false) {
+                            paymentlist.push(paymentlistunsorted[i])
+                        }
+                    }
+                    
+                    var sumpaym = 0
+                    for (i in paymentlist) {
+                        sumpaym += paymentlist[i]
+                    }
+                    amtcred = parseFloat(element.value) - sumpaym
+                    
+                    document.getElementById('amtoapply').value = sumpaym;
+                    document.getElementById('amtcredit').value = amtcred;
+            } else {
+                document.getElementById(divId).innerHTML = "0.00";
+            }
+        }
+
+        function addagain() {
+        if (j==null){
+                k=l
+            }else if(m==null){
+                
+                k=j
+                
+            }
+
+        if(k==0){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        }else if(k==1){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        
+            var payment1 = parseFloat(document.getElementById('payment1').value)
+        }else if(k==2){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        
+            var payment1 = parseFloat(document.getElementById('payment1').value)
+            var payment2 = parseFloat(document.getElementById('payment2').value)
+        }else if(k==3){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        
+            var payment1 = parseFloat(document.getElementById('payment1').value)
+            var payment2 = parseFloat(document.getElementById('payment2').value) 
+            var payment3 = parseFloat(document.getElementById('payment3').value)
+        }else if(k==4){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        
+            var payment1 = parseFloat(document.getElementById('payment1').value)
+            var payment2 = parseFloat(document.getElementById('payment2').value) 
+            var payment3 = parseFloat(document.getElementById('payment3').value)  
+            var payment4 = parseFloat(document.getElementById('payment4').value)
+        }else if(k==5){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        
+            var payment1 = parseFloat(document.getElementById('payment1').value)
+            var payment2 = parseFloat(document.getElementById('payment2').value) 
+            var payment3 = parseFloat(document.getElementById('payment3').value)  
+            var payment4 = parseFloat(document.getElementById('payment4').value) 
+            var payment5 = parseFloat(document.getElementById('payment5').value)
+        }else if(k==6){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        
+            var payment1 = parseFloat(document.getElementById('payment1').value)
+            var payment2 = parseFloat(document.getElementById('payment2').value) 
+            var payment3 = parseFloat(document.getElementById('payment3').value)  
+            var payment4 = parseFloat(document.getElementById('payment4').value) 
+            var payment5 = parseFloat(document.getElementById('payment5').value)  
+            var payment6 = parseFloat(document.getElementById('payment6').value)
+        }else if(k==7){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        
+            var payment1 = parseFloat(document.getElementById('payment1').value)
+            var payment2 = parseFloat(document.getElementById('payment2').value) 
+            var payment3 = parseFloat(document.getElementById('payment3').value)  
+            var payment4 = parseFloat(document.getElementById('payment4').value) 
+            var payment5 = parseFloat(document.getElementById('payment5').value)  
+            var payment6 = parseFloat(document.getElementById('payment6').value)   
+            var payment7 = parseFloat(document.getElementById('payment7').value)
+        }else if(k==8){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        
+            var payment1 = parseFloat(document.getElementById('payment1').value)
+            var payment2 = parseFloat(document.getElementById('payment2').value) 
+            var payment3 = parseFloat(document.getElementById('payment3').value)  
+            var payment4 = parseFloat(document.getElementById('payment4').value) 
+            var payment5 = parseFloat(document.getElementById('payment5').value)  
+            var payment6 = parseFloat(document.getElementById('payment6').value)   
+            var payment7 = parseFloat(document.getElementById('payment7').value)
+            var payment8 = parseFloat(document.getElementById('payment8').value)
+        }else if(k==9){
+            var payment = parseFloat(document.getElementById('payment0').value)
+        
+            var payment1 = parseFloat(document.getElementById('payment1').value)
+            var payment2 = parseFloat(document.getElementById('payment2').value) 
+            var payment3 = parseFloat(document.getElementById('payment3').value)  
+            var payment4 = parseFloat(document.getElementById('payment4').value) 
+            var payment5 = parseFloat(document.getElementById('payment5').value)  
+            var payment6 = parseFloat(document.getElementById('payment6').value)   
+            var payment7 = parseFloat(document.getElementById('payment7').value)
+            var payment8 = parseFloat(document.getElementById('payment8').value)  
+            var payment9 = parseFloat(document.getElementById('payment9').value)
+        }
+            var paymentlistunsorted = [payment, payment1, payment2, payment3, payment4, payment5, payment6, payment7, payment8, payment9]
+            var paymentlist = []
+            for (i in paymentlistunsorted) {
+                if (isNaN(paymentlistunsorted[i]) == false) {
+                    paymentlist.push(paymentlistunsorted[i])
+                }
+            }
+            var sumpaym = 0
+            for (i in paymentlist) {
+                sumpaym += paymentlist[i]
+            }
+            var amtrcd = parseFloat(document.getElementById('amtrcvd').value)
+            if (sumpaym > amtrcd) {
+
+            
+                document.getElementById('amtoapply').value = sumpaym;
+                
+                temp = amtrcd - sumpaym
+               
+                document.getElementById('amtcredit').value = temp ;
+            } else {
+                
+                document.getElementById('amtoapply').value = sumpaym;
+               
+                temp = amtrcd - sumpaym
+                document.getElementById('amtcredit').value = temp ;
+            }
+
+        }
+    </script>
+    <!-- <script>
+        $(document).ready(function () {
+            $('#select').on('change', function () {
+                console.log('hai');
+                select = $('#select').val();
+                $.ajax({
+                    type: "GET",
+                    url: "",
+                    data: {id: select}
+                }).done(function (response) {
+                    console.log(response, 'hai')
+                    var json_data = JSON.parse(response);
+                    var lis = []
+                    var credlis = []
+                    for (key in json_data) {
+                        lis.push(json_data[key]['invoiceno'], json_data[key]['invoicedate'], json_data[key]['duedate'], json_data[key]['grandtotal'], json_data[key]['baldue'])
+                    }
+                    document.getElementById('email').value = json_data[key]['email']
+                    document.getElementById('descrip').value = lis[0] + ' ' + lis[1];
+                    document.getElementById('duedate').value = lis[2]
+                    document.getElementById('orgamt').value = lis[3]
+                    document.getElementById('openbal').value = lis[4]
+                    document.getElementById('descrip1').value = lis[5] + ' ' + lis[6]
+                    document.getElementById('duedate1').value = lis[7]
+                    document.getElementById('orgamt1').value = lis[8]
+                    document.getElementById('openbal1').value = lis[9]
+                    document.getElementById('descrip2').value = lis[10] + ' ' + lis[11]
+                    document.getElementById('duedate2').value = lis[12]
+                    document.getElementById('orgamt2').value = lis[13]
+                    document.getElementById('openbal2').value = lis[14]
+                    document.getElementById('descrip3').value = lis[15] + ' ' + lis[16]
+                    document.getElementById('duedate3').value = lis[17]
+                    document.getElementById('orgamt3').value = lis[18]
+                    document.getElementById('openbal3').value = lis[19]
+                    document.getElementById('descrip4').value = lis[20] + ' ' + lis[21];
+                    document.getElementById('duedate4').value = lis[22]
+                    document.getElementById('orgamt4').value = lis[23]
+                    document.getElementById('openbal4').value = lis[24]
+                    document.getElementById('descrip5').value = lis[25] + ' ' + lis[26]
+                    document.getElementById('duedate5').value = lis[27]
+                    document.getElementById('orgamt5').value = lis[28]
+                    document.getElementById('openbal5').value = lis[29]
+                    document.getElementById('descrip6').value = lis[30] + ' ' + lis[31]
+                    document.getElementById('duedate6').value = lis[32]
+                    document.getElementById('orgamt6').value = lis[33]
+                    document.getElementById('openbal6').value = lis[34]
+                    document.getElementById('descrip7').value = lis[35] + ' ' + lis[36]
+                    document.getElementById('duedate7').value = lis[37]
+                    document.getElementById('orgamt7').value = lis[38]
+                    document.getElementById('openbal7').value = lis[39]
+                    document.getElementById('descrip8').value = lis[40] + ' ' + lis[41];
+                    document.getElementById('duedate8').value = lis[42]
+                    document.getElementById('orgamt8').value = lis[43]
+                    document.getElementById('openbal8').value = lis[44]
+                    document.getElementById('descrip9').value = lis[45] + ' ' + lis[46]
+                    document.getElementById('duedate9').value = lis[47]
+                    document.getElementById('orgamt9').value = lis[48]
+                    document.getElementById('openbal9').value = lis[49]
+                    if (lis[0] == undefined) {
+                        document.getElementById('addr1').style.display = 'none';
+                    } else {
+                        document.getElementById('addr1').style.display = 'table-row';
+                    }
+                    if (lis[5] == undefined) {
+                        document.getElementById('addr2').style.display = 'none';
+                    } else {
+                        document.getElementById('addr2').style.display = 'table-row';
+                    }
+                    if (lis[10] == undefined) {
+                        document.getElementById('addr3').style.display = 'none';
+                    } else {
+                        document.getElementById('addr3').style.display = 'table-row';
+                    }
+                    if (lis[15] == undefined) {
+                        document.getElementById('addr4').style.display = 'none';
+                    } else {
+                        document.getElementById('addr4').style.display = 'table-row';
+                    }
+                    if (lis[20] == undefined) {
+                        document.getElementById('addr5').style.display = 'none';
+                    } else {
+                        document.getElementById('addr5').style.display = 'table-row';
+                    }
+                    if (lis[25] == undefined) {
+                        document.getElementById('addr6').style.display = 'none';
+                    } else {
+                        document.getElementById('addr6').style.display = 'table-row';
+                    }
+                    if (lis[30] == undefined) {
+                        document.getElementById('addr7').style.display = 'none';
+                    } else {
+                        document.getElementById('addr7').style.display = 'table-row';
+                    }
+                    if (lis[35] == undefined) {
+                        document.getElementById('addr8').style.display = 'none';
+                    } else {
+                        document.getElementById('addr8').style.display = 'table-row';
+                    }
+                    if (lis[40] == undefined) {
+                        document.getElementById('addr9').style.display = 'none';
+                    } else {
+                        document.getElementById('addr9').style.display = 'table-row';
+                    }
+                    if (lis[45] == undefined) {
+                        document.getElementById('addr10').style.display = 'none';
+                    } else {
+                        document.getElementById('addr10').style.display = 'table-row';
+                    }
+                }).fail(function () {
+                    alert("failed");
+                })
+            })
+        })
+
+        
+    </script> -->
+{% endblock %}

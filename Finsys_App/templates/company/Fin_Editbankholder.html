@@ -41,10 +41,99 @@
         background-color:rgba(79, 99, 117, 0.7);
         font-size: 16px;
     }
-
-    /* Add more styles as needed */
 </style>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function() {
+    function fetchAccountNumbers(selectedBank) {
+        $.ajax({
+            url: '/Fin_fetchaccountnumbers/',
+            type: 'GET',
+            data: { bank_name: selectedBank },
+            success: function(data) {
+                var accountNumberDropdown = $('#accountNumber');
+                accountNumberDropdown.empty();
+                accountNumberDropdown.append('<option value="">Select Account Number</option>');
+
+                for (var i = 0; i < data.account_numbers.length; i++) {
+                    var accountNumber = data.account_numbers[i].account_number;
+                    var ifscCode = data.account_numbers[i].ifsc_code;
+                    var branchName = data.account_numbers[i].branch_name;
+
+                    var option = $('<option>', {
+                        value: accountNumber,
+                        'data-ifsc-code': ifscCode,
+                        'data-branch-name': branchName,
+                        text: accountNumber
+                    });
+                    if (accountNumber === '{{ account_holder.Account_number }}') {
+                        option.attr('selected', true);
+                    }
+
+                    accountNumberDropdown.append(option);
+                }
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }
+    $('#bank_name').change(function() {
+        var selectedBank = $(this).val();
+        fetchAccountNumbers(selectedBank);
+    });
+    $('#accountNumber').change(function() {
+        var selectedOption = $('option:selected', this);
+        var ifscCode = selectedOption.data('ifsc-code');
+        var branchName = selectedOption.data('branch-name');
+
+        $('#ifscCode').val(ifscCode);
+        $('#branch_name').val(branchName);
+    });
+
+    function fetchAllBanks() {
+    $.ajax({
+        url: '/Fin_fetchallbanks/',
+        type: 'GET',
+        success: function(data) {
+            var bankDropdown = $('#bank_name');
+            bankDropdown.empty();
+            bankDropdown.append('<option value="">Select Bank</option>');
+
+            var uniqueBankNames = new Set();
+
+            for (var i = 0; i < data.banks.length; i++) {
+                var bankName = data.banks[i].bank_name;
+
+                if (!uniqueBankNames.has(bankName)) {
+                    uniqueBankNames.add(bankName);
+
+                    var option = $('<option>', {
+                        value: bankName,
+                        text: bankName
+                    });
+
+                    if (bankName === '{{ account_holder.Bank_name }}') {
+                        option.attr('selected', true);
+                    }
+
+                    bankDropdown.append(option);
+                }
+            }
+            var selectedBank = bankDropdown.val();
+            fetchAccountNumbers(selectedBank);
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+}
+fetchAllBanks();
+});    
+</script>
+
 <div class="page-content">
+    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_Bankholderview' account_holder.id %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
     <div class="card radius-15">
         <div class="card-body">
             <div class="row">
@@ -62,7 +151,7 @@
                 </div>
             </div>
             <div class="container">
-                    <form method="post" action="{% url 'Fin_Editholder'  account.id %}"  enctype="multipart/form-data">
+                    <form method="post" action="{% url 'Fin_Editholder'  account_holder.id %}"  enctype="multipart/form-data">
                         {% csrf_token %}
                         
                     <div class="row" >
@@ -71,21 +160,23 @@
                                 <br>
                                 <div class="form-group row">
                                     <label for="name" class="col-sm-4 col-form-label">Name</label>
-                                    <input type="text" class="col-sm-8 form-control" name="name" id="name" value="{{ account.Holder_id.Holder_name }}"><br>
+                                    <input type="text" class="col-sm-8 form-control" name="name" id="name" value="{{ account_holder.Holder_name }}"><br>
                                 
                                     <label for="alias" class="col-sm-4 col-form-label">Alias</label>
-                                    <input type="text" class="col-sm-8 form-control" name="alias" id="alias" value="{{account.Holder_id.Alias}}"><br>
+                                    <input type="text" class="col-sm-8 form-control" name="alias" id="alias" value="{{account_holder.Alias}}"><br>
                                 
                                     <label for="phone_number" class="col-sm-4 col-form-label">Phone Number</label>
-                                    <input type="text" class="col-sm-8 form-control" name="phone_number" id="phone_number" value="{{ account.Holder_id.phone_number }}"><br>
-                                
+                                    <input type="text" class="col-sm-8 form-control" name="phone_number" id="phone_number" pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number"  value="{{ account_holder.phone_number }}" required><br>
+                                    <div class="text-danger m-2 invalid-feedback" id="">Please provide a valid Number</div>
+
                                     <label class="col-sm-4 col-form-label" for="email">Email</label>
-                                    <input type="text" class="col-sm-8 form-control" name="email" id="email" value="{{ account.Holder_id.Email }}"><br>
-                                
+                                    <input type="text" class="col-sm-8 form-control" name="email" id="email" value="{{ account_holder.Email }}" title="Please enter a valid email address" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" required><br>
+                                    <div class="invalid-feedback">Please provide a valid Email</div>
+
                                     <label class="col-sm-4 col-form-label" for="account_type">Account Type</label>
                                     <select name="account_type" id="account_type" class="col-sm-8 form-control">
                                         <option value="">Select Account Type</option>
-                                        <option value="{{ account_holder.Account_type }}" selected hidden>{{ account.Holder_id.Account_type }}</option>
+                                        <option value="{{ account_holder.Account_type }}" selected hidden>{{ account_holder.Account_type }}</option>
                                         <option value="Bank Account">Bank Account</option>
                                         <option value="Credit card">Credit card</option>
                                     </select>
@@ -94,36 +185,59 @@
                         
                             <div class="col-md-6">
                                 <h2>Bank Account Form</h2><br>
-                                
                                     <div class="form-group row">
-                                        <label class="col-sm-4 col-form-label" for="accountName" hidden>Account Name</label>
-                                        <input type="text" class="col-sm-8  form-control" name="accountName" id="accountName"hidden ><br>
                                         <label class="col-sm-4 col-form-label" for="bankName">Bank name</label>
-                                        <select name="bank_name" id="bank_name" class="col-sm-8">
-                                        <option value=""> select banks</option>
-                                        <option value="{{ account.Bank_name }}" selected hidden> {{ account.Bank_name }}</option>
-                                            {% for i in bank %}
-                                            <option data-acc-number="{{ i.Account_number }}" data-ifsc-code="{{ i.Ifsccode }}" value="{{i.Bank_name}}">{{i.Bank_name}}</option>
-                                        {%endfor%}
-                                        </select><br>
-                                        <label class="col-sm-4 col-form-label" for="accountNumber">Account Number</label>
-                                        <input type="text" class="col-sm-8 form-control" name="accountNumber" id="accountNumber" value="{{account.Account_number}}"><br>
-                
+                                        <div class="col-sm-7">
+                                            <select name="bank_name" id="bank_name" class="col-sm-8 form-control">
+                                                <option value="">Select Bank</option>
+                                                <option value="{{ account_holder.Bank_name }}" selected>{{ account_holder.Bank_name }}</option>
+                                                {% for bank_name in bank_names %}
+                                                    <option value="{{ bank_name }}">{{ bank_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <a class="btn btn-outline-secondary" role="button" data-target="#bankholdercreation" data-toggle="modal" title="Add Bank">+</a>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <label class="col-form-label" for="accountNumber">Account Number</label>
+                                        </div>
+                                        <div class="col-sm-8">
+                                            <select name="accountNumber" id="accountNumber" class="form-control">
+                                                <option value="{{ account_holder.Account_number }}" selected>{{ account_holder.Account_number }}</option>
+                                        
+                                            </select>
+                                        </div>
                                         <label class="col-sm-4 col-form-label" for="ifscCode">IFSC code</label>
-                                        <input type="text" class="col-sm-8 form-control" name="ifscCode" id="ifscCode" value="{{account.Ifsc_code}}"><br>
+                                        <input type="text" class="col-sm-8 form-control" name="ifscCode" id="ifscCode" value="{{account_holder.Ifsc_code}}"><br>
                 
                                         <label class="col-sm-4 col-form-label" for="swiftCode">Swift Code</label>
-                                        <input type="text" class="col-sm-8 form-control" name="swiftCode" id="swiftCode" value="{{account.Swift_code}}"><br>
+                                        <input type="text" class="col-sm-8 form-control" name="swiftCode" id="swiftCode" value="{{account_holder.Swift_code}}" onblur="checkSwiftCode()"><br>
+                                        
                                         <label class="col-sm-4 col-form-label">Branch Name</label>
-                                        <input type="text" class="col-sm-8 form-control" name="branch_name" id="branch_name" value="{{account.Branch_name}}"><br>
-                                        
-                                        
-                                            
+                                        <input type="text" class="col-sm-8 form-control" name="branch_name" id="branch_name" value="{{account_holder.Branch_name}}"><br>
                                         </div>
                                     </div>
-                    
-                    
-                <br>
+                                    <div class="form-group row">
+                                        <div class="col-sm-8 offset-sm-4">
+                                            <!-- Error messages -->
+                                            {% if error_message_email %}
+                                                <div class="text-danger">{{ error_message_email }}</div>
+                                            {% endif %}
+                                            {% if error_message_phone %}
+                                                <div class="error-box">
+                                                    <div class="text-danger">{{ error_message_phone }}</div>
+                                                </div>
+                                            {% endif %}
+                                            {% if error_message_swift %}
+                                                <div class="text-danger">{{ error_message_swift }}</div>
+                                            {% endif %}
+                                            {% if error_message_account %}
+                                                <div class="text-danger">{{ error_message_account }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>       
+                                    <br>
                         <div class="row">
                             <div class="col-md-6">
                                 <h2>Bank Configuration Form</h2>
@@ -131,21 +245,21 @@
                                 <div class="form-group row">
                                     <label class="col-sm-4 col-form-label"for="accountName" style="white-space: nowrap;"> Select cheque book range</label>
                                     <select name="set_cheque_book_range" id="set_cheque_book_range" class="col-sm-8">
-                                        <option value="{{account_configuration.Set_cheque_book_range|yesno:"Yes,No" }}" selected hidden>{{account_configuration.Set_cheque_book_range|yesno:"Yes,No" }}</option>
+                                        <option value="{{account_holder.Set_cheque_book_range|yesno:"Yes,No" }}" selected hidden>{{account_holder.Set_cheque_book_range|yesno:"Yes,No" }}</option>
                                         <option value="Yes">Yes</option>
                                         <option value="No">No</option>
                                     </select><br>
                                     
                                         <label class="col-sm-4 col-form-label" for="accountName"style="white-space: nowrap;">Enable cheque printing</label>
                                         <select name="enable_cheque_printing" id="enable_cheque_printing" class="col-sm-8">
-                                            <option value=" {{  account_configuration.Enable_cheque_printing|yesno:"Yes,No" }}" selected hidden> {{  account_configuration.Enable_cheque_printing|yesno:"Yes,No"   }}</option>
+                                            <option value=" {{  account_holder.Enable_cheque_printing|yesno:"Yes,No" }}" selected hidden> {{  account_holder.Enable_cheque_printing|yesno:"Yes,No"   }}</option>
                                             <option value="Yes">Yes</option>
                                             <option value="No">No</option>
                                         </select><br>
                                     
                                             <label class="col-sm-4 col-form-label">Set cheque printing configuration</label>
                                             <select name="set_cheque_printing_configuration" id="set_cheque_printing_configuration" class="col-sm-8">
-                                                <option value="{{ account_configuration.Set_cheque_printing_configuration|yesno:"Yes,No" }}" selected hidden>{{ account_configuration.Set_cheque_printing_configuration|yesno:"Yes,No" }}</option>
+                                                <option value="{{ account_holder.Set_cheque_printing_configuration|yesno:"Yes,No" }}" selected hidden>{{ account_holder.Set_cheque_printing_configuration|yesno:"Yes,No" }}</option>
                                                 <option value="Yes">Yes</option>
                                             <option value="No">No</option>
                                             </select>
@@ -156,315 +270,61 @@
                             <br>
                                     <div class="form-group row">
                                         <label class="col-sm-4 col-form-label" for="mailingName">Mailing Name</label>
-                                        <input type="text" class="col-sm-8  form-control" name="mailingName" id="mailingName" value="{{mailing_address.Mailing_name}}"><br>
+                                        <input type="text" class="col-sm-8  form-control" name="mailingName" id="mailingName" value="{{account_holder.Mailing_name}}"><br>
                                         <label class="col-sm-4 col-form-label" for="address">Address</label>
-                                        <textarea class="col-sm-8 mb-2 form-control " id="address" name="address">{{mailing_address.Address}}</textarea><br>
+                                        <textarea class="col-sm-8 mb-2 form-control " id="address" name="address">{{account_holder.Address}}</textarea><br>
                                 
                                 
                                         <label class="col-sm-4 col-form-label"for="mailingCountry">Country</label>
-                                        <select name="country" id="country" class="col-sm-8 mt-2" ><br>
-                                            <option value="{{mailing_address.country}}" selected>{{mailing_address.Country}}</option>
-                                            <option value="">Select Country</option>
-                                            <option value="Afghanistan">Afghanistan</option>
-                                            <option value="Aland Islands">Aland Islands</option>
-                                            <option value="Albania">Albania</option>
-                                            <option value="Algeria">Algeria</option>
-                                            <option value="American Samoa">American Samoa</option>
-                                            <option value="Andorra">Andorra</option>
-                                            <option value="Angola">Angola</option>
-                                            <option value="Anguilla">Anguilla</option>
-                                            <option value="Antarctica">Antarctica</option>
-                                            <option value="Antigua and Barbuda">Antigua and Barbuda</option>
-                                            <option value="Argentina">Argentina</option>
-                                            <option value="Armenia">Armenia</option>
-                                            <option value="Aruba">Aruba</option>
-                                            <option value="Australia">Australia</option>
-                                            <option value="Austria">Austria</option>
-                                            <option value="Azerbaijan">Azerbaijan</option>
-                                            <option value="Bahamas">Bahamas</option>
-                                            <option value="Bahrain">Bahrain</option>
-                                            <option value="Bangladesh">Bangladesh</option>
-                                            <option value="Barbados">Barbados</option>
-                                            <option value="Belarus">Belarus</option>
-                                            <option value="Belgium">Belgium</option>
-                                            <option value="Belize">Belize</option>
-                                            <option value="Benin">Benin</option>
-                                            <option value="Bermuda">Bermuda</option>
-                                            <option value="Bhutan">Bhutan</option>
-                                            <option value="Bolivia">Bolivia</option>
-                                            <option value="Bonaire">Bonaire, Sint Eustatius and Saba</option>
-                                            <option value="Bosnia">Bosnia and Herzegovina</option>
-                                            <option value="Botswana">Botswana</option>
-                                            <option value="Bouvet Island">Bouvet Island</option>
-                                            <option value="Brazil">Brazil</option>
-                                            <option value="British Indian Ocean Territory">British Indian Ocean Territory</option>
-                                            <option value="Brunei Darussalam">Brunei Darussalam</option>
-                                            <option value="Bulgaria">Bulgaria</option>
-                                            <option value="Burkina Faso">Burkina Faso</option>
-                                            <option value="Burundi">Burundi</option>
-                                            <option value="Cambodia">Cambodia</option>
-                                            <option value="Cameroon">Cameroon</option>
-                                            <option value="Canada">Canada</option>
-                                            <option value="Cape Verde">Cape Verde</option>
-                                            <option value="Cayman Islands">Cayman Islands</option>
-                                            <option value="Central African Republic">Central African Republic</option>
-                                            <option value="Chad">Chad</option>
-                                            <option value="Chile">Chile</option>
-                                            <option value="China">China</option>
-                                            <option value="Christmas Island">Christmas Island</option>
-                                            <option value="Cocos (Keeling) Islands">Cocos (Keeling) Islands</option>
-                                            <option value="Colombia">Colombia</option>
-                                            <option value="Comoros">Comoros</option>
-                                            <option value="Congo">Congo</option>
-                                            <option value="Democratic Republic of the Congo">Congo, Democratic Republic of the Congo</option>
-                                            <option value="Cook Islands">Cook Islands</option>
-                                            <option value="Costa Rica">Costa Rica</option>
-                                            <option value="Cote D'Ivoire">Cote D'Ivoire</option>
-                                            <option value="Croatia">Croatia</option>
-                                            <option value="Cuba">Cuba</option>
-                                            <option value="Curacao">Curacao</option>
-                                            <option value="Cyprus">Cyprus</option>
-                                            <option value="Czech Republic">Czech Republic</option>
-                                            <option value="Denmark">Denmark</option>
-                                            <option value="Djibouti">Djibouti</option>
-                                            <option value="Dominica">Dominica</option>
-                                            <option value="Dominican Republic">Dominican Republic</option>
-                                            <option value="Ecuador">Ecuador</option>
-                                            <option value="Egypt">Egypt</option>
-                                            <option value="El Salvador">El Salvador</option>
-                                            <option value="Equatorial Guinea">Equatorial Guinea</option>
-                                            <option value="Eritrea">Eritrea</option>
-                                            <option value="Estonia">Estonia</option>
-                                            <option value="Ethiopia">Ethiopia</option>
-                                            <option value="Falkland Islands">Falkland Islands (Malvinas)</option>
-                                            <option value="Faroe Islands">Faroe Islands</option>
-                                            <option value="Fiji">Fiji</option>
-                                            <option value="Finland">Finland</option>
-                                            <option value="France">France</option>
-                                            <option value="French Guiana">French Guiana</option>
-                                            <option value="French Polynesia">French Polynesia</option>
-                                            <option value="French Southern Territories">French Southern Territories</option>
-                                            <option value="Gabon">Gabon</option>
-                                            <option value="Gambia">Gambia</option>
-                                            <option value="Georgia">Georgia</option>
-                                            <option value="Germany">Germany</option>
-                                            <option value="Ghana">Ghana</option>
-                                            <option value="Gibraltar">Gibraltar</option>
-                                            <option value="Greece">Greece</option>
-                                            <option value="Greenland">Greenland</option>
-                                            <option value="Grenada">Grenada</option>
-                                            <option value="Guadeloupe">Guadeloupe</option>
-                                            <option value="Guam">Guam</option>
-                                            <option value="Guatemala">Guatemala</option>
-                                            <option value="Guernsey">Guernsey</option>
-                                            <option value="Guinea">Guinea</option>
-                                            <option value="Guinea-Bissau">Guinea-Bissau</option>
-                                            <option value="Guyana">Guyana</option>
-                                            <option value="Haiti">Haiti</option>
-                                            <option value="Heard Island and Mcdonald Islands">Heard Island and Mcdonald Islands</option>
-                                            <option value="Holy See (Vatican City State)">Holy See (Vatican City State)</option>
-                                            <option value="Honduras">Honduras</option>
-                                            <option value="Hong Kong">Hong Kong</option>
-                                            <option value="Hungary">Hungary</option>
-                                            <option value="Iceland">Iceland</option>
-                                            <option value="India">India</option>
-                                            <option value="Indonesia">Indonesia</option>
-                                            <option value="Iran, Islamic Republic of">Iran, Islamic Republic of</option>
-                                            <option value="Iraq">Iraq</option>
-                                            <option value="Ireland">Ireland</option>
-                                            <option value="Isle of Man">Isle of Man</option>
-                                            <option value="Israel">Israel</option>
-                                            <option value="Italy">Italy</option>
-                                            <option value="Jamaica">Jamaica</option>
-                                            <option value="Japan">Japan</option>
-                                            <option value="Jersey">Jersey</option>
-                                            <option value="Jordan">Jordan</option>
-                                            <option value="Kazakhstan">Kazakhstan</option>
-                                            <option value="Kenya">Kenya</option>
-                                            <option value="Kiribati">Kiribati</option>
-                                            <option value="Korea, Democratic People's Republic of">Korea, Democratic People's Republic of</option>
-                                            <option value="Korea, Republic of">Korea, Republic of</option>
-                                            <option value="Kosovo">Kosovo</option>
-                                            <option value="Kuwait">Kuwait</option>
-                                            <option value="Kyrgyzstan">Kyrgyzstan</option>
-                                            <option value="Lao People's Democratic Republic">Lao People's Democratic Republic</option>
-                                            <option value="Latvia">Latvia</option>
-                                            <option value="Lebanon">Lebanon</option>
-                                            <option value="Lesotho">Lesotho</option>
-                                            <option value="Liberia">Liberia</option>
-                                            <option value="Libyan Arab Jamahiriya">Libyan Arab Jamahiriya</option>
-                                            <option value="Liechtenstein">Liechtenstein</option>
-                                            <option value="Lithuania">Lithuania</option>
-                                            <option value="Luxembourg">Luxembourg</option>
-                                            <option value="Macao">Macao</option>
-                                            <option value="Macedonia, the Former Yugoslav Republic of">Macedonia, the Former Yugoslav Republic of</option>
-                                            <option value="Madagascar">Madagascar</option>
-                                            <option value="Malawi">Malawi</option>
-                                            <option value="Malaysia">Malaysia</option>
-                                            <option value="Maldives">Maldives</option>
-                                            <option value="Mali">Mali</option>
-                                            <option value="Malta">Malta</option>
-                                            <option value="Marshall Islands">Marshall Islands</option>
-                                            <option value="Martinique">Martinique</option>
-                                            <option value="Mauritania">Mauritania</option>
-                                            <option value="Mauritius">Mauritius</option>
-                                            <option value="Mayotte">Mayotte</option>
-                                            <option value="Mexico">Mexico</option>
-                                            <option value="Micronesia, Federated States of">Micronesia, Federated States of</option>
-                                            <option value="Moldova, Republic of">Moldova, Republic of</option>
-                                            <option value="Monaco">Monaco</option>
-                                            <option value="Mongolia">Mongolia</option>
-                                            <option value="Montenegro">Montenegro</option>
-                                            <option value="Montserrat">Montserrat</option>
-                                            <option value="Morocco">Morocco</option>
-                                            <option value="Mozambique">Mozambique</option>
-                                            <option value="Myanmar">Myanmar</option>
-                                            <option value="Namibia">Namibia</option>
-                                            <option value="Nauru">Nauru</option>
-                                            <option value="Nepal">Nepal</option>
-                                            <option value="Netherlands">Netherlands</option>
-                                            <option value="Netherlands Antilles">Netherlands Antilles</option>
-                                            <option value="New Caledonia">New Caledonia</option>
-                                            <option value="New Zealand">New Zealand</option>
-                                            <option value="Nicaragua">Nicaragua</option>
-                                            <option value="Niger">Niger</option>
-                                            <option value="Nigeria">Nigeria</option>
-                                            <option value="Niue">Niue</option>
-                                            <option value="Norfolk Island">Norfolk Island</option>
-                                            <option value="Northern Mariana Islands">Northern Mariana Islands</option>
-                                            <option value="Norway">Norway</option>
-                                            <option value="Oman">Oman</option>
-                                            <option value="Pakistan">Pakistan</option>
-                                            <option value="Palau">Palau</option>
-                                            <option value="Palestinian Territory, Occupied">Palestinian Territory, Occupied</option>
-                                            <option value="Panama">Panama</option>
-                                            <option value="Papua New Guinea">Papua New Guinea</option>
-                                            <option value="Paraguay">Paraguay</option>
-                                            <option value="Peru">Peru</option>
-                                            <option value="Philippines">Philippines</option>
-                                            <option value="Pitcairn">Pitcairn</option>
-                                            <option value="Poland">Poland</option>
-                                            <option value="Portugal">Portugal</option>
-                                            <option value="Puerto Rico">Puerto Rico</option>
-                                            <option value="Qatar">Qatar</option>
-                                            <option value="Reunion">Reunion</option>
-                                            <option value="Romania">Romania</option>
-                                            <option value="Russian Federation">Russian Federation</option>
-                                            <option value="Rwanda">Rwanda</option>
-                                            <option value="Saint Barthelemy">Saint Barthelemy</option>
-                                            <option value="Saint Helena">Saint Helena</option>
-                                            <option value="Saint Kitts and Nevis">Saint Kitts and Nevis</option>
-                                            <option value="Saint Lucia">Saint Lucia</option>
-                                            <option value="Saint Martin">Saint Martin</option>
-                                            <option value="Saint Pierre and Miquelon">Saint Pierre and Miquelon</option>
-                                            <option value="Saint Vincent and the Grenadines">Saint Vincent and the Grenadines</option>
-                                            <option value="Samoa">Samoa</option>
-                                            <option value="San Marino">San Marino</option>
-                                            <option value="Sao Tome and Principe">Sao Tome and Principe</option>
-                                            <option value="Saudi Arabia">Saudi Arabia</option>
-                                            <option value="Senegal">Senegal</option>
-                                            <option value="Serbia">Serbia</option>
-                                            <option value="Serbia and Montenegro">Serbia and Montenegro</option>
-                                            <option value="Seychelles">Seychelles</option>
-                                            <option value="Sierra Leone">Sierra Leone</option>
-                                            <option value="Singapore">Singapore</option>
-                                            <option value="Sint Maarten">Sint Maarten</option>
-                                            <option value="Slovakia">Slovakia</option>
-                                            <option value="Slovenia">Slovenia</option>
-                                            <option value="Solomon Islands">Solomon Islands</option>
-                                            <option value="Somalia">Somalia</option>
-                                            <option value="South Africa">South Africa</option>
-                                            <option value="South Georgia and South Sandwich ">South Georgia and the South Sandwich Islands</option>
-                                            <option value="South Sudan">South Sudan</option>
-                                            <option value="Spain">Spain</option>
-                                            <option value="Sri Lanka">Sri Lanka</option>
-                                            <option value="Sudan">Sudan</option>
-                                            <option value="Suriname">Suriname</option>
-                                            <option value="Svalbard and Jan Mayen">Svalbard and Jan Mayen</option>
-                                            <option value="Swaziland">Swaziland</option>
-                                            <option value="Sweden">Sweden</option>
-                                            <option value="Switzerland">Switzerland</option>
-                                            <option value="Syrian Arab Republic">Syrian Arab Republic</option>
-                                            <option value="Taiwan, Province of China">Taiwan, Province of China</option>
-                                            <option value="Tajikistan">Tajikistan</option>
-                                            <option value="Tanzania, United Republic of">Tanzania, United Republic of</option>
-                                            <option value="Thailand">Thailand</option>
-                                            <option value="Timor-Leste">Timor-Leste</option>
-                                            <option value="Togo">Togo</option>
-                                            <option value="Tokelau">Tokelau</option>
-                                            <option value="Tonga">Tonga</option>
-                                            <option value="Trinidad and Tobago">Trinidad and Tobago</option>
-                                            <option value="Tunisia">Tunisia</option>
-                                            <option value="Turkey">Turkey</option>
-                                            <option value="Turkmenistan">Turkmenistan</option>
-                                            <option value="Turks and Caicos Islands">Turks and Caicos Islands</option>
-                                            <option value="Tuvalu">Tuvalu</option>
-                                            <option value="Uganda">Uganda</option>
-                                            <option value="Ukraine">Ukraine</option>
-                                            <option value="United Arab Emirates">United Arab Emirates</option>
-                                            <option value="United Kingdom">United Kingdom</option>
-                                            <option value="United States">United States</option>
-                                            <option value="United States Minor ">United States Minor Outlying Islands</option>
-                
-                                            <option value="Uruguay">Uruguay</option>
-                                            <option value="Uzbekistan">Uzbekistan</option>
-                                            <option value="Vanuatu">Vanuatu</option>
-                                            <option value="Venezuela">Venezuela</option>
-                                            <option value="Viet Nam">Viet Nam</option>
-                                            <option value="Virgin Islands, British">Virgin Islands, British</option>
-                                            <option value="Virgin Islands, U.s.">Virgin Islands, U.s.</option>
-                                            <option value="Wallis and Futuna">Wallis and Futuna</option>
-                                            <option value="Western Sahara">Western Sahara</option>
-                                            <option value="Yemen">Yemen</option>
-                                            <option value="Zambia">Zambia</option>
-                                            <option value="Zimbabwe">Zimbabwe</option>
-                                        </select><br>
+                                        <input type="text" class="col-sm-8 form-control" placeholder="Enter Country" name="country" id="country" value="{{ account_holder.Country }}" required>
+                                        <div class="invalid-feedback">Please provide a valid Country</div>
+                                        
                                     
                                             <label class="col-sm-4 col-form-label" for="mailingState">State</label>
                                             <select id="state" name="state" class="col-sm-8">
-                                                <option value="{{mailing_address.state}}" selected>{{mailing_address.State}}</option>
+                                                <option value="{{account_holder.State}}" selected>{{account_holder.State}}</option>
                                                 <option value="">Select State</option>
-                            
-                                <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                <option value="Andhra Pradesh">Andhra Pradesh</option>
-                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                <option value="Assam">Assam</option>
-                <option value="Bihar">Bihar</option>
-                <option value="Chandigarh">Chandigarh</option>
-                <option value="Chhattisgarh">Chhattisgarh</option>
-                <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
-                <option value="Daman and Diu">Daman and Diu</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Goa">Goa</option>
-                <option value="Gujarat">Gujarat</option>
-                <option value="Haryana">Haryana</option>
-                <option value="Himachal Pradesh">Himachal Pradesh</option>
-                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                <option value="Jharkhand">Jharkhand</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Kerala">Kerala</option>
-                <option value="Lakshadweep">Lakshadweep</option>
-                <option value="Madhya Pradesh">Madhya Pradesh</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Manipur">Manipur</option>
-                <option value="Meghalaya">Meghalaya</option>
-                <option value="Mizoram">Mizoram</option>
-                <option value="Nagaland">Nagaland</option>
-                <option value="Orissa">Orissa</option>
-                <option value="Pondicherry">Pondicherry</option>
-                <option value="Punjab">Punjab</option>
-                <option value="Rajasthan">Rajasthan</option>
-                <option value="Sikkim">Sikkim</option>
-                <option value="Tamil Nadu">Tamil Nadu</option>
-                <option value="Tripura">Tripura</option>
-                <option value="Uttaranchal">Uttaranchal</option>
-                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                <option value="West Bengal">West Bengal</option>
+                                                <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                                <option value="Assam">Assam</option>
+                                                <option value="Bihar">Bihar</option>
+                                                <option value="Chandigarh">Chandigarh</option>
+                                                <option value="Chhattisgarh">Chhattisgarh</option>
+                                                <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                                <option value="Daman and Diu">Daman and Diu</option>
+                                                <option value="Delhi">Delhi</option>
+                                                <option value="Goa">Goa</option>
+                                                <option value="Gujarat">Gujarat</option>
+                                                <option value="Haryana">Haryana</option>
+                                                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                                <option value="Jharkhand">Jharkhand</option>
+                                                <option value="Karnataka">Karnataka</option>
+                                                <option value="Kerala">Kerala</option>
+                                                <option value="Lakshadweep">Lakshadweep</option>
+                                                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                                <option value="Maharashtra">Maharashtra</option>
+                                                <option value="Manipur">Manipur</option>
+                                                <option value="Meghalaya">Meghalaya</option>
+                                                <option value="Mizoram">Mizoram</option>
+                                                <option value="Nagaland">Nagaland</option>
+                                                <option value="Orissa">Orissa</option>
+                                                <option value="Pondicherry">Pondicherry</option>
+                                                <option value="Punjab">Punjab</option>
+                                                <option value="Rajasthan">Rajasthan</option>
+                                                <option value="Sikkim">Sikkim</option>
+                                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                                <option value="Tripura">Tripura</option>
+                                                <option value="Uttaranchal">Uttaranchal</option>
+                                                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                                <option value="West Bengal">West Bengal</option>
                                                 
                                             </select>
                                         <label class="col-sm-4 col-form-label" for="mailingPin">pin</label>
-                                        <input type="text" class="col-sm-8 form-control" id="pin" name="pin" value="{{mailing_address.Pin}}"><br>
-                                            
+                                        <input type="text" class="col-sm-8 form-control" id="pin" name="pin" value="{{account_holder.Pin}}"><br>
+                                        <div class="invalid-feedback">Please provide a valid Pin Code</div> 
+                                         
                                         </div>
                                     </div>
                             
@@ -476,24 +336,24 @@
                                 <br>
                                     <div class="form-group row">
                                         <label class="col-sm-4 col-form-label" for="pan_it_number">Pan it number</label>
-                                        <input type="text" class="col-sm-8  form-control" name="pan_it_number" id="pan_it_number" value="{{ bank_details.Pan_it_number }}"><br>
+                                        <input type="text" class="col-sm-8  form-control" name="pan_it_number" id="pan_it_number" value="{{ account_holder.Pan_it_number }}"><br>
                                         
                                         <label class="col-sm-4 col-form-label" for="registration_type">Registration Type</label>
                                         <select name="registration_type" id="registration_type" class="col-sm-8" onchange="toggleGstinUn()">
-                                            <option value="{{ bank_details.registration_type }}" selected hidden>{{ bank_details.Registration_type }}</option>
+                                            <option value="{{ account_holder.Registration_type }}" selected hidden>{{ account_holder.Registration_type }}</option>
                                             <option value="">Select Registration Type</option>
                                             <option value="Regular">Regular</option>
                                             <option value="Composition">Composition</option>
                                             <option value="Consumer">Consumer</option>
                                             <option value="Unregistered">Unregistered</option>
                                         </select><br>
-                                        {% if bank_details.Gstin_un %}
+                                        {% if account_holder.Gstin_un %}
                                         <label class="col-sm-4 col-form-label" for="gstin_un" id="gstin_un_label" >GSTin un</label>
-                                        <input type="text" class="col-sm-8 form-control" name="gstin_un" id="gstin_un" value="{{bank_details.Gstin_un}}" ><br>
-                                        {%else%}
+                                        <input type="text" class="col-sm-8 form-control" name="gstin_un" id="gstin_un" value="{{account_holder.Gstin_un}}" ><br>
+                                        {% else %}
                                         <label class="col-sm-4 col-form-label" for="gstin_un" id="gstin_un_label" style="display:none;">GSTin un</label>
                                         <input type="text" class="col-sm-8 form-control" name="gstin_un" id="gstin_un" style="display:none;"><br>
-                                        {%endif%}
+                                        {% endif %}
                                     </div>
                                 </div>
                                 
@@ -503,41 +363,131 @@
                             
                                     <div class="form-group row">
                                         <label class="col-sm-4 col-form-label" for="date">Date</label>
-                                        <input type="date" class="col-sm-8  form-control" name="date" id="date" value="{{opening_balance.Date| date:'Y-m-d'  }}"><br>
+                                        <input type="date" class="col-sm-8  form-control" name="date" id="date" value="{{account_holder.Date| date:'Y-m-d'  }}"><br>
                                         <label class="col-sm-4 col-form-label" for="amount" >Amount</label>  
-                                        <input class="col-sm-5" type="text" name="Opening" id="amount" value="{{opening_balance.ArithmeticErrormount}}" >
+                                        <input class="col-sm-5" type="text" name="Opening" id="amount" value="{{account_holder.ArithmeticErrormount}}" >
                                         <select class="col-sm-3" name="termof" id="">
-                                        <option value="{{opening_balance.Open_type}}" selected hidden>{{opening_balance.Open_type}}</option>
+                                        <option value="{{account_holder.Open_type}}" selected hidden>{{account_holder.Open_type}}</option>
                                         <option  value="CREDIT">CREDIT</option>
                                         <option value="DEBIT">DEBIT</option>
                                     </select>
                         </div> 
                 
                     </div>
-                        <!-- Submit button -->
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="col-md-6 form-check">
-                                <input type="checkbox" class="form-check-input" id="termsCheckbox" name="terms" required>
-                                <label class="form-check-label" for="termsCheckbox" style="margin-left: 60%; white-space: nowrap;;">Agree to terms and conditions</label>
-                            </div>
-                            <div class="col-md-6" style="text-align: center; margin-left:120% ;">
-                                <div class="col-md-12 text-center">
-                                    <input type="submit" value="Save" class="btn btn-outline-info text-grey rounded-pill btn-lg" style="width: 200px; height: 50px; font-size: 20px;">
+                    <div class="container">
+                        <div class="row mt-5 mb-5">
+                            <div class="col-md-4"></div>
+                            <div class="col-md-4 text-center">
+                                <div class="d-flex justify-content-between">
+                                    <button class="btn btn-outline-secondary text-light" type="submit" style="margin-right: 10px; width: 60%;">UPDATE</button>
+                                    <a href="{% url 'Fin_bankholder' %}" class="btn btn-outline-secondary text-light" style="margin-left: 10px; width: 40%;">CANCEL</a>
                                 </div>
                             </div>
-                            
-                            
-                            
+                            <div class="col-md-4"></div>
                         </div>
-                        
-                
+                    </div>
                     </form> 
                 </div>
-                
-                
+
+
+                <div class="modal fade" id="bankholdercreation" tabindex="-1" role="dialog" aria-labelledby="bankModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="bankModalLabel">Add Bank</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form  class="add-bank-form" action="{% url 'Fin_AddBankinHolder' %}" method="post">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="bankName">Bank Name:</label>
+                                        <input type="text" class="form-control" id="bankName" name="bank_name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ifscCode">IFSC Code:</label>
+                                        <input type="text" class="form-control" id="ifscCode" name="ifsc_code" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="accountNumber">Account Number:</label>
+                                        <input type="text" class="form-control" id="accountNumber" name="account_number" required>
+                                    </div>
+                                    <div id="error-message" class="text-danger"></div>
+                                    <div class="form-group">
+                                        <label for="branchName">Branch Name:</label>
+                                        <input type="text" class="form-control" id="branchName" name="branch_name" required>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Save Bank</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    <script>
+        function checkSwiftCode() {
+            var swiftCodeInput = document.getElementById("swiftCode");
+            var swiftCodeValue = swiftCodeInput.value.trim();
+            swiftCodeInput.value = swiftCodeValue !== "" ? swiftCodeValue : "NIL";
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('.add-bank-form').submit(function (e) {
+                e.preventDefault();
     
+                $.ajax({
+                    type: 'POST',
+                    url: $(this).attr('action'),
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    success: function (data) {
+                        var bankDropdown = $('#bank_name');
+                        bankDropdown.append('<option value="' + data.bank_name + '">' + data.bank_name + '</option>');
     
+                        $('#bankholdercreation').modal('hide');
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr.status); 
+                        if (xhr.status === 400) {
+                            
+                            var errorMessage = xhr.responseJSON.error_message;
+                            
+                            $('#error-message').text(errorMessage);
+                        } else {
+                            alert("An error occurred. Please try again.");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <!-- <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var accNameSelect = document.getElementById("bank_name");
+            var accNumberInput = document.getElementById("accountNumber");
+            var accIfscInput = document.getElementById("ifscCode");
+            var swiftCodeInput = document.getElementById("swiftCode");
+            var branchNameInput = document.getElementById("branch_name");
     
+            accNameSelect.addEventListener("change", function () {
+                var selectedOption = accNameSelect.options[accNameSelect.selectedIndex];
+                var accNumber = selectedOption.getAttribute("data-acc-number");
+                var accIfsc = selectedOption.getAttribute("data-ifsc-code");
+                var accSwiftCode = selectedOption.getAttribute("data-swift-code");
+                var accBranchName = selectedOption.getAttribute("data-branch-name");
+    
+                accNumberInput.value = accNumber || '';
+                accIfscInput.value = accIfsc || '';
+                swiftCodeInput.value = accSwiftCode || '';
+                branchNameInput.value = accBranchName || '';
+            });
+        });
+    </script> -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var accNameSelect = document.getElementById("bank_name");

@@ -4,12 +4,16 @@
 
 <!-- harikrishnan -->
 
+  <!-- fontawesome icons -->
+  <link href="{% static 'assets/fontawesome/css/fontawesome.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/brands.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/solid.css' %}" rel="stylesheet">
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
     <div class="page-content ">
         <div class="card radius-15">
-            <form action="{% url 'holiday_update' holiday.id %}" method="post">
+            <form action="{% url 'holiday_update' holiday.id month year %}" method="post">
                 {% csrf_token %}
             <div class="card-body">
                 <center><h2>EDIT HOLIDAY </h2></center><br>

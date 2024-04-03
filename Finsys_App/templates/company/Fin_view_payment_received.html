@@ -1,0 +1,524 @@
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+
+<div class="page-content">
+    <div class="card radius-15 h-20">
+      <div class="row">
+        <div class="col-md-12">
+          <center><h2 class="mt-3">PAYMENT RECEIVED</h2></center>
+          <hr/>
+        </div>
+      </div>
+    </div>
+  
+    <div class="card radius-15">
+      <div class="card-body">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="d-flex">
+                <input type="text" id="search" class="form-control" placeholder="Search.." autocomplete="off"/>
+                <div class="dropdown ml-1" style="justify-content: left">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown"><i class="fa fa-sort"></i> Sort by</button>
+                    <div class="dropdown-menu" style="background-color: black">
+                      <a class="dropdown-item" href="" style="height: 40px; font-size: 15px; color: white">All</a>
+                      <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortTable(3)">Customer Name</a>
+                      <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortPaymentNumbers()">Payment Number</a>
+                    </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+            </div>
+            <div class="col-md-5 d-flex justify-content-end">
+                <button type="button" class="btn btn-outline-secondary text-grey" onclick="ExportToExcel('xlsx')"><i class="fa fa-table"></i> Export To Excel</button>
+                <div class="dropdown ml-1">
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown"><i class="fa fa-filter"></i> filter by</button>
+                <div class="dropdown-menu" style="background-color: black">
+                    <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(6,'all')">All</a>
+                    <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(6,'draft')">Draft</a>
+                    <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(6,'saved')">Saved</a> 
+                </div>
+              </div>
+              <a href="{% url 'Fin_add_payment_received' %}" class="ml-1"></i><button type="button" class="btn btn-outline-secondary text-grey"><i class="fa fa-plus font-weight-light"></i> Payment</button></a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-responsive-md table-hover mt-4" id="payment_table" style="text-align: center">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>DATE</th>
+              <th>PAYMENT NO</th>
+              <th>CUSTOMER NAME</th>
+              <th>MAIL ID</th>
+              <th>AMOUNT</th>
+              <th>STATUS</th>
+              <th>BALANCE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in payment %}
+            <tr class="clickable-row" data-href="{% url 'Fin_overview_payment_received' a.id %}" style="cursor: pointer;">
+            <td>{{ forloop.counter }}</td>
+              <td>{{ a.payment_date }}</td>
+              <td>{{ a.payment_no }}</td>
+              <td>{{ a.customer.first_name }} {{ a.customer.last_name }}</td>
+              <td>{{ a.customer.email }}</td>
+              <td>{{ a.total_amount }}</td>
+              <td>{{ a.status }}</td>
+              <td>{{ a.total_balance }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  
+
+    <!-- {% load static %}
+    {% comment %} {% if user.is_authenticated %} {% endcomment %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+      <style>
+        @import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+body{
+  background: #f2f2f2;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.search {
+  width: 100%;
+  position: relative;
+  display: flex;
+}
+
+.searchTerm {
+  width: 100%;
+  border: 3px solid #7690da;
+  border-right: none;
+  padding: 5px;
+  height: 36px;
+  border-radius: 5px 0 0 5px;
+  outline: none;
+  color: #9DBFAF;
+  
+}
+
+.searchTerm:focus{
+  color:#7690da;
+}
+
+.searchButton {
+  width: 40px;
+  height: 36px;
+  border: 1px solid #7690da;
+  background:#7690da;
+  text-align: center;
+  color: #fff;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.table-row{
+        cursor:pointer;
+}
+/* .table-row:hover{
+    background-color: rgb(217, 232, 51);
+} */
+
+/*Resize the wrap to see the search bar change!*/
+.wrap{
+  width: 40%;
+  /* position: absolute;
+  top: 50%;
+  left: 50%; */
+  /* transform: translate(-50%, -50%); */
+}
+      </style>
+
+      
+        <div class="page-content">
+            <div class="card radius-15">
+                <div class="card-body">
+                    <div class="card-title">
+                        <center><h2 class="mb-0" style="text-transform: uppercase;">payment received</h2></center>
+                        <hr>
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="card radius-15">
+                <div class="card-body">
+
+                    <div class="row">
+                        <div class="col-md-4">
+                          <div class="d-flex">
+                            <input type="text" id="search" placeholder="Search..." class="form-control" autocomplete="off" >                            <div class="dropdown ml-1" style="justify-content: left">
+                              <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown"><i class="fa fa-sort"></i> Sort by</button>
+                              <div class="dropdown-menu" style="background-color: black">
+                                <a class="dropdown-item" href="" style="height: 40px; font-size: 15px; color: white">All</a>
+                                <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortTable(3)">Customer Name</a>
+                                <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortPaymentNumbers()">Payment Number</a>
+                              </div>
+                              
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                        </div>
+                        <div class="col-md-5 d-flex justify-content-end">
+                          <button type="button" class="btn btn-outline-secondary text-grey" onclick="ExportToExcel('xlsx')"><i class="fa fa-table"></i> Export To Excel</button>
+                          <div class="dropdown ml-1">
+                            <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown"><i class="fa fa-filter"></i> filter by</button>
+                            <div class="dropdown-menu" style="background-color: black">
+                                <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(5,'all')">All</a>
+                                <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(5,'draft')">Draft</a>
+                                <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(5,'saved')">Saved</a> 
+                            </div>
+                          </div>
+                          <a href="{% url 'Fin_add_payment_received' %}" class="ml-1"></i><button type="button" class="btn btn-outline-secondary text-grey"><i class="fa fa-plus font-weight-light"></i> Payment</button></a>
+                        </div>
+                      </div>
+
+                   
+                    <div class="container-fluid ">
+                       <div class="app_table">
+                        <table class="table table-responsive-md mt-4 table-hover" id="payment_table">
+                            <thead>
+                            <tr>
+                                <th>DATE</th>
+                                <th>PAYMENT NO</th>
+                                <th>CUSTOMER NAME</th>
+                                <th>MAIL ID</th>
+                                <th>AMOUNT</th>
+                                <th>STATUS</th>
+                                <th>BALANCE</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in payment %}
+                                <tr class="clickable-row" data-href="{% url 'Fin_overview_payment_received' a.id %}" style="cursor: pointer;">
+                                    <td>{{ a.payment_date }}</td>
+                                    <td>{{ a.payment_no }}</td>
+                                    <td>{{ a.customer.first_name }} {{ a.customer.last_name }}</td>
+                                    <td>{{ a.customer.email }}</td>
+                                    <td>{{ a.total_amount }}</td>
+                                    <td>{{ a.status }}</td>
+                                    <td>{{ a.total_balance }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>                            
+                        </table>
+                       </div>
+
+                        <div class="table_output">
+
+                            <table class="table table-responsive-md mt-4 table-hover">
+                                <thead>
+                                <tr>
+                                    <th style="text-align: center;">Date</th>
+                                    <th style="text-align: center;">Payment No</th>
+                                    <th style="text-align: center;">Reference Number</th>
+                                    <th style="text-align: center;">Coustomer Name</th>
+                                    <th style="text-align: center;">Applied Amount</th>
+                                    <th style="text-align: center;">Amount</th>
+                                   
+                                </tr>
+                                </thead>
+                                <tbody class="table_body">
+                                   
+                                </tbody>
+                            </table>
+
+
+
+                        </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+     -->
+
+
+        <script>
+            const seacrchFild = document.querySelector("#searchfild");
+            
+            const tableOutput = document.querySelector('.table_output');
+            const app_Table = document.querySelector('.app_table');
+            tableOutput.style.display="none";
+            const tbody = document.querySelector('.table_body')
+
+
+            
+
+            seacrchFild.addEventListener('keyup',(e)=>{
+                const searchvalue = e.target.value;
+
+                if (searchvalue.trim().length>0){
+                    tbody.innerHTML="";
+                    console.log("searchvalue",searchvalue);
+                    fetch("search_payment_received",{
+                    body:JSON.stringify({searchText: searchvalue }),
+                    method:"POST",
+                    
+                   })
+                   .then((res) => res.json())
+                   .then((data)=>{
+                    console.log("data",data);
+
+                    app_Table.style.display ="none";
+                    tableOutput.style.display ="block";
+
+                    if (data.length===0){
+                        tableOutput.innerHTML = "No results found"
+
+                    }else{
+                        data.forEach(item=>{
+
+                            tbody.innerHTML+=
+                        `<tr  class="table-row " data-href="" >
+                                        <th style="text-align: center;"> ${item.paymdate} </th>
+                                        <td style="text-align: center;">  ${item.refno}</td>
+                                        <td style="text-align: center;"> ${item.referno}</td>
+                                        <td style="text-align: center;">  ${item.customer} </td>
+                                        <td style="text-align: center;"> ${item.amtapply}</td>
+                                        <td style="text-align: center;">  ${item.amtcredit}</td>
+                                        
+                                    </tr>`
+
+                        })
+                        
+
+                    }
+
+
+
+                   });
+               
+                }else{  
+                        tableOutput.style.display="none"
+                        app_Table.style.display ="block";
+                    }
+            });
+
+
+        </script>
+
+
+        <script>
+            // Get the modal
+            var modal = document.getElementById("myModal");
+
+            // Get the button that opens the modal
+            var btn = document.getElementById("myBtn");
+
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("close")[0];
+
+            // When the user clicks the button, open the modal
+            btn.onclick = function () {
+                modal.style.display = "block";
+            }
+
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function () {
+                modal.style.display = "none";
+            }
+
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            function ExportToExcel(type, fn, dl) {
+                var elt = document.getElementById('payment_table');
+                var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+            
+                // Get the first sheet from the workbook
+                var ws = wb.Sheets[wb.SheetNames[0]];
+            
+                // Define column widths (in characters) for specific columns
+                ws['!cols'] = [
+                    { wch: 10 }, // Date column width (increase this value as needed)
+                    { wch: 12 }, // Payment No column width
+                    { wch: 20 }, // Customer Name column width
+                    { wch: 25 }, // Mail Id column width
+                    { wch: 12 }, // Amount column width
+                    { wch: 10 }, // Status column width
+                    { wch: 12 }  // Balance column width
+                ];
+            
+                return dl ?
+                    XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }) :
+                    XLSX.writeFile(wb, fn || ('Payment_received.' + (type || 'xlsx')));
+            }
+            
+        </script>
+        <script>
+            $(document).ready(function() {
+                var $rows = $('.table tbody tr');
+                $('#search').keyup(function() {
+                    var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+                    $rows.show().filter(function() {
+                        console.log($rows.show())
+        
+                        var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+                        console.log(text)
+                        return !~text.indexOf(val);
+                    }).hide();
+                });
+            });
+        </script>
+
+
+
+    <script>
+        $(document).ready(function($) {
+            $(".table-row").dblclick(function() {
+                window.document.location = $(this).data("href");
+            });
+        });
+    </script>
+
+    <script>
+        function sortPaymentNumbers() {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById("payment_table");
+            switching = true;
+            
+            // Start the loop
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                // Loop through all table rows except the header
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    // Get the two payment numbers to compare
+                    x = rows[i].getElementsByTagName("TD")[2].innerText.toLowerCase();
+                    y = rows[i + 1].getElementsByTagName("TD")[2].innerText.toLowerCase();
+                    
+                    // Extract numeric part of the payment number
+                    var xNum = parseInt(x.split("-")[1]);
+                    var yNum = parseInt(y.split("-")[1]);
+                    
+                    // Check if the rows should switch
+                    if (xNum > yNum) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+                if (shouldSwitch) {
+                    // If a switch has been marked, switch the rows
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+        }
+    </script>
+
+<script>
+      function sortTable(columnIndex) {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById("payment_table");
+    switching = true;
+
+    while (switching) {
+      switching = false;
+      rows = table.rows;
+
+      for (i = 1; i < (rows.length - 1); i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("td")[columnIndex].textContent.toLowerCase();
+        y = rows[i + 1].getElementsByTagName("td")[columnIndex].textContent.toLowerCase();
+
+        if (x > y) {
+            shouldSwitch = true;
+            break;
+        }
+      }
+
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+      }
+    }
+  }
+
+
+  function filterTable(row,filterValue) {
+    var table1 = document.getElementById("payment_table");
+    var rows1 = table1.getElementsByTagName("tr");
+
+    for (var i = 1; i < rows1.length; i++) {
+      var statusCell = rows1[i].getElementsByTagName("td")[row];
+
+      if (filterValue == "all" || statusCell.textContent.toLowerCase() == filterValue) {
+        rows1[i].style.display = "";
+      } else {
+        rows1[i].style.display = "none";
+      }
+    }
+}
+</script>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+
+$('.delete').click(function(event) {
+    var form =  $(this).closest("form");
+    var name = $(this).data("name");
+    event.preventDefault();
+    swal({
+        title: `Are you sure you want to delete this record?`,
+        text: "If you delete this, it will be gone forever.",
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+    })
+    .then((willDelete) => {
+        if (willDelete) {
+            swal("Poof! Your imaginary file has been deleted!", {
+            icon: "success" ,
+      
+            });
+            form.submit();
+
+            
+            
+            
+            }
+    });
+});
+
+    </script>
+
+        
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var rows = document.querySelectorAll(".clickable-row");
+            rows.forEach(function (row) {
+                row.addEventListener("click", function () {
+                    window.location.href = row.getAttribute("data-href");
+                });
+            });
+        });
+    </script>
+    
+       
+    {% comment %} {% endif %} {% endcomment %}
+{% endblock %}

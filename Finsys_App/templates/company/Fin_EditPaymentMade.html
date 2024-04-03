@@ -1,0 +1,1705 @@
+<!-- CREATED BY AISWARYA -->
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load static %}
+
+<style>
+  input {
+    background-color: #2f516f;
+    border: 0;
+    border-radius: 5px;
+    color: white;
+  }
+  .selectize-input.full {
+    background-color: #43596c !important;
+    color: white !important;
+    border: 1px solid rgb(255 255 255 / 35%) !important;
+   }
+   .dropdown-menu.items-available {
+    border-radius: 5px;
+   }
+   #createNewAccount {
+    overflow-y:auto;
+   }
+   .customers-options{
+    cursor: pointer;
+   }
+
+</style>
+
+<form action="{% url 'Fin_UpdatePaymentMade' paymentmade.id %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+  {% csrf_token %}
+  <input type="hidden" name="paymentMadeId" id="paymentMadeId" value="{{ paymentmade.id }}">
+  <div class="page-content">
+    <div class="card radius-15">
+      <div class="card-body">
+        <div class="card-title">
+          <center><h3 class="mb-0">EDIT PAYMENT MADE</h3></center>
+        </div>
+        <hr />
+      </div>
+    </div>
+    <div class="card radius-15">
+      <div class="card-body">
+        <div id="purchaseOrder">
+            <div class="card-title">
+                <h4 class="mb-0">Vendor Details</h4>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="col-md-4 mt-3">
+                    <label class="">Select Vendor</label><span class="text-danger ml-3" id="vendErr"></span>
+                    <input type="hidden" name="vendorId" id="vendorId" value="{{paymentmade.vendor.id}}" >
+                    <div class="d-flex">
+                        <div class="w-100">
+                            <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
+                                <input required type="text" id="vendorInp" value="{{paymentmade.vendor.title}} {{paymentmade.vendor.first_name}} {{paymentmade.vendor.last_name}}" name="vendor" class="dropdown-toggle form-control vendors-display" onkeyup="filterVendors()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Vendor.." autocomplete="off" onchange="updatePaymentDetails(this.value, $('#paymentMadeId').val())"/>
+                                <ul class="dropdown-menu w-100 vendors-available position-absolute" id="vnd_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
+                                    <!-- <li class="dropdown-item vendors-options" onclick="getVendorDetails('','')">Select Vendor</li> -->
+                                    <li class="dropdown-item vendors-options" onclick="getVendorDetails('{{ vnd.id }}', '{{ vnd.title }} {{ vnd.first_name }} {{ vnd.last_name }}', '{{ paymentmade.id }}')">{{ vnd.title }} {{ vnd.first_name }} {{ vnd.last_name }}</li>
+                                    {% for vnd in vendors %}
+                                    <li class="dropdown-item vendors-options" onclick="getVendorDetails(`{{vnd.id}}`,this.innerHTML)">{{ vnd.title }} {{ vnd.first_name }} {{ vnd.last_name }}</li>
+                                    {% endfor %}
+                                </ul>
+                                
+                            </div>
+                        </div>
+                        <button type="button" data-toggle="modal" data-target="#newVendor" class="btn btn-outline-secondary ml-1">+</button>
+                    </div>
+                    
+                    <label class="mt-3">GST Type</label>
+                    <input type="text" class="form-control" value="{{payment.vendor_gst_type}}" id="vendorGstType" name="vendor_gst_type" placeholder="GST Treatment" style="background-color: #43596c;" readonly>
+                </div>
+
+                <div class="col-md-4 mt-3">
+                    <label class="">Email</label>
+                    <input class="form-control" type="email" name="vendorEmail" value="{{paymentmade.vendor_email}}" placeholder="Email" style="background-color: #43596c; color: white;" id="vendorEmail" readonly>
+                    <div class="mt-3">
+                        <input hidden value="{{cmp.State}}" id="cmpstate">
+                        <label class="">Source of supply</label>
+                        <select type="text" class="form-control" id="sourceOfSupply" name="source_of_supply" style="background-color: #43596c; color: white;" required>
+                            <option value="" style="display: none;" selected>--Choose--</option>
+                            <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islands</option>
+                            <option value="Andhra Predhesh">Andhra Pradhesh</option>
+                            <option value="Arunachal Predesh">Arunachal Pradesh</option>
+                            <option value="Assam">Assam</option>
+                            <option value="Bihar">Bihar</option>
+                            <option value="Chandigarh">Chandigarh</option>
+                            <option value="Chhattisgarh">Chhattisgarh</option>
+                            <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                            <option value="Damn anad Diu">Damn anad Diu</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Goa">Goa</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Haryana">Haryana</option>
+                            <option value="Himachal Predesh">Himachal Pradesh</option>
+                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                            <option value="Jharkhand">Jharkhand</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Kerala">Kerala</option>
+                            <option value="Ladakh">Ladakh</option>
+                            <option value="Lakshadweep">Lakshadweep</option>
+                            <option value="Madhya Predesh">Madhya Pradesh</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Manipur">Manipur</option>
+                            <option value="Meghalaya">Meghalaya</option>
+                            <option value="Mizoram">Mizoram</option>
+                            <option value="Nagaland">Nagaland</option>
+                            <option value="Odisha">Odisha</option>
+                            <option value="Puducherry">Puducherry</option>
+                            <option value="Punjab">Punjab</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                            <option value="Sikkim">Sikkim</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Tripura">Tripura</option>
+                            <option value="Uttar Predesh">Uttar Pradesh</option>
+                            <option value="Uttarakhand">Uttarakhand</option>
+                            <option value="West Bengal">West Bengal</option>
+                            <option value="Other Territory">Other Territory</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mt-3">
+                    <label class="">Billing Address</label>
+                    <textarea class="form-control" name="vendor_bill_address" id="vendorBillAddress" rows="4" style="background-color: #43596c; color: white;" readonly>{{paymentmade.vendor_address}}</textarea>
+                </div>
+
+                <div class="col-md-4 mt-3">
+                    <div class="" id="vendorGstInDisplay" style="display: block;">
+                        <label class="">GSTIN</label>
+                        <input type="text" class="form-control" value="{{vendor_gstin}}" id="vendorGstin" name="vendor_gstin" placeholder="GSTIN" style="background-color: #43596c;" readonly>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="card-title mt-4">
+                <h4 class="mb-0">Payment Made Details</h4>
+            </div>
+            <hr/>
+
+            <div class="row">
+                <div class="col-md-4 mt-3">
+                    <div class="d-flex">
+                        <label class="">Payment Made No.</label><span class="text-danger ml-3" id="PONoErr"></span>
+                    </div>
+                    <input type="text" class="form-control" value="{{paymentmade.payment_number}}" name="payment_number"  id="PaymentMadeNumber" style="background-color: #43596c;" placeholder="{{PONo}}" required>
+                </div>
+                <div class="col-md-4 mt-3">
+                    <label class="">Reference Number</label>
+                    <input type="text" class="form-control" name="reference_number" value="{{paymentmade.reference_no}}" style="background-color: #43596c;" readonly>
+                </div>
+                <div class="col-md-4 mt-3">
+                    <label class="">Payment Made Date:</label>
+                    <input type="date" class="form-control" name="payment_date" id="PaymentMadeDate" style="background-color: #43596c; color: white;" value="{{paymentmade.payment_date|date:'Y-m-d'}}">
+                </div>
+                
+
+                <div class="col-md-4 mt-3">
+                    <label class="">Payment Made Date:</label>
+                    <input type="date" class="form-control" name="payment_date" id="PaymentMadeDate" style="background-color: #43596c; color: white;" value="{{ paymentmade.payment_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4 mt-3">
+                    <label class="">Payment Type</label>
+                    <select class="form-control my-select" id="paymentMethod" name="payment_method" style="background-color: #43596c;">
+                        <option value="" style="display: none;" selected>Select Payment Method</option>
+                        <option value="Cash" {% if paymentmade.payment_method == 'Cash' %} selected {% endif %}>Cash</option>
+                        <option value="Cheque" {% if paymentmade.payment_method == 'Cheque' %} selected {% endif %}>Cheque</option>
+                        <option value="UPI" {% if paymentmade.payment_method == 'UPI' %} selected {% endif %}>UPI</option>
+                        {% for b in banks %}
+                        <option value="{{ b.bank_name }}" text="{{ b.id }}" {% if paymentmade.payment_method == b.bank_name %} selected {% endif %}>{{ b.bank_name }} (XXX{{ b.account_number|slice:"-4:" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-4 mt-3" style="display:none;" id="chequediv">
+                    <label class="">Cheque No</label>
+                    <input type="text" class="form-control" value="{{ paymentmade.cheque_number }}" name="cheque_id" id="cheque_id" placeholder="Enter Cheque No">
+                </div>
+                <div class="col-md-4 mt-3" style="display:none;" id="upidiv">
+                    <label class="">UPI ID</label>
+                    <input type="text" class="form-control" value="{{ paymentmade.upi_id }}" name="upi_id" id="upi_id" placeholder="Enter UPI ID">
+                </div>
+                <div class="col-md-4 mt-3" style="display:none;" id="bnkdiv">
+                    <label class="">Account#</label>
+                    <input type="text" class="form-control" value="{{ paymentmade.bank_account }}" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
+                </div>
+                
+            </div>
+            <br>
+            <br>
+            <div id="paymentDetailsTable" style="display: none;">
+                {% if opening_balance or recurring_bills or debit_notes or purchase_bills %}
+                <div class="card-title mt-4">
+                    <h4 class="mb-0">Payment Details</h4>
+                </div>
+                <hr/>
+                <div class="row clearfix">
+                    <div class="col-md-12 table-responsive-md">
+                        <table class="table table-bordered table-hover" id="tab_logic">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Type</th>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-center">Bill Number</th>
+                                    <th class="text-center">Balance Amount</th>
+                                    <th class="text-center">Payment</th>
+                                </tr>
+                            </thead>
+                           
+                            <tbody id="paymentTableBody">
+                                {% for detail in payment_details %}
+                                    {% if detail.type == 'Opening Balance' %}
+                                        <tr>
+                                            <td style="text-align: center;">Opening Balance</td>
+                                            <td style="text-align: center;"><input type="date" name="opening_balance_date" id="opening_balance_date" value="{{ detail.date |date:'Y-m-d' }}" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto; text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="text" name="opening_balance_id" id="opening_balance_id" value="{{ detail.id }}" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"readonly></td>
+                                            <td style="text-align: center;"><input type="number" name="opening_balance_amount" id="opening_balance_amount" value="{{ detail.balance_amount }}" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="number" name="opening_balance_payment" id="opening_balance_payment" value="{{ detail.payment }}" step="0.00" min="0" value=0 style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                        </tr>
+                                    {% endif %}
+                                    {% if detail.type == 'Recurring Bill' %}
+                                        <tr>
+                                            <td style="text-align: center;">Recurring Bill</td>
+                                            <td style="text-align: center;"><input type="date" name="recurring_bill_date" id="recurring_bill_date" value="{{ detail.date |date:'Y-m-d'}}" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="text" name="recurring_bill_number" id="recurring_bill_number" value="{{ detail.bill_number }}" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="number" name="recurring_bill_balance" id="recurring_bill_balance" value="{{ detail.balance_amount }}" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="number" name="recurring_bill_payment" id="recurring_bill_payment" value="{{ detail.payment }}" step="0.00" min="0" value=0 style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                        </tr>
+                                    {% endif %}
+                                    {% if detail.type == 'Debit Note' %}
+                                        <tr>
+                                            <td style="text-align: center;">Debit Note</td>
+                                            <td style="text-align: center;"><input type="date" name="debit_note_date" id="debit_note_date" value="{{ detail.date |date:'Y-m-d' }}" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="text" name="debit_note_number" id="debit_note_number" value="{{ detail.bill_number }}" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="number" name="debit_note_balance" id="debit_note_balance" value="{{ detail.balance_amount }}" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="number" name="debit_note_payment" id="debit_note_payment" value="{{ detail.payment }}" step="0.00" min="0" value=0 style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                        </tr>
+                                    {% endif %}
+                                    {% if detail.type == 'Purchase Bill' %}
+                                        <tr>
+                                            <td style="text-align: center;">Purchase Bill</td>
+                                            <td style="text-align: center;"><input type="date" name="purchase_bill_date" id="purchase_bill_date" value="{{ detail.date |date:'Y-m-d' }}" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="text" name="purchase_bill_number" id="purchase_bill_number" value="{{ detail.bill_number }}" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="number" name="purchase_bill_balance" id="purchase_bill_balance" value="{{ detail.balance_amount }}" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                            <td style="text-align: center;"><input type="number" name="purchase_bill_payment" id="purchase_bill_payment" value="{{ detail.payment }}" step="0.00" min="0" value=0 style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>                            
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row">
+                    <div class="col-md-7"></div>
+                    <div class="col-md-5 table-responsive-md mt-3" style="background-color: rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
+                        <div class="p-3">
+                            <div class="row container-fluid p-2 m-0">
+                                <div class="col-sm-4 mt-2"><label for="total_payment" class="text-center">Total Payment</label></div>
+                                <div class="col-sm-1 mt-2">:</div>
+                                <div class="col-sm-7 mt-2"><input type="number"  name="total_payment" id="total_payment" value="0.00" value="{{paymentmade.total_payment}}" class="form-control" readonly style="background-color: rgba(0,0,0,.4); color: rgb(255, 255, 255);" /></div>
+                            </div>
+                            <div class="row container-fluid p-2 m-0">
+                                <div class="col-sm-4 mt-2"><label for="total_balance" class="text-center">Total Balance</label></div>
+                                <div class="col-sm-1 mt-2">:</div>
+                                <div class="col-sm-7 mt-2"><input type="number" name="total_balance" id="total_balance" value="0.00" value="{{paymentmade.total_balance}}" readonly style="background-color: #37444f; color: rgb(255, 255, 255);" class="form-control" readonly /></div>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+            </div>
+
+            <div class="row">
+                <div class="col-md-7 mt-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="agreeTerms" required style="background-color: #43596c;">
+                        <label for="agreeTerms">Agree to terms and conditions</label>
+                        <div class="invalid-feedback">You must agree before submitting.</div>
+                    </div>
+                </div>
+                <div class="col-md-5 mt-3 d-flex">
+                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="SAVE">
+                    <input type="reset" onclick="window.location.href=`{% url 'Fin_ViewPaymentMade' paymentmade.id %}`" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL">
+                </div>
+            </div>
+            <div class="notices mt-3">
+                <div class="text-muted">NOTICE:</div>
+                <div class="text-muted">Fin sYs Terms and Conditions Apply</div>
+            </div>
+            <footer class="text-muted">Payment Made  was created on a computer and is valid without the signature and seal.</footer>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+
+<!-- New Payment Term Modal -->
+
+<div class="modal fade" id="newPaymentTerm">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">New Payment Term</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form method="post" id="newTermForm">
+                        {% csrf_token %}
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <label for="name">Term Name</label>
+                                <input type="text" name="term_name" id="termName" class="form-control w-100">
+                            </div>
+                            <div class="col-6">
+                                <label for="name">Days</label>
+                                <input type="number" name="days" id="termDays" class="form-control w-100" min="0" step="1">
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-4"></div>
+                            <div class="col-4 d-flex justify-content-center">
+                                <button class="btn btn-outline-secondary text-grey w-75" data-dismiss="modal" type="submit" id="savePaymentTerm">Save</button>
+                            </div>
+                            <div class="col-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
+<!-- New Vendor Payment Term Modal -->
+
+<div class="modal fade" id="newVendorPaymentTerm">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">New Vendor Payment Term</h5>
+                <button type="button" class="close" data-toggle="modal" data-target="#newVendor" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form method="post" id="newVendorPaymentTermForm">
+                        {% csrf_token %}
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <label for="name">Term Name</label>
+                                <input type="text" name="term_name" id="vendTermName" class="form-control w-100">
+                            </div>
+                            <div class="col-6">
+                                <label for="name">Days</label>
+                                <input type="number" name="days" id="vendTermDays" class="form-control w-100" min="0" step="1">
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-4"></div>
+                            <div class="col-4 d-flex justify-content-center">
+                                <button class="btn btn-outline-secondary text-grey w-75" data-toggle="modal" data-target="#newVendor" type="button" id="saveVendorPaymentTerm">Save</button>
+                            </div>
+                            <div class="col-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
+
+<!-- New Vendor Modal -->
+
+<div class="modal fade" id="newVendor">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">New Vendor</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form method="post" id="newVendorForm">
+                        {% csrf_token %}
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <label for="vendTitle">Title</label>
+                                <select name="vendTitle" id="vendTitle" class="form-control">
+                                    <option value="Mr">Mr</option>
+                                    <option value="Mrs">Mrs</option>
+                                    <option value="Ms">Ms</option>
+                                    <option value="Dr">Dr</option>
+                                </select>
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="vendFirstName">First Name</label>
+                                <input type="text" class="form-control" id="vendFirstName" name="first_name" required style="background-color: #43596c;color: white;">
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="vendLastName">Last Name</label>
+                                <input type="text" class="form-control" id="vendLastName" name="last_name" required style="background-color: #43596c;color: white;">
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="vendCompanyName">Company</label>
+                                <input type="text" class="form-control" id="vendCompanyName" name="company_name" style="background-color: #43596c;color: white;">
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                        </div>
+    
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <label for="vendLocation">Location</label>
+                                <input type="text" class="form-control" id="vendLocation" name="vendLocation" style="background-color: #43596c;color: white;">
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="vendEmail">Email</label>
+                                <input type="email" class="form-control" required id="vendEmail" name="email" onchange="checkVendEmail(this)" style="background-color: #43596c;color: white;" placeholder="finsys@gmail.com">
+                                <div class="invalid-feedback">Please provide a valid Email</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="vendWebsite">Website</label>
+                                <input type="text" class="form-control" id="vendWebsite" required placeholder="www.finsys.com" onchange="checkVendWebsite(this)" name="website" style="background-color: #43596c;color: white;">
+                                <div id="warnvendweb" class="text-danger"></div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="vendMobile">Mobile</label>
+                                <input type="text" class="form-control" id="vendMobile" required onchange="checkVendPhone(this)" name="mobile" style="background-color: #43596c;color: white;">
+                                <div class="text-danger m-2" id="warnphone"></div>
+                            </div>
+                        </div>
+    
+                        <hr>
+                        <h4>Other Options</h4>
+                        <hr>
+    
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <label for="vendGstType">GST Type</label>
+                                <select class="form-control" id="vendGstType" name="gst_type" onclick="toggleGSTIN('gstInValue', this)" style="background-color: #43596c; color: white;" required>
+                                    <option style="display: none;" selected value="">Select GST Type</option>
+                                    <option value="Registered Business - Regular">Registered Business - Regular <span><i>(Business that is registered under gst)</i></span></option>
+                                    <option value="Registered Business - Composition">Registered Business - Composition (Business that is registered under composition scheme in gst)</option>
+                                    <option value="Unregistered Business">Unregistered Business (Business that has not been registered under gst)</option>
+                                    <option value="Overseas">Overseas (Import/Export of supply outside india)</option>
+                                    <option value="Consumer">Consumer</option>
+                                    <option value="Special Economic Zone (SEZ)">Special Economic Zone (SEZ) (Business that is located in a special economic zone of india or a SEZ developer)</option>
+                                    <option value="Demed Exports">Demed Exports (Supply of woods to an exports oriented unit or againsed advanced authorization or export promotion capital woods)</option>
+                                    <option value="Tax Deductor">Tax Deductor (State of central gov,government agencies or local authority)</option>
+                                    <option value="SEZ Developer">SEZ Developer (A person or organization who owns atleast 26% equality in creating business units in special economic zone)</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a valid registration type.</div>
+                            </div>
+    
+                            <div class="col-md-3 vendgstrow d-block" id="gstInValue">
+                                <div>
+                                    <label for="vendGstIN">GSTIN</label>
+                                    <input type="text" class="form-control" onchange="checkGSTIN(this)" id="vendGstIN" name="vendGstIN" style="background-color: #43596c;color: white;" placeholder="29APPCK7465F1Z1">
+                                    <a data-toggle="modal" href="#exampleModal" style="color:#3dd5f3">Get Taxpayer Details</a>
+                                    <div class="text-danger m-2" id="warngst"></div>
+                                </div>
+                            </div>
+    
+                            <div class="col-md-3">
+                                <label for="vendPanNo">PAN No.</label>
+                                <input type="text" class="form-control" id="vendPanNo" name="pan_no" style="background-color: #43596c;color: white;" required onchange="checkVendPAN(this)" placeholder="APPCK7465F">
+                                <div class="text-danger m-2" id="warnpan"></div>
+                            </div>
+    
+                            <div class="col-md-3">
+                                <label for="vendPlaceOfSupply">Place of Supply</label>
+                                <select class="custom-select form-control" id="vendPlaceOfSupply" name="place_of_supply" style="background-color: #43596c; color: white;" required>
+                                    <option style="display: none;" selected value="">Select Place of Supply</option>
+                                    <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islands</option>
+                                    <option value="Andhra Predhesh">Andhra Predhesh</option>
+                                    <option value="Arunachal Predesh">Arunachal Predesh</option>
+                                    <option value="Assam">Assam</option>
+                                    <option value="Bihar">Bihar</option>
+                                    <option value="Chandigarh">Chandigarh</option>
+                                    <option value="Chhattisgarh">Chhattisgarh</option>
+                                    <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                    <option value="Damn anad Diu">Damn anad Diu</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Goa">Goa</option>
+                                    <option value="Gujarat">Gujarat</option>
+                                    <option value="Haryana">Haryana</option>
+                                    <option value="Himachal Predesh">Himachal Predesh</option>
+                                    <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                    <option value="Jharkhand">Jharkhand</option>
+                                    <option value="Karnataka">Karnataka</option>
+                                    <option value="Kerala">Kerala</option>
+                                    <option value="Ladakh">Ladakh</option>
+                                    <option value="Lakshadweep">Lakshadweep</option>
+                                    <option value="Madhya Predesh">Madhya Predesh</option>
+                                    <option value="Maharashtra">Maharashtra</option>
+                                    <option value="Manipur">Manipur</option>
+                                    <option value="Meghalaya">Meghalaya</option>
+                                    <option value="Mizoram">Mizoram</option>
+                                    <option value="Nagaland">Nagaland</option>
+                                    <option value="Odisha">Odisha</option>
+                                    <option value="Puducherry">Puducherry</option>
+                                    <option value="Punjab">Punjab</option>
+                                    <option value="Rajasthan">Rajasthan</option>
+                                    <option value="Sikkim">Sikkim</option>
+                                    <option value="Tamil Nadu">Tamil Nadu</option>
+                                    <option value="Telangana">Telangana</option>
+                                    <option value="Tripura">Tripura</option>
+                                    <option value="Uttar Predesh">Uttar Predesh</option>
+                                    <option value="Uttarakhand">Uttarakhand</option>
+                                    <option value="West Bengal">West Bengal</option>
+                                    <option value="Other Territory">Other Territory</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a valid registration type.</div>
+                            </div>
+    
+                        </div>
+    
+                        <div class="row">
+                            <div class="col-md-3 mt-3">
+                                <label for="">Currency</label>
+                                <select name="vendCurrency" id="vendCurrency" class="form-control">
+                                    <option value="INR - Indian Rupee">INR - Indian Rupee</option>
+                                </select>
+                            </div>
+    
+                            <div class="col-md-3 mt-3">
+                                <label for="">Opening Balance</label>
+                                <div class="d-flex">
+                                    <select name="balance_type" id="vend_bal_type" class="form-select text-white mr-1" style="background-color: #243e54; border-radius: 5px;">
+                                        <option value="credit">Credit</option>
+                                        <option value="debit">Debit</option>
+                                    </select>
+                                    <input type="text" class="form-control" name="open_balance" id="vendopenbalance" step="any" style="background-color: #43596c;color: white;">
+                                    <div class="text-danger m-2" ></div>
+                                </div>
+                            </div>
+    
+                            <div class="col-md-3 mt-3">
+                                <label for="vendCreditLimit">Credit Limit</label>
+                                <input type="text" class="form-control" name="credit_limit" style="background-color: #43596c;color: white;" value="0" step="any" id="vendCreditLimit">
+                                <div class="text-danger m-2" ></div>
+                            </div>
+    
+                            <div class="col-md-3 mt-3">
+                                <label for="vendPaymentTerms">Payment Terms</label>
+                                <div class="d-flex">
+                                    <select name="payment_terms" id="vendPaymentTerms" class="form-control">
+                                        <option value="" style="display: none;" selected>Choose</option>
+                                        {% for p in pTerms %}
+                                        <option value="{{p.id}}">{{p.term_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <a href="#newVendorPaymentTerm" data-dismiss="modal" data-toggle="modal" class="btn btn-outline-secondary ml-1">+</a>
+                                </div>
+                            </div>
+    
+                            <div class="col-md-3 mt-3">
+                                <label for="vendPriceList">Price List</label>
+                                <select name="price_list" id="vendPriceList" class="form-control">
+                                    <option value="" style="display: none;" selected>Choose</option>
+                                    {% for l in list %}
+                                        {% if l.type == 'Purchase' %}
+                                        <option value="{{l.id}}">{{l.name}}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+    
+                        <hr>
+                        <div class="row mt-5">
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-12 card-title">
+                                        <h5 class="mb-0">Billing Address</h5>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendstreet">Street</label>
+                                            <textarea class="form-control street" required id="vendstreet" name="vendstreet" style="background-color: #43596c;color: white;"></textarea>
+                                            <div class="invalid-feedback">Please provide a valid Street</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendcity">City</label>
+                                            <input type="text" class="form-control" required id="vendcity" name="vendcity" style="background-color: #43596c;color: white;" placeholder="City">
+                                            <div class="invalid-feedback">Please provide a valid City</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendstate">State</label>
+                                            <select type="text" class="form-control" id="vendstate" name="vendstate" required style="background-color: #43596c; color: white;">
+                                                <option value="" selected hidden>Choose</option>
+                                                <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islands</option>
+                                                <option value="Andhra Predhesh">Andhra Predhesh</option>
+                                                <option value="Arunachal Predesh">Arunachal Predesh</option>
+                                                <option value="Assam">Assam</option>
+                                                <option value="Bihar">Bihar</option>
+                                                <option value="Chandigarh">Chandigarh</option>
+                                                <option value="Chhattisgarh">Chhattisgarh</option>
+                                                <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                                <option value="Damn anad Diu">Damn anad Diu</option>
+                                                <option value="Delhi">Delhi</option>
+                                                <option value="Goa">Goa</option>
+                                                <option value="Gujarat">Gujarat</option>
+                                                <option value="Haryana">Haryana</option>
+                                                <option value="Himachal Predesh">Himachal Predesh</option>
+                                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                                <option value="Jharkhand">Jharkhand</option>
+                                                <option value="Karnataka">Karnataka</option>
+                                                <option value="Kerala">Kerala</option>
+                                                <option value="Ladakh">Ladakh</option>
+                                                <option value="Lakshadweep">Lakshadweep</option>
+                                                <option value="Madhya Predesh">Madhya Predesh</option>
+                                                <option value="Maharashtra">Maharashtra</option>
+                                                <option value="Manipur">Manipur</option>
+                                                <option value="Meghalaya">Meghalaya</option>
+                                                <option value="Mizoram">Mizoram</option>
+                                                <option value="Nagaland">Nagaland</option>
+                                                <option value="Odisha">Odisha</option>
+                                                <option value="Puducherry">Puducherry</option>
+                                                <option value="Punjab">Punjab</option>
+                                                <option value="Rajasthan">Rajasthan</option>
+                                                <option value="Sikkim">Sikkim</option>
+                                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                                <option value="Telangana">Telangana</option>
+                                                <option value="Tripura">Tripura</option>
+                                                <option value="Uttar Predesh">Uttar Predesh</option>
+                                                <option value="Uttarakhand">Uttarakhand</option>
+                                                <option value="West Bengal">West Bengal</option>
+                                                <option value="Other Territory">Other Territory</option>
+                                            </select>
+                                            <div class="invalid-feedback">Please provide a valid State</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendpinco">Pin Code</label>
+                                            <input type="text" class="form-control" required id="vendpinco" name="vendpincode" style="background-color: #43596c;color: white;" placeholder="PIN code">
+                                            <div class="invalid-feedback">Please provide a valid Pin Code</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendcountry">Country</label>
+                                            <input type="text" class="form-control" required id="vendcountry" name="vendcountry" style="background-color: #43596c;color: white;" placeholder="Country">
+                                            <div class="invalid-feedback">Please provide a valid Country</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-12 d-flex">
+                                        <h5>Shipping Address</h5>
+                                        <input class="ml-4 ml-5" type="checkbox" onclick="placeVendShipAddress()" id="vendShipAddress" name="ship_address">
+                                        <label class="ml-2 mt-1 ml-2" for="vendShipAddress">Same As Billing Address</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendshipstreet">Street</label>
+                                            <textarea class="form-control" id="vendshipstreet" name="vendshipstreet" style="background-color: #43596c;color: white;"></textarea>
+                                            <div class="invalid-feedback">Please provide a valid Street</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendshipcity">City</label>
+                                            <input type="text" class="form-control" id="vendshipcity" name="vendshipcity" style="background-color: #43596c;color: white;" placeholder="City">
+                                            <div class="invalid-feedback">Please provide a valid City</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendshipstate">State</label>
+                                            <select type="text" class="form-control" id="vendshipState" name="vendshipstate" style="background-color: #43596c; color: white;">
+                                                <option value="" selected>Choose</option>
+                                                <option value="Andaman and Nicobar Islads">Andaman and Nicobar Islands</option>
+                                                <option value="Andhra Predhesh">Andhra Predhesh</option>
+                                                <option value="Arunachal Predesh">Arunachal Predesh</option>
+                                                <option value="Assam">Assam</option>
+                                                <option value="Bihar">Bihar</option>
+                                                <option value="Chandigarh">Chandigarh</option>
+                                                <option value="Chhattisgarh">Chhattisgarh</option>
+                                                <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                                <option value="Damn anad Diu">Damn anad Diu</option>
+                                                <option value="Delhi">Delhi</option>
+                                                <option value="Goa">Goa</option>
+                                                <option value="Gujarat">Gujarat</option>
+                                                <option value="Haryana">Haryana</option>
+                                                <option value="Himachal Predesh">Himachal Predesh</option>
+                                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                                <option value="Jharkhand">Jharkhand</option>
+                                                <option value="Karnataka">Karnataka</option>
+                                                <option value="Kerala">Kerala</option>
+                                                <option value="Ladakh">Ladakh</option>
+                                                <option value="Lakshadweep">Lakshadweep</option>
+                                                <option value="Madhya Predesh">Madhya Predesh</option>
+                                                <option value="Maharashtra">Maharashtra</option>
+                                                <option value="Manipur">Manipur</option>
+                                                <option value="Meghalaya">Meghalaya</option>
+                                                <option value="Mizoram">Mizoram</option>
+                                                <option value="Nagaland">Nagaland</option>
+                                                <option value="Odisha">Odisha</option>
+                                                <option value="Puducherry">Puducherry</option>
+                                                <option value="Punjab">Punjab</option>
+                                                <option value="Rajasthan">Rajasthan</option>
+                                                <option value="Sikkim">Sikkim</option>
+                                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                                <option value="Telangana">Telangana</option>
+                                                <option value="Tripura">Tripura</option>
+                                                <option value="Uttar Predesh">Uttar Predesh</option>
+                                                <option value="Uttarakhand">Uttarakhand</option>
+                                                <option value="West Bengal">West Bengal</option>
+                                                <option value="Other Territory">Other Territory</option>
+                                            </select>
+                                            <div class="invalid-feedback">Please provide a valid State</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendshippinco">Pin Code</label>
+                                            <input type="text" class="form-control" id="vendshippinco" name="vendshippincode" style="background-color: #43596c;color: white;" placeholder="PIN code">
+                                            <div class="invalid-feedback">Please provide a valid Pin Code</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-row">
+                                            <label for="vendshipcountry">Country</label>
+                                            <input type="text" class="form-control" id="vendshipcountry" name="vendshipcountry" style="background-color: #43596c;color: white;" placeholder="Country">
+                                            <div class="invalid-feedback">Please provide a valid Country</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-4"></div>
+                            <div class="col-4 d-flex justify-content-center">
+                                <button class="btn btn-outline-secondary text-grey w-75" type="button" id="newVendorSave">Save</button>
+                            </div>
+                            <div class="col-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+    $(document).ready(function(){
+        getVendorDetails(`{{paymentmade.vendor.id}}`,`{{paymentmade.vendor.title}} {{paymentmade.vendor.first_name}} {{paymentmade.vendor.last_name}}`);
+        getCustomerDetails(`{{order.Customer.id}}`,`{{order.Customer.title}} {{order.Customer.first_name}} {{order.Customer.last_name}}`);
+
+        document.querySelector('#sourceOfSupply').value = `{{paymentmade.vendor_source_of_supply}}`;
+        document.querySelector('#placeOfSupply').value = `{{paymentmade.customer_place_of_supply}}`;
+        document.querySelector('#paymentTerm').value = `{{paymentmade.payment_terms.id}}`;
+        var paymentMeth = `{{paymentmade.payment_method}}`;
+        paymentMeth == 'None' ? document.querySelector('#paymentMethod').value = "" : document.querySelector('#paymentMethod').value = `{{paymentmade.payment_method}}`;
+
+        var x='{{paymentmade.payment_method}}';
+        if(x==='Cash'){
+            $('#chequediv').hide()
+            $('#bnkdiv').hide()
+            $('#upidiv').hide()
+            document.getElementById('cheque_id').value=""
+            document.getElementById('upi_id').value=""
+            document.getElementById('bnk_id').value=""
+        }else if(x==='Cheque'){
+            $('#chequediv').show()
+            $('#bnkdiv').hide()
+            $('#upidiv').hide()
+            document.getElementById('upi_id').value=""
+            document.getElementById('bnk_id').value=""
+        }else if(x==='UPI'){
+            $('#upidiv').show()
+            $('#bnkdiv').hide()
+            $('#chequediv').hide()
+            document.getElementById('cheque_id').value=""
+            document.getElementById('bnk_id').value=""
+        }else if(x==='None'){
+            $('#bnkdiv').hide()
+            $('#chequediv').hide()
+            $('#upidiv').hide()
+            document.getElementById("bnk_id").value = "";
+            document.getElementById('cheque_id').value="";
+            document.getElementById('upi_id').value="";
+        }else{
+            $('#bnkdiv').show()
+            $('#chequediv').hide()
+            $('#upidiv').hide()
+            document.getElementById('cheque_id').value=""
+            document.getElementById('upi_id').value=""
+
+            $.ajax({
+                type: "GET",
+                url: "{% url 'Fin_getBankAccount' %}",
+                data: {
+                    id: $('#paymentMethod').find(':selected').attr('text'),
+                },
+                success: function (response) {
+                    if (response.status){
+                        document.getElementById('cheque_id').value="";
+                        document.getElementById('upi_id').value="";
+                        document.getElementById("bnk_id").value = response.account;
+                    }else{
+                        alert(response.message);
+                    }
+                }
+            });
+        }
+    })
+    function filterVendors(){
+        var vndOptions = $('#vnd_drop').children();
+        var search_text = $("#vendorInp").val().toLowerCase();
+        vndOptions.each(function(){
+            if($(this).text().toLowerCase().includes(search_text)){
+                $(this).show()
+            }else{
+                $(this).hide()
+            }
+        })
+    }
+
+    function saveBillsForVendor(vendorId, billType, billData) {
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'Fin_SaveBills' %}",
+            data: {
+                vendor_id: vendorId,
+                bill_type: billType,
+                bill_data: billData,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+            success: function(response) {
+                console.log('Bills saved successfully:', response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error saving bills:', error);
+            }
+        });
+    }
+
+    
+    function getVendorDetails(vendorId, name){
+        console.log('name',name);
+        console.log('id',vendorId);
+        $('#vendorInp').val(name);
+        if($('#vendorInp').val() != ""){
+            $('#vendErr').text('');
+            $.ajax({
+                type : 'POST',
+                url: "{% url 'Fin_PaymentMade_getVendorData' %}",
+                data: {
+                    id: vendorId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                },
+                
+                success: function(data){
+                    console.log('AJAX-Response-->',data);
+                    document.getElementById('vendorId').value = data.id;
+                    document.getElementById('vendorEmail').value = data.email;
+                    document.getElementById('sourceOfSupply').value = data.shipState;
+                    document.getElementById('vendorGstType').value = data.gstType;
+                    document.getElementById('vendorBillAddress').value = data.street + ',' + data.city + '\n' + data.state + '\n' + data.country  + '\n' + data.pincode ;
+                    if(data.gstin){
+                        document.getElementById('vendorGstInDisplay').style.display = 'block';
+                        document.getElementById('vendorGstin').value = data.gstNo;
+                    }else{
+                        document.getElementById('vendorGstInDisplay').style.display = 'none';
+                        document.getElementById('vendorGstin').value = '';
+                    }
+                    displayPaymentDetails(data);
+                    $('#paymentDetailsTable').show();
+                    
+
+                    
+
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching vendor details:', error);
+                }   
+            });
+        }else{
+            document.getElementById('vendorEmail').value = "";
+            document.getElementById('sourceOfSupply').value = "";
+            document.getElementById('vendorGstType').value = "";
+            document.getElementById('vendorBillAddress').value ="";
+            document.getElementById('vendorGstin').value = "";
+            $('#vendErr').text('Select a Vendor..');
+        }
+    }
+    
+
+
+    function displayPaymentDetails(data) {
+    console.log('AJAX-Response-->', data);
+    var paymentMadeId = $('#paymentMadeId').val();
+    var vendorId = $('#vendorId').val();
+    $('#paymentTableBody').empty();
+
+    function fetchPayments(billType, paymentMadeId, billNumber, vendorId) {
+        console.log('Fetching payments for bill type:', billType, 'and payment made id:', paymentMadeId);
+
+        if (paymentMadeId !== null && paymentMadeId !== undefined) {
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'fetch_payments' %}",
+                data: {
+                    
+                    bill_type: billType,
+                    paymentmade_id: paymentMadeId,
+                    bill_number: billNumber,
+                    vendor_id: vendorId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                },
+                success: function(payments) {
+                    console.log('Received payments:', payments);
+                    if (payments.length > 0) {
+                        var sanitizedBillType = billType.toLowerCase().replace(/\s+/g, '');
+                        if (billNumber) {
+                            paymentColumnId = '#' + sanitizedBillType + '_' + paymentMadeId + '_payment_' + billNumber;
+                        } else {
+                            paymentColumnId = '#' + sanitizedBillType + '_' + paymentMadeId + '_payment_' + vendorId;
+                        }
+                        console.log('Setting payment to element with ID:', paymentColumnId);
+                        $(paymentColumnId).val(payments[0].amount); 
+                    } else {
+                        console.error('Error: No payments received.');
+                    }
+                },
+            });
+        }
+    }
+
+    function constructPaymentNumber(billType, paymentMadeId) {
+        return billType + '_' + paymentMadeId;
+    }
+
+    if (data.opening_balance) {
+        var paymentMadeId = $('#paymentMadeId').val();
+        var billNumber = null;
+        var vendorId = $('#vendorId').val();
+        $('#paymentTableBody').append(
+            '<tr>' +
+            '<td style="text-align: center;">Opening Balance</td>' +
+            '<td style="text-align: center;"><input type="date" name="opening_balance_date" id="opening_balance_date" value="' + data.opening_balance.date + '" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto; text-align: center;" readonly></td>' +
+            '<td style="text-align: center;"><input type="text" name="opening_balance_id" id="opening_balance_id" value="Nil" style="background-color: #43596c; color: white; display: block;  width: 150px; height: 40px; margin: auto;text-align: center;"readonly></td>' +
+            '<td style="text-align: center;"><input type="number" name="opening_balance_amount" id="opening_balance_amount" value="' + data.opening_balance.opening_balance + '" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"readonly></td>' +
+            '<td style="text-align: center;"><input type="number" name="opening_balance_payment" id="openingbalance_' + paymentMadeId + '_payment_' + vendorId + '" step="0.00" min="0" value=0  onblur="checkPaymentValue(this)" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>' +
+            '</tr>'
+        );
+
+        fetchPayments('Opening Balance', paymentMadeId, billNumber, vendorId); 
+    }
+    if (data.recurring_bills) {
+        $.each(data.recurring_bills, function(index, bill) {
+            var paymentMadeId = $('#paymentMadeId').val();
+            var billNumber = bill.recurring_bill_number;
+            $('#paymentTableBody').append(
+                '<tr>' +
+                '<td style="text-align: center;">Recurring Bill</td>' +
+                '<td style="text-align: center;"><input type="date" name="recurring_bill_date" id="recurring_bill_date" value="' + bill.date + '" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto; text-align: center;" readonly></td>' +
+                '<td style="text-align: center;"><input type="text" name="recurring_bill_number" id="recurring_bill_number" value="' + bill.recurring_bill_number + '" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto; text-align: center;" readonly></td>' +
+                '<td style="text-align: center;"><input type="number" name="recurring_bill_balance" id="recurring_bill_balance" value="' + bill.balance + '" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto; text-align: center;" readonly></td>' +
+                '<td style="text-align: center;"><input type="number" name="recurring_bill_payment"  id="recurringbill_' + paymentMadeId + '_payment_' + billNumber + '" value="0" onblur="checkPaymentValue(this)" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto; text-align: center;"></td>' +
+                '</tr>'
+            );
+
+            fetchPayments('Recurring Bill', paymentMadeId, billNumber);
+        });
+    }
+    
+
+
+    if (data.purchase_bills) {
+        $.each(data.purchase_bills, function(index, purchase_bill) {
+            var paymentMadeId = $('#paymentMadeId').val();
+            var billNumber = purchase_bill.bill_no;
+            $('#paymentTableBody').append(
+                '<tr>' +
+                '<td style="text-align: center;">Purchase Bill</td>' +
+                '<td style="text-align: center;"><input type="date" name="purchase_bill_date" id="purchase_bill_date" value="' + purchase_bill.bill_date + '" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"readonly></td>' +
+                '<td style="text-align: center;"><input type="text" name="purchase_bill_number" id="purchase_bill_number" value="' + purchase_bill.bill_no + '" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"readonly></td>' +
+                '<td style="text-align: center;"><input type="number" name="purchase_bill_balance" id="purchase_bill_balance" value="' + purchase_bill.balance + '" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"readonly></td>' +
+                '<td style="text-align: center;"><input type="number" name="purchase_bill_payment" id="purchasebill_' + paymentMadeId + '_payment_' + billNumber + '" value="0" onblur="checkPaymentValue(this)" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>' +
+                '</tr>'
+            );
+            fetchPayments('Purchase Bill', paymentMadeId, billNumber);
+        });
+       
+    }
+
+   
+    if(data.debit_notes) {
+        $.each(data.debit_notes, function(index, note) {
+                var paymentMadeId = $('#paymentMadeId').val();
+                var billNumber = note.debit_note_number;
+                $('#paymentTableBody').append(
+                    '<tr>' +
+                    '<td style="text-align: center;">Debit Note</td>' +
+                    '<td style="text-align: center;"><input type="date" name="debit_note_date" id="debit_note_date" value="' + note.debit_note_date + '" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"readonly></td>' +
+                    '<td style="text-align: center;"><input type="text" name="debit_note_number" id="debit_note_number" value="' + note.debit_note_number + '" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"readonly></td>' +
+                    '<td style="text-align: center;"><input type="number" name="debit_note_balance" id="debit_note_balance" value="' + note.balance + '" step="0.00" min="0" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"readonly></td>' +
+                    '<td style="text-align: center;"><input type="number" name="debit_note_payment" id="debitnote_' + paymentMadeId + '_payment_' + billNumber + '" step="0.00" min="0" value=0 onblur="checkPaymentValue(this)" style="background-color: #43596c; color: white; display: block; width: 150px; height: 40px; margin: auto;text-align: center;"></td>' +
+                
+                    '</tr>'
+                );
+                fetchPayments('Debit Note', paymentMadeId, billNumber);
+        });
+    }
+    
+    calculateTotalBalance();
+    calculateTotalPayment();
+}
+
+    function checkPaymentValue(input) {
+        var paymentAmount = parseFloat(input.value);
+        if (isNaN(paymentAmount) || paymentAmount < 0) {
+            input.value = "0";
+        }
+    }
+    
+    $(document).ready(function() {
+        setTimeout(function() {
+            var totalPayment = calculateTotalPayment();
+            $('#total_payment').val(totalPayment.toFixed(2)); 
+
+        
+            var totalBalance = parseFloat($('#total_balance').val()) || 0;
+            totalBalance -= totalPayment;
+            $('#total_balance').val(totalBalance.toFixed(2));
+        }, 500);
+    });
+
+    function calculateTotalPayment() {
+        var totalPayment = 0;
+        $('#paymentTableBody input[name$="_payment"]').each(function() {
+            totalPayment += parseFloat($(this).val()) || 0;
+        });
+        $('#total_payment').val(totalPayment.toFixed(2));
+        return totalPayment;
+           
+    }
+
+    function calculateTotalBalance() {
+        var totalBalance = 0;
+        var openingBalance = parseFloat($('#opening_balance_amount').val()) || 0;
+        totalBalance += openingBalance;
+        $('#paymentTableBody input[name$="_balance"]').each(function() {
+            totalBalance += parseFloat($(this).val()) || 0;
+        });
+        $('#paymentTableBody input[name="debit_note_balance"]').each(function() {
+            var debitNoteBalance = parseFloat($(this).val()) || 0;
+            totalBalance -= debitNoteBalance; 
+        });
+        var totalPayment = calculateTotalPayment();
+        totalBalance -= totalPayment;
+        $('#total_balance').val(totalBalance.toFixed(2));
+        console.log("Total Balance:", totalBalance);
+    }
+
+   
+    
+    $(document).ready(function() {
+        calculateTotalPayment();
+        calculateTotalBalance();
+
+
+        
+        $(document).on('input', '#paymentTableBody input[name="debit_note_balance"]', function() {
+            console.log("Debit Note Balance changed.");
+            calculateTotalBalance();
+        });
+
+       
+        $(document).on('input', '#paymentTableBody input[name$="_payment"], #paymentTableBody input[name$="_balance"], #opening_balance_amount', function() {
+            calculateTotalPayment();
+            calculateTotalBalance();
+        });
+    
+    });
+
+
+   
+    function findDueDate(){
+        var days = parseInt($('#paymentTerm').find(":selected").attr('text'))
+        paymentmade_date =new Date($('#PaymentMadeDate').val())
+        console.log(days);
+        console.log(paymentmade_date);
+        if (!isNaN(paymentmade_date.getTime())) {
+
+            const endDate = new Date(paymentmade_date);
+            endDate.setDate(endDate.getDate() + days);
+
+            const isoString = endDate.toISOString(); 
+            const day = isoString.slice(8, 10);
+            const month = isoString.slice(5, 7);
+            const year = isoString.slice(0, 4);
+
+            const formattedDate = `${day}-${month}-${year}`;
+
+            document.getElementById("dueDate").value = formattedDate;
+        } else {
+                alert("Please enter a valid date.");
+                $('#paymentTerm').val('')
+        }
+    }
+
+    $('#paymentTerm').on('change', function () {
+        findDueDate();
+    });
+
+    $('#PaymentMadeDate').on('change', function() {
+        findDueDate();
+    });
+
+    
+
+    $(document).ready(function() {
+        $(document).on('change', '#PaymentMadeNumber', function() {
+            $('#PONoErr').text(''); 
+            var paymentMadeNo = $(this).val();
+            if (paymentMadeNo != "") {
+                $.ajax({
+                    type: "GET",
+                    url: "{% url 'Fin_checkPaymentMadeNumber' %}",
+                    data: {
+                        PMNum: paymentMadeNo,
+                    },
+                    success: function(response) {
+                        if (!response.status) {
+                            $('#PONoErr').text(response.message); 
+                        } else {
+                            
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert("Error: " + error); 
+                    }
+                });
+            }
+        });
+    });
+
+
+    $(document).ready(function() {
+        $("#paymentMethod").change(function() {
+            var x=$('#paymentMethod').val();
+            if(x==='Cash'){
+                $('#chequediv').hide()
+                $('#bnkdiv').hide()
+                $('#upidiv').hide()
+                document.getElementById('cheque_id').value=""
+                document.getElementById('upi_id').value=""
+                document.getElementById('bnk_id').value=""
+            }else if(x==='Cheque'){
+                $('#chequediv').show()
+                $('#bnkdiv').hide()
+                $('#upidiv').hide()
+                document.getElementById('upi_id').value=""
+                document.getElementById('bnk_id').value=""
+            }else if(x==='UPI'){
+                $('#upidiv').show()
+                $('#bnkdiv').hide()
+                $('#chequediv').hide()
+                document.getElementById('cheque_id').value=""
+                document.getElementById('bnk_id').value=""
+            }else{
+                $('#bnkdiv').show()
+                $('#chequediv').hide()
+                $('#upidiv').hide()
+                document.getElementById('cheque_id').value=""
+                document.getElementById('upi_id').value=""
+
+                $.ajax({
+                    type: "GET",
+                    url: "{% url 'Fin_getBankAccount' %}",
+                    data: {
+                        id: $('#paymentMethod').find(':selected').attr('text'),
+                    },
+                    success: function (response) {
+                        if (response.status){
+                            document.getElementById('cheque_id').value="";
+                            document.getElementById('upi_id').value="";
+                            document.getElementById("bnk_id").value = response.account;
+                        }else{
+                            alert(response.message);
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+    $(document).on('change','#sourceOfSupply',function()   {
+        
+        calc();
+    });
+
+    
+    function filterFunction(id){
+        var options = $('#'+ $("#"+id).next().attr('id')).children();
+        var search_text = $("#"+id).val().toLowerCase();
+        options.each(function(){
+            if($(this).text().toLowerCase().includes(search_text)){
+                $(this).show()
+            }else{
+                $(this).hide()
+            }
+        })
+    }   
+</script>
+
+
+<script>
+function placeVendShipAddress() {
+        var chkbtn = document.getElementById('vendShipAddress');
+        if (chkbtn.checked == true) {
+            document.getElementById('vendshipstreet').value = document.getElementById('vendstreet').value;
+            document.getElementById('vendshipcity').value = document.getElementById('vendcity').value;
+            document.getElementById('vendshippinco').value = document.getElementById('vendpinco').value;
+            document.getElementById('vendshipcountry').value = document.getElementById('vendcountry').value;
+            document.getElementById('vendshipState').value = document.getElementById('vendstate').value;
+        } else {
+            document.getElementById('vendshipstreet').value = '';
+            document.getElementById('vendshipcity').value = '';
+            document.getElementById('vendshippinco').value = '';
+            document.getElementById('vendshipcountry').value = '';
+            document.getElementById('vendshipState').value = '';
+            
+        }
+    }
+
+$(document).on("click","#saveVendorPaymentTerm",function(){
+        var trm = $('#vendTermName').val();
+        var dys = $("#vendTermDays").val();
+        if (trm !="" && dys !=""){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_newCustomerPaymentTerm' %}",
+                data:{
+                    'term' : trm,
+                    'days' : dys,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                
+                success: function(response) {
+                    if(response.status){
+                        document.getElementById("newVendorPaymentTermForm").reset();
+                        
+                        var dropdown = $('#vendPaymentTerms');
+                        dropdown.empty();
+                        dropdown.append(`<option value="" selected>Choose</option>`);
+                        $.each(response, function(key, value) {
+                            for(let i=0; i<value.length; i++){
+                                if(value[i].name == trm){
+                                    dropdown.append($('<option selected></option>').text(value[i].name).val(value[i].id))
+                                }else{
+                                    dropdown.append($('<option></option>').text(value[i].name).val(value[i].id))
+                                }   
+                            }
+                        });
+
+                    }else{
+                        alert("Something went wrong.!")
+                    }
+                },         
+            });
+        }else{
+            alert('Invalid')
+        }
+    });
+
+    $(document).ready(function() {
+        $("#vendGstType").change(function() {
+            var x=$('#vendGstType').val();
+            if(x == "Unregistered Business" || x == 'Overseas' || x == 'Consumer'){
+                $(".vendgstrow").removeClass('d-block');
+                $(".vendgstrow").addClass('d-none');
+                $('#vendGstIN').prop('required',false);
+            }else {
+                $('#vendGstIN').prop('required',true);
+                $(".vendgstrow").removeClass('d-none');
+                $(".vendgstrow").addClass('d-block');
+            }
+        });
+    });
+
+    $(document).on('change', '#vendopenbalance',function () {
+        openbal = $("#vendopenbalance").val()
+        if($('#vend_bal_type').val()=='credit'){
+            if(openbal.slice(0,1) != '-'){
+                if(parseFloat(openbal) != 0){
+                    document.getElementById("vendopenbalance").value = "-"+openbal
+                }else{
+                    document.getElementById("vendopenbalance").value = openbal
+                }
+            }else{
+                if(parseFloat(openbal) != 0){
+                    document.getElementById("vendopenbalance").value = openbal
+                }else{
+                    document.getElementById("vendopenbalance").value = -1 * parseFloat(openbal)
+                }
+            }
+        }else{
+            document.getElementById("vendopenbalance").value = openbal
+        }
+    });
+
+    $(document).on('change', '#vend_bal_type',function () {
+        openbal = $("#vendopenbalance").val()
+        if(openbal != ""){
+            if($('#vend_bal_type').val()=='credit'){
+                openbal = $("#vendopenbalance").val()
+                if (parseFloat(openbal) != 0){
+                    document.getElementById("vendopenbalance").value = "-"+openbal
+                }else{
+                    document.getElementById("vendopenbalance").value = openbal
+                }
+            }else{
+                openbal = $("#vendopenbalance").val()
+                document.getElementById("vendopenbalance").value = -1*(parseFloat(openbal))
+            }
+        }
+    });
+
+    $(document).ready(function(){
+        $('#vendLastName').on('change',()=>{
+            var fName = $('#vendFirstName').val().replace(/\d/g, '');
+            var lName = $('#vendLastName').val().replace(/\d/g, '');
+            if(fName !="" && lName !=""){
+                checkVendorName(fName,lName)
+            }else{
+                alert('Please enter a valid Full Name.!')
+                return false
+            }
+        });
+
+        $('#vendFirstName').on('change',()=>{
+            var fName = $('#vendFirstName').val().replace(/\d/g, '');
+            var lName = $('#vendLastName').val().replace(/\d/g, '');
+            if(fName !="" && lName !=""){
+                checkVendorName(fName,lName)
+            }else if(fName == "" && lName !=""){
+                alert('Please enter a valid First Name.!')
+            }
+
+        })
+    });
+
+    function checkVendorName(fname,lname){
+        if (fname != "" && lname !=""){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_checkVendorName' %}",
+                data:{
+                    'fname' : fname,
+                    'lname' : lname,
+
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                
+                success: function(response) {
+                    if(response.is_exist){
+                        alert(response.message)
+                    }
+                },         
+            });
+        }
+    }
+
+    function checkVendorGSTIN(gstin){
+        var gstNo = gstin;
+        if (gstNo != ""){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_checkVendorGSTIN' %}",
+                data:{
+                    'gstin' : gstNo,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                
+                success: function(response) {
+                    if(response.is_exist){
+                        alert(response.message)
+                    }
+                },         
+            });
+        }
+    }
+
+    function checkVendorPAN(pan){
+        var panNo = pan;
+        if (panNo != ""){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_checkVendorPAN' %}",
+                data:{
+                    'pan' : panNo,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                
+                success: function(response) {
+                    if(response.is_exist){
+                        alert(response.message)
+                    }
+                },         
+            });
+        }
+    }
+
+    function checkVendorPhone(phone){
+        var phoneNo = phone;
+        if (phoneNo != ""){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_checkVendorPhone' %}",
+                data:{
+                    'phone' : phoneNo,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                
+                success: function(response) {
+                    if(response.is_exist){
+                        alert(response.message)
+                    }
+                },         
+            });
+        }
+    }
+
+    function checkVendorEmail(email){
+        var vendorEmail = email;
+        if (vendorEmail != ""){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_checkVendorEmail' %}",
+                data:{
+                    'email' : vendorEmail,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                
+                success: function(response) {
+                    if(response.is_exist){
+                        alert(response.message)
+                    }
+                },         
+            });
+        }
+    }
+
+    function showMessage(input) {
+        const gstin = input.value;
+
+        if (gstin.length === 15) {
+            setTimeout(() => checkGSTIN(input), 1000); 
+        } else {
+            document.getElementById("message").textContent = "";
+        }
+    }
+
+    
+    function checkGSTIN(element) {
+        var gstinput = element.value;
+        var gstregexp = "[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9A-Za-z]{1}[Z]{1}[0-9a-zA-Z]{1}";
+
+        if (gstinput.length === 15) {
+            if (gstinput.match(gstregexp)) {
+                document.getElementById('warngst').innerHTML = '';
+                checkVendorGSTIN(gstinput)
+            } else {
+                document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
+                alert('Please provide a valid GST Number');
+            }
+        }
+            else {
+            document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
+            alert('Please provide a valid GST Number');
+        }
+    }
+
+    function checkVendPAN(element) {
+        var paninput = element.value;
+        var panregexp = ["[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}"]
+        if (paninput.match(panregexp)) {
+            document.getElementById('warnpan').innerHTML = '';
+            checkVendorPAN(paninput)
+        } else {
+            document.getElementById('warnpan').innerHTML = 'Please provide a valid PAN Number';
+            alert('Please provide a valid PAN Number')
+        }
+    }
+
+    function checkVendWebsite(element) {
+        document.getElementById('warnvendweb').innerHTML = 'Please provide a valid Website Address';
+        var webinput = element.value;
+        var webregexp = "www."
+        if(webinput != ""){
+            if (webinput.startsWith(webregexp)) {
+                document.getElementById('warnvendweb').innerHTML = '';
+            } else {
+                document.getElementById('warnvendweb').innerHTML = 'Please provide a valid Website Address';
+                alert('Please provide a valid Website Address')
+            }
+        }
+    }
+
+    function checkVendPhone(element) {
+        var phoneinput = element.value;
+        var phoneregexp = /^\d{10}$/;
+
+        if (phoneinput.match(phoneregexp)) {
+            document.getElementById('warnphone').innerHTML = '';
+            checkVendorPhone(phoneinput)
+        } else {
+            if (phoneinput.length > 10){
+                alert('Number should be 10 digit.')
+                element.value = phoneinput.substring(0, 10);
+                return
+            }
+            document.getElementById('warnphone').innerHTML = 'Please provide a valid Phone Number';
+            alert('Please provide a valid Phone Number')
+        }
+    }
+
+    function checkVendEmail(element) {
+        var emailinput = element.value;
+        var emailregexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+        if (emailinput.match(emailregexp)) {
+            document.getElementById('warnemail').innerHTML = '';
+            checkVendorEmail(emailinput)
+        } else {
+            document.getElementById('warnemail').innerHTML = 'Please provide a valid Email ID';
+            alert('Please provide a valid Email id')
+        }
+    }
+
+    $(document).on("click", "#newVendorSave", function(){
+        var title = $('#vendTitle').val();
+        var fName = $('#vendFirstName').val();
+        var lName = $('#vendLastName').val();
+        var placeSupply = $('#vendPlaceOfSupply').val();
+        var gstType = $("#vendGstType").val();
+        var gstIN = $("#vendGstIN").val();
+        var panNo = $("#vendPanNo").val();
+        var Email = $("#vendEmail").val();
+        var Mob = $("#vendMobile").val();
+        var street = $("#vendstreet").val();
+        var city = $("#vendcity").val();
+        var state = $("#vendstate").val();
+        var pin = $("#vendpinco").val();
+        var country = $("#vendcountry").val();
+
+        if(gstType != "Unregistered Business" && gstType != 'Overseas' && gstType != 'Consumer' && gstIN == ""){
+            alert('Fill all required fields..!')
+            return
+        }
+
+        if(Mob.length != 10){
+            alert('Invalid Mobile Number.!')
+            return
+        }
+
+        // var phn = /^\d{10}$/;
+        
+
+        if(fName != "" && lName != "" && placeSupply != "" && gstType != "" && panNo != "" && Email != "" && Mob != "" && street != "" && city != "" && state != "" && pin != "" && country != ""){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_PaymentMade_createVendorAjax' %}",
+                data:{
+                    title : title,
+                    first_name : fName,
+                    last_name : lName,
+                    company_name : $("#vendCompanyName").val(),
+                    location : $("#vendLocation").val(),
+                    place_of_supply : placeSupply,
+                    gst_type : gstType,
+                    gstin : gstIN,
+                    pan_no : panNo,
+                    currency: $('#vendCurrency').val(),
+                    price_list :$('#vendPriceList').val(),
+                    payment_terms :$('#vendPaymentTerms').val(),
+                    open_balance : $("#vendopenbalance").val(),
+                    balance_type : $("#vend_bal_type").val(),
+                    credit_limit : $("#vendCreditLimit").val(),
+                    email : Email,
+                    website :$("#vendWebsite").val(),
+                    mobile : Mob,
+                    street : street,
+                    city : $("#vendcity").val(),
+                    state : $("#vendstate").val(),
+                    country : $("#vendcountry").val(),
+                    pincode : $("#vendpinco").val(),
+                    shipstreet : $("#vendshipstreet").val(),
+                    shipcity : $("#vendshipcity").val(),
+                    shipstate : $("#vendshipState").val(),
+                    shipcountry : $("#vendshipcountry").val(),
+                    shippincode : $("#vendshippinco").val(),
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                },
+
+                success: function(response) {
+                    if(response.status){
+                        console.log("AJAX Success",response)
+                        document.getElementById("newVendorForm").reset();
+
+                        if($('#newVendor').hasClass('show')){
+                            $('#newVendor').modal('toggle')
+                        }
+                        reloadVendor(title,fName,lName);
+                    }else{
+                        alert(response.message)
+                    }
+                },
+            });
+        }else{
+            alert('Fill all required fields..!')
+            return
+        }
+    });
+
+    function reloadVendor(title,fName,lName) {
+        const fullName = title+' '+fName+' '+lName
+        $.ajax({
+            url: "{% url 'Fin_PaymentMade_getVendors' %}",
+            type: "GET",
+            dataType: "json",
+            data: {},
+
+            success: function(data) {
+                console.log('Ajax Response ->',data);
+                var vndDrpDwn = $('#vnd_drop');
+                vndDrpDwn.empty();
+                vndDrpDwn.append(`<li class="dropdown-item vendors-options" onclick="getVendorDetails('','')">Select Vendor</li>`);
+
+                $.each(data, function (key, value) {
+                    const vndDetails = `${value[1]} ${value[2]} ${value[3]}`;
+                    const ID = `${value[0]}`
+
+                    if(vndDetails == fullName){
+                        getVendorDetails(value[0], vndDetails)
+                    }
+                    const listItem = $(`<li class="dropdown-item vendors-options" onclick="getVendorDetails('${ID}', '${vndDetails}')">${vndDetails}</li>`);
+                    vndDrpDwn.append(listItem);
+                });
+                console.log('Vendors RELOADED');
+
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+
+        });
+      
+
+        if ($('#newVendorPaymentTerm').hasClass('show')){
+            $('#newVendorPaymentTerm').modal('toggle');
+        }
+    }
+</script>
+<script>
+    var sourceOfSupply = "{{ paymentmade.vendor_source_of_supply }}";
+    var sourceOfSupplyDropdown = document.getElementById("sourceOfSupply");
+    for (var i = 0; i < sourceOfSupplyDropdown.options.length; i++) {
+        if (sourceOfSupplyDropdown.options[i].value === sourceOfSupply) {
+            sourceOfSupplyDropdown.options[i].setAttribute("selected", "selected");
+            break;
+        }
+    }
+</script>
+
+
+
+
+{% endblock %}

@@ -264,18 +264,59 @@
 
     #slipdiv{
         border-radius: 2vh;
-    }
-
-    #printslip .card{
-        border: 1px dotted black; 
-        box-shadow: 2px 2px 10px 3px rgba(0, 0, 0, 0.397);
-    }
-
-    #print_slip{
         background-color: #243e54;
-        margin-left: .35%;
-        margin-right: .35%;
-        border-radius:2vh ;
+        padding-top: 2%;
+        padding-bottom: 2%;
+    }
+
+    .slip h5{
+        font-family: serif;
+    }
+
+    .slip p {
+        font-size: 1.2em;
+    }
+
+    .slip .address{
+        display: flex;
+        flex-direction: column;
+    }
+
+    .slip .address p,.slip-footer p{
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .slip-container{
+        width: 105mm;
+        margin: 2rem auto;
+        padding: 2rem;
+        border: 1px dotted black;
+        box-shadow: rgba(60, 64, 67, 0.5) 0px 1px 2px 0px, rgba(60, 64, 67, 0.35) 0px 2px 6px 2px;
+    }
+
+    .divider{
+        margin: 1rem 0;
+        border-bottom: 3px dotted black;
+    }
+
+    .slip .datetime p, .createdby p{
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .slip .equal-length-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 100%;
+        margin-left: 2vh;
+        margin-right: 2vh;
+    }
+
+    .slip .equal-length-item {
+        flex: 1;
+        text-align: center;
     }
 
     #whatToPrint{
@@ -314,8 +355,8 @@
     </div>
 
     <div class="modal fade" id="comment_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" style="background-color: #213b52;">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Add Comment</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -325,13 +366,13 @@
                 <form action="{% url 'Fin_Purchase_Bill_Add_Edit_Comment' pbill.id %}" method="POST" enctype="multipart/form-data" id="comment_form">
                     {% csrf_token %}
                     <div class="modal-body">
-                        <input type="text" class="form-control" name="comment" id="comment" required>
+                        <textarea type="text" class="form-control" name="comment" id="comment" required></textarea>
                         <input type="text" class="form-control" name="comment_id" id="comment_id" hidden>
                         {% if comments %}
                         <div class="table-responsive">
                             <br>
-                            <table class="table table-bordered">
-                                <thead class="text-center">
+                            <table class="table">
+                                <thead class="text-center bg-info">
                                     <th>#</th>
                                     <th>Comment</th>
                                     <th>By</th>
@@ -427,28 +468,29 @@
                         </button>
                         <div class="collapse navbar-collapse" id="navbarScroll">
                             <ul class="navbar-nav ml-auto mt-lg-0">
+                                {% if pbill.status == 'Draft' %}
+                                <li class="nav-item mx-1" id="active_btn">
+                                    <a class="btn btn-outline-secondary text-white" href="{% url 'Fin_Convert_To_Active' pbill.id %}" role="button">
+                                        <i class="fa fa-exchange" style="font-size: small;">&nbsp;&nbsp;Convert</i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
                                 <li class="nav-item mx-1" id="edit_btn">
-                                    <a class="btn btn-outline-info text-white" href="{% url 'Fin_Purchase_Bill_Edit' pbill.id %}" role="button">
-                                        <i class="fa fa-edit" style="font-size: medium;"></i> &nbsp;Edit
+                                    <a class="btn btn-outline-secondary text-white" href="{% url 'Fin_Purchase_Bill_Edit' pbill.id %}" role="button">
+                                        <i class="fa fa-edit" style="font-size: small;">&nbsp;&nbsp;Edit</i>
                                     </a>
                                 </li>
 
                                 <li class="nav-item mx-1" id="delete_btn">
-                                    <a class="btn btn-outline-info text-white" href="{% url 'Fin_Delete_Purchase_Bill' pbill.id %}" role="button">
-                                        <i class="fa fa-trash" style="font-size: medium;"></i> &nbsp;Delete
+                                    <a class="btn btn-outline-secondary text-white" href="{% url 'Fin_Delete_Purchase_Bill' pbill.id %}" role="button">
+                                        <i class="fa fa-trash" style="font-size: small;">&nbsp;&nbsp;Delete</i>
                                     </a>
                                 </li>
 
-                                <li class="nav-item mx-1" id="comment_btn">
-                                    <a class="btn btn-outline-info text-white" style="cursor: pointer;" data-toggle="modal" data-target="#comment_modal">
-                                        <i class="fa fa-comment" style="font-size: medium;"></i>
-                                         &nbsp;Comment
-                                    </a>
-                                </li>
-
-                                <li class="dropdown p-0 nav-item mx-1 mt-2" id="share_btn">
-                                    <a class="btn btn-outline-info text-white dropdown-toggle" data-toggle="dropdown" style="margin-top: 2px;">
-                                        <i class="fa fa-share-alt" style="font-size: medium;"></i> &nbsp;Share
+                                <li class="dropdown p-0 nav-item mx-1 mt-2" id="share_btn" style="display: none;">
+                                    <a class="btn btn-outline-secondary text-white dropdown-toggle" data-toggle="dropdown" style="margin-top: 2px;">
+                                        <i class="fa fa-share-alt" style="font-size: small;">&nbsp;&nbsp;Share</i>
                                     </a>
                                     <ul class="dropdown-menu" style="background-color: black;">
                                         <li class="ml-3"> {% post_to_whatsapp object_or_url "WhatsApp" %}</li>
@@ -459,40 +501,38 @@
                                 </li>
 
                                 <li class="dropdown p-0 nav-item mx-1 mt-2" id="attach_btn">
-                                    <a class="btn btn-outline-info text-white dropdown-toggle" data-toggle="dropdown" style="margin-top: 2px;">
-                                        <i class="fa fa-paperclip" style="font-size: medium;"></i> &nbsp;Attach File
+                                    <a class="btn btn-outline-secondary text-white dropdown-toggle" data-toggle="dropdown" style="margin-top: 2px;">
+                                        <i class="fa fa-paperclip" style="font-size: small;">&nbsp;&nbsp;Attach File</i>
                                     </a>
                                     <ul class="dropdown-menu" style="background-color: black;">
                                         <a class="dropdown-item" style="cursor: pointer;" data-toggle="modal" data-target="#additional_file">Attach file</a>
                                         {% if pbill.file %}
-                                        <a class="dropdown-item" style="cursor: pointer;"download  href="{{ pbill.file.url }}"><i class=" fas fa-download"></i> Download file</a>
+                                        <a class="dropdown-item" style="cursor: pointer;"download  href="{{ pbill.file.url }}"><i class=" fas fa-download"></i>Download file</a>
                                         {% endif %}
                                     </ul>
                                 </li>
 
                                 <li class="nav-item mx-1" id="print_btn" style="display: none;">
-                                    <a class="btn btn-outline-info text-white" role="button" onclick="window.printfun()">
-                                        <i class="fa fa-print" style="font-size: medium;"></i> &nbsp;Print
+                                    <a class="btn btn-outline-secondary text-white" role="button" onclick="window.printfun()">
+                                        <i class="fa fa-print" style="font-size: small;">&nbsp;&nbsp;Print</i>
                                     </a>
                                 </li>
             
                                 <li class="nav-item mx-1" id="pdf_btn" style="display: none;">
-                                    <a class="btn btn-outline-info text-white" role="button" id="pdflink">
-                                        <i class="fa fa-print" style="font-size: medium;"></i> &nbsp;PDF
+                                    <a class="btn btn-outline-secondary text-white" role="button" id="pdflink">
+                                        <i class="fa fa-print" style="font-size: small;">&nbsp;&nbsp;PDF</i>
                                     </a>
                                 </li>
-                                
-                                {% if pbill.status == 'Draft' %}
-                                <li class="nav-item mx-1" id="active_btn">
-                                    <a class="btn btn-outline-info text-white" href="{% url 'Fin_Convert_To_Active' pbill.id %}" role="button">
-                                        <i class="fa fa-exchange" style="font-size: medium;"></i> &nbsp;Convert
+
+                                <li class="nav-item mx-1" id="comment_btn">
+                                    <a class="btn btn-outline-secondary text-white" style="cursor: pointer;" data-toggle="modal" data-target="#comment_modal">
+                                        <i class="fa fa-comment" style="font-size: small;">&nbsp;&nbsp;Comment</i>
                                     </a>
                                 </li>
-                                {% endif %}
         
                                 <li class="nav-item mx-1" id="history_btn">
-                                    <a class="btn btn-outline-info text-white" href="{% url 'Fin_Purchase_List_History' pbill.id %}" role="button">
-                                        <i class="fa fa-history" style="font-size: medium;"></i> &nbsp;History
+                                    <a class="btn btn-outline-secondary text-white" href="{% url 'Fin_Purchase_List_History' pbill.id %}" role="button">
+                                        <i class="fa fa-history" style="font-size: small;">&nbsp;&nbsp;History</i>
                                     </a>
                                 </li>
                             </ul>
@@ -503,8 +543,7 @@
             <br>
             <div class="card-title">
                 <center>
-                    <h3 class="mb-0">PURCHASE BILL - {{pbill.bill_no}}</h3>
-                    <h5 class="mt-1 text-success">{{pbill.status}}</h5>
+                    <h3 class="mb-0">PURCHASE BILL OVERVIEW</h3>
                 </center>
             </div>
         </div>
@@ -514,6 +553,50 @@
         <div class="row ml-1 mr-1">
             <div class="col-lg-8 overview_details">
                 <div class="p-5">
+                    <div class="d-flex">
+                        <h6><span class="text-success">Created By:</span> {{hist.logindetails.First_name}} {{hist.logindetails.Last_name}}</h6>
+                        <h6 class="ml-5">{{hist.change_date}}</h6>
+                    </div>
+                    <br>
+                    <h2>#{{ pbill.bill_no }}</h2>
+                    <hr>
+                    <div class="row mb-4 d-flex justify-content-between align-items-center">
+                        <div class="col-md-4 mt-3">
+                            <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Company Details</h5>
+                        </div>
+                        <div class="col-md-4 mt-3"></div>
+                        <div class="col-md-4 mt-3"></div>
+
+                        <div class="col-md-2 mt-3">
+                            <h6 class="mb-0">Company</h6>
+                        </div>
+                        <div class="col-md-4 mt-3">
+                            <p class="mb-0 text-right">{{ com.Company_name}}</p>
+                        </div>
+                        <div class="col-md-2 mt-3 vl">
+                            <h6 class="mb-0">Email</h6>
+                        </div>
+                        <div class="col-md-4 mt-3">
+                            <p class="mb-0 text-right">{{ com.Email }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-4 d-flex justify-content-between align-items-center">
+                        <div class="col-md-2 mt-3">
+                            <h6 class="mb-0">Mobile</h6>
+                        </div>
+                        <div class="col-md-4 mt-3">
+                            <p class="mb-0 text-right">{{ com.Contact }}</p>
+                        </div>
+                        <div class="col-md-2 mt-3 vl">
+                            <h6 class="mb-0">Address</h6>
+                        </div>
+                        <div class="col-md-4 mt-3">
+                            <p class="mb-0 text-right">{{ com.Address }} <br>
+                                {{com.City}},{{com.State}} - {{com.Pincode}}
+                            </p>
+                        </div>
+                    </div>
+                    <hr>
                     <div class="row mb-4 d-flex justify-content-between align-items-center">
                         <div class="col-md-4 mt-3">
                             <h5 class="overview_head">Vendor Details</h5>
@@ -567,7 +650,7 @@
                     <hr class="my-4">
                     <div class="row mb-4 d-flex justify-content-between align-items-center">
                         <div class="col-md-4 mt-3">
-                            <h5 class="overview_head">Company Details</h5>
+                            <h5 class="overview_head">Customer Details</h5>
                         </div>
                         <div class="col-md-4 mt-3"></div>
                         <div class="col-md-4 mt-3"></div>
@@ -639,6 +722,7 @@
                         </div>
                         
                     </div>
+                    {% if pbill.porder_no %}
                     <div class="row mb-4 d-flex justify-content-between align-items-center">
                         <div class="col-md-3 mt-3">
                             <h6 class="mb-0">Purchase Order No</h6>
@@ -703,6 +787,110 @@
                         </div>
                         {% endif %}
                     </div>
+                    {% else %}
+                    <div class="row mb-4 d-flex justify-content-between align-items-center">
+                        <div class="col-md-3 mt-3">
+                            <h6 class="mb-0">Bill Date</h6>
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <p class="mb-0 text-center">{{ pbill.bill_date | date:'d-m-Y' }}</p>
+                        </div>
+
+                        <div class="col-md-3 mt-3 vl">
+                            <h6 class="mb-0">Due Date</h6>
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <p class="mb-0 text-center">{{ pbill.due_date | date:'d-m-Y' }}</p>
+                        </div>
+                    </div>
+                    {% if pbill.pricelist %}
+                    <div class="row mb-4 d-flex justify-content-between align-items-center">
+                        <div class="col-md-3 mt-3">
+                            <h6 class="mb-0">Price List</h6>
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <p class="mb-0 text-center">{{ pbill.pricelist.name }}</p>
+                        </div>
+
+                        <div class="col-md-3 mt-3 vl">
+                            <h6 class="mb-0">Payment Type</h6>
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <p class="mb-0 text-center">{{ pbill.pay_type }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-4 d-flex justify-content-start align-items-center">
+                        {% if pbill.pay_type == 'Cash' %}
+                        {% elif pbill.pay_type == 'Cheque' %}
+                        <div class="col-md-3 mt-3">
+                            <h6 class="mb-0">Cheque No</h6>
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <p class="mb-0 text-center">{{ pbill.cheque_no }}</p>
+                        </div>
+                        <div class="col-md-6 mt-3 vl">
+                            <h6 class="mb-0">&nbsp;</h6>
+                        </div>
+                        {% elif pbill.pay_type == 'UPI' %}
+                        <div class="col-md-3 mt-3">
+                            <h6 class="mb-0">UPI No</h6>
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <p class="mb-0 text-center">{{ pbill.upi_no }}</p>
+                        </div>
+                        <div class="col-md-6 mt-3 vl">
+                            <h6 class="mb-0">&nbsp;</h6>
+                        </div>
+                        {% else %}
+                        <div class="col-md-3 mt-3">
+                            <h6 class="mb-0">Bank No</h6>
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <p class="mb-0 text-center">{{ pbill.bank_no }}</p>
+                        </div>
+                        <div class="col-md-6 mt-3 vl">
+                            <h6 class="mb-0">&nbsp;</h6>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                        <div class="row mb-4 d-flex justify-content-between align-items-center">
+                            <div class="col-md-3 mt-3">
+                                <h6 class="mb-0">Payment Type</h6>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <p class="mb-0 text-center">{{ pbill.pay_type }}</p>
+                            </div>
+
+                            {% if pbill.pay_type == 'Cash' %}
+                            <div class="col-md-6 mt-3 vl">
+                                <h6 class="mb-0">&nbsp;</h6>
+                            </div>
+                            {% elif pbill.pay_type == 'Cheque' %}
+                            <div class="col-md-3 mt-3 vl">
+                                <h6 class="mb-0">Cheque No</h6>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <p class="mb-0 text-center">{{ pbill.cheque_no }}</p>
+                            </div>
+                            {% elif pbill.pay_type == 'UPI' %}
+                            <div class="col-md-3 mt-3 vl">
+                                <h6 class="mb-0">UPI No</h6>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <p class="mb-0 text-center">{{ pbill.upi_no }}</p>
+                            </div>
+                            {% else %}
+                            <div class="col-md-3 mt-3 vl">
+                                <h6 class="mb-0">Bank No</h6>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <p class="mb-0 text-center">{{ pbill.bank_no }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    {% endif %}
                     <hr>
                     <div class="row mb-4 d-flex justify-content-between align-items-center">
                         <div class="col-md-12 mt-3">
@@ -743,7 +931,7 @@
                                     <h6 class="mb-0">Tax</h6>
                                 </div>
                                 <div class="col-md-3 mt-3">
-                                    {% if pbill.ven_psupply != pbill.cust_psupply %}
+                                    {% if pbill.igst != '0' %}
                                     <p class="mb-0 text-center">{{ i.tax }}% IGST</p>
                                     {% else %}
                                     <p class="mb-0 text-center">{{ i.tax }}% GST</p>
@@ -776,48 +964,46 @@
             </div>
             <div class="col-md-4 overview_bill">
                 <div class="p-5">
-                    <div class="d-flex justify-content-between">
-                        <h6><span class="text-success">Created By:</span> {{hist.logindetails.First_name}} {{hist.logindetails.Last_name}}</h6>
-                        <h6>{{hist.change_date}}</h6>
-                    </div>
-                    <br>
-                    <h3 class="fw-bold mb-3 mt-2 pt-1">BILL</h3>
+                    <h3 class="fw-bold mb-3 mt-2 pt-1">Bill Tax Details</h3>
+                    <hr class="my-4">
                     <div class="d-flex justify-content-between mb-4">
                         <h5 class="">Bill status</h5>
-                        <h6 class="text-success">{{ pbill.status }}</h6>
+                        {% if pbill.status == 'Save' %}
+                        <h5 class="text-success"><b>SAVED</b></h5>
+                        {% else %}
+                        <h5 class="text-info"><b>DRAFT</b></h5>
+                        {% endif %}
                     </div>
-                    <hr class="my-4 bg-white">
                     <div class="d-flex justify-content-between mb-4">
                         <h5 class="">Sub Total</h5>
                         <h6>{{ pbill.subtotal }}</h6>
                     </div>
-                    {% if pbill.ven_psupply != pbill.cust_psupply %}
+                    <div class="d-flex justify-content-between mb-4">
+                        <h5 class="">Tax Amount</h5>
+                        <h6>{{pbill.taxamount }}</h6>
+                    </div>
+                    {% if pbill.igst != '0' %}
                     <div class="d-flex justify-content-between mb-4">
                         <h5 class="">IGST</h5>
                         <h6>{{ pbill.igst }}</h6>
                     </div>
-                    {% endif %}
-                    {% if pbill.ven_psupply == pbill.cust_psupply %}
+                    {% else %}
                     <div class="d-flex justify-content-between mb-4">
                         <h5 class="">CGST</h5>
                         <h6>{{ pbill.cgst }}</h6>
                     </div>
-                    {% endif %}
-                    {% if pbill.ven_psupply == pbill.cust_psupply %}
                     <div class="d-flex justify-content-between mb-4">
                         <h5 class="">SGST</h5>
                         <h6>{{ pbill.sgst }}</h6>
                     </div>
                     {% endif %}
-                    <div class="d-flex justify-content-between mb-4">
-                        <h5 class="">Tax Amount</h5>
-                        <h6>{{pbill.taxamount }}</h6>
-                    </div>
+                    {% if pbill.ship_charge != '0' %}
                     <div class="d-flex justify-content-between mb-4">
                         <h5 class="">Shipping Charge</h5>
                         <h6>{{ pbill.ship_charge}}</h6>
                     </div>
-                    {% if pbill.adjust %}
+                    {% endif %}
+                    {% if pbill.adjust != '0' %}
                     <div class="d-flex justify-content-between mb-4">
                         <h5 class="">Adjustment</h5>
                         <h6>{{ pbill.adjust }}</h6>
@@ -913,7 +1099,7 @@
                                                 <td>{{i.item.hsn}}</td>
                                                 <td>{{i.price}}</td>
                                                 <td>{{i.qty}}</td>
-                                                {% if pbill.ven_psupply != pbill.cust_psupply %}
+                                                {% if  pbill.igst != '0' %}
                                                 <td>{{ i.tax }}% IGST</td>
                                                 {% else %}
                                                 <td>{{ i.tax }}% GST</td>
@@ -942,38 +1128,38 @@
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.taxamount}}</td>
                                                     </tr>
-                                                    {% if pbill.ven_psupply != pbill.cust_psupply %}
+                                                    {% if pbill.igst != '0' %}
                                                     <tr>
                                                         <td>IGST</td>
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.igst}}</td>
                                                     </tr>
-                                                    {% endif %}
-                                                    {% if pbill.ven_psupply == pbill.cust_psupply %}
+                                                    {% else %}
                                                     <tr>
                                                         <td>CGST</td>
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.cgst}}</td>
-                                                        
                                                     </tr>
-                                                    {% endif %}
-                                                    {% if pbill.ven_psupply == pbill.cust_psupply %}
                                                     <tr>
                                                         <td>SGST</td>
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.sgst}}</td>
                                                     </tr>
                                                     {% endif %}
+                                                    {% if pbill.ship_charge != '0' %}
                                                     <tr>
                                                         <td>Shipping Charge</td>
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.ship_charge}}</td>
                                                     </tr>
+                                                    {% endif %}
+                                                    {% if pbill.adjust != '0' %}
                                                     <tr>
                                                         <td>Adjustment</td>
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.adjust}}</td>
                                                     </tr>
+                                                    {% endif %}
                                                 </tbody>
                                             </table>
                                             <hr style="background-color: #000000;">
@@ -1078,7 +1264,7 @@
                                                         <td>{{ i.item.hsn }}</td>
                                                         <td>{{ i.qty }}</td>
                                                         <td>{{ i.price }}</td>
-                                                        {% if pbill.ven_psupply != pbill.cust_psupply %}
+                                                        {% if pbill.igst != '0' %}
                                                         <td>{{ i.tax }}% IGST</td>
                                                         {% else %}
                                                         <td>{{ i.tax }}% GST</td>
@@ -1108,40 +1294,38 @@
                                                             <td>:</td>
                                                             <td class="text-center">{{pbill.taxamount}}</td>
                                                         </tr>
-                                                        {% if pbill.ven_psupply != pbill.cust_psupply %}
+                                                        {% if pbill.igst != '0' %}
                                                         <tr>
                                                             <td>IGST</td>
                                                             <td>:</td>
                                                             <td class="text-center">{{pbill.igst}}</td>
                                                         </tr>
-                                                        {% endif %}
-                                                        {% if pbill.ven_psupply == pbill.cust_psupply %}
+                                                        {% else %}
                                                         <tr>
                                                             <td>CGST</td>
                                                             <td>:</td>
-                                                            <td class="text-center">{{pbill.cgst}}</td>
-                                                            
+                                                            <td class="text-center">{{pbill.cgst}}</td> 
                                                         </tr>
-                                                        {% endif %}
-                                                        {% if pbill.ven_psupply == pbill.cust_psupply %}
                                                         <tr>
                                                             <td>SGST</td>
                                                             <td>:</td>
                                                             <td class="text-center">{{pbill.sgst}}</td>
                                                         </tr>
                                                         {% endif %}
+                                                        {% if pbill.ship_charge != '0' %}
                                                         <tr>
                                                             <td>Shipping Charge</td>
                                                             <td>:</td>
                                                             <td class="text-center">{{pbill.ship_charge}}</td>
                                                         </tr>
-                                                        {% if pbill.adjust %}
+                                                        {% endif %}
+                                                        {% if pbill.adjust != '0' %}
                                                         <tr>
                                                             <td>Adjustment</td>
                                                             <td>:</td>
                                                             <td class="text-center">{{pbill.adjust}}</td>
                                                         </tr>
-                                                        {%endif%}
+                                                        {% endif%}
                                                     </tbody>
             
                                                 </table>
@@ -1241,7 +1425,7 @@
                                                         <td>{{ i.item.hsn }}</td>
                                                         <td>{{ i.qty }}</td>
                                                         <td>{{ i.price  }}</td>
-                                                        {% if pbill.ven_psupply != pbill.cust_psupply %}
+                                                        {% if pbill.igst != '0' %}
                                                         <td>{{ i.tax }}% IGST</td>
                                                         {% else %}
                                                         <td>{{ i.tax }}% GST</td>
@@ -1271,34 +1455,33 @@
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.taxamount}}</td>
                                                     </tr>
-                                                    {% if pbill.ven_psupply != pbill.cust_psupply %}
+                                                    {% if pbill.igst != '0' %}
                                                     <tr>
                                                         <td>IGST</td>
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.igst}}</td>
                                                     </tr>
-                                                    {% endif %}
-                                                    {% if pbill.ven_psupply == pbill.cust_psupply %}
+                                                    {% else %}
                                                     <tr>
                                                         <td>CGST</td>
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.cgst}}</td>
                                                         
                                                     </tr>
-                                                    {% endif %}
-                                                    {% if pbill.ven_psupply == pbill.cust_psupply %}
                                                     <tr>
                                                         <td>SGST</td>
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.sgst}}</td>
                                                     </tr>
                                                     {% endif %}
+                                                    {% if pbill.ship_charge != '0' %}
                                                     <tr>
                                                         <td>Shipping Charge</td>
                                                         <td>:</td>
                                                         <td class="text-center">{{pbill.ship_charge}}</td>
                                                     </tr>
-                                                    {% if pbill.adjust %}
+                                                    {% endif %}
+                                                    {% if pbill.adjust != '0' %}
                                                     <tr>
                                                         <td>Adjustment</td>
                                                         <td>:</td>
@@ -1334,171 +1517,146 @@
     </div>
 
     <div id="slipdiv" style="display: none;">
-        <div class="row" id="print_slip">
-            <div class="col-md-4"></div>
-            <div class="col-md-4">
-                <br><br><br><br><br><br>
-                <div class="card bg-white" id="printslip">
-                    <div class="mt-2 text-center">
-                        <div class="text-center" style="font-size: 3vh; color: black;">
-                            <b>{{ pbill.vendor.first_name }} {{ pbill.vendor.last_name }}</b>
-                        </div>
-                        <span style="font-size: x-small; color: black;">
-                            {{ pbill.vendor.billing_street }} <br>
-                            {{ pbill.vendor.billing_city }},
-                            {{ pbill.vendor.billing_state }}
-                            {{ pbill.vendor.billing_pincode }} <br>
-                            {{ pbill.vendor.email }} <br>
-                            {{ pbill.vendor.mobile }} 
-                        </span>
-                    </div>
-                    <div class="ml-4 mt-2" style="color: black;">
-                        <div class="row">
-                            <div class="col-md-6 text-left">Bill No:</div>
-                            <div class="col-md-5 text-right">{{pbill.bill_no}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 text-left">Customer Name:</div>
-                            <div class="col-md-5 text-right">{{ pbill.vendor.first_name }} {{ pbill.vendor.last_name }}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 text-left">Bill Date :</div>
-                            <div class="col-md-5 text-right">{{ pbill.bill_date | date:'d-m-Y'}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 text-left">Due Date :</div>
-                            <div class="col-md-5 text-right">{{ pbill.due_date | date:'d-m-Y'}}</div>
-                        </div>
-                    </div>
-                    <div> 
-                        <br>
-                        <div class="equal-length-container" style="color: black; font-weight: bold;">
-                            <div class="equal-length-item" style=" text-align: center;">
-                                Item
-                                <hr style="border-bottom: 1px solid black; margin-top:1vh; width:95%">
-                            </div>
-                            <div class="equal-length-item ml-2"  style=" text-align:center;">
-                                HSN
-                                <hr style="border-bottom: 1px solid black; margin-top:1vh; width:63%; margin-left: 10px;">
-                            </div>
-                            <div class="equal-length-item"  style=" text-align: center; ">
-                                Qty
-                                <hr style="border-bottom: 1px solid black; margin-top:1vh; width:60%;  margin-left: 10px;">
-                            </div>
-                            <div class="equal-length-item"  style=" text-align: center; ">
-                                Price
-                                <hr style="border-bottom: 1px solid black; margin-top:1vh; width:65%;  margin-left: 10px;">
-                            </div>
-                            <div class="equal-length-item"  style=" text-align: center; ">
-                                Tax
-                                <hr style="border-bottom: 1px solid black; margin-top:1vh; width:60%;  margin-left: 10px;">
-                            </div>
-                            <div class="equal-length-item" style=" text-align: center; ">
-                                Total
-                                <hr style="border-bottom: 1px solid black; margin-top:1vh; width:65%;  margin-left: 10px;">
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        {% for i in itm %}
-                        <div class="equal-length-container" style="color: black; font-size: small; word-wrap: break-word; margin-bottom: 1vh;">
-                            <div class="equal-length-item"  style="text-align: center; margin-left: 2px;">
-                                {{ i.item.name }}
-                            </div>
-                            <div class="equal-length-item" style="text-align: right;">
-                                {{ i.item.hsn }}
-                            </div>
-                            <div class="equal-length-item" style="text-align: center; ">
-                                {{ i.qty }}
-                            </div>
-                            <div class="equal-length-item" style="text-align: center; ">
-                                {{ i.price }}
-                            </div>
-                            <div class="equal-length-item" >
-                                {{ i.tax }}% {{ i.tax_type }}
-                            </div>
-                            <div class="equal-length-item" style="text-align: center; ">
-                                {{i.total}}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div>
-                        <br>
-                        {% if dis != 0 %}
-                        <div class="row ml-1">
-                            <div class="col-md-5 text-left" style=" color: black;">
-                                Discount
-                            </div>
-                            <div class="col-md-6 text-right ml-2" style="color: black;">
-                                {{ dis }}
-                            </div>
-                        </div>
-                        {% endif %}
-                        <div class="row ml-1">
-                            <div class="col-md-5 text-left" style=" color: black;">
-                                Subtotal
-                            </div>
-                            <div class="col-md-6 text-right ml-2" style="color: black;">
-                                {{ pbill.subtotal }}
-                            </div>
-                        </div>
-                        {% if pbill.igst %}
-                        <div class="row ml-1">
-                            <div class="col-md-5 text-left " style=" color: black;">
-                                IGST
-                            </div>
-                            <div class="col-md-6 text-right ml-2" style="color: black;">
-                                {{ pbill.igst }}
-                            </div>
-                        </div>
-                        {% else %}
-                        <div class="row ml-1">
-                            <div class="col-md-5 text-left" style=" color: black;">
-                                CGST
-                            </div>
-                            <div class="col-md-6 text-right ml-2" style="color: black;">
-                                {{ pbill.cgst }}
-                            </div>
-                        </div>
-                        <div class="row ml-1">
-                            <div class="col-md-5 text-left" style=" color: black;">
-                                SGST
-                            </div>
-                            <div class="col-md-6 text-right ml-2" style="color: black;">
-                                {{ pbill.sgst }}
-                            </div>
-                        </div>
-                        {% endif %}
+        <div class="slip-container bg-white" id="slip_container">
+            <div class="slip text-dark">
+                <h5 class="font-weight-bold text-center text-dark">{{ pbill.vendor.first_name }} {{ pbill.vendor.last_name }}</h5>
+                <div class="address text-center">
+                    <p>{{ pbill.vendor.billing_street }}</p>
+                    <p>{{ pbill.vendor.billing_city }}, {{ pbill.vendor.billing_state }}</p>
+                    <p>{{ pbill.vendor.billing_pincode }}</p>
+                    <p>{{ pbill.vendor.email }}</p>
+                    <p>{{ pbill.vendor.mobile }}</p>
+                </div>
 
-                        <div class="row ml-1">
-                            <div class="col-md-5 text-left" style=" color: black;">
-                                Adjust
-                            </div>
-                            <div class="col-md-6 text-right ml-2" style="color: black;">
-                                {{ pbill.adjust }}
-                            </div>
-                        </div>
-                        <hr class="ml-2 mr-2" style="color: black; border-bottom: 1px solid black; ">
-                    </div>
+                <div class="divider"></div>
 
-                    <div class="mb-2">
-                        <div class="row">
-                            <div class="col-md-5 text-left ml-2" style=" font-size: large; color: black; font-weight: bold;">
-                                Total
-                            </div>
-                            <div class="col-md-6 text-right ml-2" style="font-size: large; color: black; font-weight: bold;">
-                                {{ pbill.grandtotal }}
-                            </div>
-                        </div>
+                <div class="ml-4 mt-2" style="color: black;">
+                    <div class="row">
+                        <div class="col-md-6 text-left">Bill No:</div>
+                        <div class="col-md-5 text-right">{{ pbill.bill_no }}</div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6 text-left">Customer Name:</div>
+                        <div class="col-md-5 text-right">{{ pbill.vendor.first_name }} {{ pbill.vendor.last_name }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 text-left">Bill Date :</div>
+                        <div class="col-md-5 text-right">{{ pbill.bill_date | date:'d-m-Y'}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 text-left">Due Date :</div>
+                        <div class="col-md-5 text-right">{{ pbill.due_date | date:'d-m-Y'}}</div>
+                    </div>
+                </div>
 
-                    <div class="ml-2 mt-2">
-                        <p style="color: black;">
-                            Created by : {{hist.logindetails.First_name}}  {{hist.logindetails.Last_name}} <br>
-                            Printed by {{data.First_name}}  {{data.Last_name}} On <span id="datetimedisplay"></span>
-                        </p>
+                <div class="divider"></div>
+
+                <div class="equal-length-container" style="color: black; font-weight: bold;">
+                    <div class="equal-length-item" style=" text-align: center;">
+                        Item
+                        <hr style="border-bottom: 1px solid black; margin-top:1vh; width:95%">
                     </div>
+                    <div class="equal-length-item ml-2"  style=" text-align:center;">
+                        HSN
+                        <hr style="border-bottom: 1px solid black; margin-top:1vh; width:63%; margin-left: 10px;">
+                    </div>
+                    <div class="equal-length-item"  style=" text-align: center; ">
+                        Qty
+                        <hr style="border-bottom: 1px solid black; margin-top:1vh; width:60%;  margin-left: 10px;">
+                    </div>
+                    <div class="equal-length-item"  style=" text-align: center; ">
+                        Rate
+                        <hr style="border-bottom: 1px solid black; margin-top:1vh; width:65%;  margin-left: 10px;">
+                    </div>
+                    <div class="equal-length-item"  style=" text-align: center; ">
+                        Tax
+                        <hr style="border-bottom: 1px solid black; margin-top:1vh; width:60%;  margin-left: 10px;">
+                    </div>
+                    <div class="equal-length-item" style=" text-align: center; ">
+                        Total
+                        <hr style="border-bottom: 1px solid black; margin-top:1vh; width:65%;  margin-left: 10px;">
+                    </div>
+                </div>
+                {% for i in itm %}
+                <div class="equal-length-container" style="color: black; font-size: small; word-wrap: break-word; margin-bottom: 1vh;">
+                    <div class="equal-length-item"  style="text-align: center; margin-left: 2px;">
+                        {{ i.item.name }}
+                    </div>
+                    <div class="equal-length-item" style="text-align: right;">
+                        {{ i.item.hsn }}
+                    </div>
+                    <div class="equal-length-item" style="text-align: center; ">
+                        {{ i.qty }}
+                    </div>
+                    <div class="equal-length-item" style="text-align: center; ">
+                        {{ i.price }}
+                    </div>
+                    <div class="equal-length-item" id="tax{{ forloop.counter }}">
+                        {{ i.tax }}% {{ i.tax_type }}
+                    </div>
+                    <div class="equal-length-item" style="text-align: center; ">
+                        {{ i.total }}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="subtot mt-5">
+                    {% if dis != 0 %}
+                    <div class="subtot-item d-flex justify-content-between">
+                        <span>Discount</span>
+                        <span><span>&#8377; </span>{{ dis }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="subtot-item d-flex justify-content-between">
+                        <span>Subtotal</span>
+                        <span><span>&#8377; </span>{{ pbill.subtotal }}</span>
+                    </div>
+                    <div class="subtot-item d-flex justify-content-between">
+                        <span>Tax Amount</span>
+                        <span><span>&#8377; </span>{{ pbill.taxamount }}</span>
+                    </div>
+                    {% if pbill.igst != '0' %}
+                    <div class="subtot-item d-flex justify-content-between">
+                        <span>IGST</span>
+                        <span><span>&#8377; </span>{{ pbill.igst }}</span>
+                    </div>
+                    {% else %}
+                    <div class="subtot-item d-flex justify-content-between">
+                        <span>CGST</span>
+                        <span><span>&#8377; </span>{{ pbill.cgst }}</span>
+                    </div>
+                    <div class="subtot-item d-flex justify-content-between">
+                        <span>SGST</span>
+                        <span><span>&#8377; </span>{{ pbill.sgst }}</span>
+                    </div>
+                    {% endif %}
+                    {% if pbill.adjust != '0' %}
+                    <div class="subtot-item d-flex justify-content-between">
+                        <span>Adjustment</span>
+                        <span><span>&#8377; </span>{{ pbill.adjust }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="divider"></div>
+                <div class="grandtot fw-bold d-flex justify-content-between">
+                    <span><strong>TOTAL</strong></span>
+                    <span><strong><span>&#8377; </span>{{ pbill.grandtotal }}</strong></span>
+                </div>
+                <div class="divider"></div>
+                <div class="paid-by mb-4 d-flex justify-content-between">
+                    <span>Created By:</span>
+                    <span>{{hist.logindetails.First_name}}  {{hist.logindetails.Last_name}}</span>
+                </div>
+                <div class="createdby d-flex justify-content-between" style="margin-top: -8%;">
+                    <span>Printed By:</span>
+                    <span>{{data.First_name}}  {{data.Last_name}}</span>
+                </div>
+                <div class="datetime d-flex justify-content-between">
+                    <p class="">Printed On:</p>
+                    <span id="datetimedisplay"></span>
+                </div>
+                <div class="slip-footer mt-4 text-center">
+                    <p>Thank you for supporting Local business!</p>
                 </div>
             </div>
         </div>
@@ -1553,7 +1711,7 @@
             }
 
             if (print4.style.display !== 'none'){
-                var element = document.getElementById('printslip') 
+                var element = document.getElementById('slip_container') 
             }
 
             var opt =
@@ -1610,7 +1768,10 @@
         document.getElementById('overviewlink').style.backgroundColor='rgba(22,37,50,255)'
         document.getElementById('templatelink').style.backgroundColor='transparent'
         document.getElementById('sliplink').style.backgroundColor='transparent'
+        document.getElementById('active_btn').style.display='block'
         document.getElementById('edit_btn').style.display='block'
+        document.getElementById('share_btn').style.display='none'
+        document.getElementById('attach_btn').style.display='block'
         document.getElementById('delete_btn').style.display='block'
         document.getElementById('print_btn').style.display='none'
         document.getElementById('pdf_btn').style.display='none'
@@ -1623,8 +1784,11 @@
         document.getElementById('overviewlink').style.backgroundColor='transparent'
         document.getElementById('templatelink').style.backgroundColor='rgba(22,37,50,255)'
         document.getElementById('sliplink').style.backgroundColor='transparent'
+        document.getElementById('active_btn').style.display='none'
         document.getElementById('edit_btn').style.display='none'
         document.getElementById('delete_btn').style.display='none'
+        document.getElementById('share_btn').style.display='block'
+        document.getElementById('attach_btn').style.display='none'
         document.getElementById('print_btn').style.display='block'
         document.getElementById('pdf_btn').style.display='block'
     }
@@ -1636,8 +1800,11 @@
         document.getElementById('templatelink').style.backgroundColor='transparent'
         document.getElementById('overviewlink').style.backgroundColor='transparent'
         document.getElementById('sliplink').style.backgroundColor='rgba(22,37,50,255)'
+        document.getElementById('active_btn').style.display='none'
         document.getElementById('edit_btn').style.display='none'
         document.getElementById('delete_btn').style.display='none'
+        document.getElementById('share_btn').style.display='none'
+        document.getElementById('attach_btn').style.display='none'
         document.getElementById('print_btn').style.display='block'
         document.getElementById('pdf_btn').style.display='block'
     }

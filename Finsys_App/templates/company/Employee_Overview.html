@@ -4,6 +4,10 @@
 
 <!-- harikrishnan -->
 
+  <!-- fontawesome icons -->
+  <link href="{% static 'assets/fontawesome/css/fontawesome.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/brands.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/solid.css' %}" rel="stylesheet">
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <!-- <script src="{% static 'assets/js/Employee_Overview.js' %}" ></script> -->
@@ -23,160 +27,635 @@
 
 <style>
     
-    label,#body{
+    label{
         font-size: larger;
+    }
+    #col22{
+        background-color: rgba(22,37,50,255);
     }
 
 </style>
 
-    <div class="page-content " id="body" style="font-size: larger;">
+    <div class="page-content" id="body">
         
-        <div class="card radius-15">
-            <div class="ml-auto"><a style="cursor: pointer;" title="Close" href="{% url 'employee_list' %}" ><i class="fa-solid fa-circle-xmark fa-2xl"></i></a></div>
-        
-            <div id="overview123" >
-                <div class="container rounded mt-1 mb-5" >
-                    <div class="row">
-                        <div class=" col ">
-                            <div><label id="nameEmploy" hidden>{{employ.first_name}}_{{employ.last_name}}</label></div>
-                            <div class="d-flex flex-column align-items-center text-center p-3 "><img class="rounded-circle" width="230px" height="230px" src="{{employ.upload_image.url}}"><span class="font-weight-bold" style="font-size: x-large; text-transform: capitalize;"> {{employ.first_name}} {{employ.last_name}} <a class=" ml-2" href="{% url 'employee_edit_page' employ.id %}" id="editButton" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a></span><center>{% if employ.employee_status == 'Active' %}<a href="{% url 'activate' employ.id %}" class="btn btn-secondary mt-2" title="Click to Deactivate">Active</a>{% else %}<a href="{% url 'activate' employ.id %}" class="btn btn-secondary mt-2" title="Click to Activate">Inactive</a>{% endif %}</center></div>
-                            
-                            <div class=" flex-column align-items-center text-center mb-2 " id="buttonGroup">
-                                
-                                <a class="btn btn-secondary mb-2" title="History" href="{% url 'employee_history' employ.id %}" ><i class="fa-solid fa-clock-rotate-left"></i></a>
-                                <button class="btn btn-secondary mb-2" onclick="ExportAsPDF()" title="Download PDF"><i class="fa-solid fa-file-pdf"></i></button>
-                                <button class="btn btn-secondary mb-2" onclick="printPage()" data-employee-id="{{employ.id}}" title="Print" ><i class="fa-solid fa-print"></i></button>
-                                
+        <!-- overview -->
+        <div id="overview123">
+            <div class="card radius-15" id="col33">
+                <div class="ml-auto"><a style="cursor: pointer;" id="closeButton" title="Close" href="{% url 'employee_list' %}" ><i class="fa-solid fa-circle-xmark fa-2xl"></i></a></div>
+                    <br>
 
-                                   <span><!-- button (comment) -->
-                                    <button class="dropdown btn btn-secondary mb-2 " type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Comment"><i class="fa-regular fa-comment"></i></button>
-                                    <!-- dropdown (comment) -->
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                        <button class="btn btn-secondary mb-2 dropdown-item" type="button" data-toggle="modal" data-target="#commentModal" title="Comment">Leave A Comment</button>
-                                        <a class="btn btn-secondary mb-2  dropdown-item" href="{% url 'employee_comment_view' employ.id %}">Views Comments</a>
-                                    </div>
-                                    <!-- modal -->
-                            <div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered" role="document">
-                                  <div class="modal-content">
-                                    <div class="modal-header">
-                                      <h5 class="modal-title" id="exampleModalLabel">Leave a Comment</h5>
-                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                      </button>
-                                    </div>
-
-                                    <form action="{% url 'employee_comment' employ.id %}" method="post">
-                                        {% csrf_token %}
-                                    <div class="modal-body">
-                                      
-                                        <div><label for="">Comment : </label> <textarea name="comment" cols="5" rows="3" class="form-control"></textarea></div>
-                                      
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="submit" class="btn btn-secondary">Save changes</button>
-                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                                    </div>
-                                    </form>
-
-                                  </div>
-                                </div>
-                              </div>
-                                   </span>
-                                
-                                
-                                    <span>
-                                        <!-- button (share) -->
-                                        <button class="btn btn-secondary mb-2" type="button" id="dropdownTrigger2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Share"><i class="fa-solid fa-share"></i></button>
-                                <!-- dropdown (share) -->
-                                <div class="dropdown-menu" aria-labelledby="dropdownTrigger2">
-                                    <button class="btn btn-secondary mb-2 dropdown-item" onclick="shareViaWhatsApp()" type="button" title="Share via whatsapp">Whatsapp</button>
-
-                                    <!-- Button trigger modal -->
-                                    <button class="btn btn-secondary mb-2 dropdown-item" type="button" data-toggle="modal" data-target="#EmailModalEx" title="Email">
-                                        Email
-                                    </button>
-                                
-                                </div>
-                                    </span>
-                                
-                                <a href="{% url 'employee_delete' employ.id %}" class="btn btn-secondary mb-2" title="Delete"><i class="fa-solid fa-trash"></i></a>
-                                
-
-                                
-
-                            </div>
-                            
-                            
-                              
-                        </div>
+                <!-- button grp -->
+                <div class=" flex-column align-items-right text-right mb-2 mr-5" id="buttonGroup">
+                    <div style="float: left;margin-left: 80px;" >
+                        <label for=""><b>Overview</b></label>
                     </div>
-    
-                    <div class="row">
-                        
-                        <div class="col-md-6 border-right">
-                            <div class=" py-5">
-                                <div class="d-flex justify-content-between align-items-center mb-3 ml-3 border-bottom">
-                                   <b><label for="">Profile </label></b>
-                                </div>
-                                <div class="row mt-2">
-                                    <!-- <div class="col"><label class="labels">Name : </label><span> {{employ.first_name}} {{employ.last_name}}</span></div> -->
-                                    <!-- <div class="col-md-6"><label class="labels">Surname</label><input type="text" class="form-control" value="" placeholder="surname"></div> -->
-                                </div>
-                                <div class="row mt-3">
-                                    
-                                    <div class="col-md-12"><label class="labels col-6"><b>Mobile Number :</b> </label>{{employ.mobile}}</div><br><br>
-                                    <div class="col-md-12"><label class="labels col-6"><b>Emergency Contact :</b> </label> {{employ.emergency_contact}}</div><br><br>
-                                    <div class="col-md-12"><label class="labels col-6"><b>Address :</b> </label> {{employ.street}}, {{employ.city}}</div><br>
-                                    <div class="col-md-12"><label class="labels col-6"> </label> {{employ.pincode}}, {{employ.state}}</div><br>
-                                    <div class="col-md-12"><label class="labels col-6"> </label> {{employ.country}}.</div><br><br>
-                                    <!-- <div class="col-md-12"><label class="labels col-6">City : </label> {{employ.city}}</div><br><br> -->
-                                    <!-- <div class="col-md-12"><label class="labels col-6">State :</label> {{employ.state}}</div><br><br> -->
-                                    <!-- <div class="col-md-12"><label class="labels col-6">Pincode :</label> {{employ.pincode}}</div><br><br> -->
-                                    <!-- <div class="col-md-12"><label class="labels col-6">Country :</label> {{employ.country}}</div><br><br> -->
-                                    <div class="col-md-12"><label class="labels col-6"><b>Email ID :</b> </label> {{employ.employee_mail}}</div><br><br>
-                                    <div class="col-md-12"><label class="labels col-6"><b>Blood Group :</b> </label> {{employ.blood_group}}</div><br><br>
-                                    <div class="col-md-12"><label class="labels col-6"><b>Age :</b> </label> {{employ.age}}</div><br><br>
-                                    <div class="col-md-12"><label class="labels col-6"><b>DOB :</b> </label> {{employ.date_of_birth}}</div><br><br>
-    
-                                    <div class="col-md-12"><label class="labels col-6"><b>Father's Name :</b> </label> {{employ.fathers_name_mothers_name}}</div><br><br>
-                                    <div class="col-md-12"><label class="labels col-6"><b>Spouse Name :</b> </label> {{employ.spouse_name}}</div><br><br>
-                                    <div class="col-md-12"><label class="labels col-6"><b>Temporary Address : </b></label> <span>{{employ.temporary_street}}, {{employ.temporary_city}}</span></div><br>
-                                    <div class="col-md-12"><label class="labels col-6"> </label> <span >{{employ.temporary_pincode}}, {{employ.temporary_state}}</span></div><br>
-                                    <div class="col-md-12"><label class="labels col-6"> </label> <span >{{employ.temporary_country}}.</span></div><br><br>
-                                    <!-- <div class="col-md-12"><label class="labels">Education</label><input type="text" class="form-control" placeholder="education" value=""></div> -->
-                                </div>
-                                <div class="row mt-3">
-                                    <!-- <div class="col-md-6"><label class="labels">Country</label>{{employe.}}</div><br><br> -->
-                                    <!-- <div class="col-md-6"><label class="labels">State/Region</label><input type="text" class="form-control" value="" placeholder="state"></div> -->
-                                </div>
-                                
-                            </div>
+                    <!-- {% if employ.employee_status == 'Active' %}<a href="{% url 'activate' employ.id %}" class="btn btn-outline-secondary text-grey mb-2" title="Click to Deactivate">Active</a>{% else %}<a href="{% url 'activate' employ.id %}" class="btn btn-outline-secondary text-grey mb-2 " title="Click to Activate">Inactive</a>{% endif %} -->
+                    <a class="btn btn-outline-secondary text-grey mb-2" title="History" href="{% url 'employee_history' employ.id %}" ><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+                    <a class="btn btn-outline-secondary text-grey mb-2" href="{% url 'employee_edit_page' employ.id %}" id="editButton" title="Edit"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
+                    <button class="btn btn-outline-secondary text-grey mb-2" onclick="ExportAsPDF()" title="Download PDF"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                    <button class="btn btn-outline-secondary text-grey mb-2" id="printButton" data-employee-id="{{employ.id}}" title="Print" ><i class="fa-solid fa-print"></i> Print</button>
+                    
+
+                       <span><!-- button (comment) -->
+                            <button class="btn btn-outline-secondary text-grey mb-2 " type="button" data-toggle="modal" data-target="#commentModal" title="Comment"><i class="fa-regular fa-comment"></i> Comment</button>
+                            
+                        <!-- modal -->
+                <div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="exampleModalLabel">Leave a Comment</h5>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
                         </div>
-                        <div class="col-md-6">
-                            <div class="p-3 py-2">
-                                <div class="d-flex justify-content-between align-items-center experience ml-3 border-bottom"><b><label>Salary Info</label></b></div><br>
-                                <div class="col-md-12"><label class="labels col-8"><b>Employee Salary :</b> </label><span>{{employ.salary_amount}}</span></div> <br>
-                                <div class="col-md-12"><label class="labels col-8"><b>Salary Date Range :</b></label><span>{{employ.salary_effective_from}}</span></div><br>
-                                <div class="col-md-12"><label class="labels col-8"><b>Salary Type :</b></label><span>{{employ.salary_details}}</span></div><br>
-                                <div class="col-md-12"><label class="labels col-8"><b>TDS Applicable :</b> </label><span>{{employ.tds_applicable}}</span></div><br>
+
+                        <form action="{% url 'employee_comment' employ.id %}" method="post">
+                            {% csrf_token %}
+                        <div class="modal-body">
+                          
+                            <div ><label for="" style="float: left;">Leave A Comment : </label> <textarea name="comment" cols="5" rows="3" class="form-control"></textarea></div><br>
+                            <div style="text-align: left;">
+                                {% if comments %}
+                                <h5 class="pb-1 mb-2" style="text-decoration: underline;text-underline-offset: 10px;">Previous Comments</h5>
+                                {% for i in comments %}
+                                <label for="">{{i.index}}. {{i.comment}}</label> <a href="{% url 'employee_comment_delete' pk=i.id id=employ.id %}" id="deleteButton" style="color: crimson;"><i class="fa-solid fa-trash"></i></a><br>
+                                {% endfor %}
+                                {% else %}
+                                <h5 class="pb-1 mb-2" >No Comments Yet</h5>
+                                {% endif %}
                             </div>
-                            <div class="p-3 py-2">
-                                <div class="d-flex justify-content-between align-items-center experience ml-3 border-bottom"><b><label>Statutory Info</label></b></div><br>
-                                <div class="col-md-12"><label class="labels col-8"><b>Income Tax Number : </b></label><span>{{employ.income_tax_number}}</span></div> <br>
-                                <div class="col-md-12"><label class="labels col-8"><b>Aadhar Number :</b></label><span>{{employ.aadhar_number}}</span></div><br>
-                                <div class="col-md-12"><label class="labels col-8"><b>Universal Account Number :</b></label><span>{{employ.universal_account_number}}</span></div><br>
-                                <div class="col-md-12"><label class="labels col-8"><b>PAN Number : </b></label><span>{{employ.pan_number}}</span></div><br>
-                                <div class="col-md-12"><label class="labels col-8"><b>PF Account Number :</b></label><span>{{employ.pf_account_number}}</span></div><br>
-                                <div class="col-md-12"><label class="labels col-8"><b>PR Account Number : </b></label><span>{{employ.pr_account_number}}</span></div><br>
-                            </div>
+                          
                         </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-outline-secondary text-grey">Save changes</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        </div>
+                        </form>
+
+                      </div>
                     </div>
+                  </div>
+                       </span>
+                    
+                    
+                        <span>
+                            <!-- button (share) -->
+                            <button class="btn btn-outline-secondary text-grey mb-2" type="button" id="dropdownTrigger2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Share"><i class="fa-solid fa-share"></i> Share</button>
+                    <!-- dropdown (share) -->
+                    <div class="dropdown-menu" aria-labelledby="dropdownTrigger2">
+                        <button class="btn btn-outline-secondary text-grey mb-2 dropdown-item" onclick="shareViaWhatsApp()" type="button" title="Share via whatsapp">Whatsapp</button>
+
+                        <!-- Button trigger modal -->
+                        <button class="btn btn-outline-secondary text-grey mb-2 dropdown-item" type="button" data-toggle="modal" data-target="#EmailModalEx" title="Email">
+                            Email
+                        </button>
+                    
+                    </div>
+                        </span>
+                    
+                    <a href="{% url 'employee_delete' employ.id %}" class="btn btn-outline-secondary text-grey mb-2" title="Delete"><i class="fa-solid fa-trash"></i> Delete</a>
+                    
+
+                    
+
                 </div>
+                <!-- button grp end -->
+                
+                                <div class="card-body" style="width:100%;" >
+                                    <div class="card-title">
+                                        <div class="container-fluid">
+                                            <div class="row">
+                                                <div class=" col ">
+                                                    <div><label id="nameEmploy" hidden>{{employ.first_name}}_{{employ.last_name}}</label></div>
+                                                    <div class="d-flex flex-column align-items-center text-center p-3 ">{% if employ.upload_image == '' %} {% else %}<img class="rounded-circle" width="150px" height="150px" src="{{employ.upload_image.url}}"> {% endif %} <span class="font-weight-bold" style="font-size: x-large; text-transform: capitalize;">{{employ.title}}.  {{employ.first_name}} {{employ.last_name}} </span> <br> <center>{% if employ.employee_status == 'Active' %}<a href="{% url 'activate' employ.id %}" id="activeButton" class="btn btn-outline-secondary text-grey mb-2" title="Click to Deactivate">Active</a>{% else %}<a href="{% url 'activate' employ.id %}" id="activeButton" class="btn btn-outline-secondary text-grey mb-2 " title="Click to Activate">Inactive</a>{% endif %}</center></div>
+                                                    
+                                                </div>
+                                            </div> 
+
+                                            
+
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                                
             </div>
-            
-            </div>
-    </div>
+                        
+                        
+                            <div class="card card-registration card-registration-2" id="col11" style="border-radius: 15px;">
+                                <div class="card-body p-0">
+                                    
+                                        <!-- <div class="row d-flex flex-column align-items-center text-center p-3 ">{% if employ.upload_image == '' %} {% else %}<img class="rounded-circle" width="150px" height="150px" src="{{employ.upload_image.url}}"> {% endif %} <span class="font-weight-bold" style="font-size: x-large; text-transform: capitalize;">{{employ.title}}.  {{employ.first_name}} {{employ.last_name}} </span> <br> <center>{% if employ.employee_status == 'Active' %}<a href="{% url 'activate' employ.id %}" id="activeButton" class="btn btn-outline-secondary text-grey mb-2" title="Click to Deactivate">Active</a>{% else %}<a href="{% url 'activate' employ.id %}" id="activeButton" class="btn btn-outline-secondary text-grey mb-2 " title="Click to Activate">Inactive</a>{% endif %}</center></div> -->
+                                    
+                                    
+                                        <div class="row g-0"  style="margin-left: 1px; margin-right: 1px;">
+
+                                            <div class="col-lg-6" >
+                                                <div class="p-5">
+
+                                                    <center><h4>Personal Info </h4></center>
+                                                    <hr>
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Alias </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.alias}}</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Employee Number </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.employee_number}}</p>
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Joining Date </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.date_of_joining}}</p>
+                                                        </div>
+                                                    </div>
+                        
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Designation </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.employee_designation}}</p>
+                                                        </div>
+                                                    </div>
+                        
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Date Of birth </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.date_of_birth}}</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Gender </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.gender}} </p>
+                                                        </div>
+                                                    </div>
+                        
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Blood Group </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.blood_group}} </p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Contact </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.mobile}} </p>
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Emergency Contact </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.emergency_contact}} </p>
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Email </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.employee_mail}} </p>
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Father/Mother's Name </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.fathers_name_mothers_name}} </p>
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Spouse Name </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.spouse_name}}</p>
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Current Location </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.employee_current_location}} </p>
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Permanent Address </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.street}}, {{employ.city}}, {{employ.state}}, {{employ.pincode}}, {{employ.country}} </p>
+                                                        </div> 
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Temporary Address </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.temporary_street}}, {{employ.temporary_city}}, {{employ.temporary_state}}, {{employ.temporary_pincode}}, {{employ.temporary_country}} </p>
+                                                        </div>
+                                                    </div>
+    
+                                                    
+                                                </div>
+                                            </div>
+                        
+                        
+                                            <div class="col-md-6" id="col22" style=" border-top-right-radius:2vh; border-bottom-right-radius: 2vh;">
+                                                <br>
+                                                <div class="history_highlight px-4 py-3 d-flex"  id="createdDate">
+                                                    <div class="col-8 d-flex justify-content-start">
+                                                        {% if history.action == 'Created' %}<p class="text" style="font-size: 1.07rem; font-weight: 500;">Created by :</p>{% else %}<p class="text" style="font-size: 1.07rem; font-weight: 500;">Last edited by :</p>{% endif %}
+                                                        <span class="ml-2" style="font-size: 1.15rem; font-weight: 500;text-transform: capitalize;">{{history.login.First_name}} {{history.login.Last_name}},</span>
+                                                    </div>
+                                                    <div class="col-4 d-flex justify-content-end">
+                                                        {% if history.action == 'Created' %}<span class="ml-2" style="font-size: 1rem; font-weight: 500;text-transform: capitalize;"> {{history.date}}</span>{% else %} <span class="ml-2" style="font-size: 1rem; font-weight: 500;text-transform: capitalize;"> {{history.date}}</span>{% endif %}
+                                                    </div>
+                                                </div>
+                                                <br>
+                                                <div class="px-5">
+                                                    <center><h4>Salary Info</h4></center>
+                                                    <hr>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Salary Type </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;"> {{employ.employee_salary_type}}</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {% if employ.employee_salary_type is not None %}
+                                                        {% if employ.employee_salary_type == 'Time Based' %}
+    
+                                                        <div class="row mb-3">
+                                                            <div class="col-4 d-flex justify-content-start">
+                                                                <label style="color: white;" > Total Working Hours </label>
+                                                            </div>
+                                                            <div class="col-4 d-flex justify-content-center">
+                                                                <p>:</p>
+                                                            </div>
+                                                            <div class="col-4 d-flex justify-content-start">
+                                                                <p style="color: white;font-size:15px;"> {{employ.total_working_hours}}</p>
+                                                            </div>
+                                                        </div>
+    
+                                                        <div class="row mb-3">
+                                                            <div class="col-4 d-flex justify-content-start">
+                                                                <label style="color: white;" > Amount Per Hour </label>
+                                                            </div>
+                                                            <div class="col-4 d-flex justify-content-center">
+                                                                <p>:</p>
+                                                            </div>
+                                                            <div class="col-4 d-flex justify-content-start">
+                                                                <p style="color: white;font-size:15px;"> {{employ.amount_per_hour}}</p>
+                                                            </div>
+                                                        </div>
+    
+                                                        {% endif %}
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Employee Salary </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.salary_amount}}</p>
+                                                        </div>
+                                                    </div>                                                
+                                                    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Salary Date Range </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.salary_effective_from}}</p>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                    
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > TDS Applicable </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            {% if employ.tds_applicable == 'Yes' %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.tds_applicable}}</p>
+                                                            {% elif employ.tds_applicable == 'No' %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.tds_applicable}}</p>
+                                                            {% else %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> None</p>
+                                                            {% endif %}
+    
+                                                        </div>
+                                                    </div>
+    
+                                                    {% if employ.tds_applicable == 'Yes' %}
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;"> TDS Type </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.tds_type}}</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {% endif %}
+    
+                                                    {% if employ.tds_type == 'Percentage' %}
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;"> TDS Percentage </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.percentage_amount}}</p>
+                                                        </div>
+                                                    </div>
+                                                    {% elif employ.tds_type == 'Amount' %}
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;"> TDS Amount </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.percentage_amount}}</p>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+    
+                                                    <center><h4>Statutory Info </h4></center>
+                                                    <hr>
+                        
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Income Tax Number </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            {% if employ.income_tax_number != '' %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.income_tax_number}}</p>
+                                                            {% else %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> - </p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                        
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Aadhar Number </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            {% if employ.aadhar_number != '' %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.aadhar_number}}</p>
+                                                            {% else %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> - </p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                        
+                                                    <div class="row mb-5">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Universal Account Number </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            {% if employ.universal_account_number != '' %}
+                                                            <p style="color: white;font-size:15px;"> {{employ.universal_account_number}}</p>
+                                                            {% else %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> - </p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>  
+                                                    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > PAN Number </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            {% if employ.pan_number != '' %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.pan_number}}</p>
+                                                            {% else %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> - </p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > PF Account Number </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            {% if employ.pf_account_number != '' %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.pf_account_number}}</p>
+                                                            {% else %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> - </p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+    
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > PR Account Number </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            {% if employ.pr_account_number != '' %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{employ.pr_account_number}}</p>
+                                                            {% else %}
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;"> - </p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+
+                                                    {% if employ.provide_bank_details == 'Yes' %}
+                                                    <center><h4>Bank Details </h4></center>
+                                                    <hr>
+                        
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Account Number </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.account_number}}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > IFSC </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.ifsc}}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Bank Name </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.name_of_bank}}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mb-3">
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <label style="color: white;" > Branch Name </label>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-center">
+                                                            <p>:</p>
+                                                        </div>
+                                                        <div class="col-4 d-flex justify-content-start">
+                                                            <p style="color: white;font-size:15px;text-transform:Uppercase;">{{employ.branch_name}}</p>
+                                                        </div>
+                                                    </div>
+                                                    
+
+                                                    {% endif %}
+
+                                                </div>
+                                            </div>
+                        
+                                        </div>
+                                    </div>
+                        
+                                   
+                                </div>
+    
+    
+    
+                            </div>
+                        </div>
+                        
+                        
+        <!-- overview end -->
+
+  
+
 <!--------------------- end --------------------------->
 
 <!-- Modal -->
@@ -184,7 +663,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Leave a Comment</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Email</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -201,7 +680,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-secondary">Send</button>
+                    <button type="submit" class="btn btn-outline-secondary text-grey">Send</button>
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                 </div>
             </form>
@@ -215,58 +694,276 @@
 
 <script>
 
+// -----------------------------------------------------
+// reload 
 
 
 
 
-function printPage() {
-    const container = document.getElementById('overview123');
-    var buttonToHide = document.getElementById('buttonGroup');
-    var editButtonToHide = document.getElementById('editButton');
 
-    // Save the original background color
-    const originalBackgroundColor = container.style.backgroundColor;
-    const originalColor = container.style.color;
-    var nameEmploy = document.getElementById('nameEmploy').textContent;
-    buttonDisplay1 = buttonToHide.style.display;
-    editButtonDisplay = editButtonToHide.style.display;
 
-    // Set the container's background color to white
-    container.style.backgroundColor = 'white';
-    container.style.color = 'black';
+// --------------------------------------------------------------
+// print function
 
-    // Hide the button before printing
-    buttonToHide.style.display = 'none';
-    editButtonToHide.style.display = 'none';
+// function printPage() {
+//     const container = document.getElementById('overview123');
+//     var buttonToHide = document.getElementById('buttonGroup');
+//     var editButtonToHide = document.getElementById('editButton');
 
-    // 
-    printWindow = window.open('','_blank')
+//     // Save the original background color
+//     const originalBackgroundColor = container.style.backgroundColor;
+//     const originalColor = container.style.color;
+//     var nameEmploy = document.getElementById('nameEmploy').textContent;
+//     buttonDisplay1 = buttonToHide.style.display;
+//     editButtonDisplay = editButtonToHide.style.display;
 
-    printWindow.document.write('<html><head><title>Print Data</title> <link rel="stylesheet" href="{% static "assets/css/bootstrap.min.css" %}" /> <link href="{% static "assets/plugins/vectormap/jquery-jvectormap-2.0.2.css" %}" rel="stylesheet" /> </head><body>');
-    printWindow.document.write(document.getElementById('overview123').innerHTML);
-    printWindow.document.write('</body></html>');
+//     // Set the container's background color to white
+//     container.style.backgroundColor = 'white';
+//     container.style.color = 'black';
+
+//     // Hide the button before printing
+//     buttonToHide.style.display = 'none';
+//     editButtonToHide.style.display = 'none';
+
+//     // 
+//     printWindow = window.open('','_blank')
+
+//     printWindow.document.write('<html><head><title>Print Data</title> <link rel="stylesheet" href="{% static "assets/css/bootstrap.min.css" %}" /> <link href="{% static "assets/plugins/vectormap/jquery-jvectormap-2.0.2.css" %}" rel="stylesheet" /> </head><body>');
+//     printWindow.document.write(document.getElementById('overview123').innerHTML);
+//     printWindow.document.write('</body></html>');
 
     
-    // Print the page
-    printWindow.print();
+//     // Print the page
+//     printWindow.print();
 
-    printWindow.close()
+//     printWindow.close()
 
-    // Restore the original background color and show the hidden buttons
-    container.style.backgroundColor = originalBackgroundColor;
-    container.style.color = originalColor;
-    buttonToHide.style.display = buttonDisplay1;
-    editButtonToHide.style.display = editButtonDisplay;
+//     // Restore the original background color and show the hidden buttons
+//     container.style.backgroundColor = originalBackgroundColor;
+//     container.style.color = originalColor;
+//     buttonToHide.style.display = buttonDisplay1;
+//     editButtonToHide.style.display = editButtonDisplay;
 
-    container.classList.remove('pdf-background');
+//     container.classList.remove('pdf-background');
+// }
+
+
+
+
+window.onload = function() {
+    
+    // Attach an event listener to a print button or trigger the printPage function in some way
+    document.getElementById('printButton').addEventListener('click', function() {
+        
+        printPage();
+        
+    });
+};
+
+function printPage() {
+    // Open the other HTML page in a new window
+    const url = '{% url "employee_overview_print" employ.id %}';
+    const otherPageWindow = window.open(url, '_blank');
+
+    // Function to close the window
+    const closeWindow = function() {
+        otherPageWindow.close();
+    };
+
+    // Wait for the other page to load before triggering the print dialog
+    otherPageWindow.onload = function() {
+        // Trigger the print dialog for the other page
+        otherPageWindow.print();
+
+        // Event listener for after the print dialog is closed
+        otherPageWindow.onafterprint = function() {
+            // Use a timeout to check if the print job was successful or canceled
+            setTimeout(function() {
+                if (!otherPageWindow.closed) {
+                    closeWindow();
+                }
+            }, 0); // Adjust the timeout as needed
+        };
+    };
 }
+
+
+
+
+// function printPage() {
+    
+//     const container = document.getElementById('overview123');
+//     const col11 = document.getElementById('col11');
+//     const col22 = document.getElementById('col22');
+//     const col33 = document.getElementById('col33');
+//     const col44 = document.getElementById('col44');
+//     var buttonToHide = document.getElementById('buttonGroup');
+//     var editButtonToHide = document.getElementById('editButton');
+//     var activeButtonToHide = document.getElementById('activeButton');
+//     var closeButtonToHide = document.getElementById('closeButton');
+
+//     // Save the original background color
+//     const originalBackgroundColor = container.style.backgroundColor;
+//     const originalColor = container.style.color;
+//     var nameEmploy = document.getElementById('nameEmploy').textContent
+//     buttonDisplay1 = buttonToHide.style.display;
+//     editButtonDisplay = editButtonToHide.style.display;
+//     activeButtonDisplay = activeButtonToHide.style.display;
+//     closeButtonDisplay = closeButtonToHide.style.display;
+
+//     // Set the container's background color to white
+//     container.style.backgroundColor = 'white';
+//     container.style.color = 'black';
+
+//     // Set the background color of col11, col22, and col33 to white
+//     setStyles(col11, 'white', 'black');
+//     setStyles(col22, 'white', 'black');
+//     setStyles(col33, 'white', 'black');
+//     setStyles(col44, 'white', 'black');
+
+//     // Hide the button before printing
+//     buttonToHide.style.display = 'none';
+//     editButtonToHide.style.display = 'none';
+//     activeButtonToHide.style.display = 'none';
+//     closeButtonToHide.style.display = 'none';
+
+//     // Open the print dialog
+//     printWindow = window.open('','_blank')
+
+//     printWindow.document.write('<html><head><title>Print Data</title>  </head><body>');
+
+//     const bootstrapLink = printWindow.document.createElement('link');
+//     bootstrapLink.rel = 'stylesheet';
+//     bootstrapLink.href = '/static/assets/css/bootstrap.min.css'; // Update the URL if needed
+//     printWindow.document.head.appendChild(bootstrapLink);
+
+//     const bootstrapLink2 = printWindow.document.createElement('link');
+//     bootstrapLink2.rel = 'stylesheet';
+//     bootstrapLink2.href = '/static/assets/plugins/vectormap/jquery-jvectormap-2.0.2.css'; // Update the URL if needed
+//     printWindow.document.head.appendChild(bootstrapLink2);
+
+//     // printWindow.document.write('<link rel="stylesheet" href="/static/assets/css/bootstrap.min.css" defer />');
+//     // printWindow.document.write('<link rel="stylesheet" href="/static/assets/plugins/vectormap/jquery-jvectormap-2.0.2.css" defer />');
+//     printWindow.document.write(document.getElementById('overview123').innerHTML);
+
+
+
+//     printWindow.document.write('</body></html>');
+
+//     // Print the page
+//     printWindow.print();
+//     printWindow.close()
+
+
+//     // Restore the original background color
+//     container.style.backgroundColor = originalBackgroundColor;
+//     container.style.color = originalColor;
+//     buttonToHide.style.display = buttonDisplay1;
+//     editButtonToHide.style.display = editButtonDisplay;
+//     activeButtonToHide.style.display = activeButtonDisplay;
+//     closeButtonToHide.style.display = closeButtonDisplay;
+
+//     // Restore the original styles for col11, col22, and col33
+//     setStyles(col11, '', '');
+//     setStyles(col22, '', '');
+//     setStyles(col33, '', '');
+//     setStyles(col44, '', '');
+
+    
+// }
+
+// function setStyles(element, backgroundColor, textColor) {
+//     if (element) {
+//         element.style.backgroundColor = backgroundColor;
+//         const textElements = element.querySelectorAll('p, label, h4');
+//         textElements.forEach(textElement => {
+//             textElement.style.color = textColor;
+//         });
+//     }
+// } 
+
+
+
+
+
+// function printPage() {
+//     // Open the other HTML page in a new window
+//     const url = '{% url "employee_overview_print" employ.id %}';
+//     const otherPageWindow = window.open(url, '_blank');
+
+//     // Wait for the other page to load before triggering the print dialog
+//     otherPageWindow.onload = function() {
+       
+//         // Trigger the print dialog for the other page
+//         otherPageWindow.print();
+        
+//     };
+    
+// } //prints employee profile page
+
+
+
 
 // -----------------------------------------------
 // pdf 
-function ExportAsPDF() {
+
+
+// function ExportAsPDF() {
+//     const container = document.getElementById('overview123');
+//     var buttonToHide = document.getElementById('buttonGroup');
+//     var editButtonToHide = document.getElementById('editButton');
+
+//     // Save the original background color
+//     const originalBackgroundColor = container.style.backgroundColor;
+//     const originalColor = container.style.color;
+//     var nameEmploy = document.getElementById('nameEmploy').textContent
+//     buttonDisplay1 = buttonToHide.style.display;
+//     editButtonDisplay = editButtonToHide.style.display;
+
+//     // Set the container's background color to white
+//     container.style.backgroundColor = 'white';
+//     container.style.color = 'black';
+
+//     // Hide the button before generating PDF
+//     buttonToHide.style.display = 'none';
+//     editButtonToHide.style.display = 'none';
+
+//     // Add margin to the PDF
+//     const margin = 10; // Adjust as needed
+//     const pdfOptions = {
+//         margin: [margin, margin, margin, margin], // top, right, bottom, left
+//         filename: nameEmploy + "'s_profile.pdf",
+//         image: { type: 'jpeg', quality: 1 },
+//         html2canvas: { scale: 2 },
+//         jsPDF: { unit: 'mm', format: 'a3', orientation: 'portrait' }, // Adjust format and orientation
+//     };
+
+//     // Generate PDF from the container
+//     html2pdf().from(container).set(pdfOptions).save().then(() => {
+
+//         // Restore the original background color
+//         container.style.backgroundColor = originalBackgroundColor;
+//         container.style.color = originalColor;
+//         buttonToHide.style.display = buttonDisplay1;
+//         editButtonToHide.style.display = editButtonDisplay;
+
+//         container.classList.remove('pdf-background');
+
+//     });
+// } 
+
+
+
+    function ExportAsPDF() {
     const container = document.getElementById('overview123');
+    const col11 = document.getElementById('col11');
+    const col22 = document.getElementById('col22');
+    const col33 = document.getElementById('col33');
     var buttonToHide = document.getElementById('buttonGroup');
     var editButtonToHide = document.getElementById('editButton');
+    var activeButtonToHide = document.getElementById('activeButton');
+    var closeButtonToHide = document.getElementById('closeButton');
+    
 
     // Save the original background color
     const originalBackgroundColor = container.style.backgroundColor;
@@ -274,14 +971,26 @@ function ExportAsPDF() {
     var nameEmploy = document.getElementById('nameEmploy').textContent
     buttonDisplay1 = buttonToHide.style.display;
     editButtonDisplay = editButtonToHide.style.display;
+    activeButtonDisplay = activeButtonToHide.style.display;
+    closeButtonDisplay = closeButtonToHide.style.display;
+    
 
     // Set the container's background color to white
     container.style.backgroundColor = 'white';
     container.style.color = 'black';
 
+    // Set the background color of col11, col22, and col33 to white
+    setStyles(col11, 'white', 'black');
+    setStyles(col22, 'white', 'black');
+    setStyles(col33, 'white', 'black');
+
     // Hide the button before generating PDF
     buttonToHide.style.display = 'none';
     editButtonToHide.style.display = 'none';
+    activeButtonToHide.style.display = 'none';
+    createdDate.style.display = 'none';
+   
+    
 
     // Add margin to the PDF
     const margin = 10; // Adjust as needed
@@ -301,11 +1010,35 @@ function ExportAsPDF() {
         container.style.color = originalColor;
         buttonToHide.style.display = buttonDisplay1;
         editButtonToHide.style.display = editButtonDisplay;
+        activeButtonToHide.style.display = activeButtonDisplay;
+        closeButtonToHide.style.display = closeButtonDisplay;        
+
+        // Restore the original styles for col11, col22, and col33
+        setStyles(col11, '', '');
+        setStyles(col22, '', '');
+        setStyles(col33, '', '');
 
         container.classList.remove('pdf-background');
 
+        // container.removeChild(createdDateElement);
     });
-} 
+
+    function setStyles(element, backgroundColor, textColor) {
+        if (element) {
+            element.style.backgroundColor = backgroundColor;
+            const textElements = element.querySelectorAll('p, label, h4');
+            textElements.forEach(textElement => {
+                textElement.style.color = textColor;
+            });
+        }
+    }
+}
+
+
+
+
+
+
 
 // -----------------------------------------------------------------------------------
 // whatsapp
@@ -326,9 +1059,6 @@ function shareViaWhatsApp() {
         // Open the WhatsApp share link
         window.location.href = whatsappLink;
     }
-
-
-
 
 
 

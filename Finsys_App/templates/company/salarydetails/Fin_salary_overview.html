@@ -1,0 +1,1098 @@
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load social_share %}
+{% load static %}
+<style>
+    .card-registration .select-input.form-control[readonly]:not([disabled]) {
+        font-size: 2rem;
+        line-height: 2.15;
+        padding-left: .75em;
+        padding-right: .75em;
+    }
+
+    .card-registration .select-arrow {
+        top: 13px;
+    }
+
+    .bg-grey {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    @media (min-width: 992px) {
+        .card-registration-2 .bg-grey {
+            border-top-right-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .card-registration-2 .bg-grey {
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+    }
+
+    .vl {
+        border-left: 6px solid gray;
+    }
+
+    .table-row {
+        cursor: pointer;
+    }
+
+    /* hr {
+        border: 0;
+        clear:both;
+        display:block;
+        width: 96%;               
+        background-color:#000000;
+        height: 1px;
+      } */
+    .spaced>li {
+        color: black;
+        font-size: 20px;
+    }
+
+    .table1 {
+        font-size: 20px;
+        width: 100%;
+        color: black;
+
+    }
+
+    .label-lg {
+        padding: .3em .6em .4em;
+        font-size: 22px;
+        color: black;
+        line-height: 1.1;
+        height: 24px
+    }
+
+    .widget-header {
+        background-color: #444;
+        color: white;
+        font-size: 24px;
+    }
+
+    .widget-header:after,
+    .widget-header:before {
+        content: "";
+        display: table;
+        line-height: 0
+    }
+
+    .widget-header:after {
+        clear: right
+    }
+
+    .widget-box.collapsed>.widget-header {
+        border-bottom-width: 0
+    }
+
+    .collapsed.fullscreen>.widget-header {
+        border-bottom-width: 1px
+    }
+
+    .collapsed>.widget-body {
+        display: none
+    }
+
+    .widget-header-flat {
+        background: #F7F7F7
+    }
+
+    .widget-header-large {
+        min-height: 49px;
+        padding-left: 18px
+    }
+
+
+
+    .widget-header-small {
+        min-height: 31px;
+        padding-left: 10px
+    }
+
+    .widget-header>.widget-title {
+        line-height: 36px;
+        padding: 0;
+        margin: 0;
+        display: inline;
+        font-size: 23px;
+    }
+
+
+
+    .widget-toolbar {
+        display: inline-block;
+        padding: 0 10px;
+        line-height: 37px;
+        float: right;
+        position: relative
+    }
+
+
+
+
+
+
+
+    .widget-body {
+        background-color: #FFF
+    }
+
+    .widget-main {
+        padding: 12px
+    }
+
+    @media screen and (max-width:768px) {
+        h1 {
+            font-size: 60px !important;
+        }
+
+    }
+
+  
+
+
+        #div1{
+            /* background-color: rgb(0, 255, 21); */
+            width: 33.33%;
+            float: left;
+            height: 100px;
+            text-align: left;
+        }
+        #div2{
+            /* background-color: rgb(204, 0, 255); */
+            width: 33.33%;
+            margin: auto;
+            height: 100px;
+            text-align: left;
+        }
+        #div3{
+            /* background-color: rgb(255, 162, 0); */
+            width: 33.33%;
+            
+            float: right;
+            margin-top: -100px;
+            height: 100px;
+           
+            
+            
+        }
+        .ribbon .ribbon-inner {
+    text-align: center;
+    color: #fff;
+    top: -20px;
+    left: -90px;
+    width: 120px;
+    padding: 3px;
+    /* position: relative;
+    transform: rotate(-45deg); */
+}
+.ribbon .ribbon-open {
+    background-color: #268ddd;
+    border-color: #1c72b4;
+}
+
+:root {
+    --body-bg: rgb(204, 204, 204);
+    --white: #ffffff;
+    --darkWhite: #ccc;
+    --black: #000000;
+    --dark: #615c60;
+    --themeColor: #22b8d1;
+    --pageShadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+}
+
+/* Font Include */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap');
+
+body {
+    background-color: var(--body-bg);
+}
+
+.page {
+    background: var(--white);
+    display: block;
+    margin: 0 auto;
+    position: relative;
+    box-shadow: var(--pageShadow);
+}
+
+.page[size="A4"] {
+    width: 21cm;
+    height: 29.7cm;
+    overflow: hidden;
+}
+
+.bb {
+    border-bottom: 3px solid var(--darkWhite);
+}
+
+/* Top Section */
+.top-content {
+    padding-bottom: 15px;
+}
+
+.logo img {
+    height: 60px;
+}
+
+.top-left p {
+    margin: 0;
+    color: #000000;
+}
+
+.top-left .graphic-path {
+    height: 40px;
+    position: relative;
+}
+
+.top-left .graphic-path::before {
+    content: "";
+    height: 20px;
+    background-color: var(--dark);
+    position: absolute;
+    left: 15px;
+    right: 0;
+    top: -15px;
+    z-index: 2;
+}
+
+.top-left .graphic-path::after {
+    content: "";
+    height: 22px;
+    width: 17px;
+    background: var(--black);
+    position: absolute;
+    top: -13px;
+    left: 6px;
+    transform: rotate(45deg);
+}
+
+.top-left .graphic-path p {
+    /* color: var(--white); */
+    height: 40px;
+    left: 0;
+    right: -100px;
+    text-transform: uppercase;
+    background-color: var(--themeColor);
+    font: 26px;
+    z-index: 3;
+    position: absolute;
+    padding-left: 10px;
+}
+
+/* User Store Section */
+.store-user {
+    padding-bottom: 25px;
+}
+
+.store-user p {
+    margin: 0;
+    font-weight: 600;
+    color: #000000;
+}
+
+.store-user .address {
+    font-weight: 400;
+}
+
+.store-user h5 {
+    color: var(--themeColor);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.extra-info p span {
+    font-weight: 400;
+   
+}
+
+/* Product Section */
+thead {
+    color: var(--white);
+    background: var(--themeColor);
+}
+
+.table td,
+.table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+tr th:first-child,
+tr td:first-child {
+    text-align: left;
+}
+
+.media img {
+    height: 60px;
+    width: 60px;
+}
+
+.media p {
+    font-weight: 400;
+    margin: 0;
+ 
+}
+
+.media p.title {
+    font-weight: 600;
+    
+}
+
+/* Balance Info Section */
+.balance-info .table td,
+.balance-info .table th {
+    padding: 0;
+    border: 0;
+}
+
+.balance-info tr td:first-child {
+    font-weight: 600;
+}
+
+tfoot {
+    border-top: 2px solid var(--darkWhite);
+}
+
+tfoot td {
+    font-weight: 600;
+}
+
+/* Cart BG */
+.cart-bg {
+    height: 250px;
+    bottom: 32px;
+    left: -40px;
+    opacity: 0.3;
+    position: absolute;
+}
+
+/* Footer Section */
+footer {
+    text-align: center;
+    position: absolute;
+    bottom: 30px;
+    left: 75px;
+}
+
+footer hr {
+    margin-bottom: -22px;
+    border-top: 3px solid var(--darkWhite);
+}
+
+footer a {
+    color: var(--themeColor);
+}
+
+footer p {
+    padding: 6px;
+    border: 3px solid var(--darkWhite);
+    background-color: var(--white);
+    display: inline-block;
+    color: #000000;
+}
+
+.print-only {
+        /* display: none; */
+        height: auto;
+        width: auto;
+        overflow-y: auto;
+        border: none;
+        /* box-shadow: 5px 2px 5px 2px  grey; */
+    }
+
+
+        @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        header {
+            display: none;
+        }
+
+        .print-only * {
+            visibility: visible;
+        }
+
+        .print-only {
+            /* position: absolute; */
+            
+            /* position: fixed; */
+            left: 0;
+            top: 0;
+            right: 0;
+            height: auto;
+            /* page-break-before: always;
+            page-break-inside: avoid; */
+        }
+
+        @page {
+            size:100%;
+            margin: 0;
+            height: auto;
+        }
+
+        .print-only table {
+        border-collapse: collapse;
+        border: none; /* You can adjust the border color and width */
+        width: 100%; /* Set the width to 100% of the printed page */
+        margin: 0; /* Remove margins to maximize the width */
+    }
+
+    .print-only th,
+    .print-only td {
+        border:none; /* Apply border to table cells */
+        padding: 8px; /* Add padding for better readability */
+        text-align: center; /* Center-align text in cells */
+    }
+
+    }
+    .salary-box {
+    border: 1px solid #ccc; /* Add border for the box */
+    padding: 10px; /* Add some padding for spacing */
+    margin-bottom: 15px; /* Add margin to separate each box */
+    /* Add any other styling you need */
+    }
+    
+
+
+
+    </style>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.debug.js" ></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.min.js" ></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.debug.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.min.js"></script>
+<script>
+    async function generatePDF() {
+        var downloading = document.getElementById("whatToPrint");
+        var doc = new jsPDF('l', 'pt');
+
+        await html2canvas(downloading, {}).then((canvas) => {
+            doc.addImage(canvas.toDataURL("image/png"), 'PNG', 100, 20, 600, 550);
+        })
+        doc.save("Document.pdf");
+    }
+
+    function Overview() {
+        document.getElementById('overview').style.display = 'block';
+        document.getElementById('payslip').style.display = 'none';
+    }
+
+    function Payslip() {
+        document.getElementById('overview').style.display = 'none';
+        document.getElementById('payslip').style.display = 'block';
+    }
+
+    $('.delete').click(function (event) {
+            var form = $(this).closest("form");
+            var name = $(this).data("name");
+            event.preventDefault();
+            swal({
+                title: `Are you sure you want to delete this record?`,
+                text: "If you delete this, it will be gone forever.",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+                .then((willDelete) => {
+                    if (willDelete) {
+                        swal("Poof! Your imaginary file has been deleted!", {
+                            icon: "success",
+
+                        });
+                        form.submit();
+
+
+
+
+                    }
+                });
+    });
+
+    function sortTableBySalary(order) {
+        const table = document.getElementById('tbl_exporttable_to_xls');
+        const rows = Array.from(table.getElementsByTagName('tr'));
+        rows.shift(); // Remove the table header row from sorting
+        rows.sort(function (a, b) {
+            const salaryA = parseFloat(a.querySelector('td:nth-child(5)').textContent);
+            const salaryB = parseFloat(b.querySelector('td:nth-child(5)').textContent);
+            if (order === 'asc') {
+                return salaryA - salaryB;
+            } else if (order === 'desc') {
+                return salaryB - salaryA;
+            }
+        });
+
+        rows.forEach(function (row) {
+            table.appendChild(row);
+        });
+    }
+
+    function sortTable(order) {
+        const table = document.getElementById('tbl_exporttable_to_xls');
+        const rows = Array.from(table.getElementsByTagName('tr'));
+
+        rows.shift(); 
+
+        rows.sort(function (a, b) {
+            const bankNameA = a.querySelector('td:nth-child(2)').textContent;
+            const bankNameB = b.querySelector('td:nth-child(2)').textContent;
+
+            if (order === 'asc') {
+                return bankNameA.localeCompare(bankNameB);
+            } else if (order === 'desc') {
+                return bankNameB.localeCompare(bankNameA);
+            }
+        });
+
+        rows.forEach(function (row) {
+            table.appendChild(row);
+        });
+    }  
+</script>
+<script>
+    function numberToWords(number) {
+    const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    const teens = ['', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', 'Ten', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    function convertLessThanThousand(num) {
+        if (num === 0) {
+            return '';
+        } else if (num < 10) {
+            return units[num];
+        } else if (num < 20) {
+            return teens[num - 10] || tens[1]; 
+        } else if (num < 100) {
+            return tens[Math.floor(num / 10)] + ' ' + convertLessThanThousand(num % 10);
+        } else {
+            return units[Math.floor(num / 100)] + ' Hundred ' + convertLessThanThousand(num % 100);
+        }
+    }
+    function convert(num) {
+        if (num === 0) {
+            return 'Zero';
+        }
+        const lakh = Math.floor(num / 100000);
+        const thousand = Math.floor((num % 100000) / 1000);
+        const remaining = num % 1000;
+        let result = '';
+        if (lakh > 0) {
+            result += convertLessThanThousand(lakh) + ' Lakh ';
+        }
+        if (thousand > 0) {
+            result += convertLessThanThousand(thousand) + ' Thousand ';
+        }
+        if (remaining > 0) {
+            result += convertLessThanThousand(remaining);
+        }
+        return result.trim();
+    }
+    return convert(number);
+}
+    window.onload = function () {
+        const cellValue = document.getElementById("salaryCell").textContent;
+        const numericValue = parseFloat(cellValue.replace(/,/g, "")); 
+        const words = numberToWords(numericValue);
+        document.getElementById("salaryCell").textContent = words;
+    };
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var other_cuttings = parseFloat(document.getElementById("otherCuttings").innerText);
+        var leave_deduction = parseFloat(document.getElementById("leaveDeduction").innerText);
+        var sum_result = other_cuttings + leave_deduction;
+        document.getElementById("sumResult").innerText = sum_result.toFixed(2);
+    });
+</script>
+<div class="page-content">
+        <div id="overview">
+            <div class="card radius-15">
+                <div class="card-body">
+                    <div class="card-title">
+                        <center>
+                            <h2 class="mb-0">{{ employee.title }}. {{employee.first_name }} {{employee.last_name }}</h2>
+                        </center>
+                        <hr>
+                        <div class="btn-group" style="float: left; ">
+                            <a class="btn btn-outline-info dropdown-toggle   text-grey mt-3 " style="padding: 10px; cursor: pointer;" onclick="Overview()"> Overview</a>
+                            <a class="btn btn-outline-info dropdown-toggle   text-grey mt-3 " style="padding: 10px; cursor: pointer;" onclick="Payslip()"> Payslip</a>
+                        </div>
+                        <div class="btn-group" style="float: right; ">
+                            <div>
+                                <center>
+                                    {% for salary_detail in salary_details %}
+                                        <a href=""
+                                            class="fa fa-pencil btn btn-outline-info text-grey mt-3"
+                                            style="padding: 10px; cursor: pointer;" role="button">
+                                            Edit
+                                        </a>&nbsp;&nbsp;&nbsp;
+                                    
+                                    <a href=""
+                                        class=" fa fa-trash  btn btn-outline-info  text-grey mt-3 mr-2 " style="padding: 10px; cursor: pointer; "
+                                        role="button"> Delete</a>
+                                    {% endfor %}
+                                </center>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        <div class="card card-registration card-registration-2" style="border-radius: 15px;">
+            <div class="card-body p-0">
+                <div id="details">
+                    <div class="row g-0">
+                        <div class="col-lg-8">
+                            <div class="p-5">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h1 class="fw-bold mb-0 text-black">{{ employee.title }}.
+                                        {{employee.first_name }} {{ employee.last_name }}</h1>
+                                    <img src="{{ employee.image.url }}"
+                                        style="width: 15%; height: 97px; border-radius: 50px">
+                                </div>
+                                <hr class="my-4">
+                                <div class="card-body">
+                                    <div class="card-title">
+                                        <div class="row">
+                                            <div class="col mt-3">
+                                                <h2 class="mb-0 text-center">Salary Details</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% for salary_detail in salary_details %}
+                                    <div class="salary-box">
+                                        <div class="row">
+                                            <div class="col-md-4 ml-5 mr-5 mt-3">
+                                                <label for="title ">
+                                                    <h6><b> Salary </b></h6>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 ml-5 mt-3">
+                                                <label for="title"><b>: {{ salary_detail.total_salary }}</b></label>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-4 ml-5  mr-5 mt-3">
+                                                <label for="title">
+                                                    <h6><b>Salary Date </b></h6>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 ml-5 mt-3">
+                                                <label for="title"><b>: {{ salary_detail.salary_date }}</b></label>
+
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-4 ml-5 mr-5 mt-3">
+                                                <label for="title">
+                                                    <h6><b>Holidays</b> </h6>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 ml-5 mt-3">
+                                                <label for="title"><b>: {{ salary_detail.holiday }}</b></label>
+
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-4 ml-5 mr-5 mt-3">
+                                                <label for="title">
+                                                    <h6><b>Leave </b></h6>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 ml-5 mt-3">
+                                                <label for="title"><b>: {{ salary_detail.leave }}</b></label>
+
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-4 ml-5 mr-5 mt-3">
+                                                <label for="title">
+                                                    <h6><b>Working Days </b></h6>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 ml-5 mt-3">
+                                                <label for="title"><b>: {{ salary_detail.total_working_days }}</b></label>
+
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-4 ml-5 mr-5 mt-3">
+                                                <label for="title">
+                                                    <h6><b>Month-Year</b> </h6>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 ml-5 mt-3">
+                                                <label for="title"><b>: {{ salary_detail.month_name}}-{{ salary_detail.year }}</b></label>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-4 ml-5 mr-5 mt-3">
+                                                <label for="title">
+                                                    <h6><b>Add Bonus</b> </h6>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 ml-5 mt-3">
+                                                <label for="title"><b>: {{ salary_detail.add_bonus }}</b></label>
+
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-4 ml-5 mr-5 mt-3">
+                                                <label for="title">
+                                                    <h6><b>Casual Leave</b> </h6>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 ml-5 mt-3">
+                                                <label for="title"><b>: {{ salary_detail.casual_leave }}</b></label>
+
+                                            </div>
+                                        </div>   
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-4 ml-5 mr-5 mt-3">
+                                                <label for="title">
+                                                    <h6><b>Other Cuttings</b> </h6>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 ml-5 mt-3">
+                                                <label for="title"><b>: {{ salary_detail.other_cuttings }}</b></label>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                                        
+                                    
+                                   
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 bg-grey">
+                            <div class="p-5">
+
+                                <h3 class="fw-bold mb-2 mt-2 pt-1">Employee Details</h3>
+                                <hr class="my-4">
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class=""> Employee ID</h6>
+                                    {{ employee.id }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Employee No:</h6>
+                                    {{ employee.employee_number }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Designation</h6>
+                                    {{ employee.employee_designation }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Age:</h6>
+                                    {{ employee.age }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Function</h6>
+                                    {{ employee.function }}
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Date Of Joining</h6>
+                                    {{ employee.date_of_joining }}
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Contact</h6>
+                                    {{ employee.mobile }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Email</h6>
+                                    {{ employee.employee_mail }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Basic Salary</h6>
+                                    {{ employee.salary_amount }}
+                                </div> 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div id="payslip" style="display: none; ">
+        <div class="card radius-15 ">
+            <div class="card-body">
+                <div class="card-title">
+                    <center>
+                        <h2 class="mb-0">{{ employee.title }}. {{ employee.first_name }}{{employee.last_name }}</h2>
+                    </center>
+                    <hr>
+                    <div class="btn-group" style="float: left; ">
+                        <a class="btn btn-outline-info dropdown-toggle   text-grey mt-3 " style="padding: 10px; cursor: pointer;" onclick="Overview()"> Overview</a>
+                        <a class="btn btn-outline-info dropdown-toggle   text-grey mt-3 " style="padding: 10px; cursor: pointer;" onclick="Payslip()"> Payslip</a>
+                    </div>
+                    <div class="btn-group" style="float: right; ">
+                        <div>
+                            <center>
+                                {% for salary_detail in salary_details %}
+                                    <a class="btn btn-outline-info text-grey mt-3" style="padding: 10px; cursor: pointer;" role="button" href="" id="downloadButton">&nbsp;&nbsp;PDF&nbsp;&nbsp;</a>
+                                {% endfor %}
+                                <button class="btn btn-outline-info  text-grey mt-3 " style="padding: 10px; cursor: pointer; " onclick="printStatement()">Print Statement</button>
+                                    <li  class=" dropdown-toggle btn btn-outline-info text-grey  mt-3  " style="padding: 10px; cursor: pointer; " onclick="uplodfile()" data-toggle="dropdown"> &nbsp;Share&nbsp;</li>
+                                    <ul class="dropdown-menu" style="background-color: black;">
+                                        <li style="margin-left: 50px;" > {% post_to_whatsapp object_or_url "WhatsApp" %}</li>
+                                        <a class="dropdown-item" style="color: white; cursor: pointer;" data-target="#shareSalaryEmail" data-toggle="modal">Email</a>
+                                    </ul>
+                            </center>
+                        </div>
+                    </div>
+                </div>        
+            </div>
+        </div>
+        <div id="whatToPrint" class="print-only" style="border: 1px solid #000; padding: 20px;">
+            <div class="my-5 page" size="A4" style="border: 1px solid #000;">
+                <br>
+                <br>
+                {% for i in salary_details %}
+                <h1 style="text-align: center; color: #000000; border-bottom: 1px solid #000; margin-bottom: 0;">PAYSLIP</h1>
+                <div style="display: flex; justify-content: space-between; color: #000000; border-bottom: 1px solid #000; padding: 10px 0;">
+                    <div style="width: 48%;">
+                        <ul>
+                            <li>Employee Name: {{employee.title}} {{ employee.first_name }} {{ employee.last_name }}</li>
+                            <li>Employee Code: {{ employee.employee_number }}</li>
+                            <li>Month-Year: {{ i.month_name }}-{{i.year}}</li>
+                            <li>Designation: {{ employee.employee_designation }}</li>
+                        </ul>
+                    </div>
+                    <div style="width: 48%;">
+                        <ul>
+                            <li>Location: {{ employee.employee_current_location }}</li>
+                            <li>Date of Joining: {{ employee.date_of_joining }}</li>
+                            <li>Working Days: {{ i.total_working_days }}</li>
+                            <li>Leave: {{ i.leave_minus_casual_leave }}</li>
+                            
+                        </ul>
+                    </div>
+                </div>
+                <div style="text-align: center;  padding: 20px 0;">
+                    <h3 style="text-align: center; color: #000000;">Confirmed Salary</h3>
+                    
+                    <table border="1" style="width:100%; color: #000000; border-collapse: collapse; margin: 0 auto;">
+                        <tr>
+                            <th>Particulars</th>
+                            <th>Gross Amount (Rs)</th>
+                            <th>Deduction Amount (Rs)</th>
+                            <th>Amount (Rs)</th>
+                        </tr>
+                        <tr>
+                            <td style="height: 100px; border-bottom: 0;">Basic Salary</td>
+                            <td style="height: 100px;">{% widthratio employee.amount 100 65 %}</td>
+                            <td style="height: 100px; border-bottom: 0;">{% if i.other_cuttings %}Other Cuttings{% endif %}</td>
+                            <td style="height: 100px;">{% if i.other_cuttings %}{{ i.other_cuttings }}{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td style="height: 100px; border-bottom: 0;">Conveyance Allowance</td>
+                            <td style="height: 100px;">{% widthratio employee.amount 1000 25 %}</td>
+                            <td style="height: 100px; border-bottom: 0;">{% if i.leave_deduction %}Leave Deduction{% endif %}</td>
+                            <td style="height: 100px;">{% if i.leave_deduction %}{{ i.leave_deduction }}{% endif %}</td>
+
+
+
+                        </tr>
+                        <tr>
+                            <td style="height: 100px; border-bottom: 0;">HRA</td>
+                            <td style="height: 100px;">{% widthratio employee.amount 1000 175 %}</td>
+                            <td style="height: 100px; border-bottom: 0;"></td>
+                            <td style="height: 100px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="height: 100px; border-bottom: 0;">Other Allowance</td>
+                            <td style="height: 100px;">{% widthratio employee.amount 100 15 %}</td>
+                            <td style="height: 100px; border-bottom: 0;"></td>
+                            <td style="height: 100px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="height: 100px; border-bottom: 0;">{% if i.add_bonus %}Bonus{% endif %}</td>
+                            <td style="height: 100px;">{% if i.add_bonus %}{{ i.add_bonus }}{% endif %}</td>
+                            <td style="height: 100px; border-bottom: 0;"></td>
+                            <td style="height: 100px;"></td>
+                        </tr>
+        
+                        <tr>
+                            <td style="height: 50px;"></td>
+                            <td style="height: 50px;"></td>
+                            <td style="height: 50px;">Total Deduction</td>
+                            <td style="height: 50px;">{{i.total_deduction}}</td>
+                        </tr>
+                        <tr>
+                            <td style="height: 50px;">Netsalary</td>
+                            <td style="height: 50px;"></td>
+                            <td style="height: 50px;" id="salaryCell">{{i.total_salary}}</td>
+                            <td style="height: 50px;">{{i.total_salary}}</td>
+                        </tr>
+                    </table>
+                {% endfor %} 
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; text-align: right; color: #000000; padding-top: 20px;">
+                    <div>
+                        <img src="" alt="Company Seal" style="max-width: 150px;">
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <img src="" alt="Authorized Signature" style="max-width: 150px;">
+                        </div>
+                        <p>Authorized Signature</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
+    </div>
+</div> 
+
+<div class="modal fade" id="shareSalaryEmail">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="background: #243e54; border-radius: 20px;">
+            <div class="modal-header" style="background: #243e54;">
+                <h5 class="m-3 text-uppercase" id="shareSalaryEmailLabel">Share Statement Via Email</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="background: #243e54;">
+                <div class="card p-3 m-3">
+                    {% for salary_detail in salary_details %}
+                    <form action="" method="post"
+                        class="needs-validation" id="share_to_email_form" autocomplete="off">
+                        {% endfor %}
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="emailIds">Email IDs</label>
+                            <textarea class="form-control text-light" name="email_ids" id="emailIds" rows="5"
+                                placeholder="Multiple emails can be added by separating with a comma(,)." required></textarea>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label for="item_unitname">Message(optional)</label>
+                            <textarea name="email_message" id="email_message"
+                                class="form-control text-light" cols="" rows="4"
+                                placeholder="This message will be sent along with Salary details."></textarea>
+                        </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-center" style="border-top: 1px solid #ffff;">
+                    <input type="submit" id="generateAndSendPdf"
+                        class="submitShareEmailBtn rounded-pill text-grey w-50 my-4 mx-3"
+                        style="background-color: #0d2b46; padding: 7px 0;" value="SEND MAIL">
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    async function generatePDF() {
+        var downloading = document.getElementById("whatToPrint");
+        var doc = new jsPDF('l', 'pt');
+
+        await html2canvas(downloading).then((canvas) => {
+            doc.addImage(canvas.toDataURL("image/png"), 'PNG', 15, 10, 700, 850);
+        });
+        doc.save("Document.pdf");
+    }
+</script> 
+<script>
+    function printStatement() {
+        var printContent = document.getElementById('whatToPrint').innerHTML;
+        var originalContent = document.body.innerHTML;
+        document.body.innerHTML = printContent;
+        window.print();
+        document.body.innerHTML = originalContent;
+    }
+</script>
+<script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script>
+        $('.delete').click(function (event) {
+            var form = $(this).closest("form");
+            var name = $(this).data("name");
+            event.preventDefault();
+            swal({
+                title: `Are you sure you want to delete this record?`,
+                text: "If you delete this, it will be gone forever.",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+                .then((willDelete) => {
+                    if (willDelete) {
+                        swal("Poof! Your imaginary file has been deleted!", {
+                            icon: "success",
+
+                        });
+                        form.submit();
+                    }
+                });
+        });
+
+    </script>
+    <script>
+       
+        function searchTable() {
+            let input, filter, table, tr, td, i, j, txtValue;
+            input = document.getElementById("searchInput");
+            filter = input.value.toLowerCase();
+            table = document.getElementById("dataTable");
+            tr = table.getElementsByTagName("tr");
+
+            for (i = 1; i < tr.length; i++) {
+                let rowVisible = false;
+                td = tr[i].getElementsByTagName("td");
+
+                for (j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                            rowVisible = true;
+                            break;
+                        }
+                    }
+                }
+                tr[i].style.display = rowVisible ? "" : "none";
+            }
+        }
+        document.getElementById("searchInput").addEventListener("input", searchTable);
+    </script>
+            <script>
+
+                $(document).ready(function() {
+                    var $rows = $('.table tbody tr');
+                    $('#search').keyup(function() {
+                        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+                        $rows.show().filter(function() {
+                            console.log($rows.show())
+            
+                            var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+                            console.log(text)
+                            return !~text.indexOf(val);
+                        }).hide();
+                    });
+                });
+            </script>
+
+    {% endblock %}

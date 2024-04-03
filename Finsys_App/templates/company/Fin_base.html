@@ -85,6 +85,7 @@
     }
   </style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  
   <script>
     $(document).ready(function () {
       var $select1 = $('#select1'),
@@ -263,8 +264,8 @@
                         <div class="notify bg-light-primary text-primary"><i class="bx bx-file"></i>
                         </div>
                         <div class="media-body">
-                          <h6 class="msg-name">{{i.Title}}<span class="msg-time float-right">{{i.Noti_date}}</span></h6>
-                          <p class="msg-info">{{i.Discription}}</p>
+                          <h6 class="msg-name">{{i.Title}}<span class="msg-time float-right">{{i.date_created}} {{i.time}}</span></h6>
+                          <p class="msg-info">{{i.Discription|truncatewords:4}}</p>
                         </div>
                       </div>
                     </a>
@@ -494,7 +495,7 @@
                 {% endif %}
 
                 {% if allmodules.Stock_Adjustment == 1 %}
-                <li id="stockadjustment"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock
+                <li id="stockadjustment"><a href="{% url 'StockAdjustment' %}"><i class="bx bx-right-arrow-alt"></i>Stock
                     Adjustments</a>
                 </li>
                 {% endif %}
@@ -513,7 +514,7 @@
 
                 {% if allmodules.Offline_Banking == 1 %}
                 
-                <li id="Offlinebanking"><a href=""><i class="bx bx-right-arrow-alt"></i>Offline
+                <li id="Offlinebanking"><a href="{% url 'Fin_banking_listout' %}"><i class="bx bx-right-arrow-alt"></i>Offline
                     Banking</a>
                 </li>
                 {% endif %}
@@ -521,7 +522,7 @@
                 
 
                 {% if allmodules.Bank_Holders == 1 %}
-                <li id="Fin_bankholder"><a href=""><i class="bx bx-right-arrow-alt"></i>Bank
+                <li id="Fin_bankholder"><a href="{% url 'Fin_bankholder' %}"><i class="bx bx-right-arrow-alt"></i>Bank
                     Holders</a>
                 </li>
                 {% endif %}
@@ -539,7 +540,7 @@
                 {% endif %}
 
                 {% if allmodules.Loan_Account == 1 %}
-                <li><a href=""><i class="bx bx-right-arrow-alt"></i>Loan Account</a>
+                <li><a href="{% url 'loan_ac_listoutpage' %}"><i class="bx bx-right-arrow-alt"></i>Loan Account</a>
                 </li>
                 {% endif %}
 
@@ -587,7 +588,7 @@
             {% endif %}
 
             {% if allmodules.Payment_Received == 1 %}
-            <li id="paymentsreceived"><a href=""><i class="bx bx-right-arrow-alt"></i>Payments Received</a>
+            <li id="paymentsreceived"><a href="{% url 'Fin_view_payment_received' %}"><i class="bx bx-right-arrow-alt"></i>Payments Received</a>
             </li>
             {% endif %}
 
@@ -597,7 +598,7 @@
             {% endif %}
 
             {% if allmodules.Delivery_Challan == 1 %}
-            <li id="deliverychallan"><a href=""><i class="bx bx-right-arrow-alt"></i> Delivery Challan</a>
+            <li id="deliverychallan"><a href="{% url 'deliverylist' %}"><i class="bx bx-right-arrow-alt"></i> Delivery Challan</a>
             </li>
             {% endif %}
 
@@ -630,7 +631,7 @@
               {% endif %}
 
               {% if allmodules.Bills == 1 %}
-              <li id="bill"><a href=""><i class="bx bx-right-arrow-alt"></i>Bill</a>
+              <li id="bill"><a href="{% url 'Fin_List_Purchase_Bill' %}"><i class="bx bx-right-arrow-alt"></i>Bill</a>
               </li>
               {% endif %}
 
@@ -640,17 +641,17 @@
               {% endif %}
 
               {% if allmodules.Payment_Made == 1 %}
-              <li id="payment"><a href=""><i class="bx bx-right-arrow-alt"></i>Payment Made</a>
+              <li id="payment"><a href="{% url 'Fin_paymentmade' %}"><i class="bx bx-right-arrow-alt"></i>Payment Made</a>
               </li>
               {% endif %}
 
               {% if allmodules.Debit_Note == 1 %}
-              <li id="debitnote"><a href=""><i class="bx bx-right-arrow-alt"></i>Debit Note</a>
+              <li id="debitnote"><a href="{% url 'Fin_debitnotelist' %}"><i class="bx bx-right-arrow-alt"></i>Debit Note</a>
               </li>
               {% endif %}
 
               {% if allmodules.Recurring_Bills == 1 %}
-              <li id="recurringbill"><a href=""><i class="bx bx-right-arrow-alt"></i>Recurring Bill</a>
+              <li id="recurringbill"><a href="{% url 'Fin_recurring_bill_list' %}"><i class="bx bx-right-arrow-alt"></i>Recurring Bill</a>
               </li>
               {% endif %}
 
@@ -729,7 +730,7 @@
           {% if allmodules.EWay_Bill == 1 %}
 
           <li>
-            <a href="javascript:;" class="has-arrow">
+            <a href="{% url 'Fin_Eway_bills' %}" class="has-arrow">
               <div class="parent-icon"><i class="bx bx-file"></i>
               </div>
               <div class="menu-title">Eway Bill</div>
@@ -777,7 +778,7 @@
               {% endif %}
 
               {% if allmodules.Employees_Loan == 1 %}
-              <li id="employeeloan"><a href=""><i class="bx bx-right-arrow-alt"></i>Employee Loan</a> </li>
+              <li id="employeeloan"><a href="{% url 'employee_loan_list' %}"><i class="bx bx-right-arrow-alt"></i>Employee Loan</a> </li>
               {% endif %}
 
               {% if allmodules.Holiday == 1 %}
@@ -785,10 +786,10 @@
               {% endif %}
 
               {% if allmodules.Attendance == 1 %}
-              <li><a href=""><i class="bx bx-right-arrow-alt"></i>Attendance</a> </li>
+              <li><a href="{% url 'Fin_Attendance' %}"><i class="bx bx-right-arrow-alt"></i>Attendance</a> </li>
               {% endif %}
               {% if allmodules.Salary_Details == 1 %}
-              <li><a href=""><i class="bx bx-right-arrow-alt"></i>Salary Details</a> </li>
+              <li><a href="{% url 'Fin_salary_details' %}"><i class="bx bx-right-arrow-alt"></i>Salary Details</a> </li>
               {% endif %}
             </ul>
           </li>

@@ -67,7 +67,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'Finsys_App.context.minStock',
                 'Finsys_App.context.customerCreditLimitAlert',
-                'Finsys_App.context.vendorCreditLimitAlert'
+                'Finsys_App.context.vendorCreditLimitAlert',
             ],
         },
     },
@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'Finsys.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'infoxtec_finsysnewfile',
+        'NAME': 'infoxtec_finsysnewfile2',
         'USER':'root',
         'PASSWORD':'',
         'HOST':'localhost',
@@ -115,9 +115,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
+
+USE_L10N = True
 
 USE_TZ = True
 

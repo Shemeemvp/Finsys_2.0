@@ -4,6 +4,10 @@
 
 <!-- harikrishnan -->
 
+  <!-- fontawesome icons -->
+  <link href="{% static 'assets/fontawesome/css/fontawesome.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/brands.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/fontawesome/css/solid.css' %}" rel="stylesheet">
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script> <!-- Include jQuery -->
 <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script> <!-- Include DataTables -->
@@ -24,18 +28,18 @@
     <div class="page-content ">
         <div class="card radius-15">
             <div class="card-body">
-                <h2>All Employee </h2><br>
+                <center><h2>All Employee's </h2></center><br>
 
                 <div class="row">
                     <div class="col-3 ml-1">
-                        <input type="search" id="employeeSearchInput" onkeyup="searchEmployee()" class="form-control ">                         
+                        <input type="search" placeholder="Search..." id="employeeSearchInput" onkeyup="searchEmployee()" class="form-control ">                         
                     </div>
 
                     
 
                     <div class="dropdown show">
-                        <a class="btn btn-secondary " href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          <i class="fa-solid fa-up-down"></i>
+                        <a class="btn btn-outline-secondary text-grey" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-sort"></i> Sort by
                         </a>
                       
                         <div class="dropdown-menu"  id="sort">
@@ -45,15 +49,15 @@
                         </div>
                       </div>
 
-                    <div class="col-3 ml-auto">
+                    <div class="col-4 ml-auto">
                         
-                        <button class="btn btn-secondary" id="exportButton">Export <i class="fa-solid fa-file-excel"></i></button>
+                        <button class="btn btn-outline-secondary text-grey" id="exportButton"><i class="fa fa-table"></i> Export To Excel</button>
                         <!-- <button class="btn btn-secondary">Import</button> -->
                         <!-- <a class="btn btn-secondary dropdown-toggle" href="">Filter</a> -->
-                        <a class="btn btn-secondary" href="{% url 'employee_create_page' %}">New <i class="fa-solid fa-plus"></i></a>
                         
-                            <a class="btn btn-secondary dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Filter
+                        
+                            <a class="btn btn-outline-secondary dropdown-toggle text-grey" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fa fa-filter"></i> filter by
                             </a>
                           
                             <div class="dropdown-menu"  id="filter" >
@@ -61,6 +65,8 @@
                                 <a class="dropdown-item" style="cursor: pointer;" data-status="Active">Active</a>
                                 <a class="dropdown-item" style="cursor: pointer;" data-status="Inactive">Inactive</a>
                             </div>
+
+                            <a class="btn btn-outline-secondary text-grey" href="{% url 'employee_create_page' %}"><i class="fa fa-plus font-weight-light"></i> New </a>
                           
                     </div>
                     
@@ -92,7 +98,7 @@
                                 <td>{{i.employee_mail}}</td>
                                 <td>{{i.employee_number}}</td>
                                 <td>{{i.employee_designation}}</td>
-                                <td>{{i.salary_details}}</td>
+                                <td>{{i.employee_salary_type}}</td>
                                 <td>{{i.employee_status}}</td>
                                 <td>{{i.salary_amount}}</td>  
                                                              
