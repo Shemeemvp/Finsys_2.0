@@ -773,6 +773,9 @@ urlpatterns = [
     
     path('Purchase_Bill_All_Items_Add',views.Fin_Get_All_Items_Add,name='Fin_Get_All_Items_Add'),
     path('Purchase_Bill_All_Items_Edit',views.Fin_Get_All_Items_Edit,name='Fin_Get_All_Items_Edit'),
+
+    # < ------------- Shemeem -------- > CASH IN HAND < ------------------------------- >
+    path('Fin_cash_in_hand',views.Fin_cashInHand, name='Fin_cashInHand'),
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 ]

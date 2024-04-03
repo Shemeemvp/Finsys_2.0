@@ -27555,3 +27555,51 @@ def Fin_Get_All_Items_Edit(request):
         else:
             itm_data.append({'id': i.id, 'name': i.name, 'hsn': i.hsn, 'cstock': i.current_stock, 'price': i.purchase_price, 'intra_tax': i.intra_state_tax, 'inter_tax': i.inter_state_tax})
     return JsonResponse(itm_data, safe=False)
+
+
+# < ------------- Shemeem -------- > CASH IN HAND < ------------------------------- >
+def Fin_cashInHand(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+        bnk = Fin_BankTransactions.objects.filter(company=cmp).exclude(Q(type='From Bank Transfer') | Q(type='To Bank Transfer') | Q(type='Opening Balance'))
+        
+        loan = loan_transaction.objects.filter(company=cmp)
+        getloan = loan_transaction.objects.filter(to_trans='cash')
+        toloan = loan_transaction.objects.filter(from_trans='cash')
+        pordr= Fin_Purchase_Order.objects.filter(payment_method='Cash')
+        sordr= Fin_Sales_Order.objects.filter(payment_method='Cash')
+        payrec= Fin_Payment_Received.objects.filter(payment_method='Cash')
+        bill= Fin_Purchase_Bill.objects.filter(pay_type='Cash')
+        dbtnt= Fin_Debit_Note.objects.filter(payment_type='Cash')
+        rcrbl= Fin_Recurring_Bills.objects.filter(payment_method='Cash')
+        empln= Fin_Loan.objects.filter(payment_method='Cash')
+        context = {
+            'allmodules':allmodules,
+            'com':com,
+            'cmp':cmp,
+            'data':data,
+            'bnk': bnk,
+            'loan': loan,
+            'getloan': getloan,
+            'toloan': toloan,
+            'pordr':pordr,
+            'sordr':sordr,
+            'payrec':payrec,
+            'bill':bill,
+            'dbtnt':dbtnt,
+            'rcrbl':rcrbl,
+            'empln':empln,
+        }
+        return render(request,'company/Fin_Cash_In_Hand.html',context)
+    else:
+       return redirect('/')
