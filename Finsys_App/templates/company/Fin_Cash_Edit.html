@@ -1,0 +1,79 @@
+<!-- Created --shemeem  -->
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load static %}
+
+<style>
+  input {
+    background-color: #2f516f;
+    border: 0;
+    border-radius: 5px;
+    color: white;
+  }
+
+</style>
+
+<form action="{% url 'Fin_updateAddCash' cash.id %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
+  {% csrf_token %}
+  <div class="page-content pt-0">
+    <div class="card radius-15">
+      <div class="card-body">
+        <div class="card-title">
+          <center><h3 class="mb-0">EDIT CASH ADJUST</h3></center>
+        </div>
+        <hr />
+      </div>
+    </div>
+    <div class="card radius-15">
+      <div class="card-body">
+        <div id="cash_adjust">
+            <div class="row">
+                <div class="col-6 mt-3">
+                    <label class="">Adjustment:</label>
+                    <select name="adjustment" id="adjustment" class="form-control" style="background-color: #43596c; color: white;">
+                        {% if cash.adjustment == 'ADD CASH' %}
+                        <option value="ADD CASH" selected>ADD CASH</option>
+                        <option value="REDUCE CASH">REDUCE CASH</option>
+                        {% else %}
+                        <option value="ADD CASH">ADD CASH</option>
+                        <option value="REDUCE CASH" selected>REDUCE CASH</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-6 mt-3">
+                    <label class="">Amount:</label>
+                    <input type="number" min="0" step="any" class="form-control" name="amount" id="amount" style="background-color: #43596c; color: white;" value="{{cash.amount}}">
+                </div>
+
+                <div class="col-6 mt-3">
+                    <label class="">Adjustment Date:</label>
+                    <input type="date" class="form-control" name="adjustment_date" id="adjustmentDate" style="background-color: #43596c; color: white;" value="{{cash.adjust_date|date:'Y-m-d'}}">
+                </div>
+                <div class="col-6 mt-3">
+                    <label class="">Description:</label>
+                    <input type="text" class="form-control" name="description" id="description" value="{{cash.description}}" style="background-color: #43596c; color: white;">
+                </div>
+
+            </div>
+
+            
+
+        
+        
+            <div class="row mt-4">
+                <div class="col-md-3"></div>
+                <div class="col-md-6 mt-3 d-flex">
+                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="Save">
+                    <input type="reset" class="btn btn-outline-secondary w-50 ml-1 text-light" onclick="window.location.href=`{% url 'Fin_cashInHand' %}`" value="Close">
+                </div>
+                <div class="col-md-3"></div>
+            </div>
+        
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+
+{% endblock %}

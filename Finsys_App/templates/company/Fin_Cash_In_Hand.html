@@ -15,25 +15,50 @@
     <div class="card-body">
       <div class="container-fluid">
         <div class="row">
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="d-flex">
-              <input type="text" id="search" class="form-control" placeholder="Search.." autocomplete="off"/>
+              <input type="text" id="search" class="form-control form-control-sm" placeholder="Search.." autocomplete="off"/>
               <div class="dropdown ml-1" style="justify-content: left">
-                <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown"><i class="fa fa-sort"></i> Sort by</button>
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle btn-sm text-grey" data-toggle="dropdown"><i class="fa fa-sort"></i> Sort by</button>
                 <div class="dropdown-menu" style="background-color: black">
                   <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;" onclick="sortTable(1)">Type</a>
-                  <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;" onclick="sortTable(1)">Name</a>
+                  <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;" onclick="sortTable(2)">Name</a>
                   <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;" onclick="sortAmountAscending()">Amount</a>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
+            <div class="filter">
+              <div class="form-inline">
+                <input type="date" name="start_date" id="startDate" class="form-control form-control-sm mr-1" required>
+                TO
+                <input type="date" name="end_date" id="endDate" class="form-control form-control-sm ml-1" required>
+                <button class="btn btn-sm btn-outline-secondary ml-2" type="button" onclick="filterTableByDate()">Filter</button>
+              </div>
+            </div>
           </div>
           <div class="col-md-5 d-flex justify-content-end">
-            <button type="button" class="btn btn-outline-secondary text-grey d-flex align-items-center" id="exportBtn"><i class="fa fa-chart-pie mr-1"></i>Graph</button>
-            <button type="button" class="btn btn-outline-secondary text-grey d-flex align-items-center ml-1" id="exportBtn"><i class="fa fa-file mr-1"></i>Statement</button>
-            <a href="" class="ml-1"></i><button type="button" class="btn btn-outline-secondary text-grey"><i class="fa fa-plus mr-1"></i>Add Cash</button></a>
+            <button type="button" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center" id="exportBtn"><i class="fa fa-chart-pie mr-1"></i>Graph</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center ml-1" id="exportBtn"><i class="fa fa-file mr-1"></i>Statement</button>
+            <a href="{% url 'Fin_addCash' %}" class="ml-1"></i><button type="button" class="btn btn-sm btn-outline-secondary text-grey"><i class="fa fa-plus mr-1"></i>Add Cash</button></a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12 d-flex justify-content-between">
+            <div class="filter">
+              <!-- <form action="#">
+                <div class="form-inline">
+                  <input type="date" name="start_date" id="startDate" class="form-control form-control-sm mr-1" required>
+                  TO
+                  <input type="date" name="end_date" id="endDate" class="form-control form-control-sm ml-1" required>
+                  <button class="btn btn-sm btn-outline-secondary ml-2" type="submit">Filter</button>
+                </div>
+              </form> -->
+            </div>
+            <div class="bal_section pt-3 pr-3">
+              <span class="h4 font-weight-bold text-info">BALANCE: <span id="bal">0</span></span>
+            </div>
           </div>
         </div>
       </div>
@@ -50,15 +75,97 @@
           </tr>
         </thead>
         <tbody>
-          {% for a in cash_in_hand %}
-          <tr class="clickable-row" data-href="#" style="cursor: pointer;">
-            <td>{{ a.date }}</td>
-            <td>{{ a.type }}</td>
-            <td>{{ a.name }}</td>
-            <td>{{ a.amount }}</td>
+          {% for a in cash %}
+          <tr>
+            <td>{{ a.adjust_date|date:'Y-m-d' }}</td>
+            <td>{{ a.adjustment|upper }}</td>
             <td></td>
+            <td>{{ a.amount }}</td>
+            <td>
+              <div class="dropdown">
+                <i class="fa fa-ellipsis-v" style="font-size:24px; cursor: pointer;" data-toggle="dropdown"></i>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item edit-item" href="{% url 'Fin_editAddCash' a.id %}" >Edit</a>
+
+                    <a class="dropdown-item delete-item" href="#" data-toggle="modal" data-target="#deleteModal{{ a.id }}">Delete</a>
+                </div>
+              </div>
+            </td>
           </tr>
           {% endfor %}
+
+          {% for a in bank_transactions %}
+          <tr>
+            <td>{{ a.adjustment_date|date:'Y-m-d' }}</td>
+            <td>{{ a.transaction_type|upper }}</td>
+            <td></td>
+            <td>{{ a.amount }}</td>
+            <td>
+              <i class="fa fa-ellipsis-v text-muted" style="font-size:24px"></i>
+            </td>
+          </tr>
+          {% endfor %}
+          
+          {% for a in invoice %}
+          <tr>
+            <td>{{ a.invoice_date|date:'Y-m-d' }}</td>
+            <td>INVOICE</td>
+            <td></td>
+            <td>{{ a.paid_off }}</td>
+            <td>
+              <i class="fa fa-ellipsis-v text-muted" style="font-size:24px"></i>
+            </td>
+          </tr>
+          {% endfor %}
+          
+          {% for a in recInvoice %}
+          <tr>
+            <td>{{ a.start_date|date:'Y-m-d' }}</td>
+            <td>RECURRING INVOICE</td>
+            <td></td>
+            <td>{{ a.paid_off }}</td>
+            <td>
+              <i class="fa fa-ellipsis-v text-muted" style="font-size:24px"></i>
+            </td>
+          </tr>
+          {% endfor %}
+
+          {% for a in creditNote %}
+          <tr>
+            <td>{{ a.creditnote_date|date:'Y-m-d' }}</td>
+            <td>CREDIT NOTE</td>
+            <td></td>
+            <td>{{ a.paid }}</td>
+            <td>
+              <i class="fa fa-ellipsis-v text-muted" style="font-size:24px"></i>
+            </td>
+          </tr>
+          {% endfor %}
+
+          {% for a in bill %}
+          <tr>
+            <td>{{ a.bill_date|date:'Y-m-d' }}</td>
+            <td>BILL</td>
+            <td></td>
+            <td>{{ a.paid }}</td>
+            <td>
+              <i class="fa fa-ellipsis-v text-muted" style="font-size:24px"></i>
+            </td>
+          </tr>
+          {% endfor %}
+
+          {% for a in recurringBill %}
+          <tr>
+            <td>{{ a.date|date:'Y-m-d' }}</td>
+            <td>RECURRING BILL</td>
+            <td></td>
+            <td>{{ a.advanceAmount_paid }}</td>
+            <td>
+              <i class="fa fa-ellipsis-v text-muted" style="font-size:24px"></i>
+            </td>
+          </tr>
+          {% endfor %}
+
           
         </tbody>
       </table>
@@ -71,6 +178,62 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 <script>
+  $(document).ready(function(){
+    calculateBalance();
+  });
+
+  function filterTableByDate() {
+    var start = $('#startDate').val();
+    var end = $('#endDate').val();
+    console.log(start,end)
+    if(start != "" && end != ""){
+
+      var startDate = new Date(start);
+      var endDate = new Date(end);
+      var table = document.getElementById('cashInHandTable');
+      var rows = table.getElementsByTagName('tr');
+  
+      for (var i = 1; i < rows.length; i++) {
+        var row = rows[i];
+        var rowData = row.getElementsByTagName('td')[0].textContent;
+  
+        var rowDate = new Date(rowData);
+  
+        if (rowDate >= startDate && rowDate <= endDate) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      }
+      calculateBalance();
+    }else{
+      alert('Select valid Start and End dates')
+    }
+  }
+
+  function calculateBalance(){
+    var table = document.getElementById('cashInHandTable');
+    var rows = table.getElementsByTagName('tr');
+    var balance = 0
+
+    for (var i = 1; i < rows.length; i++) {
+      var row = rows[i];
+      if(row.style.display != 'none'){
+        var amt = parseFloat(row.getElementsByTagName('td')[3].textContent);
+        var type = row.getElementsByTagName('td')[1].textContent;
+  
+        if(type === 'ADD CASH' || type === 'INVOICE' || type === 'RECURRING INVOICE' || type === 'CASH DEPOSIT' || type === 'CREDIT NOTE'){
+          balance += amt
+        }else{
+          balance -= amt
+        }
+      }
+
+    }
+    console.log('balance==',balance)
+    $('#bal').text(balance)
+  }
+
   var $rows = $('#cashInHandTable tbody tr');
   $('#search').keyup(function() {
     var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
@@ -142,8 +305,8 @@
     var rows = Array.from(table.rows).slice(1);
 
     rows.sort(function (a, b) {
-      var amtA = parseFloat(a.cells[4].textContent);
-      var amtB = parseFloat(b.cells[4].textContent);
+      var amtA = parseFloat(a.cells[3].textContent);
+      var amtB = parseFloat(b.cells[3].textContent);
       return amtA - amtB;
     });
 
@@ -157,6 +320,21 @@
         table.tBodies[0].appendChild(row);
     });
   }
+
+  $(document).ready(function(){
+      var date1 = "";
+      $('#startDate').on('change',function(){
+          date1 = $(this).val()
+          $('#endDate').prop('min',date1)
+      })
+  })
+  $(document).ready(function(){
+      var date2 = "";
+      $('#endDate').on('change',function(){
+          date2 = $(this).val()
+          $('#startDate').prop('max',date2)
+      })
+  })
 </script>
 
 {% endblock %}

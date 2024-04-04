@@ -776,6 +776,10 @@ urlpatterns = [
 
     # < ------------- Shemeem -------- > CASH IN HAND < ------------------------------- >
     path('Fin_cash_in_hand',views.Fin_cashInHand, name='Fin_cashInHand'),
+    path('Fin_add_cash',views.Fin_addCash, name='Fin_addCash'),
+    path('Fin_save_added_cash',views.Fin_saveAddCash, name='Fin_saveAddCash'),
+    path('Fin_edit_added_cash/<int:id>',views.Fin_editAddCash, name='Fin_editAddCash'),
+    path('Fin_update_added_cash/<int:id>',views.Fin_updateAddCash, name='Fin_updateAddCash'),
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 ]

@@ -27571,35 +27571,145 @@ def Fin_cashInHand(request):
 
         allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
 
-        bnk = Fin_BankTransactions.objects.filter(company=cmp).exclude(Q(type='From Bank Transfer') | Q(type='To Bank Transfer') | Q(type='Opening Balance'))
+        cash = Fin_CashInHand.objects.filter(Company = cmp)
+        bnk = Fin_BankTransactions.objects.filter(company=cmp).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+        inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+        crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cash', paid__gt = 0)
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash')
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash')
         
-        loan = loan_transaction.objects.filter(company=cmp)
-        getloan = loan_transaction.objects.filter(to_trans='cash')
-        toloan = loan_transaction.objects.filter(from_trans='cash')
-        pordr= Fin_Purchase_Order.objects.filter(payment_method='Cash')
-        sordr= Fin_Sales_Order.objects.filter(payment_method='Cash')
-        payrec= Fin_Payment_Received.objects.filter(payment_method='Cash')
-        bill= Fin_Purchase_Bill.objects.filter(pay_type='Cash')
-        dbtnt= Fin_Debit_Note.objects.filter(payment_type='Cash')
-        rcrbl= Fin_Recurring_Bills.objects.filter(payment_method='Cash')
-        empln= Fin_Loan.objects.filter(payment_method='Cash')
+        
+        # loan = loan_transaction.objects.filter(company=cmp)
+        # getloan = loan_transaction.objects.filter(to_trans__iexact='Cash')
+        # toloan = loan_transaction.objects.filter(from_trans__iexact='Cash')
+        # pordr= Fin_Purchase_Order.objects.filter(payment_method__iexact='Cash')
+        # sordr= Fin_Sales_Order.objects.filter(payment_method__iexact='Cash')
+        # payrec= Fin_Payment_Received.objects.filter(payment_method__iexact='Cash')
+        # dbtnt= Fin_Debit_Note.objects.filter(payment_type__iexact='Cash')
+        # empln= Fin_Loan.objects.filter(payment_method__iexact='Cash')
+        
         context = {
             'allmodules':allmodules,
             'com':com,
             'cmp':cmp,
             'data':data,
-            'bnk': bnk,
-            'loan': loan,
-            'getloan': getloan,
-            'toloan': toloan,
-            'pordr':pordr,
-            'sordr':sordr,
-            'payrec':payrec,
+            'cash':cash,
+            'bank_transactions': bnk,
+            'invoice':inv,
+            'recInvoice':recInv,
+            'creditNote':crdNt,
             'bill':bill,
-            'dbtnt':dbtnt,
-            'rcrbl':rcrbl,
-            'empln':empln,
+            'recurringBill':rcrbl,
+            # 'loan': loan,
+            # 'getloan': getloan,
+            # 'toloan': toloan,
+            # 'pordr':pordr,
+            # 'sordr':sordr,
+            # 'payrec':payrec,
+            # 'dbtnt':dbtnt,
+            # 'empln':empln,
         }
         return render(request,'company/Fin_Cash_In_Hand.html',context)
+    else:
+       return redirect('/')
+
+def Fin_addCash(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+        context = {
+            'allmodules':allmodules,
+            'com':com,
+            'cmp':cmp,
+            'data':data,
+        }
+        return render(request,'company/Fin_Cash_Add.html',context)
+    else:
+       return redirect('/')
+
+def Fin_saveAddCash(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == "POST":
+            adj = request.POST['adjustment']
+            amt = 0.0 if request.POST['amount'] == "" else float(request.POST['amount'])
+            cash = Fin_CashInHand(
+                Company = com,
+                LoginDetails = com.Login_Id,
+                adjustment = adj,
+                amount = amt,
+                adjust_date = request.POST['adjustment_date'],
+                description = request.POST['description'],
+            )
+
+            cash.save()
+
+        return redirect(Fin_cashInHand)
+    else:
+       return redirect('/')
+
+def Fin_editAddCash(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+        cash = Fin_CashInHand.objects.get(id = id)
+
+        context = {
+            'allmodules':allmodules,
+            'com':com,
+            'cmp':cmp,
+            'data':data,
+            'cash':cash
+        }
+        return render(request, 'company/Fin_Cash_Edit.html',context)
+    else:
+       return redirect('/')
+
+def Fin_updateAddCash(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        if request.method == 'POST':
+            cash = Fin_CashInHand.objects.get(id = id)
+            adj = request.POST['adjustment']
+            amt = 0.0 if request.POST['amount'] == "" else float(request.POST['amount'])
+
+            cash.adjustment = adj
+            cash.amount = amt
+            cash.adjust_date = request.POST['adjustment_date']
+            cash.description = request.POST['description']
+
+            cash.save()
+
+        return redirect(Fin_cashInHand)
     else:
        return redirect('/')

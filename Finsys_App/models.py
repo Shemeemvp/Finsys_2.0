@@ -2160,3 +2160,94 @@ class Fin_PaymentMadeDetails(models.Model):
 
     def __str__(self):
         return f"{self.type} - {self.bill_number}"
+
+# < ------------- Shemeem -------- > CASH IN HAND < ------------------------------- >
+class Fin_CashInHand(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    adjustment = models.CharField(max_length = 100, null = False, blank = False)
+    amount = models.FloatField(null = True, default = 0.0)
+    adjust_date = models.DateField(null = True, blank = True)
+    description = models.TextField()
+    balance = models.FloatField(null = True, blank = True)
+
+# End
+
+class Fin_CreditNote(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True,blank=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True,blank=True)
+    Customer = models.ForeignKey(Fin_Customers, on_delete=models.CASCADE, null=True,blank=True)
+    customer_email = models.EmailField(max_length=100, null=True, blank=True)
+    billing_address = models.TextField(null=True, blank=True)
+    gst_type = models.CharField(max_length=100, null=True, blank=True)
+    gstin = models.CharField(max_length=100, null=True, blank=True)
+    place_of_supply = models.CharField(max_length=100, null=True, blank=True)
+    creditnote_number = models.CharField(max_length=100, blank=True)
+    creditnote_date = models.DateField(null=True, blank=True)
+    reference_number = models.IntegerField(null=True, blank=True)
+    invoice_number = models.CharField(max_length=100, blank=True)
+
+    
+    invoice_type = models.CharField(max_length=100, blank=True)
+    payment_type = models.CharField(max_length=100, blank=True)
+    cheque_number = models.CharField(max_length=100, blank=True,null=True,)
+    upi_id = models.CharField(max_length=100, blank=True,null=True,)
+    bank_account = models.CharField(max_length=100, blank=True,null=True,)
+
+    description = models.CharField(max_length=100, blank=True)
+    document = models.FileField(upload_to='file/',blank=True) 
+    
+
+    subtotal = models.IntegerField(default=0, null=True)
+    igst = models.FloatField(default=0.0, null=True, blank=True)
+    cgst = models.FloatField(default=0.0, null=True, blank=True)
+    sgst = models.FloatField(default=0.0, null=True, blank=True)
+    price = models.FloatField(default=0.0, null=True, blank=True)
+    tax_amount = models.FloatField(default=0.0, null=True, blank=True)
+    adjustment = models.FloatField(default=0.0, null=True, blank=True)
+    shipping_charge = models.FloatField(default=0.0, null=True, blank=True)
+    grandtotal = models.FloatField(default=0.0, null=True, blank=True)
+    paid = models.IntegerField(default=0, null=True)
+    balance = models.FloatField(default=0.0, null=True, blank = True)
+
+    
+  
+    note = models.TextField(null=True, blank=True)
+    
+    status =models.CharField(max_length=150,default='Draft')
+
+
+class Fin_CreditNote_Items(models.Model):
+    items = models.ForeignKey(Fin_Items, on_delete=models.CASCADE, null=True)
+    hsn = models.CharField( max_length=150,null=True, blank=True)
+    quantity = models.IntegerField(default=0, null=True, blank=True)
+    creditnote = models.ForeignKey(Fin_CreditNote, on_delete=models.CASCADE, null=True)
+    
+    tax_rate = models.FloatField(default=0, null=True, blank=True)
+    price = models.FloatField(default=0.0, null=True, blank=True)
+
+    discount = models.FloatField(default=0, null=True)
+    total = models.FloatField(default=0, null=True, blank = True)
+
+
+class Fin_CreditNote_Reference(models.Model):
+    
+    reference_number = models.CharField( max_length=150,null=True, blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    creditnote = models.ForeignKey(Fin_CreditNote, on_delete=models.CASCADE, null=True)
+  
+
+class Fin_CreditNote_History(models.Model):
+    
+    
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    creditnote = models.ForeignKey(Fin_CreditNote, on_delete=models.CASCADE, null=True)
+    date = models.DateField( null=True, blank = True)
+    action = models.CharField( max_length=150,default='Created')
+
+class Fin_CreditNote_Comments(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    creditnote = models.ForeignKey(Fin_CreditNote, on_delete=models.CASCADE, null=True)
+    comments = models.CharField(max_length=500,null=True,blank=True)
