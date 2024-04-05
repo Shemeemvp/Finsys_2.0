@@ -2251,3 +2251,72 @@ class Fin_CreditNote_Comments(models.Model):
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
     creditnote = models.ForeignKey(Fin_CreditNote, on_delete=models.CASCADE, null=True)
     comments = models.CharField(max_length=500,null=True,blank=True)
+
+
+# Retainer Invoice
+
+class Fin_Retainer_Invoice(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Customer = models.ForeignKey(Fin_Customers, on_delete=models.CASCADE, null=True)
+    Customer_email= models.EmailField(null=True,blank=True)
+    Customer_billing_address= models.CharField(max_length=10,null=True,blank=True)
+    Customer_gst_type= models.CharField(max_length=10,null=True,blank=True)
+    Customer_gstin = models.CharField(max_length=100,null=True,blank=True,default=None)
+    Customer_place_of_supply = models.CharField(max_length=100,null=True,blank=True)
+    Retainer_Invoice_number= models.CharField(max_length=100,null=True,blank=True,default=None)
+    Retainer_Invoice_date = models.DateField(null=True, blank=True)
+    Reference_number= models.IntegerField(null=True)
+    Payment_Method= models.CharField(max_length=10,null=True,blank=True)
+    Cheque_number= models.CharField(max_length=100,null=True,blank=True)
+    UPI_number= models.CharField(max_length=100,null=True,blank=True)
+    Bank_account_no= models.CharField(max_length=100,null=True,blank=True)
+    Description= models.CharField(max_length=100,null=True,blank=True)
+    Document= models.FileField(upload_to='file/retinv',blank=True) 
+    Sub_total = models.FloatField(null=True,blank=True)
+    Adjustment = models.FloatField(default=0,null=True,blank=True)
+    Grand_total = models.FloatField(null=True,blank=True)
+    Paid_amount= models.FloatField(default=0,max_length=100,null=True)
+    Balance = models.FloatField(max_length=100,null=True)
+    retinv_status = (
+        ('Draft','Draft'),
+        ('Sent','Sent'),
+    )
+    status =models.CharField(max_length=150,choices=retinv_status,null=True,blank=True)
+
+class Fin_Retainer_Invoice_Items(models.Model):
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    Ret_Inv = models.ForeignKey(Fin_Retainer_Invoice,on_delete=models.CASCADE,null=True,blank=True)
+    Item = models.ForeignKey(Fin_Items,on_delete=models.CASCADE,null=True,blank=True)
+    HSN= models.CharField(max_length=100,null=True)
+    Quantity= models.IntegerField(default=0, null=True)
+    Price = models.CharField(max_length=100,null=True)
+    Discription = models.CharField(max_length=100,null=True)
+    discount = models.FloatField(null=True,blank=True)
+    Total= models.FloatField(max_length=100,null=True)
+
+
+class Fin_Retainer_Invoice_Reference(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Reference_no = models.BigIntegerField(null = False, blank=False)
+
+
+class Fin_Retainer_Invoice_History(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Ret_Invoice = models.ForeignKey(Fin_Retainer_Invoice,on_delete=models.CASCADE,null=True,blank=True)
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True)
+    choice = [
+        ('Created', 'Created'),
+        ('Edited', 'Edited'),
+    ]
+    action = models.CharField(max_length=20, null=True, blank = True, choices=choice)
+
+
+class Fin_Retainer_Invoice_Comments(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Ret_Invoice = models.ForeignKey(Fin_Retainer_Invoice,on_delete=models.CASCADE,null=True,blank=True)
+    comments = models.CharField(max_length=500,null=True,blank=True)

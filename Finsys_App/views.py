@@ -27576,18 +27576,21 @@ def Fin_cashInHand(request):
         inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
         crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cash', paid__gt = 0)
         recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
-        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash')
-        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash')
+        sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+        rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cash', Paid_amount__gt = 0)
+        # payrec= Fin_Payment_Received.objects.filter(company = cmp, payment_method__iexact='cash', total_payment__gt = 0)
         
         
-        # loan = loan_transaction.objects.filter(company=cmp)
-        # getloan = loan_transaction.objects.filter(to_trans__iexact='Cash')
-        # toloan = loan_transaction.objects.filter(from_trans__iexact='Cash')
-        # pordr= Fin_Purchase_Order.objects.filter(payment_method__iexact='Cash')
-        # sordr= Fin_Sales_Order.objects.filter(payment_method__iexact='Cash')
-        # payrec= Fin_Payment_Received.objects.filter(payment_method__iexact='Cash')
-        # dbtnt= Fin_Debit_Note.objects.filter(payment_type__iexact='Cash')
-        # empln= Fin_Loan.objects.filter(payment_method__iexact='Cash')
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash', paid__gt = 0)
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cash', paid__gt = 0)
+        # paymade = Fin_PaymentMade.objects.filter(Company = cmp, payment_method__iexact = 'cash', total_payment__gt = 0)
+        
+        empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+        empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+        lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cash', principle_amount__gt = 0)
+        slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cash')
         
         context = {
             'allmodules':allmodules,
@@ -27599,16 +27602,20 @@ def Fin_cashInHand(request):
             'invoice':inv,
             'recInvoice':recInv,
             'creditNote':crdNt,
+            'salesOrder':sordr,
+            'retainerInvoice':rtInv,
+            # 'paymentReceived':payrec,
+            
             'bill':bill,
             'recurringBill':rcrbl,
-            # 'loan': loan,
-            # 'getloan': getloan,
-            # 'toloan': toloan,
-            # 'pordr':pordr,
-            # 'sordr':sordr,
-            # 'payrec':payrec,
-            # 'dbtnt':dbtnt,
-            # 'empln':empln,
+            'purchaseOrder':pordr,
+            'debitNote':dbtnt,
+            # 'paymentMade':paymade,
+
+            'empLoan':empLoan,
+            'empAddLoan':empAddLoan,
+            'loanRepay':lnRpy,
+            'empSalary':slry,
         }
         return render(request,'company/Fin_Cash_In_Hand.html',context)
     else:
@@ -27711,5 +27718,68 @@ def Fin_updateAddCash(request, id):
             cash.save()
 
         return redirect(Fin_cashInHand)
+    else:
+       return redirect('/')
+
+def Fin_cashInHandStatement(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+        cash = Fin_CashInHand.objects.filter(Company = cmp)
+        bnk = Fin_BankTransactions.objects.filter(company=cmp).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+        inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+        crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cash', paid__gt = 0)
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+        sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+        rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cash', Paid_amount__gt = 0)
+        # payrec= Fin_Payment_Received.objects.filter(company = cmp, payment_method__iexact='cash', total_payment__gt = 0)
+        
+        
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash', paid__gt = 0)
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cash', paid__gt = 0)
+        # paymade = Fin_PaymentMade.objects.filter(Company = cmp, payment_method__iexact = 'cash', total_payment__gt = 0)
+        
+        empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+        empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+        lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cash', principle_amount__gt = 0)
+        slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cash')
+        
+        context = {
+            'allmodules':allmodules,
+            'com':com,
+            'cmp':cmp,
+            'data':data,
+            'cash':cash,
+            'bank_transactions': bnk,
+            'invoice':inv,
+            'recInvoice':recInv,
+            'creditNote':crdNt,
+            'salesOrder':sordr,
+            'retainerInvoice':rtInv,
+            # 'paymentReceived':payrec,
+            
+            'bill':bill,
+            'recurringBill':rcrbl,
+            'purchaseOrder':pordr,
+            'debitNote':dbtnt,
+            # 'paymentMade':paymade,
+
+            'empLoan':empLoan,
+            'empAddLoan':empAddLoan,
+            'loanRepay':lnRpy,
+            'empSalary':slry,
+        }
+        return render(request,'company/Fin_Cash_In_Hand_Statement.html',context)
     else:
        return redirect('/')

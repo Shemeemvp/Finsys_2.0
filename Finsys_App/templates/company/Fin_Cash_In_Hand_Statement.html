@@ -1,0 +1,501 @@
+<!-- Created --shemeem  -->
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load social_share %}
+<style>
+  .print-only {
+        /* display: none; */
+        height: auto;
+        width: auto;
+        overflow-y: auto;
+        border: none;
+        /* box-shadow: 5px 2px 5px 2px  grey; */
+    }
+
+    @media print {
+        body{
+            visibility: hidden !important;
+            /* background-color: white; */
+        }
+
+        #slip{
+            margin-left: 2vh;
+            margin-right: 2vh;
+        }
+
+        .printContainer {
+            visibility: visible !important;
+            position: absolute;
+            z-index: 99999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: large;
+        }
+
+    }
+
+    .page {
+        background: var(--white);
+        display: block;
+        margin: 0 auto;
+        position: relative;
+        box-shadow: var(--pageShadow);
+    }
+
+    .page[size="A4"] {
+        width: 21cm;
+        height: 29.7cm;
+        overflow-y: auto;
+
+    }
+    .page::-webkit-scrollbar{
+      display: none;
+    }
+    #cashInHandTable th,#cashInHandTable td {
+      color: #000;
+    }
+    .whatsapp-this{
+      display: flex;
+      justify-content: center;
+      cursor: pointer;
+      padding: 4px 0px;
+    }
+
+    .whatsapp-this:hover{
+      background-color: rgb(255 255 255 / 0.21);
+    }
+</style>
+<div class="page-content">
+  <div class="card radius-15 h-20">
+    <div class="row">
+      <div class="col-md-12">
+        <center><h2 class="mt-3">CASH IN HAND</h2></center>
+        <hr/>
+      </div>
+    </div>
+  </div>
+
+  <div class="card radius-15">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-6 d-flex justify-content-start">
+          <button type="button" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center" id="pdfBtn"><i class="fa fa-file-pdf mr-1" style="font-size: 1rem !important;"></i>PDF</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center ml-2" onclick="printSection('statementTemplate')" id="printBtn"><i class="fa fa-print mr-1" style="font-size: 1rem !important;"></i>Print</button>
+          <div class="dropdown ml-2">
+            <button class="btn btn-outline-secondary text-grey dropdown-toggle" type="button" id="shareBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-share-alt mr-1" style="font-size: 1rem !important;"></i>Share</button>
+            <div class="dropdown-menu" aria-labelledby="shareBtn">
+              <span>{% post_to_whatsapp object_or_url "WhatsApp" %}</span>
+              <a class="dropdown-item" style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 d-flex justify-content-end">
+          <div class="filter">
+            <div class="form-inline">
+              <input type="date" name="start_date" id="startDate" class="form-control form-control-sm mr-1" required>
+              TO
+              <input type="date" name="end_date" id="endDate" class="form-control form-control-sm ml-1" required>
+              <button class="btn btn-sm btn-outline-secondary ml-2" type="button" onclick="filterTableByDate()">Filter</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="container-fluid">
+        <div id="printStatemnent" class="print-only">
+          <!-- Statement Template -->
+          <div  id="statementTemplate"  class="printStatementTemplates template1">
+            <div class="my-5 page" size="A4" >
+              <div id="printdiv2">
+                  <div class="row px-5 py-4" style="background-color:#268ddd;" >
+                      <div class="col-md-4"></div>
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <center class="h3 text-white"><b>CASH IN HAND</b></center>
+                    </div>  
+                    <div class="col-md-4"></div>
+                </div>
+                <div class="px-5 py-1">
+                    <section class="store-user"><br><br>
+                        <div class="col-12">
+                            <div class="row bb pb-2 mt-3">
+                              <div class="col-4 pl-0">
+                                  <h5 class="text-secondary" style="font-weight: bold;">{{cmp.Company_name}}</h5>
+                                  <p class="address" style="font-weight: bold;color: #000;">
+                                      {{cmp.Address}}
+                                      <br>
+                                      {{cmp.City}}
+                                      <br>
+                                      {{cmp.State}} - {{cmp.Pincode}}
+                                      <br>
+                                      <span>Mob: </span><b>{{cmp.Contact}}</b>
+                                  </p>  
+                              </div>
+                              <div class="col-2"></div>
+                              <div class="col-6 d-flex justify-content-end">
+                                <div class="bal_section pt-3 pr-3">
+                                  <span class="h4 font-weight-bold text-info">BALANCE: <span id="bal">0</span></span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                        </div>
+                    </section>
+        
+                    <section class="product-area mt-2">
+                      <table class="table table-hover table-bordered  templatetable" id="cashInHandTable">
+                        <thead style="background: #22b8d1;">
+                          <tr class="template3tablehead">
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody  style="background-color: #999999ab;">
+                          {% for a in cash %}
+                          <tr>
+                            <td>{{ a.adjust_date|date:'Y-m-d' }}</td>
+                            <td>{{ a.adjustment|upper }}</td>
+                            <td></td>
+                            <td>{{ a.amount }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in bank_transactions %}
+                          <tr>
+                            <td>{{ a.adjustment_date|date:'Y-m-d' }}</td>
+                            <td>{{ a.transaction_type|upper }}</td>
+                            <td></td>
+                            <td>{{ a.amount }}</td>
+                          </tr>
+                          {% endfor %}
+                          
+                          {% for a in invoice %}
+                          <tr>
+                            <td>{{ a.invoice_date|date:'Y-m-d' }}</td>
+                            <td>INVOICE</td>
+                            <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                            <td>{{ a.paid_off }}</td>
+                          </tr>
+                          {% endfor %}
+                          
+                          {% for a in recInvoice %}
+                          <tr>
+                            <td>{{ a.start_date|date:'Y-m-d' }}</td>
+                            <td>RECURRING INVOICE</td>
+                            <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                            <td>{{ a.paid_off }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in creditNote %}
+                          <tr>
+                            <td>{{ a.creditnote_date|date:'Y-m-d' }}</td>
+                            <td>CREDIT NOTE</td>
+                            <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                            <td>{{ a.paid }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in salesOrder %}
+                          <tr>
+                            <td>{{ a.sales_order_date|date:'Y-m-d' }}</td>
+                            <td>SALES ORDER</td>
+                            <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                            <td>{{ a.paid_off }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in retainerInvoice %}
+                          <tr>
+                            <td>{{ a.Retainer_Invoice_date|date:'Y-m-d' }}</td>
+                            <td>RETAINER INVOICE</td>
+                            <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                            <td>{{ a.paid_off }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% comment %}{% for a in paymentReceived %}
+                          <tr>
+                            <td>{{ a.payment_date|date:'Y-m-d' }}</td>
+                            <td>PAYMENT RECEIVED</td>
+                            <td>{{a.customer.first_name}} {{a.customer.last_name}}</td>
+                            <td>{{ a.paid_off }}</td>
+                          </tr>
+                          {% endfor %} {% endcomment %}
+  
+                          {% for a in bill %}
+                          <tr>
+                            <td>{{ a.bill_date|date:'Y-m-d' }}</td>
+                            <td>BILL</td>
+                            <td>{{a.vendor.first_name}} {{a.vendor.last_name}}</td>
+                            <td>{{ a.paid }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in recurringBill %}
+                          <tr>
+                            <td>{{ a.date|date:'Y-m-d' }}</td>
+                            <td>RECURRING BILL</td>
+                            <td>{{a.vendor.first_name}} {{a.vendor.last_name}}</td>
+                            <td>{{ a.advanceAmount_paid }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in purchaseOrder %}
+                          <tr>
+                            <td>{{ a.purchase_order_date|date:'Y-m-d' }}</td>
+                            <td>PURCHASE ORDER</td>
+                            <td>{{a.Vendor.first_name}} {{a.Vendor.last_name}}</td>
+                            <td>{{ a.paid_off }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in debitNote %}
+                          <tr>
+                            <td>{{ a.debit_note_date|date:'Y-m-d' }}</td>
+                            <td>DEBIT NOTE</td>
+                            <td>{{a.Vendor.first_name}} {{a.Vendor.last_name}}</td>
+                            <td>{{ a.paid }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% comment %}{% for a in paymentMade %}
+                          <tr>
+                            <td>{{ a.payment_date|date:'Y-m-d' }}</td>
+                            <td>PAYMENT MADE</td>
+                            <td>{{a.vendor.first_name}} {{a.vendor.last_name}}</td>
+                            <td>{{ a.total_payment }}</td>
+                          </tr>
+                          {% endfor %} {% endcomment %}
+  
+                          {% for a in empLoan %}
+                          <tr>
+                            <td>{{ a.loan_date|date:'Y-m-d' }}</td>
+                            <td>EMPLOYEE LOAN</td>
+                            <td>{{a.employee.first_name}} {{a.employee.last_name}}</td>
+                            <td>{{ a.loan_amount }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in empAddLoan %}
+                          <tr>
+                            <td>{{ a.new_date|date:'Y-m-d' }}</td>
+                            <td>EMPLOYEE ADDITIONAL LOAN</td>
+                            <td>{{a.employee_loan.employee.first_name}} {{a.employee_loan.employee.last_name}}</td>
+                            <td>{{ a.new_loan }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in loanRepay %}
+                          <tr>
+                            <td>{{ a.payment_date|date:'Y-m-d' }}</td>
+                            <td>EMI PAID</td>
+                            <td>{{a.employee.first_name}} {{a.employee.last_name}}</td>
+                            <td>{{ a.principle_amount }}</td>
+                          </tr>
+                          {% endfor %}
+  
+                          {% for a in empSalary %}
+                          <tr>
+                            <td>{{ a.salary_date|date:'Y-m-d' }}</td>
+                            <td>EMPLOYEE SALARY</td>
+                            <td>{{a.employee.first_name}} {{a.employee.last_name}}</td>
+                            <td>{{ a.total_salary }}</td>
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </section>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script> -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+<script>
+  $(document).ready(function(){
+    calculateBalance();
+  });
+
+  function filterTableByDate() {
+    var start = $('#startDate').val();
+    var end = $('#endDate').val();
+    console.log(start,end)
+    if(start != "" && end != ""){
+
+      var startDate = new Date(start);
+      var endDate = new Date(end);
+      var table = document.getElementById('cashInHandTable');
+      var rows = table.getElementsByTagName('tr');
+  
+      for (var i = 1; i < rows.length; i++) {
+        var row = rows[i];
+        var rowData = row.getElementsByTagName('td')[0].textContent;
+  
+        var rowDate = new Date(rowData);
+  
+        if (rowDate >= startDate && rowDate <= endDate) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      }
+      calculateBalance();
+    }else{
+      alert('Select valid Start and End dates')
+    }
+  }
+
+  function calculateBalance(){
+    var table = document.getElementById('cashInHandTable');
+    var rows = table.getElementsByTagName('tr');
+    var balance = 0
+
+    for (var i = 1; i < rows.length; i++) {
+      var row = rows[i];
+      if(row.style.display != 'none'){
+        var amt = parseFloat(row.getElementsByTagName('td')[3].textContent);
+        var type = row.getElementsByTagName('td')[1].textContent;
+  
+        if(type === 'ADD CASH' || type === 'INVOICE' || type === 'RECURRING INVOICE' || type === 'CASH DEPOSIT' || type === 'DEBIT NOTE' || type ==='SALES ORDER' || type === 'RETAINER INVOICE' || type === 'EMI PAID'){
+          balance += amt
+        }else{
+          balance -= amt
+        }
+      }
+
+    }
+    console.log('balance==',balance)
+    $('#bal').text(balance)
+  }
+
+  function printSection(sectionId) {
+    document.body.style.backgroundColor = 'white';
+    var printContents = document.getElementById(sectionId).innerHTML;
+    var originalContents = document.body.innerHTML;
+    var $printerDiv = $('<div class="printContainer"></div>');
+
+    $printerDiv.html(printContents); 
+    $('body').append($printerDiv).addClass("printingContent"); 
+    window.print(); 
+    $printerDiv.remove();
+    $('body').removeClass("printingContent");
+  }
+  var $rows = $('#cashInHandTable tbody tr');
+  $('#search').keyup(function() {
+    var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+    
+    $rows.show().filter(function() {
+      var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+      return !~text.indexOf(val);
+    }).hide();
+  });
+  
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    const Table = document.getElementById("cashInHandTable");
+    const ws = XLSX.utils.table_to_sheet(Table);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    XLSX.writeFile(wb, "Expense.xlsx");
+  });
+
+  jQuery(document).ready(function ($) {
+    $(".clickable-row").click(function () {
+      window.location = $(this).data("href");
+    });
+  });
+
+  function sortTable(columnIndex) {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById("cashInHandTable");
+    switching = true;
+
+    while (switching) {
+      switching = false;
+      rows = table.rows;
+
+      for (i = 1; i < (rows.length - 1); i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("td")[columnIndex].textContent.toLowerCase();
+        y = rows[i + 1].getElementsByTagName("td")[columnIndex].textContent.toLowerCase();
+
+        if (x > y) {
+            shouldSwitch = true;
+            break;
+        }
+      }
+
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+      }
+    }
+  }
+
+  function filterTable(row,filterValue) {
+    var table1 = document.getElementById("cashInHandTable");
+    var rows1 = table1.getElementsByTagName("tr");
+
+    for (var i = 1; i < rows1.length; i++) {
+      var statusCell = rows1[i].getElementsByTagName("td")[row];
+
+      if (filterValue == "all" || statusCell.textContent.toLowerCase() == filterValue) {
+        rows1[i].style.display = "";
+      } else {
+        rows1[i].style.display = "none";
+      }
+    }
+  }
+
+  function sortAmountAscending() {
+    var table = document.getElementById("cashInHandTable");
+    var rows = Array.from(table.rows).slice(1);
+
+    rows.sort(function (a, b) {
+      var amtA = parseFloat(a.cells[3].textContent);
+      var amtB = parseFloat(b.cells[3].textContent);
+      return amtA - amtB;
+    });
+
+    // Remove existing rows from the table
+    for (var i = table.rows.length - 1; i > 0; i--) {
+        table.deleteRow(i);
+    }
+
+    // Append the sorted rows back to the table
+    rows.forEach(function (row) {
+        table.tBodies[0].appendChild(row);
+    });
+  }
+
+  $(document).ready(function(){
+      var date1 = "";
+      $('#startDate').on('change',function(){
+          date1 = $(this).val()
+          $('#endDate').prop('min',date1)
+      })
+  })
+  $(document).ready(function(){
+      var date2 = "";
+      $('#endDate').on('change',function(){
+          date2 = $(this).val()
+          $('#startDate').prop('max',date2)
+      })
+  })
+</script>
+
+{% endblock %}
