@@ -39,7 +39,7 @@
             </div>
           </div>
           <div class="col-md-5 d-flex justify-content-end">
-            <button type="button" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center" id="graphBtn"><i class="fa fa-chart-pie mr-1"></i>Graph</button>
+            <button type="button" onclick="window.location.href=`{% url 'Fin_cashInHandGraph' 'month' %}`" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center" id="graphBtn"><i class="fa fa-chart-pie mr-1"></i>Graph</button>
             <button type="button" onclick="window.location.href=`{% url 'Fin_cashInHandStatement' %}`" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center ml-1" id="statementBtn"><i class="fa fa-file mr-1"></i>Statement</button>
             <a href="{% url 'Fin_addCash' %}" class="ml-1"></i><button type="button" class="btn btn-sm btn-outline-secondary text-grey"><i class="fa fa-plus mr-1"></i>Add Cash</button></a>
           </div>

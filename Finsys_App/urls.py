@@ -781,6 +781,9 @@ urlpatterns = [
     path('Fin_edit_added_cash/<int:id>',views.Fin_editAddCash, name='Fin_editAddCash'),
     path('Fin_update_added_cash/<int:id>',views.Fin_updateAddCash, name='Fin_updateAddCash'),
     path('Fin_cash_in_hand_statement',views.Fin_cashInHandStatement, name='Fin_cashInHandStatement'),
+    path('Fin_cash_in_hand_statement_pdf',views.Fin_cashInHandStatementPdf, name='Fin_cashInHandStatementPdf'),
+    path('Fin_share_cash_in_hand_statement_to_email',views.Fin_shareCashInHandStatementToEmail, name='Fin_shareCashInHandStatementToEmail'),
+    path('Fin_cash_in_hand_graph/<str:period>',views.Fin_cashInHandGraph, name='Fin_cashInHandGraph'),
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 ]

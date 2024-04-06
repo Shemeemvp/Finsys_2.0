@@ -66,8 +66,21 @@
     .whatsapp-this:hover{
       background-color: rgb(255 255 255 / 0.21);
     }
+
+    .submitShareEmailBtn {
+        background: #192d3e;
+        border: 1px solid #3a4b5a;
+        border-radius: 4px;
+        color: white;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+    }
+    .submitShareEmailBtn:hover {
+        background: #3a4b5a;
+    }
 </style>
 <div class="page-content">
+  <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_cashInHand' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
   <div class="card radius-15 h-20">
     <div class="row">
       <div class="col-md-12">
@@ -87,7 +100,7 @@
             <button class="btn btn-outline-secondary text-grey dropdown-toggle" type="button" id="shareBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-share-alt mr-1" style="font-size: 1rem !important;"></i>Share</button>
             <div class="dropdown-menu" aria-labelledby="shareBtn">
               <span>{% post_to_whatsapp object_or_url "WhatsApp" %}</span>
-              <a class="dropdown-item" style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</a>
+              <a class="dropdown-item" style="text-align: center;color: #e5e9ec; cursor: pointer;" id="toggleEmailModal">Email</a>
             </div>
           </div>
         </div>
@@ -322,13 +335,103 @@
   </div>
 </div>
 
+<!-- Share To Email Modal -->
+<div class="modal fade" id="shareToEmail">
+  <div class="modal-dialog modal-lg">
+      <div class="modal-content" style="background-color: #213b52;">
+          <div class="modal-header">
+              <h5 class="m-3">Share Statement</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <div class="card p-3">
+                  <form action="{% url 'Fin_shareCashInHandStatementToEmail' %}" method="post" class="needs-validation" id="share_to_email_form">
+                      {% csrf_token %}
+                      <div class="form-group">
+                          <label for="emailIds">Email IDs</label>
+                          <textarea class="form-control" name="email_ids" id="emailIds" rows="3" placeholder="Multiple emails can be added by separating with a comma(,)." required></textarea>
+                      </div>
+                      <div class="form-group mt-2">
+                          <label for="item_unitname">Message(optional)</label>
+                          <textarea name="email_message" id="email_message" class="form-control" cols="" rows="4" placeholder="This message will be sent along with Bill details."></textarea>
+                      </div>
+                      <input type="number" name="balance" id="blnc" hidden>
+                      <input type="date" name="start" id="startDt" hidden>
+                      <input type="date" name="end" id="endDt" hidden>
+                  </form>
+              </div>
+              <div class="modal-footer d-flex justify-content-center" style="border-top: 1px solid #ffffff;">
+                  <button type="submit" id="share_with_email" class="submitShareEmailBtn w-50 text-uppercase">SEND MAIL</button>
+              </div>
+          </div>
+      </div>   
+  </div>
+</div>
+
+<form action="{% url 'Fin_cashInHandStatementPdf' %}" method="get" id="pdfForm" hidden>
+  <input type="number" name="balance" id="bln">
+  <input type="date" name="start" id="startD">
+  <input type="date" name="end" id="endD">
+</form>
+
 
 <!-- <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script> -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 <script>
   $(document).ready(function(){
+      var date1 = "";
+      $('#startDate').on('change',function(){
+          date1 = $(this).val()
+          $('#endDate').prop('min',date1)
+      })
+  })
+  $(document).ready(function(){
+      var date2 = "";
+      $('#endDate').on('change',function(){
+          date2 = $(this).val()
+          $('#startDate').prop('max',date2)
+      })
+  })
+  $(document).ready(function(){
     calculateBalance();
+  });
+
+  $(document).ready(function(){
+    $('#share_with_email').on('click',function(){
+        var emailsInput = document.getElementById('emailIds');
+        var emailsString = emailsInput.value.trim();
+
+        var emails = emailsString.split(',').map(function(email) {
+            return email.trim();
+        });
+
+        var emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+
+        var invalidEmails = []
+        if(emailsString == ""){
+            alert('Enter valid email addresses..')
+        }
+        else{
+            for (var i = 0; i < emails.length; i++) {
+                var currentEmail = emails[i];
+
+                if (currentEmail!="" && !emailRegex.test(currentEmail)) {
+                    console.log(currentEmail + ' is invalid!');
+                    invalidEmails.push(currentEmail)
+                }
+            }
+            
+            if(invalidEmails.length > 0){
+                alert('Invalid emails..Please check!\n'+invalidEmails)
+                // alert(invalidEmails)
+            }else{
+                $('#share_to_email_form').submit();
+            }
+        }
+    })
   });
 
   function filterTableByDate() {
@@ -382,6 +485,40 @@
     console.log('balance==',balance)
     $('#bal').text(balance)
   }
+
+  $('#toggleEmailModal').on('click',function(){
+    var st = $('#startDate').val();
+    var end = $('#endDate').val();
+    var bal = $('#bal').text();
+
+    $('#blnc').val(bal)
+    $('#startDt').val(st)
+    $('#endDt').val(end)
+
+    if((st != "" && end == "") || (st == "" && end != "")){
+      alert('Please select both date inputs or select none')
+      return
+    }
+
+    $('#shareToEmail').modal('toggle');
+  });
+
+  $('#pdfBtn').on('click',function(){
+    var st = $('#startDate').val();
+    var end = $('#endDate').val();
+    var bal = $('#bal').text();
+
+    $('#bln').val(bal)
+    $('#startD').val(st)
+    $('#endD').val(end)
+
+    if((st != "" && end == "") || (st == "" && end != "")){
+      alert('Please select both date inputs or select none')
+      return
+    }
+
+    $('#pdfForm').submit();
+  });
 
   function printSection(sectionId) {
     document.body.style.backgroundColor = 'white';
@@ -482,20 +619,7 @@
     });
   }
 
-  $(document).ready(function(){
-      var date1 = "";
-      $('#startDate').on('change',function(){
-          date1 = $(this).val()
-          $('#endDate').prop('min',date1)
-      })
-  })
-  $(document).ready(function(){
-      var date2 = "";
-      $('#endDate').on('change',function(){
-          date2 = $(this).val()
-          $('#startDate').prop('max',date2)
-      })
-  })
+  
 </script>
 
 {% endblock %}

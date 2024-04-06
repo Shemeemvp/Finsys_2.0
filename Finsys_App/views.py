@@ -27783,3 +27783,429 @@ def Fin_cashInHandStatement(request):
         return render(request,'company/Fin_Cash_In_Hand_Statement.html',context)
     else:
        return redirect('/')
+
+def Fin_cashInHandStatementPdf(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        bal = request.GET['balance']
+        startDate = request.GET['start']
+        endDate = request.GET['end']
+        if startDate == "":
+            startDate = None
+        if endDate == "":
+            endDate = None
+
+        if startDate == None or endDate == None:
+            cash = Fin_CashInHand.objects.filter(Company = cmp)
+            bnk = Fin_BankTransactions.objects.filter(company=cmp).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+            inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+            crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cash', paid__gt = 0)
+            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+            sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+            rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cash', Paid_amount__gt = 0)
+            # payrec= Fin_Payment_Received.objects.filter(company = cmp, payment_method__iexact='cash', total_payment__gt = 0)
+            
+            
+            bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash', paid__gt = 0)
+            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+            pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+            dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cash', paid__gt = 0)
+            # paymade = Fin_PaymentMade.objects.filter(Company = cmp, payment_method__iexact = 'cash', total_payment__gt = 0)
+            
+            empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+            empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+            lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cash', principle_amount__gt = 0)
+            slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cash')
+        else:
+            cash = Fin_CashInHand.objects.filter(Company = cmp, adjust_date__range = [startDate, endDate])
+            bnk = Fin_BankTransactions.objects.filter(company=cmp, adjustment_date__range = [startDate, endDate]).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+            inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'cash', paid_off__gt = 0)
+            crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'cash', paid__gt = 0)
+            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate] , payment_method__iexact = 'cash', paid_off__gt = 0)
+            sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate], payment_method__iexact='cash', paid_off__gt = 0)
+            rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate], Payment_Method__iexact='cash', Paid_amount__gt = 0)
+            # payrec= Fin_Payment_Received.objects.filter(company = cmp, payment_method__iexact='cash', total_payment__gt = 0)
+            
+            
+            bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], pay_type__iexact='cash', paid__gt = 0)
+            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+            pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], payment_method__iexact='cash', paid_off__gt = 0)
+            dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], payment_type__iexact='cash', paid__gt = 0)
+            # paymade = Fin_PaymentMade.objects.filter(Company = cmp, payment_method__iexact = 'cash', total_payment__gt = 0)
+            
+            empLoan = Fin_Loan.objects.filter(company = cmp, loan_date__range = [startDate, endDate], payment_method__iexact = 'cash')
+            empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'cash')
+            lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'cash', principle_amount__gt = 0)
+            slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='cash')
+        
+        context = {
+            'cmp':cmp,
+            'cash':cash,
+            'bank_transactions': bnk,
+            'invoice':inv,
+            'recInvoice':recInv,
+            'creditNote':crdNt,
+            'salesOrder':sordr,
+            'retainerInvoice':rtInv,
+            # 'paymentReceived':payrec,
+            
+            'bill':bill,
+            'recurringBill':rcrbl,
+            'purchaseOrder':pordr,
+            'debitNote':dbtnt,
+            # 'paymentMade':paymade,
+
+            'empLoan':empLoan,
+            'empAddLoan':empAddLoan,
+            'loanRepay':lnRpy,
+            'empSalary':slry,
+            'balance':bal
+        }
+        
+        template_path = 'company/Fin_CashInHandStatement_Pdf.html'
+        fname = 'Cash_in_hand'
+        # return render(request, 'company/Fin_Invoice_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_shareCashInHandStatementToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                bal = request.POST['balance']
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                if startDate == None or endDate == None:
+                    cash = Fin_CashInHand.objects.filter(Company = cmp)
+                    bnk = Fin_BankTransactions.objects.filter(company=cmp).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+                    inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cash', paid__gt = 0)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+                    rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cash', Paid_amount__gt = 0)
+                    # payrec= Fin_Payment_Received.objects.filter(company = cmp, payment_method__iexact='cash', total_payment__gt = 0)
+                    
+                    
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash', paid__gt = 0)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cash', paid__gt = 0)
+                    # paymade = Fin_PaymentMade.objects.filter(Company = cmp, payment_method__iexact = 'cash', total_payment__gt = 0)
+                    
+                    empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+                    empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+                    lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cash', principle_amount__gt = 0)
+                    slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cash')
+                else:
+                    cash = Fin_CashInHand.objects.filter(Company = cmp, adjust_date__range = [startDate, endDate])
+                    bnk = Fin_BankTransactions.objects.filter(company=cmp, adjustment_date__range = [startDate, endDate]).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+                    inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'cash', paid_off__gt = 0)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'cash', paid__gt = 0)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate] , payment_method__iexact = 'cash', paid_off__gt = 0)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate], payment_method__iexact='cash', paid_off__gt = 0)
+                    rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate], Payment_Method__iexact='cash', Paid_amount__gt = 0)
+                    # payrec= Fin_Payment_Received.objects.filter(company = cmp, payment_method__iexact='cash', total_payment__gt = 0)
+                    
+                    
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], pay_type__iexact='cash', paid__gt = 0)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], payment_method__iexact='cash', paid_off__gt = 0)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], payment_type__iexact='cash', paid__gt = 0)
+                    # paymade = Fin_PaymentMade.objects.filter(Company = cmp, payment_method__iexact = 'cash', total_payment__gt = 0)
+                    
+                    empLoan = Fin_Loan.objects.filter(company = cmp, loan_date__range = [startDate, endDate], payment_method__iexact = 'cash')
+                    empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'cash')
+                    lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'cash', principle_amount__gt = 0)
+                    slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='cash')
+                
+                context = {
+                    'cmp':cmp,
+                    'cash':cash,
+                    'bank_transactions': bnk,
+                    'invoice':inv,
+                    'recInvoice':recInv,
+                    'creditNote':crdNt,
+                    'salesOrder':sordr,
+                    'retainerInvoice':rtInv,
+                    # 'paymentReceived':payrec,
+                    
+                    'bill':bill,
+                    'recurringBill':rcrbl,
+                    'purchaseOrder':pordr,
+                    'debitNote':dbtnt,
+                    # 'paymentMade':paymade,
+
+                    'empLoan':empLoan,
+                    'empAddLoan':empAddLoan,
+                    'loanRepay':lnRpy,
+                    'empSalary':slry,
+                    'balance':bal
+                }
+                template_path = 'company/Fin_CashInHandStatement_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Cash_In_Hand'
+                subject = f"Cash_In_Hand"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Statement for - Cash_in_hand. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Statement has been shared via email successfully..!')
+                return redirect(Fin_cashInHandStatement)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_cashInHandStatement)
+
+def Fin_cashInHandGraph(request, period):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+        print('period==',period)
+
+        cash = Fin_CashInHand.objects.filter(Company = cmp)
+        bnk = Fin_BankTransactions.objects.filter(company=cmp).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+        inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+        crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cash', paid__gt = 0)
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+        sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+        rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cash', Paid_amount__gt = 0)
+        # payrec= Fin_Payment_Received.objects.filter(company = cmp, payment_method__iexact='cash', total_payment__gt = 0)
+        
+        
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash', paid__gt = 0)
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cash', paid__gt = 0)
+        # paymade = Fin_PaymentMade.objects.filter(Company = cmp, payment_method__iexact = 'cash', total_payment__gt = 0)
+        
+        empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+        empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+        lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cash', principle_amount__gt = 0)
+        slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cash')
+
+        if period == 'year_wise':
+            # Graph data 
+            data1 = []
+            data2 = []
+            label = []
+
+            for yr in range((date.today().year)-9, (date.today().year)+1):
+                label.append(yr)
+                cashInflow = 0
+                cashOutflow = 0
+                for i in cash:
+                    if i.adjust_date.year == yr and i.adjustment.lower() == 'add cash':
+                        cashInflow += float(i.amount)
+                    if i.adjust_date.year == yr and i.adjustment.lower() == 'reduce cash':
+                        cashOutflow += float(i.amount)
+
+                for i in bnk:
+                    if i.adjustment_date.year == yr and i.transaction_type.lower() == 'cash deposit':
+                        cashInflow += float(i.amount)
+                    if i.adjustment_date.year == yr and i.transaction_type.lower() == 'cash withdraw':
+                        cashOutflow += float(i.amount)
+
+                for i in inv:
+                    if i.invoice_date.year == yr:
+                        cashInflow += float(i.paid_off)
+                
+                for i in recInv:
+                    if i.start_date.year == yr:
+                        cashInflow += float(i.paid_off)
+
+                for i in crdNt:
+                    if i.creditnote_date.year == yr:
+                        cashOutflow += float(i.paid)
+
+                for i in sordr:
+                    if i.sales_order_date.year == yr:
+                        cashInflow += float(i.paid_off)
+
+                for i in rtInv:
+                    if i.Retainer_Invoice_date.year == yr:
+                        cashInflow += float(i.paid_off)
+
+                for i in bill:
+                    if i.bill_date.year == yr:
+                        cashOutflow += float(i.paid)
+
+                for i in rcrbl:
+                    if i.date.year == yr:
+                        cashOutflow += float(i.advanceAmount_paid)
+
+                for i in pordr:
+                    if i.purchase_order_date.year == yr:
+                        cashOutflow += float(i.paid_off)
+
+                for i in dbtnt:
+                    if i.debit_note_date.year == yr:
+                        cashInflow += float(i.paid)
+
+                for i in empLoan:
+                    if i.loan_date.year == yr:
+                        cashOutflow += float(i.loan_amount)
+
+                for i in empAddLoan:
+                    if i.new_date.year == yr:
+                        cashOutflow += float(i.new_loan)
+
+                for i in lnRpy:
+                    if i.payment_date.year == yr:
+                        cashInflow += float(i.principle_amount)
+
+                for i in slry:
+                    if i.salary_date.year == yr:
+                        cashOutflow += float(i.total_salary)
+
+                data1.append(float(cashInflow))
+                data2.append(float(cashOutflow))
+        else:
+            data1 = []
+            data2 = []
+            label = []
+            current_year = datetime.today().year
+            current_month = datetime.today().month
+            filterDt = datetime(current_year, 1, 1)
+            filterDate = filterDt.strftime("%Y-%m-%d")
+            print(filterDate)
+
+            for month in range(1, current_month + 1):
+                label.append(datetime(current_year, month, 1).strftime("%B"))
+                cashInflow = 0
+                cashOutflow = 0
+                for i in cash:
+                    if i.adjust_date.year == current_year and i.adjust_date.month == month and i.adjustment.lower() == 'add cash':
+                        cashInflow += float(i.amount)
+                    if i.adjust_date.year == current_year and i.adjust_date.month == month and i.adjustment.lower() == 'reduce cash':
+                        cashOutflow += float(i.amount)
+
+                for i in bnk:
+                    if i.adjustment_date.year == current_year and i.adjustment_date.month == month and i.transaction_type.lower() == 'cash deposit':
+                        cashInflow += float(i.amount)
+                    if i.adjustment_date.year == current_year and i.adjustment_date.month == month and i.transaction_type.lower() == 'cash withdraw':
+                        cashOutflow += float(i.amount)
+
+                for i in inv:
+                    if i.invoice_date.year == current_year and i.invoice_date.month == month:
+                        cashInflow += float(i.paid_off)
+                
+                for i in recInv:
+                    if i.start_date.year == current_year and i.start_date.month == month:
+                        cashInflow += float(i.paid_off)
+
+                for i in crdNt:
+                    if i.creditnote_date.year == current_year and i.creditnote_date.month == month:
+                        cashOutflow += float(i.paid)
+
+                for i in sordr:
+                    if i.sales_order_date.year == current_year and i.sales_order_date.month == month:
+                        cashInflow += float(i.paid_off)
+
+                for i in rtInv:
+                    if i.Retainer_Invoice_date.year == current_year and i.Retainer_Invoice_date.month == month:
+                        cashInflow += float(i.paid_off)
+
+                for i in bill:
+                    if i.bill_date.year == current_year and i.bill_date.month == month:
+                        cashOutflow += float(i.paid)
+
+                for i in rcrbl:
+                    if i.date.year == current_year and i.date.month == month:
+                        cashOutflow += float(i.advanceAmount_paid)
+
+                for i in pordr:
+                    if i.purchase_order_date.year == current_year and i.purchase_order_date.month == month:
+                        cashOutflow += float(i.paid_off)
+
+                for i in dbtnt:
+                    if i.debit_note_date.year == current_year and i.debit_note_date.month == month:
+                        cashInflow += float(i.paid)
+
+                for i in empLoan:
+                    if i.loan_date.year == current_year and i.loan_date.month == month:
+                        cashOutflow += float(i.loan_amount)
+
+                for i in empAddLoan:
+                    if i.new_date.year == current_year and i.new_date.month == month:
+                        cashOutflow += float(i.new_loan)
+
+                for i in lnRpy:
+                    if  i.payment_date.year == current_year and i.payment_date.month == month:
+                        cashInflow += float(i.principle_amount)
+
+                for i in slry:
+                    if  i.salary_date.year == current_year and i.salary_date.month == month:
+                        cashOutflow += float(i.total_salary)
+
+                data1.append(float(cashInflow))
+                data2.append(float(cashOutflow))
+
+            label = json.dumps(label)
+        print('Label',label)
+        print('data1',data1)
+        print('data2',data2)
+        context = {
+            'allmodules':allmodules,
+            'com':com,
+            'cmp':cmp,
+            'data':data,
+            'cashIn':data1,
+            'cashOut':data2,
+            'label':label,
+            'period': period
+        }
+        return render(request,'company/Fin_Cash_In_Hand_Graph.html',context)
+    else:
+       return redirect('/')
