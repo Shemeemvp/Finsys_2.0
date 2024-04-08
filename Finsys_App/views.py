@@ -2487,16 +2487,17 @@ def Fin_accountOverview(request,id):
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
         acc = Fin_Chart_Of_Account.objects.get(id = id)
+        transactions = Fin_ChartOfAccount_Transactions.objects.filter(account = acc)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
             hist = Fin_ChartOfAccount_History.objects.filter(Company = com, account = acc).last()
-            return render(request,'company/Fin_Account_Overview.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc, 'history':hist})
+            return render(request,'company/Fin_Account_Overview.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc, 'transactions': transactions, 'history':hist})
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             hist = Fin_ChartOfAccount_History.objects.filter(Company = com.company_id, account = acc).last()
-            return render(request,'company/Fin_Account_Overview.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc, 'history':hist})
+            return render(request,'company/Fin_Account_Overview.html',{'allmodules':allmodules,'com':com,'data':data, 'account':acc, 'transactions': transactions, 'history':hist})
     else:
        return redirect('/')
     
@@ -19912,6 +19913,7 @@ def Fin_createExpense(request):
                 cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id'],
                 upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id'],
                 bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id'],
+                amount_type = request.POST['amount_type'],
                 amount = 0.0 if request.POST['amount'] == "" else float(request.POST['amount']),
                 note = request.POST['note']
             )
@@ -19927,6 +19929,27 @@ def Fin_createExpense(request):
             elif "Save" in request.POST:
                 exp.status = "Saved" 
             exp.save()
+
+            # Save account transaction
+            db = exp.amount if exp.amount_type == 'Debit' else 0.0
+            cr = exp.amount if exp.amount_type == 'Credit' else 0.0
+
+            Fin_ChartOfAccount_Transactions.objects.create(
+                Company = com,
+                LoginDetails = com.Login_Id,
+                account = exp.Account,
+                expense = exp,
+                type = exp.expense_type,
+                debit = db,
+                credit = cr,
+                date = exp.expense_date
+            )
+
+            # Update account balance
+            acnt = exp.Account
+            acnt.balance += float(db)
+            acnt.balance += float(cr)
+            acnt.save()
             
             # Save transaction
                     
@@ -20212,6 +20235,7 @@ def Fin_updateExpense(request, id):
             exp.cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id']
             exp.upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id']
             exp.bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id']
+            exp.amount_type = request.POST['amount_type']
             exp.amount = 0.0 if request.POST['amount'] == "" else float(request.POST['amount'])
             exp.note = request.POST['note']
 
@@ -20219,7 +20243,32 @@ def Fin_updateExpense(request, id):
                 exp.file=request.FILES.get('file')
 
             exp.save()
+
+            # Update account transaction
+            db = exp.amount if exp.amount_type == 'Debit' else 0.0
+            cr = exp.amount if exp.amount_type == 'Credit' else 0.0
+
+            try:
+                Fin_ChartOfAccount_Transactions.objects.filter(expense = exp).update(
+                    account = exp.Account,
+                    type = exp.expense_type,
+                    debit = db,
+                    credit = cr,
+                    date = exp.expense_date
+                )
+            except:
+                pass
+
+            # Update account balance
+            bal = 0
+            for i in Fin_ChartOfAccount_Transactions.objects.filter(account = exp.Account):
+                bal += float(i.debit)
+                bal -= float(abs(i.credit))
             
+            acnt = exp.Account
+            acnt.balance = bal
+            acnt.save()
+
             # Save transaction
                     
             Fin_Expense_History.objects.create(
@@ -27879,8 +27928,7 @@ def Fin_cashInHandStatementPdf(request):
         html = template.render(context)
 
         # create a pdf
-        pisa_status = pisa.CreatePDF(
-        html, dest=response)
+        pisa_status = pisa.CreatePDF(html, dest=response)
         # if error then show some funny view
         if pisa_status.err:
             return HttpResponse('We had some errors <pre>' + html + '</pre>')
@@ -28209,3 +28257,19 @@ def Fin_cashInHandGraph(request, period):
         return render(request,'company/Fin_Cash_In_Hand_Graph.html',context)
     else:
        return redirect('/')
+
+def Fin_deleteAddedCash(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        csh = Fin_CashInHand.objects.get(id = id)
+        csh.delete()
+
+        return redirect(Fin_cashInHand)
+    else:
+        return redirect('/')

@@ -1682,6 +1682,7 @@ class Fin_Expense(models.Model):
     hsn_number = models.CharField(max_length=50, null=True, blank=True)
     sac_number = models.CharField(max_length=50, null=True, blank=True)
     amount = models.FloatField(default=0.0, null=True, blank=True)
+    amount_type = models.CharField(max_length=20, null=True, blank=True)
     tax_rate = models.CharField(max_length=50, null=True, blank=True)
 
     payment_method = models.CharField(max_length=100, null=True, blank=True)
@@ -2320,3 +2321,18 @@ class Fin_Retainer_Invoice_Comments(models.Model):
     LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
     Ret_Invoice = models.ForeignKey(Fin_Retainer_Invoice,on_delete=models.CASCADE,null=True,blank=True)
     comments = models.CharField(max_length=500,null=True,blank=True)
+
+
+# < ------------- Shemeem -------- > Chart of Account - Updation < ------------------------------- >
+
+class Fin_ChartOfAccount_Transactions(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    account = models.ForeignKey(Fin_Chart_Of_Account, on_delete=models.CASCADE, null=True)
+    expense = models.ForeignKey(Fin_Expense, on_delete=models.CASCADE, null=True)
+    type = models.CharField(max_length=150, null=True, blank=True)
+    debit = models.FloatField(default=0.0, null=True, blank=True)
+    credit = models.FloatField(default=0.0, null=True, blank=True)
+    date = models.DateField(null=True, blank=True)
+
+# End

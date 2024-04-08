@@ -46,7 +46,8 @@
 
     .page[size="A4"] {
         width: 21cm;
-        height: 29.7cm;
+        min-height: 29.7cm;
+        max-height: fit-content;
         overflow-y: auto;
 
     }
@@ -94,6 +95,16 @@
     <div class="card-body">
       <div class="row">
         <div class="col-6 d-flex justify-content-start">
+          <div class="filter">
+            <div class="form-inline">
+              <input type="date" name="start_date" id="startDate" class="form-control form-control-sm mr-1" required>
+              TO
+              <input type="date" name="end_date" id="endDate" class="form-control form-control-sm ml-1" required>
+              <button class="btn btn-sm btn-outline-secondary ml-2" type="button" onclick="filterTableByDate()">Filter</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 d-flex justify-content-end">
           <button type="button" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center" id="pdfBtn"><i class="fa fa-file-pdf mr-1" style="font-size: 1rem !important;"></i>PDF</button>
           <button type="button" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center ml-2" onclick="printSection('statementTemplate')" id="printBtn"><i class="fa fa-print mr-1" style="font-size: 1rem !important;"></i>Print</button>
           <div class="dropdown ml-2">
@@ -104,16 +115,7 @@
             </div>
           </div>
         </div>
-        <div class="col-6 d-flex justify-content-end">
-          <div class="filter">
-            <div class="form-inline">
-              <input type="date" name="start_date" id="startDate" class="form-control form-control-sm mr-1" required>
-              TO
-              <input type="date" name="end_date" id="endDate" class="form-control form-control-sm ml-1" required>
-              <button class="btn btn-sm btn-outline-secondary ml-2" type="button" onclick="filterTableByDate()">Filter</button>
-            </div>
-          </div>
-        </div>
+        
       </div>
       
       <div class="container-fluid">
@@ -160,10 +162,10 @@
                       <table class="table table-hover table-bordered  templatetable" id="cashInHandTable">
                         <thead style="background: #22b8d1;">
                           <tr class="template3tablehead">
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Name</th>
-                            <th>Amount</th>
+                            <th>DATE</th>
+                            <th>TYPE</th>
+                            <th>NAME</th>
+                            <th>AMOUNT</th>
                           </tr>
                         </thead>
                         <tbody  style="background-color: #999999ab;">

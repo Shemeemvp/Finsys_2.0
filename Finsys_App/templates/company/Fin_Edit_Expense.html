@@ -109,8 +109,14 @@
                 <div class="col-md-4 mt-3">
                     <label for="">Amount</label>
                     <div class="d-flex">
-                        <select name="" id="" class="form-control" style="width: 75px;">
-                            <option value="INR">INR</option>
+                        <select name="amount_type" id="amountType" class="form-control" style="width: 100px;">
+                            {% if expense.amount_type == 'Debit' %}
+                            <option value="Debit" selected>Debit</option>
+                            <option value="Credit">Credit</option>
+                            {% else %}
+                            <option value="Debit">Debit</option>
+                            <option value="Credit" selected>Credit</option>
+                            {% endif %}
                         </select>
                         <input type="number" class="form-control ml-1" value="{{expense.amount}}" name="amount" id="amount" step="any" style="background-color: #43596c;color: white;" required>
                     </div>
@@ -1695,6 +1701,44 @@ $(document).ready(function(){
                     }
                 }
             })
+        }
+    });
+
+    $(document).on('change', '#amount',function () {
+        amount = $("#amount").val()
+        if($('#amountType').val()=='Credit'){
+            if(amount.slice(0,1) != '-'){
+                if(parseFloat(amount) != 0){
+                    document.getElementById("amount").value = "-"+amount
+                }else{
+                    document.getElementById("amount").value = amount
+                }
+            }else{
+                if(parseFloat(amount) != 0){
+                    document.getElementById("amount").value = amount
+                }else{
+                    document.getElementById("amount").value = -1 * parseFloat(amount)
+                }
+            }
+        }else{
+            document.getElementById("amount").value = amount
+        }
+    });
+
+    $(document).on('change', '#amountType',function () {
+        amount = $("#amount").val()
+        if(amount != ""){
+            if($('#amountType').val()=='Credit'){
+                amount = $("#amount").val()
+                if (parseFloat(amount) != 0){
+                    document.getElementById("amount").value = "-"+amount
+                }else{
+                    document.getElementById("amount").value = amount
+                }
+            }else{
+                amount = $("#amount").val()
+                document.getElementById("amount").value = -1*(parseFloat(amount))
+            }
         }
     });
 

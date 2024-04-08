@@ -244,14 +244,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="clickable-row" data-href="" >
-                                    <td style="text-align: center;">{% now 'Y-m-d' %}</td>
-                                    <td style="text-align: center;"> - </td>
-                                    <td style="text-align: center;"> - </td>
-                                    <td style="text-align: center;"> - </td>
+                                {% for t in transactions %}
+                                <tr>
+                                    <td style="text-align: center;"> {{t.date}} </td>
+                                    <td style="text-align: center;"> {{t.type}} </td>
+                                    <td style="text-align: center;"> {{t.debit}} </td>
+                                    <td style="text-align: center;"> {{t.credit}} </td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
+                        {% if not transactions %}
+                        <center><h5>No Transactions Available.!</h5></center>
+                        {% endif %}
                     </div>
                 </div>
             </div>
