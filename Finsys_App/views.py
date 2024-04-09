@@ -28273,3 +28273,602 @@ def Fin_deleteAddedCash(request, id):
         return redirect(Fin_cashInHand)
     else:
         return redirect('/')
+
+
+# < ------------- Shemeem -------- > CHEQUES < ------------------------------- >
+
+def Fin_cheques(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+        inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cheque', paid_off__gt = 0)
+        crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cheque', paid__gt = 0)
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cheque', paid_off__gt = 0)
+        sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cheque', paid_off__gt = 0)
+        rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cheque', Paid_amount__gt = 0)
+        
+        
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cheque', paid__gt = 0)
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cheque', advanceAmount_paid__gt = 0)
+        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cheque', paid_off__gt = 0)
+        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cheque', paid__gt = 0)
+        
+        empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
+        empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
+        lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cheque', principle_amount__gt = 0)
+        slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cheque')
+        
+        context = {
+            'allmodules':allmodules,
+            'com':com,
+            'cmp':cmp,
+            'data':data,
+
+            'invoice':inv,
+            'recInvoice':recInv,
+            'creditNote':crdNt,
+            'salesOrder':sordr,
+            'retainerInvoice':rtInv,
+            
+            'bill':bill,
+            'recurringBill':rcrbl,
+            'purchaseOrder':pordr,
+            'debitNote':dbtnt,
+
+            'empLoan':empLoan,
+            'empAddLoan':empAddLoan,
+            'loanRepay':lnRpy,
+            'empSalary':slry,
+        }
+        return render(request,'company/Fin_Cheques.html',context)
+    else:
+       return redirect('/')
+
+def Fin_chequeStatement(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+        inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cheque', paid_off__gt = 0)
+        crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cheque', paid__gt = 0)
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cheque', paid_off__gt = 0)
+        sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cheque', paid_off__gt = 0)
+        rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cheque', Paid_amount__gt = 0)
+        
+        
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cheque', paid__gt = 0)
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cheque', advanceAmount_paid__gt = 0)
+        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cheque', paid_off__gt = 0)
+        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cheque', paid__gt = 0)
+        
+        empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
+        empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
+        lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cheque', principle_amount__gt = 0)
+        slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cheque')
+        
+        context = {
+            'allmodules':allmodules,
+            'com':com,
+            'cmp':cmp,
+            'data':data,
+
+            'invoice':inv,
+            'recInvoice':recInv,
+            'creditNote':crdNt,
+            'salesOrder':sordr,
+            'retainerInvoice':rtInv,
+            
+            'bill':bill,
+            'recurringBill':rcrbl,
+            'purchaseOrder':pordr,
+            'debitNote':dbtnt,
+
+            'empLoan':empLoan,
+            'empAddLoan':empAddLoan,
+            'loanRepay':lnRpy,
+            'empSalary':slry,
+        }
+        return render(request,'company/Fin_Cheques_Statement.html',context)
+    else:
+       return redirect('/')
+
+def Fin_chequeStatementPdf(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        startDate = request.GET['start']
+        endDate = request.GET['end']
+        if startDate == "":
+            startDate = None
+        if endDate == "":
+            endDate = None
+
+        if startDate == None or endDate == None:
+            inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cheque', paid_off__gt = 0)
+            crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cheque', paid__gt = 0)
+            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cheque', paid_off__gt = 0)
+            sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cheque', paid_off__gt = 0)
+            rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cheque', Paid_amount__gt = 0)
+            
+            
+            bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cheque', paid__gt = 0)
+            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cheque', advanceAmount_paid__gt = 0)
+            pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cheque', paid_off__gt = 0)
+            dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cheque', paid__gt = 0)
+            
+            empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
+            empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
+            lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cheque', principle_amount__gt = 0)
+            slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cheque')
+        else:
+            inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'cheque', paid_off__gt = 0)
+            crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'cheque', paid__gt = 0)
+            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate] , payment_method__iexact = 'cheque', paid_off__gt = 0)
+            sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate], payment_method__iexact='cheque', paid_off__gt = 0)
+            rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate], Payment_Method__iexact='cheque', Paid_amount__gt = 0)
+            
+            bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], pay_type__iexact='cheque', paid__gt = 0)
+            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], payment_method__iexact='cheque', advanceAmount_paid__gt = 0)
+            pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], payment_method__iexact='cheque', paid_off__gt = 0)
+            dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], payment_type__iexact='cheque', paid__gt = 0)
+            
+            empLoan = Fin_Loan.objects.filter(company = cmp, loan_date__range = [startDate, endDate], payment_method__iexact = 'cheque')
+            empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'cheque')
+            lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'cheque', principle_amount__gt = 0)
+            slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='cheque')
+        
+        context = {
+            'cmp':cmp,
+            'invoice':inv,
+            'recInvoice':recInv,
+            'creditNote':crdNt,
+            'salesOrder':sordr,
+            'retainerInvoice':rtInv,
+            
+            'bill':bill,
+            'recurringBill':rcrbl,
+            'purchaseOrder':pordr,
+            'debitNote':dbtnt,
+
+            'empLoan':empLoan,
+            'empAddLoan':empAddLoan,
+            'loanRepay':lnRpy,
+            'empSalary':slry
+        }
+        
+        template_path = 'company/Fin_ChequesStatement_Pdf.html'
+        fname = 'Cheque_Payments'
+        # return render(request, 'company/Fin_Invoice_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_shareChequeStatementToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                if startDate == None or endDate == None:
+                    inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cheque', paid_off__gt = 0)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cheque', paid__gt = 0)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cheque', paid_off__gt = 0)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cheque', paid_off__gt = 0)
+                    rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cheque', Paid_amount__gt = 0)
+                    
+                    
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cheque', paid__gt = 0)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cheque', advanceAmount_paid__gt = 0)
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cheque', paid_off__gt = 0)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cheque', paid__gt = 0)
+                    
+                    empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
+                    empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
+                    lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cheque', principle_amount__gt = 0)
+                    slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cheque')
+                else:
+                    inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'cheque', paid_off__gt = 0)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'cheque', paid__gt = 0)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate] , payment_method__iexact = 'cheque', paid_off__gt = 0)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate], payment_method__iexact='cheque', paid_off__gt = 0)
+                    rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate], Payment_Method__iexact='cheque', Paid_amount__gt = 0)
+                    
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], pay_type__iexact='cheque', paid__gt = 0)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], payment_method__iexact='cheque', advanceAmount_paid__gt = 0)
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], payment_method__iexact='cheque', paid_off__gt = 0)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], payment_type__iexact='cheque', paid__gt = 0)
+                    
+                    empLoan = Fin_Loan.objects.filter(company = cmp, loan_date__range = [startDate, endDate], payment_method__iexact = 'cheque')
+                    empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'cheque')
+                    lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'cheque', principle_amount__gt = 0)
+                    slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='cheque')
+                
+                context = {
+                    'cmp':cmp,
+                    'invoice':inv,
+                    'recInvoice':recInv,
+                    'creditNote':crdNt,
+                    'salesOrder':sordr,
+                    'retainerInvoice':rtInv,
+                    
+                    'bill':bill,
+                    'recurringBill':rcrbl,
+                    'purchaseOrder':pordr,
+                    'debitNote':dbtnt,
+
+                    'empLoan':empLoan,
+                    'empAddLoan':empAddLoan,
+                    'loanRepay':lnRpy,
+                    'empSalary':slry
+                }
+                template_path = 'company/Fin_ChequesStatement_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Cheque_Payments'
+                subject = f"Cheque_Payments"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Statement for - Cheque payments. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Statement has been shared via email successfully..!')
+                return redirect(Fin_chequeStatement)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_chequeStatement)
+
+# < ------------- Shemeem -------- > UPI < ------------------------------- >
+
+def Fin_upiPayments(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+        inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'upi', paid_off__gt = 0)
+        crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'upi', paid__gt = 0)
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'upi', paid_off__gt = 0)
+        sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='upi', paid_off__gt = 0)
+        rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='upi', Paid_amount__gt = 0)
+        
+        
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='upi', paid__gt = 0)
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='upi', advanceAmount_paid__gt = 0)
+        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='upi', paid_off__gt = 0)
+        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='upi', paid__gt = 0)
+        
+        empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
+        empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
+        lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'upi', principle_amount__gt = 0)
+        slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='upi')
+        
+        context = {
+            'allmodules':allmodules,
+            'com':com,
+            'cmp':cmp,
+            'data':data,
+
+            'invoice':inv,
+            'recInvoice':recInv,
+            'creditNote':crdNt,
+            'salesOrder':sordr,
+            'retainerInvoice':rtInv,
+            
+            'bill':bill,
+            'recurringBill':rcrbl,
+            'purchaseOrder':pordr,
+            'debitNote':dbtnt,
+
+            'empLoan':empLoan,
+            'empAddLoan':empAddLoan,
+            'loanRepay':lnRpy,
+            'empSalary':slry,
+        }
+        return render(request,'company/Fin_UPI.html',context)
+    else:
+       return redirect('/')
+
+def Fin_upiStatement(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+        inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'upi', paid_off__gt = 0)
+        crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'upi', paid__gt = 0)
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'upi', paid_off__gt = 0)
+        sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='upi', paid_off__gt = 0)
+        rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='upi', Paid_amount__gt = 0)
+        
+        
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='upi', paid__gt = 0)
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='upi', advanceAmount_paid__gt = 0)
+        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='upi', paid_off__gt = 0)
+        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='upi', paid__gt = 0)
+        
+        empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
+        empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
+        lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'upi', principle_amount__gt = 0)
+        slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='upi')
+        
+        context = {
+            'allmodules':allmodules,
+            'com':com,
+            'cmp':cmp,
+            'data':data,
+
+            'invoice':inv,
+            'recInvoice':recInv,
+            'creditNote':crdNt,
+            'salesOrder':sordr,
+            'retainerInvoice':rtInv,
+            
+            'bill':bill,
+            'recurringBill':rcrbl,
+            'purchaseOrder':pordr,
+            'debitNote':dbtnt,
+
+            'empLoan':empLoan,
+            'empAddLoan':empAddLoan,
+            'loanRepay':lnRpy,
+            'empSalary':slry,
+        }
+        return render(request,'company/Fin_UPI_Statement.html',context)
+    else:
+       return redirect('/')
+
+def Fin_upiStatementPdf(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        startDate = request.GET['start']
+        endDate = request.GET['end']
+        if startDate == "":
+            startDate = None
+        if endDate == "":
+            endDate = None
+
+        if startDate == None or endDate == None:
+            inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'upi', paid_off__gt = 0)
+            crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'upi', paid__gt = 0)
+            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'upi', paid_off__gt = 0)
+            sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='upi', paid_off__gt = 0)
+            rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='upi', Paid_amount__gt = 0)
+            
+            
+            bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='upi', paid__gt = 0)
+            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='upi', advanceAmount_paid__gt = 0)
+            pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='upi', paid_off__gt = 0)
+            dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='upi', paid__gt = 0)
+            
+            empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
+            empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
+            lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'upi', principle_amount__gt = 0)
+            slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='upi')
+        else:
+            inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'upi', paid_off__gt = 0)
+            crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'upi', paid__gt = 0)
+            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate] , payment_method__iexact = 'upi', paid_off__gt = 0)
+            sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate], payment_method__iexact='upi', paid_off__gt = 0)
+            rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate], Payment_Method__iexact='upi', Paid_amount__gt = 0)
+            
+            bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], pay_type__iexact='upi', paid__gt = 0)
+            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], payment_method__iexact='upi', advanceAmount_paid__gt = 0)
+            pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], payment_method__iexact='upi', paid_off__gt = 0)
+            dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], payment_type__iexact='upi', paid__gt = 0)
+            
+            empLoan = Fin_Loan.objects.filter(company = cmp, loan_date__range = [startDate, endDate], payment_method__iexact = 'upi')
+            empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'upi')
+            lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'upi', principle_amount__gt = 0)
+            slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='upi')
+        
+        context = {
+            'cmp':cmp,
+            'invoice':inv,
+            'recInvoice':recInv,
+            'creditNote':crdNt,
+            'salesOrder':sordr,
+            'retainerInvoice':rtInv,
+            
+            'bill':bill,
+            'recurringBill':rcrbl,
+            'purchaseOrder':pordr,
+            'debitNote':dbtnt,
+
+            'empLoan':empLoan,
+            'empAddLoan':empAddLoan,
+            'loanRepay':lnRpy,
+            'empSalary':slry
+        }
+        
+        template_path = 'company/Fin_UPIStatement_Pdf.html'
+        fname = 'UPI_Payments'
+        # return render(request, 'company/Fin_Invoice_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_shareUpiStatementToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                if startDate == None or endDate == None:
+                    inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'upi', paid_off__gt = 0)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'upi', paid__gt = 0)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'upi', paid_off__gt = 0)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='upi', paid_off__gt = 0)
+                    rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='upi', Paid_amount__gt = 0)
+                    
+                    
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='upi', paid__gt = 0)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='upi', advanceAmount_paid__gt = 0)
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='upi', paid_off__gt = 0)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='upi', paid__gt = 0)
+                    
+                    empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
+                    empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
+                    lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'upi', principle_amount__gt = 0)
+                    slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='upi')
+                else:
+                    inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'upi', paid_off__gt = 0)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'upi', paid__gt = 0)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate] , payment_method__iexact = 'upi', paid_off__gt = 0)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate], payment_method__iexact='upi', paid_off__gt = 0)
+                    rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate], Payment_Method__iexact='upi', Paid_amount__gt = 0)
+                    
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], pay_type__iexact='upi', paid__gt = 0)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], payment_method__iexact='upi', advanceAmount_paid__gt = 0)
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], payment_method__iexact='upi', paid_off__gt = 0)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], payment_type__iexact='upi', paid__gt = 0)
+                    
+                    empLoan = Fin_Loan.objects.filter(company = cmp, loan_date__range = [startDate, endDate], payment_method__iexact = 'upi')
+                    empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'upi')
+                    lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'upi', principle_amount__gt = 0)
+                    slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='upi')
+                
+                context = {
+                    'cmp':cmp,
+                    'invoice':inv,
+                    'recInvoice':recInv,
+                    'creditNote':crdNt,
+                    'salesOrder':sordr,
+                    'retainerInvoice':rtInv,
+                    
+                    'bill':bill,
+                    'recurringBill':rcrbl,
+                    'purchaseOrder':pordr,
+                    'debitNote':dbtnt,
+
+                    'empLoan':empLoan,
+                    'empAddLoan':empAddLoan,
+                    'loanRepay':lnRpy,
+                    'empSalary':slry
+                }
+                template_path = 'company/Fin_UPIStatement_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'UPI_Payments'
+                subject = f"UPI_Payments"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Statement for - UPI payments. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Statement has been shared via email successfully..!')
+                return redirect(Fin_upiStatement)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_upiStatement)

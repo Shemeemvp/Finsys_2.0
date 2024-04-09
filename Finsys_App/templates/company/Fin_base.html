@@ -534,7 +534,7 @@
                 {% endif %}
 
                 {% if allmodules.Cheque == 1 %}
-                <li id="cheques"><a href=""><i class="bx bx-right-arrow-alt"></i>Cheques
+                <li id="cheques"><a href="{% url 'Fin_cheques' %}"><i class="bx bx-right-arrow-alt"></i>Cheques
                   </a>
                 </li>
                 {% endif %}
@@ -545,7 +545,7 @@
                 {% endif %}
 
                 {% if allmodules.UPI == 1 %}
-                <li><a href=""><i class="bx bx-right-arrow-alt"></i>UPI</a>
+                <li><a href="{% url 'Fin_upiPayments' %}"><i class="bx bx-right-arrow-alt"></i>UPI</a>
                 </li>
                 {% endif %}
               </ul>

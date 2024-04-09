@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinsYs</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<style>
+    table {
+    border-collapse: collapse;
+    width: 100%;
+    }
+
+    th, td {
+    border: 1px solid #dddddd;
+    padding: 5px 2px;
+    /* text-align: left; */
+    }
+
+    th {
+    background-color: #f2f2f2;
+    }
+
+    body {
+        font-size: 14px;
+    }
+
+    .invoice_data {
+        font-size: 1.2rem;
+    }
+
+    .data_row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .data_1, .data_2 {
+        font-weight: bold;
+    }
+
+    .data_value {
+        flex: 1;
+        text-align: right;
+    }
+
+    .balance_info{
+        display: flex;
+        justify-content: start;
+        align-items: center;
+    }
+    .balance_info .bal_head{
+        width: 48%;
+    }
+
+    .bal_value{
+        width: 48%;
+        flex: 1;
+        text-align: right;
+    }
+
+
+
+
+
+</style>
+
+<body>
+    <div class="my-5 page" size="A4">
+        <div class="p-5">
+            <div id="ember2512" class="row tooltip-container ember-view text-ellipsis" style="display: flex; justify-content: space-between;">
+                <div class="col-md-4"></div>
+                <div class="col-md-4">
+                    <center style="color: black;">
+                        <b>
+                            <p style="font-size: 1.3rem;">UPI PAYMENTS</p>
+                        </b>
+                        <p> {{cmp.Company_name}}<br>
+                            {{cmp.Address}} <br>
+                            {{cmp.City}},
+                            {{cmp.State}}<br>
+                            {{cmp.Email}}
+                        </p>
+                    </center>
+                </div>
+                <hr>
+                <!-- <div style="width: 100%;">
+                    <div class="invoice_data">
+                        <div class="data_row">
+                            <div class="data_1">Balance: {{balance}}</div>
+                        </div>
+                    </div>
+                </div> -->
+            </div>
+            <!-- <hr /> -->
+            <section class="mt-4">
+                <table class="table2">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center; text-transform:uppercase;">DATE</th>
+                            <th style="text-align: center; text-transform:uppercase;">TYPE</th>
+                            <th style="text-align: center; text-transform:uppercase;">NAME</th>
+                            <th style="text-align: center; text-transform:uppercase;">REF. NO.</th>
+                            <th style="text-align: center; text-transform:uppercase;">UPI ID</th>
+                            <th style="text-align: center; text-transform:uppercase;">AMOUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                      {% for a in invoice %}
+                        <tr>
+                          <td>{{ a.invoice_date|date:'Y-m-d' }}</td>
+                          <td>INVOICE</td>
+                          <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                          <td>{{a.reference_no}}</td>
+                          <td>{{a.upi_no}}</td>
+                          <td>{{ a.paid_off }}</td>
+                        </tr>
+                        {% endfor %}
+                        
+                        {% for a in recInvoice %}
+                        <tr>
+                          <td>{{ a.start_date|date:'Y-m-d' }}</td>
+                          <td>RECURRING INVOICE</td>
+                          <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                          <td>{{a.reference_no}}</td>
+                          <td>{{a.upi_no}}</td>
+                          <td>{{ a.paid_off }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in creditNote %}
+                        <tr>
+                          <td>{{ a.creditnote_date|date:'Y-m-d' }}</td>
+                          <td>CREDIT NOTE</td>
+                          <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                          <td>{{a.reference_number}}</td>
+                          <td>{{a.upi_id}}</td>
+                          <td>{{ a.paid }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in salesOrder %}
+                        <tr>
+                          <td>{{ a.sales_order_date|date:'Y-m-d' }}</td>
+                          <td>SALES ORDER</td>
+                          <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                          <td>{{a.reference_no}}</td>
+                          <td>{{a.upi_no}}</td>
+                          <td>{{ a.paid_off }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in retainerInvoice %}
+                        <tr>
+                          <td>{{ a.Retainer_Invoice_date|date:'Y-m-d' }}</td>
+                          <td>RETAINER INVOICE</td>
+                          <td>{{a.Customer.first_name}} {{a.Customer.last_name}}</td>
+                          <td>{{a.Reference_number}}</td>
+                          <td>{{a.UPI_number}}</td>
+                          <td>{{ a.paid_off }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in bill %}
+                        <tr>
+                          <td>{{ a.bill_date|date:'Y-m-d' }}</td>
+                          <td>BILL</td>
+                          <td>{{a.vendor.first_name}} {{a.vendor.last_name}}</td>
+                          <td>{{a.ref_no}}</td>
+                          <td>{{a.upi_no}}</td>
+                          <td>{{ a.paid }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in recurringBill %}
+                        <tr>
+                          <td>{{ a.date|date:'Y-m-d' }}</td>
+                          <td>RECURRING BILL</td>
+                          <td>{{a.vendor.first_name}} {{a.vendor.last_name}}</td>
+                          <td>{{a.reference_number}}</td>
+                          <td>{{a.upi_id}}</td>
+                          <td>{{ a.advanceAmount_paid }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in purchaseOrder %}
+                        <tr>
+                          <td>{{ a.purchase_order_date|date:'Y-m-d' }}</td>
+                          <td>PURCHASE ORDER</td>
+                          <td>{{a.Vendor.first_name}} {{a.Vendor.last_name}}</td>
+                          <td>{{a.reference_no}}</td>
+                          <td>{{a.upi_no}}</td>
+                          <td>{{ a.paid_off }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in debitNote %}
+                        <tr>
+                          <td>{{ a.debit_note_date|date:'Y-m-d' }}</td>
+                          <td>DEBIT NOTE</td>
+                          <td>{{a.Vendor.first_name}} {{a.Vendor.last_name}}</td>
+                          <td>{{a.reference_number}}</td>
+                          <td>{{a.upi_id}}</td>
+                          <td>{{ a.paid }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in empLoan %}
+                        <tr>
+                          <td>{{ a.loan_date|date:'Y-m-d' }}</td>
+                          <td>EMPLOYEE LOAN</td>
+                          <td>{{a.employee.first_name}} {{a.employee.last_name}}</td>
+                          <td>Nill</td>
+                          <td>{{a.upi_id}}</td>
+                          <td>{{ a.loan_amount }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in empAddLoan %}
+                        <tr>
+                          <td>{{ a.new_date|date:'Y-m-d' }}</td>
+                          <td>EMPLOYEE ADDITIONAL LOAN</td>
+                          <td>{{a.employee_loan.employee.first_name}} {{a.employee_loan.employee.last_name}}</td>
+                          <td>Nill</td>
+                          <td>{{a.upi_id}}</td>
+                          <td>{{ a.new_loan }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in loanRepay %}
+                        <tr>
+                          <td>{{ a.payment_date|date:'Y-m-d' }}</td>
+                          <td>EMI PAID</td>
+                          <td>{{a.employee.first_name}} {{a.employee.last_name}}</td>
+                          <td>Nill</td>
+                          <td>{{a.upi_id}}</td>
+                          <td>{{ a.principle_amount }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for a in empSalary %}
+                        <tr>
+                          <td>{{ a.salary_date|date:'Y-m-d' }}</td>
+                          <td>EMPLOYEE SALARY</td>
+                          <td>{{a.employee.first_name}} {{a.employee.last_name}}</td>
+                          <td>Nill</td>
+                          <td>Nill</td>
+                          <td>{{ a.total_salary }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </div>
+</body>
+
+</html>

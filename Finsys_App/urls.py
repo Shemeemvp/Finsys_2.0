@@ -786,6 +786,17 @@ urlpatterns = [
     path('Fin_cash_in_hand_graph/<str:period>',views.Fin_cashInHandGraph, name='Fin_cashInHandGraph'),
     path('Fin_delete_added_cash/<int:id>',views.Fin_deleteAddedCash, name='Fin_deleteAddedCash'),
 
+    # < ------------- Shemeem -------- > CHEQUES < ------------------------------- >
+    path('Fin_cheques',views.Fin_cheques, name='Fin_cheques'),
+    path('Fin_cheque_statement',views.Fin_chequeStatement, name='Fin_chequeStatement'),
+    path('Fin_cheque_statement_pdf',views.Fin_chequeStatementPdf, name='Fin_chequeStatementPdf'),
+    path('Fin_share_cheque_statement_to_email',views.Fin_shareChequeStatementToEmail, name='Fin_shareChequeStatementToEmail'),
+
+    # < ------------- Shemeem -------- > UPI < ------------------------------- >
+    path('Fin_upi_payments',views.Fin_upiPayments, name='Fin_upiPayments'),
+    path('Fin_upi_statement',views.Fin_upiStatement, name='Fin_upiStatement'),
+    path('Fin_upi_statement_pdf',views.Fin_upiStatementPdf, name='Fin_upiStatementPdf'),
+    path('Fin_share_upi_statement_to_email',views.Fin_shareUpiStatementToEmail, name='Fin_shareUpiStatementToEmail'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
