@@ -28398,6 +28398,7 @@ def Fin_chequeStatementPdf(request):
         else:
             cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
         
+        bal = request.GET['balance']
         startDate = request.GET['start']
         endDate = request.GET['end']
         if startDate == "":
@@ -28455,7 +28456,9 @@ def Fin_chequeStatementPdf(request):
             'empLoan':empLoan,
             'empAddLoan':empAddLoan,
             'loanRepay':lnRpy,
-            'empSalary':slry
+            'empSalary':slry,
+
+            'balance':bal
         }
         
         template_path = 'company/Fin_ChequesStatement_Pdf.html'
@@ -28488,6 +28491,7 @@ def Fin_shareChequeStatementToEmail(request):
         
         try:
             if request.method == 'POST':
+                bal = request.POST['balance']
                 startDate = request.POST['start']
                 endDate = request.POST['end']
                 if startDate == "":
@@ -28552,7 +28556,9 @@ def Fin_shareChequeStatementToEmail(request):
                     'empLoan':empLoan,
                     'empAddLoan':empAddLoan,
                     'loanRepay':lnRpy,
-                    'empSalary':slry
+                    'empSalary':slry,
+
+                    'balance':bal
                 }
                 template_path = 'company/Fin_ChequesStatement_Pdf.html'
                 template = get_template(template_path)

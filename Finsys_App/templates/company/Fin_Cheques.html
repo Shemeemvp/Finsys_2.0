@@ -62,6 +62,23 @@
             <button type="button" onclick="window.location.href=`{% url 'Fin_chequeStatement' %}`" class="btn btn-sm btn-outline-secondary text-grey d-flex align-items-center ml-1" id="statementBtn"><i class="fa fa-file mr-1" style="font-size: 1rem;"></i>Statement</button>
           </div>
         </div>
+        <div class="row">
+          <div class="col-12 d-flex justify-content-between">
+            <div class="filter">
+              <!-- <form action="#">
+                <div class="form-inline">
+                  <input type="date" name="start_date" id="startDate" class="form-control form-control-sm mr-1" required>
+                  TO
+                  <input type="date" name="end_date" id="endDate" class="form-control form-control-sm ml-1" required>
+                  <button class="btn btn-sm btn-outline-secondary ml-2" type="submit">Filter</button>
+                </div>
+              </form> -->
+            </div>
+            <div class="bal_section pt-3 pr-3">
+              <span class="h4 font-weight-bold text-info">TOTAL AMOUNT: <span id="bal">0</span></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="table-responsive">
@@ -233,6 +250,33 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 <script>
 
+  $(document).ready(function(){
+    calculateBalance();
+  });
+
+  function calculateBalance(){
+    var table = document.getElementById('chequesTable');
+    var rows = table.getElementsByTagName('tr');
+    var balance = 0
+
+    for (var i = 1; i < rows.length; i++) {
+      var row = rows[i];
+      if(row.style.display != 'none'){
+        var amt = parseFloat(row.getElementsByTagName('td')[5].textContent);
+        var type = row.getElementsByTagName('td')[1].textContent;
+  
+        if(type === 'INVOICE' || type === 'RECURRING INVOICE' || type === 'DEBIT NOTE' || type ==='SALES ORDER' || type === 'RETAINER INVOICE' || type === 'EMI PAID'){
+          balance += amt
+        }else{
+          balance -= amt
+        }
+      }
+
+    }
+    console.log('balance==',balance)
+    $('#bal').text(balance)
+  }
+
   function filterTableByDate() {
     var start = $('#startDate').val();
     var end = $('#endDate').val();
@@ -256,6 +300,7 @@
           row.style.display = 'none';
         }
       }
+      calculateBalance();
     }else{
       alert('Select valid Start and End dates')
     }
@@ -331,6 +376,7 @@
         rows[i].style.display = "none";
       }
     }
+    calculateBalance();
   }
 
   function sortAmountAscending() {

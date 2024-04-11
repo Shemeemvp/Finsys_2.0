@@ -149,6 +149,9 @@
                               </div>
                               <div class="col-2"></div>
                               <div class="col-6 d-flex justify-content-end">
+                                <div class="bal_section pt-3 pr-3">
+                                  <span class="h4 font-weight-bold text-info">TOTAL AMOUNT: <span id="bal">0</span></span>
+                                </div>
                               </div>
                             </div>
                             
@@ -348,6 +351,7 @@
                           <label for="item_unitname">Message(optional)</label>
                           <textarea name="email_message" id="email_message" class="form-control" cols="" rows="4" placeholder="This message will be sent along with Bill details."></textarea>
                       </div>
+                      <input type="number" name="balance" id="blnc" hidden>
                       <input type="date" name="start" id="startDt" hidden>
                       <input type="date" name="end" id="endDt" hidden>
                   </form>
@@ -361,6 +365,7 @@
 </div>
 
 <form action="{% url 'Fin_chequeStatementPdf' %}" method="get" id="pdfForm" hidden>
+  <input type="number" name="balance" id="bln">
   <input type="date" name="start" id="startD">
   <input type="date" name="end" id="endD">
 </form>
@@ -420,6 +425,33 @@
     })
   });
 
+  $(document).ready(function(){
+    calculateBalance();
+  });
+  
+  function calculateBalance(){
+    var table = document.getElementById('chequesTable');
+    var rows = table.getElementsByTagName('tr');
+    var balance = 0
+
+    for (var i = 1; i < rows.length; i++) {
+      var row = rows[i];
+      if(row.style.display != 'none'){
+        var amt = parseFloat(row.getElementsByTagName('td')[5].textContent);
+        var type = row.getElementsByTagName('td')[1].textContent;
+  
+        if(type === 'INVOICE' || type === 'RECURRING INVOICE' || type === 'DEBIT NOTE' || type ==='SALES ORDER' || type === 'RETAINER INVOICE' || type === 'EMI PAID'){
+          balance += amt
+        }else{
+          balance -= amt
+        }
+      }
+
+    }
+    console.log('balance==',balance)
+    $('#bal').text(balance)
+  }
+
   function filterTableByDate() {
     var start = $('#startDate').val();
     var end = $('#endDate').val();
@@ -443,6 +475,7 @@
           row.style.display = 'none';
         }
       }
+      calculateBalance();
     }else{
       alert('Select valid Start and End dates')
     }
@@ -451,7 +484,9 @@
   $('#toggleEmailModal').on('click',function(){
     var st = $('#startDate').val();
     var end = $('#endDate').val();
+    var bal = $('#bal').text();
 
+    $('#blnc').val(bal)
     $('#startDt').val(st)
     $('#endDt').val(end)
 
@@ -466,7 +501,9 @@
   $('#pdfBtn').on('click',function(){
     var st = $('#startDate').val();
     var end = $('#endDate').val();
+    var bal = $('#bal').text();
 
+    $('#bln').val(bal)
     $('#startD').val(st)
     $('#endD').val(end)
 
