@@ -193,6 +193,39 @@
           </tr>
           {% endfor %}
 
+          {% for a in loanAccount %}
+          <tr>
+            <td>{{ a.loan_date|date:'Y-m-d' }}</td>
+            <td>LOAN</td>
+            <td>{{a.loan.account_name}}</td>
+            <td></td>
+            <td>{{a.loan.recieved_upi}}</td>
+            <td>{{ a.loan_amount }}</td>
+          </tr>
+          {% endfor %}
+
+          {% for a in loanAdditional %}
+          <tr>
+            <td>{{ a.loan_date|date:'Y-m-d' }}</td>
+            <td>ADDITIONAL LOAN</td>
+            <td>{{a.loan.account_name}}</td>
+            <td></td>
+            <td>{{a.recieved_upi}}</td>
+            <td>{{ a.loan_amount }}</td>
+          </tr>
+          {% endfor %}
+
+          {% for a in emiPaid %}
+          <tr>
+            <td>{{ a.loan_date|date:'Y-m-d' }}</td>
+            <td>EMI PAID</td>
+            <td>{{a.loan.account_name}}</td>
+            <td></td>
+            <td>{{a.recieved_upi}}</td>
+            <td>{{ a.loan_amount }}</td>
+          </tr>
+          {% endfor %}
+
           {% for a in empLoan %}
           <tr>
             <td>{{ a.loan_date|date:'Y-m-d' }}</td>

@@ -28306,7 +28306,11 @@ def Fin_cheques(request):
         empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
         lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cheque', principle_amount__gt = 0)
         slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cheque')
-        
+
+        loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'cheque', loan_amount__gt = 0)
+        lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
+        lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
+
         context = {
             'allmodules':allmodules,
             'com':com,
@@ -28328,6 +28332,10 @@ def Fin_cheques(request):
             'empAddLoan':empAddLoan,
             'loanRepay':lnRpy,
             'empSalary':slry,
+
+            'loanAccount':loanAcc,
+            'loanAdditional':lonAddAcc,
+            'emiPaid':lonAccEmi,
         }
         return render(request,'company/Fin_Cheques.html',context)
     else:
@@ -28363,6 +28371,10 @@ def Fin_chequeStatement(request):
         lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cheque', principle_amount__gt = 0)
         slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cheque')
         
+        loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'cheque', loan_amount__gt = 0)
+        lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
+        lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
+
         context = {
             'allmodules':allmodules,
             'com':com,
@@ -28384,6 +28396,10 @@ def Fin_chequeStatement(request):
             'empAddLoan':empAddLoan,
             'loanRepay':lnRpy,
             'empSalary':slry,
+
+            'loanAccount':loanAcc,
+            'loanAdditional':lonAddAcc,
+            'emiPaid':lonAccEmi,
         }
         return render(request,'company/Fin_Cheques_Statement.html',context)
     else:
@@ -28423,6 +28439,10 @@ def Fin_chequeStatementPdf(request):
             empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
             lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cheque', principle_amount__gt = 0)
             slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cheque')
+
+            loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'cheque', loan_amount__gt = 0)
+            lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
+            lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
         else:
             inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'cheque', paid_off__gt = 0)
             crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'cheque', paid__gt = 0)
@@ -28439,6 +28459,10 @@ def Fin_chequeStatementPdf(request):
             empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'cheque')
             lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'cheque', principle_amount__gt = 0)
             slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='cheque')
+            
+            loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', loan_date__range = [startDate, endDate], to_trans__iexact = 'cheque', loan_amount__gt = 0)
+            lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', loan_date__range = [startDate, endDate], recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
+            lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', loan_date__range = [startDate, endDate], recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
         
         context = {
             'cmp':cmp,
@@ -28457,6 +28481,10 @@ def Fin_chequeStatementPdf(request):
             'empAddLoan':empAddLoan,
             'loanRepay':lnRpy,
             'empSalary':slry,
+
+            'loanAccount':loanAcc,
+            'loanAdditional':lonAddAcc,
+            'emiPaid':lonAccEmi,
 
             'balance':bal
         }
@@ -28523,6 +28551,10 @@ def Fin_shareChequeStatementToEmail(request):
                     empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cheque')
                     lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cheque', principle_amount__gt = 0)
                     slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cheque')
+
+                    loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'cheque', loan_amount__gt = 0)
+                    lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
+                    lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
                 else:
                     inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'cheque', paid_off__gt = 0)
                     crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'cheque', paid__gt = 0)
@@ -28539,6 +28571,10 @@ def Fin_shareChequeStatementToEmail(request):
                     empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'cheque')
                     lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'cheque', principle_amount__gt = 0)
                     slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='cheque')
+
+                    loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', loan_date__range = [startDate, endDate], to_trans__iexact = 'cheque', loan_amount__gt = 0)
+                    lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', loan_date__range = [startDate, endDate], recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
+                    lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', loan_date__range = [startDate, endDate], recieved_bank__iexact = 'cheque', loan_amount__gt = 0)
                 
                 context = {
                     'cmp':cmp,
@@ -28557,6 +28593,10 @@ def Fin_shareChequeStatementToEmail(request):
                     'empAddLoan':empAddLoan,
                     'loanRepay':lnRpy,
                     'empSalary':slry,
+
+                    'loanAccount':loanAcc,
+                    'loanAdditional':lonAddAcc,
+                    'emiPaid':lonAccEmi,
 
                     'balance':bal
                 }
@@ -28611,6 +28651,10 @@ def Fin_upiPayments(request):
         empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
         lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'upi', principle_amount__gt = 0)
         slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='upi')
+
+        loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'upi', loan_amount__gt = 0)
+        lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'upi', loan_amount__gt = 0)
+        lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'upi', loan_amount__gt = 0)
         
         context = {
             'allmodules':allmodules,
@@ -28633,6 +28677,10 @@ def Fin_upiPayments(request):
             'empAddLoan':empAddLoan,
             'loanRepay':lnRpy,
             'empSalary':slry,
+
+            'loanAccount':loanAcc,
+            'loanAdditional':lonAddAcc,
+            'emiPaid':lonAccEmi,
         }
         return render(request,'company/Fin_UPI.html',context)
     else:
@@ -28667,6 +28715,10 @@ def Fin_upiStatement(request):
         empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
         lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'upi', principle_amount__gt = 0)
         slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='upi')
+
+        loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'upi', loan_amount__gt = 0)
+        lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'upi', loan_amount__gt = 0)
+        lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'upi', loan_amount__gt = 0)
         
         context = {
             'allmodules':allmodules,
@@ -28689,6 +28741,10 @@ def Fin_upiStatement(request):
             'empAddLoan':empAddLoan,
             'loanRepay':lnRpy,
             'empSalary':slry,
+
+            'loanAccount':loanAcc,
+            'loanAdditional':lonAddAcc,
+            'emiPaid':lonAccEmi,
         }
         return render(request,'company/Fin_UPI_Statement.html',context)
     else:
@@ -28728,6 +28784,10 @@ def Fin_upiStatementPdf(request):
             empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
             lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'upi', principle_amount__gt = 0)
             slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='upi')
+
+            loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'upi', loan_amount__gt = 0)
+            lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'upi', loan_amount__gt = 0)
+            lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'upi', loan_amount__gt = 0)
         else:
             inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'upi', paid_off__gt = 0)
             crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'upi', paid__gt = 0)
@@ -28744,6 +28804,10 @@ def Fin_upiStatementPdf(request):
             empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'upi')
             lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'upi', principle_amount__gt = 0)
             slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='upi')
+
+            loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', loan_date__range = [startDate, endDate], to_trans__iexact = 'upi', loan_amount__gt = 0)
+            lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', loan_date__range = [startDate, endDate], recieved_bank__iexact = 'upi', loan_amount__gt = 0)
+            lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', loan_date__range = [startDate, endDate], recieved_bank__iexact = 'upi', loan_amount__gt = 0)
         
         context = {
             'cmp':cmp,
@@ -28762,6 +28826,10 @@ def Fin_upiStatementPdf(request):
             'empAddLoan':empAddLoan,
             'loanRepay':lnRpy,
             'empSalary':slry,
+
+            'loanAccount':loanAcc,
+            'loanAdditional':lonAddAcc,
+            'emiPaid':lonAccEmi,
 
             'balance': bal
         }
@@ -28828,6 +28896,10 @@ def Fin_shareUpiStatementToEmail(request):
                     empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'upi')
                     lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'upi', principle_amount__gt = 0)
                     slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='upi')
+
+                    loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'upi', loan_amount__gt = 0)
+                    lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'upi', loan_amount__gt = 0)
+                    lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'upi', loan_amount__gt = 0)
                 else:
                     inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'upi', paid_off__gt = 0)
                     crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'upi', paid__gt = 0)
@@ -28844,7 +28916,11 @@ def Fin_shareUpiStatementToEmail(request):
                     empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'upi')
                     lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'upi', principle_amount__gt = 0)
                     slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='upi')
-                
+
+                    loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', loan_date__range = [startDate, endDate], to_trans__iexact = 'upi', loan_amount__gt = 0)
+                    lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', loan_date__range = [startDate, endDate], recieved_bank__iexact = 'upi', loan_amount__gt = 0)
+                    lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', loan_date__range = [startDate, endDate], recieved_bank__iexact = 'upi', loan_amount__gt = 0)
+
                 context = {
                     'cmp':cmp,
                     'invoice':inv,
@@ -28862,6 +28938,10 @@ def Fin_shareUpiStatementToEmail(request):
                     'empAddLoan':empAddLoan,
                     'loanRepay':lnRpy,
                     'empSalary':slry,
+
+                    'loanAccount':loanAcc,
+                    'loanAdditional':lonAddAcc,
+                    'emiPaid':lonAccEmi,
                     
                     'balance':bal
                 }
