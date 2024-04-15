@@ -28705,6 +28705,7 @@ def Fin_upiStatementPdf(request):
         
         startDate = request.GET['start']
         endDate = request.GET['end']
+        bal = request.GET['balance']
         if startDate == "":
             startDate = None
         if endDate == "":
@@ -28760,7 +28761,9 @@ def Fin_upiStatementPdf(request):
             'empLoan':empLoan,
             'empAddLoan':empAddLoan,
             'loanRepay':lnRpy,
-            'empSalary':slry
+            'empSalary':slry,
+
+            'balance': bal
         }
         
         template_path = 'company/Fin_UPIStatement_Pdf.html'
@@ -28793,6 +28796,7 @@ def Fin_shareUpiStatementToEmail(request):
         
         try:
             if request.method == 'POST':
+                bal = request.POST['balance']
                 startDate = request.POST['start']
                 endDate = request.POST['end']
                 if startDate == "":
@@ -28857,7 +28861,9 @@ def Fin_shareUpiStatementToEmail(request):
                     'empLoan':empLoan,
                     'empAddLoan':empAddLoan,
                     'loanRepay':lnRpy,
-                    'empSalary':slry
+                    'empSalary':slry,
+                    
+                    'balance':bal
                 }
                 template_path = 'company/Fin_UPIStatement_Pdf.html'
                 template = get_template(template_path)
@@ -28878,3 +28884,5 @@ def Fin_shareUpiStatementToEmail(request):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_upiStatement)
+
+# End
