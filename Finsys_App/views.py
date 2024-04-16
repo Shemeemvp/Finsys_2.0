@@ -28966,3 +28966,128 @@ def Fin_shareUpiStatementToEmail(request):
             return redirect(Fin_upiStatement)
 
 # End
+
+# < ------------- Shemeem -------- > CREDIT NOTES < ------------------------------- >
+def Fin_creditNotes(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        cred = Fin_CreditNote.objects.filter(Company = cmp)
+        context = {
+            'allmodules':allmodules,'com':com, 'cmp':cmp,'data':data,'creditNotes':cred
+        }
+        return render(request,'company/Fin_Credit_Notes.html', context)
+    else:
+       return redirect('/')
+
+def Fin_addCreditNote(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, type__iexact='sales', status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+
+        # Fetching last creditNote and assigning upcoming ref no as current + 1
+        # Also check for if any bill is deleted and ref no is continuos w r t the deleted creditNote
+        latest_cred = Fin_CreditNote.objects.filter(Company = cmp).order_by('-id').first()
+
+        new_number = int(latest_cred.reference_number) + 1 if latest_cred else 1
+
+        if Fin_CreditNote_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_CreditNote_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.reference_number) >= new_number:
+                    new_number+=1
+
+        # Finding next invoice number w r t last invoic number if exists.
+        nxtCN = ""
+        if latest_cred:
+            inv_no = str(latest_cred.creditnote_number)
+            numbers = []
+            stri = []
+            for word in inv_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+
+            num = ''.join(numbers)
+            st = ''.join(stri)
+
+            inv_num = int(num) + 1
+            if num[0] == 0:
+                nxtCN = st + num.zfill(len(num))
+            else:
+                nxtCN = st + str(inv_num).zfill(len(num))
+        else:
+            nxtCN = 'CN001'
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,'priceListItems':lst,
+            'ref_no':new_number,'banks':bnk,'credNo':nxtCN,'units':units, 'accounts':acc
+        }
+        return render(request,'company/Fin_Credit_NotesAdd.html',context)
+    else:
+        return redirect('/')
+
+def Fin_getInvoiceNumbers(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        cust = request.GET['custId']
+        invType = request.GET['invType']
+
+        invoices = {}
+        customer = Fin_Customers.objects.get(id = cust)
+        if not customer:
+            return JsonResponse({'message':'Customer Not Found, Try again..'})
+
+        if invType == 'Invoice':
+            invs = Fin_Invoice.objects.filter(Company = com, Customer = customer)
+
+            for option in invs:
+                if not Fin_CreditNote.objects.filter(Company = com, invoice_number__iexact = option.invoice_no).exists():
+                    invoices[option.id] = [option.id, option.invoice_no]
+                else:
+                    continue
+        
+        if invType == 'Recurring Invoice':
+            invs = Fin_Recurring_Invoice.objects.filter(Company = com, Customer = customer)
+
+            for option in invs:
+                if not Fin_CreditNote.objects.filter(Company = com, invoice_number__iexact = option.rec_invoice_no).exists():
+                    invoices[option.id] = [option.id, option.rec_invoice_no]
+                else:
+                    continue
+
+        return JsonResponse(invoices)
+    else:
+        return redirect('/')

@@ -797,6 +797,11 @@ urlpatterns = [
     path('Fin_upi_statement',views.Fin_upiStatement, name='Fin_upiStatement'),
     path('Fin_upi_statement_pdf',views.Fin_upiStatementPdf, name='Fin_upiStatementPdf'),
     path('Fin_share_upi_statement_to_email',views.Fin_shareUpiStatementToEmail, name='Fin_shareUpiStatementToEmail'),
+
+    # < ------------- Shemeem -------- > CREDIT NOTES < ------------------------------- >
+    path('Fin_credit_notes',views.Fin_creditNotes, name = 'Fin_creditNotes'),
+    path('Fin_add_credit_note',views.Fin_addCreditNote, name='Fin_addCreditNote'),
+    path('Fin_get_invoice_numbers',views.Fin_getInvoiceNumbers, name='Fin_getInvoiceNumbers'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
