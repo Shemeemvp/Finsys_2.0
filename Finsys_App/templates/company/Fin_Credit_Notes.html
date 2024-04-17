@@ -61,7 +61,7 @@
         </thead>
         <tbody>
           {% for a in creditNotes %}
-          <tr class="clickable-row" data-href="#" style="cursor: pointer;">
+          <tr class="clickable-row" data-href="{% url 'Fin_viewCreditNote' a.id %}" style="cursor: pointer;">
             <td>{{ forloop.counter }}</td>
             <td>{{ a.creditnote_date }}</td>
             <td>{{ a.creditnote_number }}</td>
@@ -103,7 +103,7 @@
   });
 
   jQuery(document).ready(function ($) {
-    $(".clickable-row").dblclick(function () {
+    $(".clickable-row").click(function () {
       window.location = $(this).data("href");
     });
   });

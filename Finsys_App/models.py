@@ -2186,10 +2186,11 @@ class Fin_CreditNote(models.Model):
     creditnote_number = models.CharField(max_length=100, blank=True)
     creditnote_date = models.DateField(null=True, blank=True)
     reference_number = models.IntegerField(null=True, blank=True)
-    invoice_number = models.CharField(max_length=100, blank=True)
-    
-    invoice_type = models.CharField(max_length=100, blank=True)
-    payment_type = models.CharField(max_length=100, blank=True)
+    invoice_number = models.CharField(max_length=100, blank=True, null=True)
+    invoice_type = models.CharField(max_length=100, blank=True, null=True)
+    price_list_applied = models.BooleanField(null=True, default=False)
+    price_list = models.ForeignKey(Fin_Price_List, on_delete = models.SET_NULL,null=True)
+    payment_type = models.CharField(max_length=100, blank=True, null=True)
     cheque_number = models.CharField(max_length=100, blank=True,null=True,)
     upi_id = models.CharField(max_length=100, blank=True,null=True,)
     bank_account = models.CharField(max_length=100, blank=True,null=True,)
@@ -2201,7 +2202,7 @@ class Fin_CreditNote(models.Model):
     igst = models.FloatField(default=0.0, null=True, blank=True)
     cgst = models.FloatField(default=0.0, null=True, blank=True)
     sgst = models.FloatField(default=0.0, null=True, blank=True)
-    price = models.FloatField(default=0.0, null=True, blank=True)
+    # price = models.FloatField(default=0.0, null=True, blank=True)
     tax_amount = models.FloatField(default=0.0, null=True, blank=True)
     adjustment = models.FloatField(default=0.0, null=True, blank=True)
     shipping_charge = models.FloatField(default=0.0, null=True, blank=True)
@@ -2210,6 +2211,9 @@ class Fin_CreditNote(models.Model):
     balance = models.FloatField(default=0.0, null=True, blank = True)
     note = models.TextField(null=True, blank=True)
     status =models.CharField(max_length=150,default='Draft')
+
+    def getNumFieldName(self):
+        return 'creditnote_number'
 
 
 class Fin_CreditNote_Items(models.Model):
@@ -2233,7 +2237,7 @@ class Fin_CreditNote_History(models.Model):
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
     LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
     creditnote = models.ForeignKey(Fin_CreditNote, on_delete=models.CASCADE, null=True)
-    date = models.DateField( null=True, blank = True)
+    date = models.DateField(auto_now_add=True, auto_now=False, null=True, blank = True)
     action = models.CharField( max_length=150,default='Created')
 
 class Fin_CreditNote_Comments(models.Model):

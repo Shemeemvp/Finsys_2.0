@@ -802,6 +802,15 @@ urlpatterns = [
     path('Fin_credit_notes',views.Fin_creditNotes, name = 'Fin_creditNotes'),
     path('Fin_add_credit_note',views.Fin_addCreditNote, name='Fin_addCreditNote'),
     path('Fin_get_invoice_numbers',views.Fin_getInvoiceNumbers, name='Fin_getInvoiceNumbers'),
+    path('Fin_get_invoice_details',views.Fin_getInvoiceDet, name='Fin_getInvoiceDet'),
+    path('Fin_create_credit_note',views.Fin_createCreditNote, name='Fin_createCreditNote'),
+    path('Fin_check_credit_note_number',views.checkCreditNoteNumber, name='checkCreditNoteNumber'),
+    path('Fin_view_credit_note/<int:id>',views.Fin_viewCreditNote, name='Fin_viewCreditNote'),
+    path('Fin_convert_credit_note/<int:id>',views.Fin_convertCreditNote, name='Fin_convertCreditNote'),
+    path('Fin_credit_note_history/<int:id>',views.Fin_creditNoteHistory, name='Fin_creditNoteHistory'),
+    path('Fin_add_credit_note_comment/<int:id>',views.Fin_addCreditNoteComment, name='Fin_addCreditNoteComment'),
+    path('Fin_delete_credit_note_comment/<int:id>',views.Fin_deleteCreditNoteComment, name='Fin_deleteCreditNoteComment'),
+    path('Fin_attach_credit_note_file/<int:id>',views.Fin_attachCreditNoteFile, name='Fin_attachCreditNoteFile'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
