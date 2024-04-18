@@ -316,12 +316,12 @@
                                 </ul>
                             </div>
                             {% endif %}
-                            <a onclick="tempPDF()" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
+                            <a href="{% url 'Fin_creditNotePdf' credit.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" onclick="slipPDF()" id="slipPdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('whatToPrint')">&nbsp;Print</a>
                            
-                            <a href="{% url 'Fin_editdebitnote' credit.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="" role="button">&nbsp;Edit</a>
-                            <a href="{% url 'Fin_deletedebit' credit.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Credit Note - {{credit.creditnote_number}}.?')">&nbsp;Delete</a>
+                            <a href="{% url 'Fin_editCreditNote' credit.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
+                            <a href="{% url 'Fin_deleteCreditNote' credit.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Credit Note - {{credit.creditnote_number}}.?')">&nbsp;Delete</a>
                             <a href=""  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
                             <a href="{% url 'Fin_creditNoteHistory' credit.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                             <div class="dropdown p-0 nav-item"  id="attachBtn" style="display: block;">
@@ -514,7 +514,7 @@
                                         <!-- <h6 class="mb-0">GSTIN No</h6> -->
                                     </div>
                                     <div class="col-md-3 mt-3">
-                                        <!-- <p class="mb-0 text-right">{{credit.Vendor.gstin}}</p> -->
+                                        <!-- <p class="mb-0 text-right">{{credit.Customer.gstin}}</p> -->
                                         <p class="mb-0" style="text-align: right;">{{credit.gst_type}}</p>
                                     </div>
 
@@ -524,7 +524,7 @@
                                     </div>
                                     <div class="col-md-3 mt-3">
                                         <p class="mb-0 text-right">{{credit.gstin}}</p>
-                                        <!-- <p class="mb-0" style="text-align: right;">{{credit.Vendor.gst_type}}</p> -->
+                                        <!-- <p class="mb-0" style="text-align: right;">{{credit.Customer.gst_type}}</p> -->
                                     </div>
                                 </div>
                             
@@ -722,7 +722,7 @@
                                             </div>
                                             <div class="col-5" >
                                                 <p style="text-align: right;">TO,</p>
-                                                <h5 style="text-align: right;">{{credit.Vendor.title}} {{credit.Vendor.first_name}} {{credit.Vendor.last_name}}</h5>
+                                                <h5 style="text-align: right;">{{credit.Customer.title}} {{credit.Customer.first_name}} {{credit.Customer.last_name}}</h5>
                                                 <p class="address " style="text-align: right;" > {{ credit.billing_address}} </p>
                                                 
                                             </div>
@@ -880,7 +880,7 @@
                                               <div class="col-4"></div>
                                               <div class="col-4 pr-0">
                                                   <label class="text-white w-100 p-1" style="border-top-right-radius: 4vh; border-bottom-right-radius: 4vh; background-color: #999999;" ><b>SHIPPING ADDRESS</b></label>
-                                                  <h5 class="text-secondary" style="font-weight: bold;">{{credit.Vendor.title}} {{credit.Vendor.first_name}} {{credit.Vendor.last_name}}</h5>
+                                                  <h5 class="text-secondary" style="font-weight: bold;">{{credit.Customer.title}} {{credit.Customer.first_name}} {{credit.Customer.last_name}}</h5>
                                                   <p class="address" style="font-weight: bold;color: #000;">{{ credit.billing_address | linebreaksbr}} </p>
                                               </div>
                                           </div>
@@ -1033,7 +1033,7 @@
                                         <div class="col-5">
                                             <br><br><br>
                                             <p style="color:black;"> <span style=" font-weight: bold;">To: </span><br>
-                                            {{credit.Vendor.title}} {{credit.Vendor.first_name}} {{credit.Vendor.last_name}}<br>
+                                            {{credit.Customer.title}} {{credit.Customer.first_name}} {{credit.Customer.last_name}}<br>
                                             {{credit.billing_address|linebreaksbr }}
                                             </p>
                                         </div>
@@ -1373,7 +1373,7 @@
             </div>
             <div class="modal-body">
                 <div class="card p-3">
-                    <form action="{% url 'Fin_sharedebitToEmail' credit.id %}" method="post" class="needs-validation" id="share_to_email_form">
+                    <form action="{% url 'Fin_shareCreditNoteToEmail' credit.id %}" method="post" class="needs-validation" id="share_to_email_form">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="emailIds">Email IDs</label>

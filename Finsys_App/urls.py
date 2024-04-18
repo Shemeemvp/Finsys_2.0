@@ -802,6 +802,7 @@ urlpatterns = [
     path('Fin_credit_notes',views.Fin_creditNotes, name = 'Fin_creditNotes'),
     path('Fin_add_credit_note',views.Fin_addCreditNote, name='Fin_addCreditNote'),
     path('Fin_get_invoice_numbers',views.Fin_getInvoiceNumbers, name='Fin_getInvoiceNumbers'),
+    path('Fin_get_invoice_numbers_edit',views.Fin_getInvoiceNumbersEdit, name='Fin_getInvoiceNumbersEdit'),
     path('Fin_get_invoice_details',views.Fin_getInvoiceDet, name='Fin_getInvoiceDet'),
     path('Fin_create_credit_note',views.Fin_createCreditNote, name='Fin_createCreditNote'),
     path('Fin_check_credit_note_number',views.checkCreditNoteNumber, name='checkCreditNoteNumber'),
@@ -811,6 +812,11 @@ urlpatterns = [
     path('Fin_add_credit_note_comment/<int:id>',views.Fin_addCreditNoteComment, name='Fin_addCreditNoteComment'),
     path('Fin_delete_credit_note_comment/<int:id>',views.Fin_deleteCreditNoteComment, name='Fin_deleteCreditNoteComment'),
     path('Fin_attach_credit_note_file/<int:id>',views.Fin_attachCreditNoteFile, name='Fin_attachCreditNoteFile'),
+    path('Fin_edit_credit_note/<int:id>',views.Fin_editCreditNote, name='Fin_editCreditNote'),
+    path('Fin_update_credit_note/<int:id>',views.Fin_updateCreditNote, name='Fin_updateCreditNote'),
+    path('Fin_credit_note_pdf/<int:id>',views.Fin_creditNotePdf, name='Fin_creditNotePdf'),
+    path('Fin_share_credit_note_to_email/<int:id>',views.Fin_shareCreditNoteToEmail, name='Fin_shareCreditNoteToEmail'),
+    path('Fin_delete_credit_note/<int:id>',views.Fin_deleteCreditNote, name= 'Fin_deleteCreditNote'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

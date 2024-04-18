@@ -2174,6 +2174,8 @@ class Fin_CashInHand(models.Model):
 
 # End
 
+# < ------------- Shemeem -------- > CASH IN HAND < ------------------------------- >
+
 class Fin_CreditNote(models.Model):
     Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True,blank=True)
     LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True,blank=True)
