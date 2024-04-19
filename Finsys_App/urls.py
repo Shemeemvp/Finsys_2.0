@@ -818,6 +818,9 @@ urlpatterns = [
     path('Fin_share_credit_note_to_email/<int:id>',views.Fin_shareCreditNoteToEmail, name='Fin_shareCreditNoteToEmail'),
     path('Fin_delete_credit_note/<int:id>',views.Fin_deleteCreditNote, name= 'Fin_deleteCreditNote'),
     path('Fin_get_inv_paid_amount',views.Fin_getInvoicePaidAmount, name='Fin_getInvoicePaidAmount'),
+
+    # < ------------- Shemeem -------- > Reports - Sales by Item & Customer < ------------------------------- >
+    path('Fin_report_sales_by_customer',views.Fin_salesByCustomerReport, name='Fin_salesByCustomerReport'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

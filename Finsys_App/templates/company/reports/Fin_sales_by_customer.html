@@ -1,0 +1,451 @@
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load static %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.0/html2canvas.min.js"></script>
+
+
+<style>
+    .bar {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+
+
+    }
+
+    .bar .left {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .bar .left input {
+        height: 5vh;
+    }
+
+
+    .hidden {
+        display: none;
+    }
+
+    #search-dropdown {
+        position: absolute;
+    }
+
+    @media print {
+        * {
+            background: transparent !important;
+            color: #000 !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+            font-size: 100%;
+
+        }
+
+        .bar,
+        #nav1,
+        header {
+            display: none;
+        }
+
+        #div2 {
+            position: absolute;
+            top: -100px;
+            text-align: center;
+            width: 100%;
+        }
+
+
+    }
+</style>
+<div class="page-content">
+    <div class="card radius-15">
+        <div class="card-body">
+            <div class="card-title" id="div2">
+                <center>
+                    <h6 style="padding-top: 20px;">{{cmp1.cname}}</h6>
+                    <h2 class="my-4 text-uppercase" id="headline">SALES BY customer</h2>
+                    <div class="display">
+                        <div id="d1" style="display: inline-block;"></div>
+                        <div id="d2" style="display: inline-block;"></div>
+                    </div>
+
+                </center>
+                <hr>
+            </div>
+
+            <div class="bar">
+
+                <div class=" left">
+                    <div class="px-2">
+                        <label style="text-align:left ">From</label><br>
+                        <input name="FromDate" class="inputdate form-control" type="date" id="in1">
+                    </div>
+
+                    <div class="px-2">
+                        <label style="text-align:left ">To</label><br>
+                        <input name="ToDate" type="date" class="inputdate form-control" id="in2">
+                    </div>
+                    <div class="px-2 dropdown">
+                        <label style="text-align:left;visibility: hidden;">to</label><br>
+                        <input type="text" id="searchInput" placeholder="Search..."
+                            class="dropdown-toggle form-control " autocomplete="off" data-toggle="dropdown">
+                        <div class="dropdown-menu" style="background-color: #7690da;">
+                            <a id="d-item" class="dropdown-item" href="#"
+                                style="height: 40px; font-size: 15px; color: white; ">All</a>
+                            {% for i in custom %}
+                            <a id="d-item" class="dropdown-item" href="#"
+                                style="height: 40px; font-size: 15px; color: white; ">{{i.firstname}} {{i.lastname}}</a>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+
+
+                </div>
+                <div class="right">
+
+                    <button class="btn btn_pdf btn-outline-info" id="btn-pdf">pdf</button>
+                    <button class="btn btn_print btn-outline-info" onclick="window.print()">Print</button>
+                    <button class=" btn btn-outline-info" id="export-button" onclick="exportAsExcel()">Excel</button>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <div class="card radius-15 print-only" id="pdf-card">
+        <div class="card-body">
+            <div class="container-fluid">
+
+
+                <table class="table table-responsive-md mt-4 table-hover table-bordered"
+                    style="background-color: rgba(0, 0, 0, 0.2);" id="myTable">
+                    <thead>
+                        <tr>
+                            <th>DATE</th>
+                            <th>CUSTOMER</th>
+                            <th>MAIL ID</th>
+                            <th>TYPE</th>
+                            <th>QUANTITY</th>
+                            <th>SUBTOTAL</th>
+                            <th>TOTAL SALE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in rec %}
+                        <tr>
+                            <td>{{i.recinvoice.startdate|date:'d-m-Y'}}</td>
+                            <td>{{i.recinvoice.customername}}</td>
+                            <td>{{i.recinvoice.email}}</td>
+                            <td>Reccuring Invoice</td>
+                            <td>{{i.qty}}</td>
+                            <td>{{i.total}}</td>
+                            <td>{{i.recinvoice.grandtotal}}</td>
+                        </tr>
+                        {% endfor %}
+                        {% for i in inv %}
+                        <tr>
+                            <td>{{i.invoice.invoicedate|date:'d-m-Y'}}</td>
+                            <td>{{i.invoice.customername}}</td>
+                            <td>{{i.invoice.email}}</td>
+                            <td>Invoice</td>
+                            <td>{{i.qty}}</td>
+                            <td>{{i.total}}</td>
+                            <td>{{i.invoice.grandtotal}}</td>
+                        </tr>
+                        {% endfor %}
+                        {% for i in pdebit %}
+                        <tr>
+                            <td>{{i.scredit.creditdate|date:'d-m-Y'}}</td>
+                            <td>{{i.scredit.customer}}</td>
+                            <td>{{i.scredit.email}}</td>
+                            <td>Credit Notes</td>
+                            <td>{{i.quantity}}</td>
+                            <td>{{i.scredit.subtotal}}</td>
+                            <td>{{i.scredit.grandtotal}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="row p-4">
+                <div class="col-10">
+                    <div class="row mb-2">
+                        <div class="col-4">Total customers : <p style="font-size: 19px;">{{c_count}}</p>
+                        </div><br><br>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 ">Invoice Sale: <p id="sales" style="font-size: 19px;">₹<span
+                                    id="totalInvoice"></span></p>
+                        </div>
+                        <div class="col-4">Reccuring Invoice Sale: <p id="purchase" style="font-size: 19px;">₹<span
+                                    id="totalReccuringinvoice"></span>
+                            </p>
+                        </div>
+                        <div class="col-4">Credit Note: <p id="expense" style="font-size: 19px;">₹<span
+                                    id="totalCreditnote"></span></p>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 ">SubTotal: <p id="sales" style="font-size: 19px;">₹<span
+                                    id="totalSale"></span></p>
+                        </div>
+                        <div class="col-4">SubTotal Without Credit Note:<p id="expense" style="font-size: 19px;">
+                                ₹<span id="totalSalewithoutCreditnotes"></span></p>
+                        </div>
+                        <div class="col-4">Total Sale:<p id="purchase" style="font-size: 19px;">₹<span
+                                    id="grantTotal"></span>
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="col-2 text-center">
+                    <h5 style="padding-top: 80px;">Total Sale</h5>
+                    <p>(Without Credit Note)</p>
+
+                    <h4 id="totvalue">₹<span id="superTotal"></span></h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        var $tableRows = $("#myTable tbody tr");
+        var originalRows = Array.from($tableRows);
+
+        var filteredRows = originalRows.slice();
+        var totalgrantTotal = 0;
+        var totalCreditnotegranttotal = 0;
+        var totalInvoiceSubtotal = 0;
+        var totalRecinvoiceSubtotal = 0;
+        var totalCreditnoteSubtotal = 0;
+
+        document.getElementById("in1").addEventListener("change", filterByDate);
+        document.getElementById("in2").addEventListener("change", filterByDate);
+
+        function filterByDate() {
+            var startDate = moment(document.getElementById("in1").value, "YYYY-MM-DD");
+            var startDatevalue = document.getElementById("in1").value;
+            var endDateInput = document.getElementById("in2");
+
+            endDateInput.min = startDatevalue;
+            var endDate = moment(endDateInput.value, "YYYY-MM-DD");
+
+            if (!moment(document.getElementById("in1").value).isValid()) {
+                $tableRows.show();
+                filteredRows = originalRows.slice();
+                document.getElementById("d1").textContent = "";
+                document.getElementById("d2").textContent = "";
+                return;
+            }
+
+            if (!moment(endDateInput.value, "YYYY-MM-DD").isValid()) {
+                $tableRows.show();
+                filteredRows = originalRows.slice();
+                document.getElementById("d1").textContent = "";
+                document.getElementById("d2").textContent = "";
+                return;
+            }
+
+
+            var head = document.getElementById('headline');
+            head.textContent = "sales by customer";
+
+            // Update the start date link
+            document.getElementById("d1").textContent = "Start Date: " + startDate.format("YYYY-MM-DD");
+            // Update the end date link
+            document.getElementById("d2").textContent = "End Date: " + endDate.format("YYYY-MM-DD");
+
+
+            filteredRows = originalRows.filter(function (row) {
+                var dateCell = row.querySelector("td:first-child");
+                var rowDateString = dateCell.textContent;
+                var rowDate = moment(rowDateString, "DD/MM/YYYY");
+
+                return rowDate.isSameOrAfter(startDate) && rowDate.isSameOrBefore(endDate);
+            });
+
+            $tableRows.hide();
+            $(filteredRows).show();
+            calculateTotals(filteredRows);
+            calculateGranttotal(filteredRows);
+
+            return filteredRows; // Return filtered rows
+        }
+
+        function calculateGranttotal(rows) {
+            totalgrantTotal = 0;
+            totalCreditnotegranttotal = 0;
+
+            for (let row of rows) {
+                let grantTotalCell = row.children[6];
+                let grantTotal = parseFloat(grantTotalCell.textContent);
+                totalgrantTotal += grantTotal;
+
+                let typeCell = row.children[3];
+
+                if (typeCell.textContent.trim() === "Credit Notes") {
+                    let creditgranttotalCell = row.children[6];
+                    let creditgranttotal = parseFloat(creditgranttotalCell.textContent);
+                    totalCreditnotegranttotal += creditgranttotal;
+                }
+            }
+
+            var superTotal = document.getElementById('superTotal');
+            var roundedNumber = totalgrantTotal - totalCreditnotegranttotal;
+            superTotal.textContent = roundedNumber.toFixed(2);
+
+            var gtTag = document.getElementById('grantTotal');
+            gtTag.textContent = totalgrantTotal.toFixed(2);
+        }
+        calculateGranttotal(originalRows);
+
+        function removeFirstLetter(rows) {
+            for (let row of rows) {
+                let typeCell = row.children[3];
+                if (typeCell.textContent.trim() === "Invoice") {
+                    let customerCell = row.children[1];
+                    let customer = customerCell.textContent;
+                    customerCell.textContent = customer.substring(1);
+                }
+                if (typeCell.textContent.trim() === "Credit Notes") {
+                    let customerCell = row.children[1];
+                    let customer = customerCell.textContent;
+                    customerCell.textContent = customer.substring(1);
+                }
+            }
+        }
+
+        removeFirstLetter(originalRows);
+
+        function calculateTotals(rows) {
+            totalInvoiceSubtotal = 0;
+            totalRecinvoiceSubtotal = 0;
+            totalCreditnoteSubtotal = 0;
+
+            for (let row of rows) {
+                let typeCell = row.children[3];
+
+                if (typeCell.textContent.trim() === "Invoice") {
+                    let subtotalCell = row.children[5];
+                    let subtotal = parseFloat(subtotalCell.textContent);
+                    totalInvoiceSubtotal += subtotal;
+                }
+
+                if (typeCell.textContent.trim() === "Reccuring Invoice") {
+                    let subtotalCell = row.children[5];
+                    let subtotal = parseFloat(subtotalCell.textContent);
+                    totalRecinvoiceSubtotal += subtotal;
+                }
+
+                if (typeCell.textContent.trim() === "Credit Notes") {
+                    let subtotalCell = row.children[5];
+                    let subtotal = parseFloat(subtotalCell.textContent);
+                    totalCreditnoteSubtotal += subtotal;
+                }
+            }
+
+            var TITag = document.getElementById('totalInvoice');
+            TITag.textContent = totalInvoiceSubtotal;
+
+            var RITag = document.getElementById('totalReccuringinvoice');
+            RITag.textContent = totalRecinvoiceSubtotal;
+
+            var cnTag = document.getElementById('totalCreditnote');
+            cnTag.textContent = totalCreditnoteSubtotal;
+
+            var tsTag = document.getElementById('totalSale');
+            tsTag.textContent = totalInvoiceSubtotal + totalRecinvoiceSubtotal + totalCreditnoteSubtotal;
+
+            var tswcnTag = document.getElementById('totalSalewithoutCreditnotes');
+            tswcnTag.textContent = totalInvoiceSubtotal + totalRecinvoiceSubtotal;
+        }
+
+        // Call calculateTotals initially to calculate totals for all rows
+        calculateTotals(originalRows);
+
+        // Code for filtering rows based on search input
+        $rows = $('.dropdown-menu #d-item');
+        $('#searchInput').keyup(function () {
+            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+            $rows.show().filter(function () {
+                var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+                return !~text.indexOf(val);
+            }).hide();
+        });
+
+        // Click event handler for dropdown menu items
+        $rows.click(function () {
+            var itemName = $(this).text().trim();
+            var head = document.getElementById('headline');
+            head.textContent = "sales by " + itemName;
+
+            if ($(this).text().trim() === 'All') {
+                $tableRows.show();
+                document.getElementById("d1").textContent = "";
+                document.getElementById("d2").textContent = "";
+                document.getElementById("in1").value = "";
+                document.getElementById("in2").value = "";
+                filteredRows = originalRows.slice();
+                calculateTotals(originalRows);
+                calculateGranttotal(originalRows);
+                head.textContent = "sales by items";
+            } else {
+                var dRows = $(filteredRows).show().filter(function () {
+                    return $(this).text().indexOf(itemName) === -1;
+                }).hide();
+
+                var remainingRows = $(filteredRows).not(dRows);
+                calculateTotals(remainingRows);
+                calculateGranttotal(remainingRows);
+                calculateGrantTotalByMonth(remainingRows);
+            }
+
+        });
+
+    });
+
+</script>
+
+<script type="text/javascript">
+    function exportAsExcel() {
+        const table = document.getElementById('myTable'); // Replace 'myTable' with your table's ID
+        const wb = XLSX.utils.table_to_book(table);
+
+        XLSX.writeFile(wb, 'patystatement.xlsx');
+    }
+</script>
+<script>
+
+    $(document).ready(function ($) {
+        $(document).on('click', '.btn_pdf', function (event) {
+            console.log('print1');
+            event.preventDefault();
+            var name = document.getElementById("headline").innerHTML;
+            var div2 = document.getElementById("div2");
+            var element = document.createElement('div');
+            element.appendChild(div2.cloneNode(true));
+            element.appendChild(document.getElementById('pdf-card').cloneNode(true));
+            element.style.color = 'white';
+            element.style.backgroundColor = '#243e54';
+            var opt = {
+                margin: 1,
+                filename: name + '.pdf',
+                image: { type: 'png', quality: 1.0 },
+                html2canvas: { scale: 3, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a3', orientation: 'portrait', backgroundColor: '#243e54' }
+            };
+            html2pdf().set(opt).from(element).save();
+        });
+    });
+
+</script>
+
+{% endblock %}

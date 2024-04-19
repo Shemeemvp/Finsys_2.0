@@ -29734,3 +29734,20 @@ def Fin_getInvoicePaidAmount(request):
         return JsonResponse({'status':True, 'paid':paid})
     else:
         return redirect('/')
+
+
+# < ------------- Shemeem -------- > Reports - Sales by Item & Customer < ------------------------------- >
+def Fin_salesByCustomerReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        return render(request,'company/reports/Fin_sales_by_customer.html')
+    else:
+        return redirect('/')
