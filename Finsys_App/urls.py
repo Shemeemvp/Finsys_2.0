@@ -817,6 +817,7 @@ urlpatterns = [
     path('Fin_credit_note_pdf/<int:id>',views.Fin_creditNotePdf, name='Fin_creditNotePdf'),
     path('Fin_share_credit_note_to_email/<int:id>',views.Fin_shareCreditNoteToEmail, name='Fin_shareCreditNoteToEmail'),
     path('Fin_delete_credit_note/<int:id>',views.Fin_deleteCreditNote, name= 'Fin_deleteCreditNote'),
+    path('Fin_get_inv_paid_amount',views.Fin_getInvoicePaidAmount, name='Fin_getInvoicePaidAmount'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

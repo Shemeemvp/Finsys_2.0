@@ -1578,6 +1578,7 @@
                             tbody.append(row)
                             rowCount++
                         });
+                        getInvoicePaidAmount(invType, id);
                         calc();
                     }
                 },
@@ -1586,6 +1587,34 @@
             alert('Invoice Type and Number Should be selected.')
         }
     });
+
+    function getInvoicePaidAmount(type, id){
+        if(type != "" && id != ""){
+            $.ajax({
+                url: "{% url 'Fin_getInvoicePaidAmount' %}",
+                type : 'GET',
+                data:{
+                    id : id,
+                    invType : type,
+                    },
+                
+                success: function(response) {
+                    if(response.status){
+                        $('#advance').val(response.paid);
+                        calc_bal();
+                    }
+                }
+            });
+        }
+    }
+
+    function calc_bal(){
+        var gtot = parseFloat($('#grandtotal').val());
+        
+        var adv_val = parseFloat($('#advance').val())
+        var bal = gtot - adv_val
+        $('#balance').val(bal.toFixed(2));
+    }
 
     $(document).on('change', 'input.invQuantity', function(){
         var qty = $(this).val();

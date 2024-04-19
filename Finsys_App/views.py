@@ -29709,3 +29709,28 @@ def Fin_deleteCreditNote(request, id):
         
         crd.delete()
         return redirect(Fin_creditNotes)
+
+def Fin_getInvoicePaidAmount(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        invoiceId = request.GET['id']
+        invType = request.GET['invType']
+
+        paid = 0
+        if invType == 'Invoice':
+            inv = Fin_Invoice.objects.get(id = invoiceId)
+            paid = inv.paid_off
+
+        if invType == 'Recurring Invoice':
+            inv = Fin_Recurring_Invoice.objects.get(id = invoiceId)
+            paid = inv.paid_off
+
+        return JsonResponse({'status':True, 'paid':paid})
+    else:
+        return redirect('/')
