@@ -29748,6 +29748,42 @@ def Fin_salesByCustomerReport(request):
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             cmp = com.company_id
         
-        return render(request,'company/reports/Fin_sales_by_customer.html')
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        reportData = []
+        cust = Fin_Customers.objects.filter(Company=cmp)
+        
+        for c in cust:
+            customerName = c.first_name +" "+c.last_name
+            count = 0
+            sales = 0
+
+            inv = Fin_Invoice.objects.filter(Customer=c, status = 'Saved')
+            recInv = Fin_Recurring_Invoice.objects.filter(Customer=c, status = 'Saved')
+            crd = Fin_CreditNote.objects.filter(Customer=c, status = 'Saved')
+
+            for i in inv:
+                sales += float(i.grandtotal)
+
+            for r in recInv:
+                sales += float(r.grandtotal)
+
+            for n in crd:
+                sales += float(n.grandtotal)
+
+            count = len(inv) + len(recInv) + len(crd)
+
+            details = {
+                'name': customerName,
+                'count':count,
+                'sales':sales
+            }
+
+            reportData.append(details)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData,
+        }
+        return render(request,'company/reports/Fin_sales_by_customer.html', context)
     else:
         return redirect('/')

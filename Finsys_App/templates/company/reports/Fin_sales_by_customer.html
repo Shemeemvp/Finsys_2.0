@@ -60,15 +60,20 @@
 
 
     }
+    #customizeMenu{
+        width: fit-content;
+        height: 50vh;
+        overflow-y: auto;
+    }
 </style>
 <div class="page-content">
     <div class="card radius-15">
         <div class="card-body">
             <div class="card-title" id="div2">
                 <center>
-                    <h6 style="padding-top: 20px;">{{cmp1.cname}}</h6>
-                    <h2 class="my-4 text-uppercase" id="headline">SALES BY customer</h2>
-                    <div class="display">
+                    <h5 style="padding-top: 10px;">{{cmp.Company_name}}</h5>
+                    <h2 class="my-4 text-uppercase" id="headline">SALES BY CUSTOMER</h2>
+                    <div class="display" id="dateDislpy" style="display: none;">
                         <div id="d1" style="display: inline-block;"></div>
                         <div id="d2" style="display: inline-block;"></div>
                     </div>
@@ -80,7 +85,7 @@
             <div class="bar">
 
                 <div class=" left">
-                    <div class="px-2">
+                    <!-- <div class="px-2">
                         <label style="text-align:left ">From</label><br>
                         <input name="FromDate" class="inputdate form-control" type="date" id="in1">
                     </div>
@@ -102,15 +107,25 @@
                             {% endfor %}
                         </div>
 
+                    </div> -->
+
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-gear"></i> Customize Report</button>
+                        <div class="dropdown-menu" id="customizeMenu" aria-labelledby="dropdownMenuButton">
+                          
+                        </div>
                     </div>
 
 
                 </div>
                 <div class="right">
 
-                    <button class="btn btn_pdf btn-outline-info" id="btn-pdf">pdf</button>
+                    <!-- <button class="btn btn_pdf btn-outline-info" id="btn-pdf">pdf</button>
                     <button class="btn btn_print btn-outline-info" onclick="window.print()">Print</button>
-                    <button class=" btn btn-outline-info" id="export-button" onclick="exportAsExcel()">Excel</button>
+                    <button class=" btn btn-outline-info" id="export-button" onclick="exportAsExcel()">Excel</button> -->
+                    <a class="btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn"> &nbsp;PDF</a> 
+                    <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" onclick="printSection('whatToPrint')">&nbsp;Print</a>
+                    <a class="ml-2 btn btn-outline-secondary text-grey fa fa-table" role="button" id="exportBtn" onclick="ExportToExcel('xlsx')">&nbsp;Export</a>
                 </div>
 
 
@@ -120,55 +135,24 @@
     <div class="card radius-15 print-only" id="pdf-card">
         <div class="card-body">
             <div class="container-fluid">
-
-
-                <table class="table table-responsive-md mt-4 table-hover table-bordered"
-                    style="background-color: rgba(0, 0, 0, 0.2);" id="myTable">
+                <table class="table table-responsive-md mt-4 table-hover table-bordered" style="background-color: rgba(0, 0, 0, 0.2);" id="reportTable">
                     <thead>
                         <tr>
-                            <th>DATE</th>
-                            <th>CUSTOMER</th>
-                            <th>MAIL ID</th>
-                            <th>TYPE</th>
-                            <th>QUANTITY</th>
-                            <th>SUBTOTAL</th>
-                            <th>TOTAL SALE</th>
+                            <th class="text-center">CUSTOMER</th>
+                            <th class="text-center">INVOICE COUNT</th>
+                            <th class="text-center">SALES WITH TAX</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for i in rec %}
+                       <tr>
+                        {% for i in reportData %}
                         <tr>
-                            <td>{{i.recinvoice.startdate|date:'d-m-Y'}}</td>
-                            <td>{{i.recinvoice.customername}}</td>
-                            <td>{{i.recinvoice.email}}</td>
-                            <td>Reccuring Invoice</td>
-                            <td>{{i.qty}}</td>
-                            <td>{{i.total}}</td>
-                            <td>{{i.recinvoice.grandtotal}}</td>
+                            <td class="text-center">{{i.name}}</td>
+                            <td class="text-center">{{i.count}}</td>
+                            <td class="text-center">Rs. {{i.sales}}</td>
                         </tr>
                         {% endfor %}
-                        {% for i in inv %}
-                        <tr>
-                            <td>{{i.invoice.invoicedate|date:'d-m-Y'}}</td>
-                            <td>{{i.invoice.customername}}</td>
-                            <td>{{i.invoice.email}}</td>
-                            <td>Invoice</td>
-                            <td>{{i.qty}}</td>
-                            <td>{{i.total}}</td>
-                            <td>{{i.invoice.grandtotal}}</td>
-                        </tr>
-                        {% endfor %}
-                        {% for i in pdebit %}
-                        <tr>
-                            <td>{{i.scredit.creditdate|date:'d-m-Y'}}</td>
-                            <td>{{i.scredit.customer}}</td>
-                            <td>{{i.scredit.email}}</td>
-                            <td>Credit Notes</td>
-                            <td>{{i.quantity}}</td>
-                            <td>{{i.scredit.subtotal}}</td>
-                            <td>{{i.scredit.grandtotal}}</td>
-                        </tr>
-                        {% endfor %}
+                       </tr>
                     </tbody>
                 </table>
             </div>
@@ -217,7 +201,7 @@
 </div>
 <script>
     $(document).ready(function () {
-        var $tableRows = $("#myTable tbody tr");
+        var $tableRows = $("#reportTable tbody tr");
         var originalRows = Array.from($tableRows);
 
         var filteredRows = originalRows.slice();
@@ -416,7 +400,7 @@
 
 <script type="text/javascript">
     function exportAsExcel() {
-        const table = document.getElementById('myTable'); // Replace 'myTable' with your table's ID
+        const table = document.getElementById('reportTable'); // Replace 'reportTable' with your table's ID
         const wb = XLSX.utils.table_to_book(table);
 
         XLSX.writeFile(wb, 'patystatement.xlsx');
