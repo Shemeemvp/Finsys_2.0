@@ -29751,6 +29751,12 @@ def Fin_salesByCustomerReport(request):
         allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
 
         reportData = []
+        totInv = 0
+        totRecInv = 0
+        totCrdNote = 0
+        subTot = 0
+        subTotWOCrd = 0
+
         cust = Fin_Customers.objects.filter(Company=cmp)
         
         for c in cust:
@@ -29764,12 +29770,20 @@ def Fin_salesByCustomerReport(request):
 
             for i in inv:
                 sales += float(i.grandtotal)
+                totInv += float(i.grandtotal)
+                subTot += float(i.subtotal)
+                subTotWOCrd += float(i.subtotal)
 
             for r in recInv:
                 sales += float(r.grandtotal)
+                totRecInv += float(r.grandtotal)
+                subTot += float(r.subtotal)
+                subTotWOCrd += float(r.subtotal)
 
             for n in crd:
-                sales += float(n.grandtotal)
+                sales -= float(n.grandtotal)
+                totCrdNote += float(n.grandtotal)
+                subTot -= float(n.subtotal)
 
             count = len(inv) + len(recInv) + len(crd)
 
@@ -29781,9 +29795,132 @@ def Fin_salesByCustomerReport(request):
 
             reportData.append(details)
 
+        totCust = len(cust)
+        totSale = totInv + totRecInv - totCrdNote
+        totSaleWOCrdNote = totInv + totRecInv
+
         context = {
             'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData,
+            'totalCustomers':totCust, 'totalInvoice':totInv, 'totalRecInvoice':totRecInv, 'totalCreditNote': totCrdNote,
+            'subtotal':subTot, 'subtotalWOCredit':subTotWOCrd, 'totalSale':totSale, 'totalSaleWOCredit':totSaleWOCrdNote,
+            'startDate':None, 'endDate':None
         }
         return render(request,'company/reports/Fin_sales_by_customer.html', context)
+    else:
+        return redirect('/')
+
+def Fin_salesByCustomerReportCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            trans = request.GET['transactions']
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+
+            reportData = []
+            totInv = 0
+            totRecInv = 0
+            totCrdNote = 0
+            subTot = 0
+            subTotWOCrd = 0
+
+            cust = Fin_Customers.objects.filter(Company=cmp)
+
+            for c in cust:
+                customerName = c.first_name +" "+c.last_name
+                count = 0
+                sales = 0
+
+                if startDate == None or endDate == None:
+                    if trans == "all":
+                        inv = Fin_Invoice.objects.filter(Customer=c, status = 'Saved')
+                        recInv = Fin_Recurring_Invoice.objects.filter(Customer=c, status = 'Saved')
+                        crd = Fin_CreditNote.objects.filter(Customer=c, status = 'Saved')
+                    elif trans == 'invoice':
+                        inv = Fin_Invoice.objects.filter(Customer=c, status = 'Saved')
+                        recInv = None
+                        crd = None
+                    elif trans == 'recurring_invoice':
+                        inv = None
+                        recInv = Fin_Recurring_Invoice.objects.filter(Customer=c, status = 'Saved')
+                        crd = None
+                    elif trans == 'credit_notes':
+                        inv = None
+                        recInv = None
+                        crd = Fin_CreditNote.objects.filter(Customer=c, status = 'Saved')
+                else:
+                    if trans == 'all':
+                        inv = Fin_Invoice.objects.filter(Customer=c, invoice_date__range = [startDate, endDate], status = 'Saved')
+                        recInv = Fin_Recurring_Invoice.objects.filter(Customer=c, start_date__range = [startDate, endDate], status = 'Saved')
+                        crd = Fin_CreditNote.objects.filter(Customer=c, creditnote_date__range = [startDate, endDate], status = 'Saved')
+                    elif trans == 'invoice':
+                        inv = Fin_Invoice.objects.filter(Customer=c, invoice_date__range = [startDate, endDate], status = 'Saved')
+                        recInv = None
+                        crd = None
+                    elif trans == 'recurring_invoice':
+                        inv = None
+                        recInv = Fin_Recurring_Invoice.objects.filter(Customer=c, start_date__range = [startDate, endDate], status = 'Saved')
+                        crd = None
+                    elif trans == 'credit_notes':
+                        inv = None
+                        recInv = None
+                        crd = Fin_CreditNote.objects.filter(Customer=c, creditnote_date__range = [startDate, endDate], status = 'Saved')
+
+                if inv:
+                    count += len(inv)
+                    for i in inv:
+                        sales += float(i.grandtotal)
+                        totInv += float(i.grandtotal)
+                        subTot += float(i.subtotal)
+                        subTotWOCrd += float(i.subtotal)
+
+                if recInv:
+                    count += len(recInv)
+                    for r in recInv:
+                        sales += float(r.grandtotal)
+                        totRecInv += float(r.grandtotal)
+                        subTot += float(r.subtotal)
+                        subTotWOCrd += float(r.subtotal)
+                
+                if crd:
+                    count += len(crd)
+                    for n in crd:
+                        sales -= float(n.grandtotal)
+                        totCrdNote += float(n.grandtotal)
+                        subTot -= float(n.subtotal)
+
+                details = {
+                    'name': customerName,
+                    'count':count,
+                    'sales':sales
+                }
+
+                reportData.append(details)
+
+            totCust = len(cust)
+            totSale = totInv + totRecInv - totCrdNote
+            totSaleWOCrdNote = totInv + totRecInv
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData,
+                'totalCustomers':totCust, 'totalInvoice':totInv, 'totalRecInvoice':totRecInv, 'totalCreditNote': totCrdNote,
+                'subtotal':subTot, 'subtotalWOCredit':subTotWOCrd, 'totalSale':totSale, 'totalSaleWOCredit':totSaleWOCrdNote,
+                'startDate':startDate, 'endDate':endDate, 'transaction':trans,
+            }
+            return render(request,'company/reports/Fin_sales_by_customer.html', context)
     else:
         return redirect('/')

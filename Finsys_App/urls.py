@@ -821,6 +821,7 @@ urlpatterns = [
 
     # < ------------- Shemeem -------- > Reports - Sales by Item & Customer < ------------------------------- >
     path('Fin_report_sales_by_customer',views.Fin_salesByCustomerReport, name='Fin_salesByCustomerReport'),
+    path('Fin_sales_by_customer_report_customized',views.Fin_salesByCustomerReportCustomized, name='Fin_salesByCustomerReportCustomized'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
