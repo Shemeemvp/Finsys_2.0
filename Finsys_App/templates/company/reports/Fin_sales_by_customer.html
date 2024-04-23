@@ -153,6 +153,16 @@
         height: fit-content;
         z-index: 1;
     }
+
+    .arrow {
+        /* font-size: 0.6em; */
+        cursor: pointer;
+        margin-left: 5px;
+    }
+
+    .arrow.up {
+        transform: rotate(180deg);
+    }
 </style>
 <div class="page-content">
     <div class="card radius-15">
@@ -161,11 +171,6 @@
                 <center>
                     <!-- <h5 style="padding-top: 10px;">{{cmp.Company_name}}</h5> -->
                     <h2 class="text-uppercase" id="headline">SALES BY CUSTOMER</h2>
-                    <div class="display" id="dateDislpy" style="display: none;">
-                        <div id="d1" style="display: inline-block;"></div>
-                        <div id="d2" style="display: inline-block;"></div>
-                    </div>
-
                 </center>
                 <hr>
             </div>
@@ -173,36 +178,6 @@
             <div class="bar">
 
                 <div class=" left">
-                    <!-- <div class="px-2">
-                        <label style="text-align:left ">From</label><br>
-                        <input name="FromDate" class="inputdate form-control" type="date" id="in1">
-                    </div>
-
-                    <div class="px-2">
-                        <label style="text-align:left ">To</label><br>
-                        <input name="ToDate" type="date" class="inputdate form-control" id="in2">
-                    </div>
-                    <div class="px-2 dropdown">
-                        <label style="text-align:left;visibility: hidden;">to</label><br>
-                        <input type="text" id="searchInput" placeholder="Search..."
-                            class="dropdown-toggle form-control " autocomplete="off" data-toggle="dropdown">
-                        <div class="dropdown-menu" style="background-color: #7690da;">
-                            <a id="d-item" class="dropdown-item" href="#"
-                                style="height: 40px; font-size: 15px; color: white; ">All</a>
-                            {% for i in custom %}
-                            <a id="d-item" class="dropdown-item" href="#"
-                                style="height: 40px; font-size: 15px; color: white; ">{{i.firstname}} {{i.lastname}}</a>
-                            {% endfor %}
-                        </div>
-
-                    </div> -->
-
-                    <!-- <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-gear"></i> Customize Report</button>
-                        <div class="dropdown-menu" id="customizeMenu" aria-labelledby="dropdownMenuButton">
-                          
-                        </div>
-                    </div> -->
                     <div class="position-relative">
                         <button class="btn btn-secondary" onclick="toggleContent()"><i class="fa-solid fa-gear"></i> Customize Report</button>
                         <div id="contentDiv" class="content">
@@ -281,13 +256,12 @@
                                         <table class="table table-responsive-md mt-4 table-hover" id="reportTable">
                                             <thead>
                                                 <tr>
-                                                    <th class="text-center">CUSTOMER</th>
+                                                    <th class="text-center">CUSTOMER <i class="fa-solid fa-caret-up arrow" onclick="sortName(0)"></i></th>
                                                     <th class="text-center">INVOICE COUNT</th>
                                                     <th class="text-center">SALES WITH TAX</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                               <tr>
                                                 {% for i in reportData %}
                                                 <tr>
                                                     <td class="text-center">{{i.name}}</td>
@@ -295,7 +269,6 @@
                                                     <td class="text-center">Rs. {{i.sales|floatformat:2 }}</td>
                                                 </tr>
                                                 {% endfor %}
-                                               </tr>
                                             </tbody>
                                         </table>
                                     </section>
@@ -308,27 +281,20 @@
                                                     </div><br><br>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4 ">Invoice Sale: <p id="sales" style="font-size: 19px;">₹<span id="totalInvoice">{{totalInvoice|default:0|floatformat:2 }}</span></p>
-                                                    </div>
-                                                    <div class="col-4">Recurring Invoice Sale: <p id="purchase" style="font-size: 19px;">₹<span id="totalReccuringinvoice">{{totalRecInvoice|default:0|floatformat:2}}</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="col-4">Credit Note: <p id="expense" style="font-size: 19px;">₹<span id="totalCreditnote">{{totalCreditNote|default:0|floatformat:2}}</span></p>
-                                                    </div>
+                                                    <div class="col-4 ">Invoice Sale: <p id="sales" style="font-size: 19px;">₹<span id="totalInvoice">{{totalInvoice|default:0|floatformat:2 }}</span></p></div>
+                                                    <div class="col-4">Recurring Invoice Sale: <p id="purchase" style="font-size: 19px;">₹<span id="totalReccuringinvoice">{{totalRecInvoice|default:0|floatformat:2}}</span></p></div>
+                                                    <div class="col-4">Credit Note: <p id="expense" style="font-size: 19px;">₹<span id="totalCreditnote">{{totalCreditNote|default:0|floatformat:2}}</span></p></div>
                                                 </div>
                                                 <div class="row mb-2">
                                                     <div class="col-4 ">SubTotal: <p id="sales" style="font-size: 19px;">₹<span id="totalSale">{{subtotal|default:0|floatformat:2}}</span></p></div>
                                                     <div class="col-4">SubTotal Without Credit Note:<p id="expense" style="font-size: 19px;">₹<span id="totalSalewithoutCreditnotes">{{subtotalWOCredit|default:0|floatformat:2}}</span></p></div>
-                                                    <div class="col-4">Total Sale:<p id="purchase" style="font-size: 19px;">₹<span id="grantTotal">{{totalSale|default:0|floatformat:2}}</span></p></div>
-                            
+                                                    <div class="col-4">Total Sale:<br>(Without Credit Note)<p id="purchase" style="font-size: 19px;">₹<span id="grantTotal">{{totalSaleWOCredit|default:0|floatformat:2}}</span></p></div>
                                                 </div>
                             
                                             </div>
                                             <div class="col-2 text-center">
-                                                <h5 style="padding-top: 80px; color: #000;">Total Sale</h5>
-                                                <p>(Without Credit Note)</p>
-                            
-                                                <h4 class="text-dark" id="totvalue">₹<span id="superTotal">{{totalSaleWOCredit|default:0|floatformat:2}}</span></h4>
+                                                <h5 style="padding-top: 80px; color: #000; font-weight: bold;">Total Sale</h5>
+                                                <h4 class="text-dark" style="font-weight: 600;" id="totvalue">₹<span id="superTotal">{{totalSale|default:0|floatformat:2}}</span></h4>
                                             </div>
                                         </div>
                                     </section>
@@ -338,59 +304,7 @@
                         </div>
                     </div>
                 </div>
-
-
-                <!-- <table class="table table-responsive-md mt-4 table-hover table-bordered" style="background-color: rgba(0, 0, 0, 0.2);" id="reportTable">
-                    <thead>
-                        <tr>
-                            <th class="text-center">CUSTOMER</th>
-                            <th class="text-center">INVOICE COUNT</th>
-                            <th class="text-center">SALES WITH TAX</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                       <tr>
-                        {% for i in reportData %}
-                        <tr>
-                            <td class="text-center">{{i.name}}</td>
-                            <td class="text-center">{{i.count}}</td>
-                            <td class="text-center">Rs. {{i.sales|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                       </tr>
-                    </tbody>
-                </table> -->
             </div>
-            <!-- <div class="row p-4">
-                <div class="col-10">
-                    <div class="row mb-2">
-                        <div class="col-4">Total customers : <p style="font-size: 19px;">{{totalCustomers|default:0}}</p>
-                        </div><br><br>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 ">Invoice Sale: <p id="sales" style="font-size: 19px;">₹<span id="totalInvoice">{{totalInvoice|default:0|floatformat:2 }}</span></p>
-                        </div>
-                        <div class="col-4">Recurring Invoice Sale: <p id="purchase" style="font-size: 19px;">₹<span id="totalReccuringinvoice">{{totalRecInvoice|default:0}}</span>
-                            </p>
-                        </div>
-                        <div class="col-4">Credit Note: <p id="expense" style="font-size: 19px;">₹<span id="totalCreditnote">{{totalCreditNote|default:0}}</span></p>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 ">SubTotal: <p id="sales" style="font-size: 19px;">₹<span id="totalSale">{{subtotal|default:0}}</span></p></div>
-                        <div class="col-4">SubTotal Without Credit Note:<p id="expense" style="font-size: 19px;">₹<span id="totalSalewithoutCreditnotes">{{subtotalWOCredit|default:0}}</span></p></div>
-                        <div class="col-4">Total Sale:<p id="purchase" style="font-size: 19px;">₹<span id="grantTotal">{{totalSale|default:0}}</span></p></div>
-
-                    </div>
-
-                </div>
-                <div class="col-2 text-center">
-                    <h5 style="padding-top: 80px;">Total Sale</h5>
-                    <p>(Without Credit Note)</p>
-
-                    <h4 id="totvalue">₹<span id="superTotal">{{totalSaleWOCredit|default:0}}</span></h4>
-                </div>
-            </div> -->
         </div>
     </div>
 </div>
@@ -407,7 +321,7 @@
             </div>
             <div class="modal-body">
                 <div class="card p-3">
-                    <form action="#" method="post" class="needs-validation" id="share_to_email_form">
+                    <form action="{% url 'Fin_shareSalesByCustomerReportToEmail' %}" method="post" class="needs-validation" id="share_to_email_form">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="emailIds">Email IDs</label>
@@ -417,7 +331,7 @@
                             <label for="item_unitname">Message(optional)</label>
                             <textarea name="email_message" id="email_message" class="form-control" cols="" rows="4" placeholder="This message will be sent along with Bill details."></textarea>
                         </div>
-                        <input type="text" name="trans" id="trans" hidden>
+                        <input type="text" name="transaction" id="trans" hidden>
                         <input type="date" name="start" id="startDt" hidden>
                         <input type="date" name="end" id="endDt" hidden>
                     </form>
@@ -521,213 +435,6 @@
         })
     })
 
-    $(document).ready(function () {
-        var $tableRows = $("#reportTable tbody tr");
-        var originalRows = Array.from($tableRows);
-
-        var filteredRows = originalRows.slice();
-        var totalgrantTotal = 0;
-        var totalCreditnotegranttotal = 0;
-        var totalInvoiceSubtotal = 0;
-        var totalRecinvoiceSubtotal = 0;
-        var totalCreditnoteSubtotal = 0;
-
-        document.getElementById("in1").addEventListener("change", filterByDate);
-        document.getElementById("in2").addEventListener("change", filterByDate);
-
-        function filterByDate() {
-            var startDate = moment(document.getElementById("in1").value, "YYYY-MM-DD");
-            var startDatevalue = document.getElementById("in1").value;
-            var endDateInput = document.getElementById("in2");
-
-            endDateInput.min = startDatevalue;
-            var endDate = moment(endDateInput.value, "YYYY-MM-DD");
-
-            if (!moment(document.getElementById("in1").value).isValid()) {
-                $tableRows.show();
-                filteredRows = originalRows.slice();
-                document.getElementById("d1").textContent = "";
-                document.getElementById("d2").textContent = "";
-                return;
-            }
-
-            if (!moment(endDateInput.value, "YYYY-MM-DD").isValid()) {
-                $tableRows.show();
-                filteredRows = originalRows.slice();
-                document.getElementById("d1").textContent = "";
-                document.getElementById("d2").textContent = "";
-                return;
-            }
-
-
-            var head = document.getElementById('headline');
-            head.textContent = "sales by customer";
-
-            // Update the start date link
-            document.getElementById("d1").textContent = "Start Date: " + startDate.format("YYYY-MM-DD");
-            // Update the end date link
-            document.getElementById("d2").textContent = "End Date: " + endDate.format("YYYY-MM-DD");
-
-
-            filteredRows = originalRows.filter(function (row) {
-                var dateCell = row.querySelector("td:first-child");
-                var rowDateString = dateCell.textContent;
-                var rowDate = moment(rowDateString, "DD/MM/YYYY");
-
-                return rowDate.isSameOrAfter(startDate) && rowDate.isSameOrBefore(endDate);
-            });
-
-            $tableRows.hide();
-            $(filteredRows).show();
-            calculateTotals(filteredRows);
-            calculateGranttotal(filteredRows);
-
-            return filteredRows; // Return filtered rows
-        }
-
-        function calculateGranttotal(rows) {
-            totalgrantTotal = 0;
-            totalCreditnotegranttotal = 0;
-
-            for (let row of rows) {
-                let grantTotalCell = row.children[6];
-                let grantTotal = parseFloat(grantTotalCell.textContent);
-                totalgrantTotal += grantTotal;
-
-                let typeCell = row.children[3];
-
-                if (typeCell.textContent.trim() === "Credit Notes") {
-                    let creditgranttotalCell = row.children[6];
-                    let creditgranttotal = parseFloat(creditgranttotalCell.textContent);
-                    totalCreditnotegranttotal += creditgranttotal;
-                }
-            }
-
-            var superTotal = document.getElementById('superTotal');
-            var roundedNumber = totalgrantTotal - totalCreditnotegranttotal;
-            superTotal.textContent = roundedNumber.toFixed(2);
-
-            var gtTag = document.getElementById('grantTotal');
-            gtTag.textContent = totalgrantTotal.toFixed(2);
-        }
-        calculateGranttotal(originalRows);
-
-        function removeFirstLetter(rows) {
-            for (let row of rows) {
-                let typeCell = row.children[3];
-                if (typeCell.textContent.trim() === "Invoice") {
-                    let customerCell = row.children[1];
-                    let customer = customerCell.textContent;
-                    customerCell.textContent = customer.substring(1);
-                }
-                if (typeCell.textContent.trim() === "Credit Notes") {
-                    let customerCell = row.children[1];
-                    let customer = customerCell.textContent;
-                    customerCell.textContent = customer.substring(1);
-                }
-            }
-        }
-
-        removeFirstLetter(originalRows);
-
-        function calculateTotals(rows) {
-            totalInvoiceSubtotal = 0;
-            totalRecinvoiceSubtotal = 0;
-            totalCreditnoteSubtotal = 0;
-
-            for (let row of rows) {
-                let typeCell = row.children[3];
-
-                if (typeCell.textContent.trim() === "Invoice") {
-                    let subtotalCell = row.children[5];
-                    let subtotal = parseFloat(subtotalCell.textContent);
-                    totalInvoiceSubtotal += subtotal;
-                }
-
-                if (typeCell.textContent.trim() === "Reccuring Invoice") {
-                    let subtotalCell = row.children[5];
-                    let subtotal = parseFloat(subtotalCell.textContent);
-                    totalRecinvoiceSubtotal += subtotal;
-                }
-
-                if (typeCell.textContent.trim() === "Credit Notes") {
-                    let subtotalCell = row.children[5];
-                    let subtotal = parseFloat(subtotalCell.textContent);
-                    totalCreditnoteSubtotal += subtotal;
-                }
-            }
-
-            var TITag = document.getElementById('totalInvoice');
-            TITag.textContent = totalInvoiceSubtotal;
-
-            var RITag = document.getElementById('totalReccuringinvoice');
-            RITag.textContent = totalRecinvoiceSubtotal;
-
-            var cnTag = document.getElementById('totalCreditnote');
-            cnTag.textContent = totalCreditnoteSubtotal;
-
-            var tsTag = document.getElementById('totalSale');
-            tsTag.textContent = totalInvoiceSubtotal + totalRecinvoiceSubtotal + totalCreditnoteSubtotal;
-
-            var tswcnTag = document.getElementById('totalSalewithoutCreditnotes');
-            tswcnTag.textContent = totalInvoiceSubtotal + totalRecinvoiceSubtotal;
-        }
-
-        // Call calculateTotals initially to calculate totals for all rows
-        calculateTotals(originalRows);
-
-        // Code for filtering rows based on search input
-        $rows = $('.dropdown-menu #d-item');
-        $('#searchInput').keyup(function () {
-            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-            $rows.show().filter(function () {
-                var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
-                return !~text.indexOf(val);
-            }).hide();
-        });
-
-        // Click event handler for dropdown menu items
-        $rows.click(function () {
-            var itemName = $(this).text().trim();
-            var head = document.getElementById('headline');
-            head.textContent = "sales by " + itemName;
-
-            if ($(this).text().trim() === 'All') {
-                $tableRows.show();
-                document.getElementById("d1").textContent = "";
-                document.getElementById("d2").textContent = "";
-                document.getElementById("in1").value = "";
-                document.getElementById("in2").value = "";
-                filteredRows = originalRows.slice();
-                calculateTotals(originalRows);
-                calculateGranttotal(originalRows);
-                head.textContent = "sales by items";
-            } else {
-                var dRows = $(filteredRows).show().filter(function () {
-                    return $(this).text().indexOf(itemName) === -1;
-                }).hide();
-
-                var remainingRows = $(filteredRows).not(dRows);
-                calculateTotals(remainingRows);
-                calculateGranttotal(remainingRows);
-                calculateGrantTotalByMonth(remainingRows);
-            }
-
-        });
-
-    });
-
-</script>
-
-<script type="text/javascript">
-    function exportAsExcel() {
-        const table = document.getElementById('reportTable'); // Replace 'reportTable' with your table's ID
-        const wb = XLSX.utils.table_to_book(table);
-
-        XLSX.writeFile(wb, 'patystatement.xlsx');
-    }
-</script>
-<script>
     function reportPDF(){
         var element = document.getElementById('printReport');
         var opt =
@@ -760,6 +467,41 @@
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
         XLSX.writeFile(wb, "Report_SalesByCustomer.xlsx");
+    }
+
+    let sortOrder = false; // false for ascending, true for descending
+
+    function sortName(colIndex) {
+    const table = document.getElementById('reportTable');
+    const rows = Array.from(table.rows).slice(1);
+    console.log(rows)
+    const isNumeric = !isNaN(parseFloat(rows[0].cells[colIndex].textContent));
+
+    rows.sort((a, b) => {
+        let aValue = a.cells[colIndex].textContent;
+        let bValue = b.cells[colIndex].textContent;
+
+        if (isNumeric) {
+        aValue = parseFloat(aValue);
+        bValue = parseFloat(bValue);
+        }
+
+        if (sortOrder) {
+        return aValue < bValue ? 1 : -1;
+        } else {
+        return aValue > bValue ? 1 : -1;
+        }
+    });
+
+    // Toggle arrow direction
+    const arrow = document.querySelector('.arrow');
+    arrow.classList.toggle('up', sortOrder);
+
+    // Reorder the rows
+    rows.forEach(row => table.appendChild(row));
+
+    // Toggle sort order for the next click
+    sortOrder = !sortOrder;
     }
 </script>
 
