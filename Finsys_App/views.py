@@ -51,6 +51,8 @@ from django.utils.dateparse import parse_date
 from django.core import serializers
 from django.template.loader import render_to_string
 from django.http import JsonResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
+
 
 def Fin_index(request):
     return render(request,'Fin_index.html')
@@ -1919,7 +1921,12 @@ def Fin_createNewItem(request):
             name = request.POST['name']
             type = request.POST['type']
             unit = request.POST.get('unit')
-            hsn = request.POST['hsn']
+            if request.POST['hsn']:
+                hsn = request.POST['hsn']
+                sac = None
+            elif request.POST['sac']:
+                sac = request.POST['sac']
+                hsn = None
             tax = request.POST['taxref']
             gstTax = 0 if tax == 'non taxable' else request.POST['intra_st']
             igstTax = 0 if tax == 'non taxable' else request.POST['inter_st']
@@ -1939,9 +1946,12 @@ def Fin_createNewItem(request):
             if Fin_Items.objects.filter(Company=com, name__iexact=name).exists():
                 res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
                 return HttpResponse(res)
-            elif Fin_Items.objects.filter(Company = com, hsn__iexact = hsn).exists():
-                res = f'<script>alert("HSN - {hsn} already exists, try another.!");window.history.back();</script>'
-                return HttpResponse(res)
+            elif Fin_Items.objects.filter(Q(Company=com) & (Q(hsn__iexact=hsn) & Q(hsn__isnull=False))).exists():
+                res = f"HSN - {hsn} already exists, try another.!"
+                return JsonResponse({'status': False, 'message':res})
+            elif Fin_Items.objects.filter(Q(Company=com) & (Q(sac__iexact=sac) & Q(sac__isnull=False))).exists():
+                res = f"SAC - {sac} already exists, try another.!"
+                return JsonResponse({'status': False, 'message':res})
             else:
                 item = Fin_Items(
                     Company = com,
@@ -1950,6 +1960,7 @@ def Fin_createNewItem(request):
                     item_type = type,
                     unit = unit,
                     hsn = hsn,
+                    sac = sac,
                     tax_reference = tax,
                     intra_state_tax = gstTax,
                     inter_state_tax = igstTax,
@@ -2161,7 +2172,12 @@ def Fin_updateItem(request,id):
             name = request.POST['name']
             type = request.POST['type']
             unit = request.POST.get('unit')
-            hsn = int(request.POST['hsn'])
+            if request.POST['hsn']:
+                hsn = request.POST['hsn']
+                sac = None
+            elif request.POST['sac']:
+                sac = request.POST['sac']
+                hsn = None
             tax = request.POST['taxref']
             gstTax = 0 if tax == 'non taxable' else request.POST['intra_st']
             igstTax = 0 if tax == 'non taxable' else request.POST['inter_st']
@@ -2196,6 +2212,7 @@ def Fin_updateItem(request,id):
                 item.item_type = type
                 item.unit = unit
                 item.hsn = hsn
+                item.sac = sac
                 item.tax_reference = tax
                 item.intra_state_tax = gstTax
                 item.inter_state_tax = igstTax
@@ -4308,11 +4325,11 @@ def employee_list(request):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         employee = Employee.objects.filter(company_id=com.id)
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
         employee = Employee.objects.filter(company_id=com.company_id_id)
     else:
         distributor = Fin_Distributors_Details.objects.get(Login_Id = sid)
@@ -4325,12 +4342,12 @@ def employee_create_page(request):
     
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         bloodgroup = Employee_Blood_Group.objects.filter(company_id=com.id,login_id=sid).values('blood_group').distinct()
         
     elif loginn.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         bloodgroup = Employee_Blood_Group.objects.filter(company_id=staf.company_id_id,login_id=sid).values('blood_group').distinct()
 
     return render(request,'company/Employee_Create_Page.html',{'allmodules':allmodules,'bloodgroup':bloodgroup})    
@@ -4598,12 +4615,12 @@ def employee_save(request):
         loginn = Fin_Login_Details.objects.get(id=sid)
         if loginn.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
             employee = Employee.objects.filter(company_id=com.id)
             
         elif loginn.User_Type == 'Staff' :
             com = Fin_Staff_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
             employee = Employee.objects.filter(company_id=com.company_id_id)
         return render(request,'company/Employee_List.html',{'allmodules':allmodules,'employee':employee,'com':com,'data':loginn})
 
@@ -4621,11 +4638,11 @@ def employee_overview(request,pk):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
     return render(request,'company/Employee_Overview.html',{'index':index,'comments':comments ,'employ':employ,'allmodules':allmodules,'history':history,'com':com,'data':loginn})
 
 def employee_delete(request,pk):
@@ -4635,12 +4652,12 @@ def employee_delete(request,pk):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         employee = Employee.objects.filter(company_id=com.id)
         
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
         employee = Employee.objects.filter(company_id=com.company_id_id)
     return render(request,'company/Employee_List.html',{'employee':employee,'allmodules':allmodules,'com':com,'data':loginn})
 
@@ -4668,11 +4685,11 @@ def employee_comment(request,pk):
     
     if log_in.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         
     elif log_in.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
     return render(request,'company/Employee_Overview.html',{'employ':employ,'allmodules':allmodules,'index':index,'comments':comments ,'history':history})
 
 
@@ -4683,11 +4700,11 @@ def employee_comment_view(request,pk):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status='New')
         
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status='New')
     return render(request,'company/Employee_Comment.html',{'comments':comments,'employ':employ,'allmodules':allmodules,'com':com,'data':loginn})
 
 def employee_history(request,pk):
@@ -4697,11 +4714,11 @@ def employee_history(request,pk):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
     return render(request,'company/Employee_History.html',{'history':history,'employ':employ,'allmodules':allmodules,'com':com,'data':loginn})
 
 def activate(request,pk):
@@ -4716,11 +4733,11 @@ def activate(request,pk):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
 
     comments = Employee_Comment.objects.filter(employee_id = pk,company_id=employ.company_id)
     history = Employee_History.objects.filter(employee_id=pk,company_id=employ.company_id).latest('date')
@@ -4737,12 +4754,12 @@ def employee_edit_page(request,pk):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         bloodgroup = Employee_Blood_Group.objects.filter(company_id=com.id,login_id=sid).values('blood_group').distinct()
         
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
         bloodgroup = Employee_Blood_Group.objects.filter(company_id=com.company_id_id,login_id=sid).values('blood_group').distinct()
 
     return render(request,'company/Employee_Edit_Page.html',{'employe':employe,'allmodules':allmodules,'bloodgroup':bloodgroup,'com':com,'data':loginn})
@@ -5105,7 +5122,7 @@ def employee_blood_group(request):
         if loginn.User_Type == 'Company' and bloodGroup not in invalid_group:
             com = Fin_Company_Details.objects.get(Login_Id=sid)
             
-            allmodules = Fin_Modules_List.objects.get(company_id=com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id=com.id, status = 'New')
             group = Employee_Blood_Group(blood_group=bloodGroup, company_id=com.id, login_id=sid)
             group.save()
             bloodgroup = Employee_Blood_Group.objects.filter(company_id=com.id,login_id=sid).values('blood_group').distinct()
@@ -5113,7 +5130,7 @@ def employee_blood_group(request):
 
         elif loginn.User_Type == 'Staff' and bloodGroup not in invalid_group:
             com = Fin_Staff_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id=com.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id=com.company_id_id, status = 'New')
             group = Employee_Blood_Group(blood_group=bloodGroup, company_id=com.company_id_id, login_id=sid)
             group.save()
             bloodgroup = Employee_Blood_Group.objects.filter(company_id=com.company_id_id,login_id=sid).values('blood_group').distinct()
@@ -5145,14 +5162,14 @@ def holiday_list(request):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         # holiday = Holiday.objects.filter(company_id=com.id).annotate(month=ExtractMonth('start_date'),year=ExtractYear('start_date')).values('month','year').annotate(total_holiday=Sum('holiday_days')).order_by('year','month')
         holiday = Holiday.objects.filter(company_id=com.id).annotate(month=ExtractMonth('start_date'), year=ExtractYear('start_date')).values('month', 'year').annotate(total_holiday=Cast(Sum(F('holiday_days')),IntegerField())).order_by('year', 'month')
         
         
     else:
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
         holiday = Holiday.objects.filter(company_id=com.company_id_id).annotate(month=ExtractMonth('start_date'), year=ExtractYear('start_date')).values('month', 'year').annotate(total_holiday=Cast(Sum(F('holiday_days')),IntegerField())).order_by('year', 'month')
     
     
@@ -5163,11 +5180,11 @@ def holiday_create_page(request):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
     return render(request,'company/Holiday_Create_Page.html',{'allmodules':allmodules,'com':com,'data':loginn})
 
 def holiday_add(request):
@@ -5184,12 +5201,12 @@ def holiday_add(request):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         holiday_check = Holiday.objects.filter(start_date=startdate,end_date=enddate,company_id=com.id)
             
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
         holiday_check = Holiday.objects.filter(start_date=startdate,end_date=enddate,company_id=com.company_id_id)
         
     if holiday_check.exists():
@@ -5215,7 +5232,7 @@ def holiday_add(request):
         loginn = Fin_Login_Details.objects.get(id=sid)
         if loginn.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
             holiday = Holiday(start_date=startdate,end_date=enddate,login_id=sid,holiday_name=title,company_id=com.id,holiday_days=day_s)
             holiday.save()
             history = Holiday_History(company_id = com.id,login_id=sid,holiday_id = holiday.id,date = date.today(),action = 'Created',start_date = startdate,end_date = enddate,holiday_name=title)
@@ -5224,7 +5241,7 @@ def holiday_add(request):
 
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
             holiday = Holiday(start_date=startdate,end_date=enddate,holiday_name=title,login_id=sid,company_id=com.company_id_id,holiday_days=day_s)
             holiday.save()
             history = Holiday_History(company_id = com.id,login_id=sid,holiday_id = holiday.id,date = date.today(),action = 'Created',start_date = startdate,end_date = enddate,holiday_name=title)
@@ -5243,7 +5260,7 @@ def holiday_calendar_view(request,mn,yr):
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
         events = Holiday.objects.filter(start_date__month=mn,start_date__year=year,company_id=com.id)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         comments = Holiday_Comment.objects.filter(month=mn,year=year,company_id=com.id)
         for index, comment in enumerate(comments):
             comment.index = index + 1
@@ -5251,7 +5268,7 @@ def holiday_calendar_view(request,mn,yr):
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
         events = Holiday.objects.filter(start_date__month=mn,start_date__year=year,company_id=com.company_id_id)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
         comments = Holiday_Comment.objects.filter(month=mn,year=year,company_id=com.company_id_id)
         for index, comment in enumerate(comments):
             comment.index = index + 1
@@ -5263,7 +5280,7 @@ def holiday_delete(request, pk):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
 
         if request.method == 'POST':
             ogMonth = int(request.POST['month'])
@@ -5279,7 +5296,7 @@ def holiday_delete(request, pk):
         
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
 
         if request.method == 'POST':
             ogMonth = int(request.POST['month'])
@@ -5300,11 +5317,11 @@ def holiday_edit_page(request,pk,mn,yr):
     loginn = Fin_Login_Details.objects.get(id=sid)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
     return render(request,'company/Holiday_Edit_Page.html',{'holiday':holiday,'allmodules':allmodules,'com':com,'data':loginn,'year':yr,'month':mn})
 
 
@@ -5325,12 +5342,12 @@ def holiday_update(request,pk,mn,yr):
     if loginn.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = sid)
             companyID = com.id
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
             
     elif loginn.User_Type == 'Staff' :
             com = Fin_Staff_Details.objects.get(Login_Id = sid)
             companyID = com.company_id_id
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
         
     holi = Holiday.objects.filter(start_date=startdate,end_date=enddate,company_id=companyID)
     if holi.exclude(id=pk).exists():
@@ -5340,11 +5357,11 @@ def holiday_update(request,pk,mn,yr):
             loginn = Fin_Login_Details.objects.get(id=sid)
             if loginn.User_Type == 'Company':
                 com = Fin_Company_Details.objects.get(Login_Id = sid)
-                allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+                allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
                 
             elif loginn.User_Type == 'Staff' :
                 com = Fin_Staff_Details.objects.get(Login_Id = sid)
-                allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+                allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
             return render(request,'company/Holiday_Edit_Page.html',{'holiday':holiday,'allmodules':allmodules,'com':com,'data':loginn})
         
     else:
@@ -5352,7 +5369,7 @@ def holiday_update(request,pk,mn,yr):
             loginn = Fin_Login_Details.objects.get(id=sid)
             if loginn.User_Type == 'Company':
                 com = Fin_Company_Details.objects.get(Login_Id = sid)
-                allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+                allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
                 
                 holiday.start_date = startdate
                 holiday.end_date = enddate
@@ -5368,7 +5385,7 @@ def holiday_update(request,pk,mn,yr):
 
             else:
                 com = Fin_Staff_Details.objects.get(Login_Id = sid)
-                allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+                allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
                 
                 holiday.start_date = startdate
                 holiday.end_date = enddate
@@ -5433,12 +5450,12 @@ def holiday_history(request,month,year):
         loginn = Fin_Login_Details.objects.get(id=sid)
         if loginn.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
             history = Holiday_History.objects.filter(company_id=com.id,start_date__gt = startdate,end_date__lt = enddate)
             
         elif loginn.User_Type == 'Staff' :
             com = Fin_Staff_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
             history = Holiday_History.objects.filter(company_id=com.company_id_id,start_date__gt = startdate,end_date__lt = enddate)
         
         
@@ -9075,13 +9092,13 @@ def employee_loan_list(request):
     login = Fin_Login_Details.objects.get(id=sid)
     if login.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status='New')
         employee = Employee.objects.filter(company_id=com.id)
         loan = Fin_Loan.objects.filter(company_id=com.id)
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com=staf.company_id
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status='New')
         
         employee = Employee.objects.filter(company_id=staf.company_id_id)
         loan = Fin_Loan.objects.filter(company_id=staf.company_id.id)
@@ -9095,14 +9112,14 @@ def employee_loan_sort_by_balance(request):
     login = Fin_Login_Details.objects.get(id=sid)
     if login.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         employee = Employee.objects.filter(company_id=com.id)
         loan = Fin_Loan.objects.filter(company_id=com.id).order_by('-balance')
 
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com=staf.company_id
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         employee = Employee.objects.filter(company_id=staf.company_id_id)
         loan = Fin_Loan.objects.filter(company_id=com.id).order_by('-balance')
 
@@ -9117,14 +9134,14 @@ def employee_loan_sort_by_employeename(request):
     login = Fin_Login_Details.objects.get(id=sid)
     if login.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         employee = Employee.objects.filter(company_id=com.id)
         loan = Fin_Loan.objects.filter(company_id=com.id).order_by('-employee_name')
 
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com=staf.company_id
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         employee = Employee.objects.filter(company_id=staf.company_id_id)
         loan = Fin_Loan.objects.filter(company_id=com.id).order_by('-employee_name')
 
@@ -9138,14 +9155,14 @@ def employee_loan_filter_by_active(request):
     login = Fin_Login_Details.objects.get(id=sid)
     if login.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         employee = Employee.objects.filter(company_id=com.id)
         loan = Fin_Loan.objects.filter(company_id=com.id,status='Active')
 
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com=staf.company_id
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         employee = Employee.objects.filter(company_id=staf.company_id_id)
         loan = Fin_Loan.objects.filter(company_id=staf.company_id_id,status='Active')
 
@@ -9159,14 +9176,14 @@ def employee_loan_filter_by_inactive(request):
     login = Fin_Login_Details.objects.get(id=sid)
     if login.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         employee = Employee.objects.filter(company_id=com.id)
         loan = Fin_Loan.objects.filter(company_id=com.id,status='Inactive')
 
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com=staf.company_id
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         employee = Employee.objects.filter(company_id=staf.company_id_id)
         loan = Fin_Loan.objects.filter(company_id=staf.company_id_id,status='Inactive')
 
@@ -9181,7 +9198,7 @@ def employee_loan_create_page(request):
     
     if login.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         employee = Employee.objects.filter(company_id=com.id,employee_status='Active')
         term=Fin_Loan_Term.objects.filter(company=com)
         
@@ -9192,7 +9209,7 @@ def employee_loan_create_page(request):
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com=staf.company_id
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         employee = Employee.objects.filter(company_id=staf.company_id_id,employee_status='Active')
         term=Fin_Loan_Term.objects.filter(company=staf.company_id)
         banks=Fin_Banking.objects.filter(company=staf.company_id)
@@ -9359,7 +9376,7 @@ def emploanoverview(request,pk):
     
     if login.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         loan = Fin_Loan.objects.get(id=pk)
         est_comments = Fin_Employee_loan_comments.objects.filter(employee_loan=loan)
         employee = Employee.objects.get(id=loan.employee.id)
@@ -9375,7 +9392,7 @@ def emploanoverview(request,pk):
         
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         employee = Employee.objects.filter(company_id=staf.company_id_id)
         com=staf.company_id
         loan = Fin_Loan.objects.get(id=pk)
@@ -9408,7 +9425,7 @@ def emploanedit(request, pk):                                                   
       
      
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com)
+        allmodules = Fin_Modules_List.objects.get(company_id = com, status = 'New')
         loan = Fin_Loan.objects.get(id=pk)
         employee = Employee.objects.filter(company=com)
         term=Fin_Loan_Term.objects.filter(company=com)
@@ -9550,7 +9567,7 @@ def emploanedit(request, pk):                                                   
         # com = Fin_Company_Details.objects.get(Login_Id = sid)
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com = staf.company_id
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id.id, status = 'New')
         loan = Fin_Loan.objects.get(id=pk)
         employee = Employee.objects.filter(company=staf.company_id)
         term=Fin_Loan_Term.objects.filter(company=staf.company_id)
@@ -9695,7 +9712,7 @@ def emploanrepayment(request,pk):
     
     if login.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         loan = Fin_Loan.objects.get(id=pk)
         employee = Employee.objects.get(id=loan.employee.id)
         trans=Fin_Employee_Loan_Transactions.objects.filter(employee=employee)
@@ -9706,7 +9723,7 @@ def emploanrepayment(request,pk):
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com=staf.company_id
         loan = Fin_Loan.objects.get(id=pk)
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         employee = Employee.objects.get(id=loan.employee.id)
         trans=Fin_Employee_Loan_Transactions.objects.filter(employee=loan.employee)
         banks=Fin_Banking.objects.filter(company=com)
@@ -9789,7 +9806,7 @@ def emploanrepaymentsave(request,pk):
         
     elif login.User_Type == 'Staff':
             staf = Fin_Staff_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
             employee = Employee.objects.filter(company_id=staf.company_id_id)
             com=staf.company_id
                 
@@ -9877,7 +9894,7 @@ def emploanrepaymentedit(request, pk):                                          
       
      
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         
         loan_re = Fin_Employee_Loan_Repayment.objects.get(id=pk)
         loan = Fin_Loan.objects.get(id=loan_re.employee_loan.id)
@@ -9987,9 +10004,9 @@ def emploanrepaymentedit(request, pk):                                          
     if login.User_Type == 'Staff':
             staf = Fin_Staff_Details.objects.get(Login_Id = sid)
             com=staf.company_id
-            allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
             # employee = Employee.objects.filter(company_id=staf.company_id_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
             # loan = Loan.objects.get(id=pk)
             loan_re = Fin_Employee_Loan_Repayment.objects.get(id=pk)
             employee = Employee.objects.get(id=loan_re.employee.id)
@@ -10105,7 +10122,7 @@ def emploanaddtional(request,pk):
     
     if login.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         loan = Fin_Loan.objects.get(id=pk)
         employee = Employee.objects.get(id=loan.employee.id)
         trans=Fin_Employee_Loan_Transactions.objects.filter(employee_loan=loan)
@@ -10115,7 +10132,7 @@ def emploanaddtional(request,pk):
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com=staf.company_id
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         loan = Fin_Loan.objects.get(id=pk)
         employee = Employee.objects.filter(company_id=staf.company_id_id)
         trans=Fin_Employee_Loan_Transactions.objects.filter(employee_loan=loan)
@@ -10249,7 +10266,7 @@ def emploanadditionedit(request, pk):                                           
       
      
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         
         loan_ad = Fin_Employee_Additional_Loan.objects.get(id=pk)
         loan = Fin_Loan.objects.get(id=loan_ad.employee_loan.id)
@@ -10383,7 +10400,7 @@ def emploanadditionedit(request, pk):                                           
 
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
         com=staf.company_id
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id, status = 'New')
         
         loan_ad = Fin_Employee_Additional_Loan.objects.get(id=pk)
         loan = Fin_Loan.objects.get(id=loan_ad.employee_loan.id)
@@ -10528,7 +10545,7 @@ def addemp(request):                                                            
     if login.User_Type == 'Company':
         if request.method == 'POST':
                 com = Fin_Company_Details.objects.get(Login_Id = sid)
-                allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+                allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
                 title = request.POST['Title']
                 firstname = request.POST['First_Name'].capitalize()
                 lastname = request.POST['Last_Name'].capitalize()
@@ -10713,7 +10730,7 @@ def addemp(request):                                                            
           
         if request.method == 'POST':
                 staf = Fin_Staff_Details.objects.get(Login_Id = sid)
-                allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id.id)
+                allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id.id, status = 'New')
                 title = request.POST['Title']
                 firstname = request.POST['First_Name'].capitalize()
                 lastname = request.POST['Last_Name'].capitalize()
@@ -10901,7 +10918,7 @@ def add_term(request):                                                          
     if login.User_Type == 'Company':
         if request.method == 'POST':
             com = Fin_Company_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
             duration = request.POST['duration']
             term = request.POST['term']
             if term=="YEAR":
@@ -10919,7 +10936,7 @@ def add_term(request):                                                          
     elif login.User_Type == 'Staff':
         if request.method == 'POST':
             staf = Fin_Staff_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id, status = 'New')
             duration = request.POST['duration']
             term = request.POST['term']
             if term=="YEAR":
@@ -11005,7 +11022,7 @@ def add_loan_comment(request,pk):
     
     if login.User_Type == 'Company':
         com1 = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com1.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com1.id, status = 'New')
         loan = Fin_Loan.objects.get(id=pk)
         if request.method=="POST":
                     
@@ -11025,7 +11042,7 @@ def add_loan_comment(request,pk):
         
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         if request.method=="POST":
                     
                     com=Fin_Employee_loan_comments()
@@ -11073,7 +11090,7 @@ def shareloanToEmail(request,pk):
     
     if login.User_Type == 'Company':
         com1 = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com1.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com1.id, status = 'New')
         loan = Fin_Loan.objects.get(id=pk)
         try:
             if request.method == 'POST':
@@ -11136,7 +11153,7 @@ def shareloanToEmail(request,pk):
         
     elif login.User_Type == 'Staff' :
         staf = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = staf.company_id_id, status = 'New')
         loan = Fin_Loan.objects.get(id=pk)
         try:
             if request.method == 'POST':
@@ -12482,14 +12499,20 @@ def Fin_Create_Purchase_Bill(request):
     term = None if request.POST.get('pay_terms') == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST.get('pay_terms'))
     ven_psupply = request.POST.get('ven_psupply')
     cust_psupply = request.POST.get('cust_psupply')
-    if ven_psupply == cust_psupply or ven_psupply == 'Kerala':
+    if ven_psupply == cust_psupply:
         igst = 0
         cgst = request.POST.get('cgst')
         sgst = request.POST.get('sgst')
     else:
-        igst = request.POST.get('igst')
-        cgst = 0
-        sgst = 0
+        if ven_psupply =='Kerala' and cust_psupply == '':
+            igst = 0
+            cgst = request.POST.get('cgst')
+            sgst = request.POST.get('sgst')
+        else:
+            igst = request.POST.get('igst')
+            cgst = 0
+            sgst = 0
+
     pbill = Fin_Purchase_Bill(vendor = ven,
                               customer = cust,
                               pricelist = plist,
@@ -12529,10 +12552,13 @@ def Fin_Create_Purchase_Bill(request):
     item = tuple(request.POST.getlist("product[]"))
     qty =  tuple(request.POST.getlist("qty[]"))
     price =  tuple(request.POST.getlist("price[]"))
-    if ven_psupply == cust_psupply or ven_psupply == 'Kerala':
+    if ven_psupply == cust_psupply:
         tax = tuple(request.POST.getlist("intra_tax[]"))
     else:
-        tax = tuple(request.POST.getlist("inter_tax[]"))
+        if ven_psupply == 'Kerala' and cust_psupply == '':
+            tax = tuple(request.POST.getlist("intra_tax[]"))
+        else:
+            tax = tuple(request.POST.getlist("inter_tax[]"))
     discount =  tuple(request.POST.getlist("discount[]"))
     total =  tuple(request.POST.getlist("total[]"))
 
@@ -12897,14 +12923,19 @@ def Fin_Update_Purchase_Bill(request, id):
         pbill.upi_no = request.POST.get('upi_id')
         pbill.bank_no = request.POST.get('bnk_no')
         pbill.subtotal = request.POST.get('sub_total')
-        if ven_psupply == cust_psupply or ven_psupply == 'Kerala':
+        if ven_psupply == cust_psupply:
             pbill.igst = 0
             pbill.cgst = request.POST.get('cgst')
             pbill.sgst = request.POST.get('sgst')
         else:
-            pbill.igst = request.POST.get('igst')
-            pbill.cgst = 0
-            pbill.sgst = 0
+            if ven_psupply == 'Kerala' and cust_psupply == '':
+                pbill.igst = 0
+                pbill.cgst = request.POST.get('cgst')
+                pbill.sgst = request.POST.get('sgst')
+            else:
+                pbill.igst = request.POST.get('igst')
+                pbill.cgst = 0
+                pbill.sgst = 0
         pbill.taxamount = request.POST.get('tax_amount')
         pbill.ship_charge = request.POST.get('shipcharge')
         pbill.adjust = request.POST.get('adjustment')
@@ -12928,10 +12959,13 @@ def Fin_Update_Purchase_Bill(request, id):
         item = tuple(request.POST.getlist("product[]"))
         qty =  tuple(request.POST.getlist("qty[]"))
         price =  tuple(request.POST.getlist("price[]"))
-        if ven_psupply == cust_psupply or ven_psupply == 'Kerala':
+        if ven_psupply == cust_psupply:
             tax = tuple(request.POST.getlist("intra_tax[]"))
         else:
-            tax = tuple(request.POST.getlist("inter_tax[]"))
+            if ven_psupply == 'Kerala' and cust_psupply == '':
+                tax = tuple(request.POST.getlist("intra_tax[]"))
+            else:
+                tax = tuple(request.POST.getlist("inter_tax[]"))
         discount =  tuple(request.POST.getlist("discount[]"))
         total =  tuple(request.POST.getlist("total[]"))
 
@@ -16357,12 +16391,12 @@ def fin_employee_save_atndnce(request):
         loginn = Fin_Login_Details.objects.get(id=sid)
         if loginn.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status='New')
             employee = Employee.objects.filter(company_id=com.id)
             
         elif loginn.User_Type == 'Staff' :
             com = Fin_Staff_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status='New')
             employee = Employee.objects.filter(company_id=com.company_id_id)
         return redirect('Fin_Add_Attendance')
 
@@ -16384,7 +16418,7 @@ def Fin_Attendanceview(request,mn,yr,id):
         if loginn.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = sid)
             events = Holiday.objects.filter(start_date__month=months,start_date__year=year,company_id=com.id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status='New')
             attendance = Fin_Attendances.objects.filter(employee = id,company = com.id,start_date__month=months,start_date__year =year)
             for i in attendance:
                 attendance_counts =((i.end_date - i.start_date).days)+1
@@ -16396,7 +16430,7 @@ def Fin_Attendanceview(request,mn,yr,id):
         
         elif loginn.User_Type == 'Staff' :
             com = Fin_Staff_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id, status='New')
             events = Holiday.objects.filter(start_date__month=months,start_date__year=year,company_id=com.company_id)
             attendance = Fin_Attendances.objects.filter(employee = id,company = com.company_id,start_date__month=months,start_date__year =year)
             for i in attendance:
@@ -16420,13 +16454,13 @@ def Fin_editAttendance(request,id,mn,yr,pk):
     
         if log.User_Type == 'Staff':
             staff =Fin_Staff_Details.objects.get(Login_Id =log)
-            allmodules = Fin_Modules_List.objects.get(company_id = staff.company_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = staff.company_id, status='New')
             emp = Employee.objects.filter(company = staff.company_id,employee_status = 'active')
             bgroup = Employee_Blood_Group.objects.filter(company = staff.company_id)
             
         if log.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = log)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status='New')
             emp = Employee.objects.filter(company = com.id,employee_status = 'active')
             bgroup = Employee_Blood_Group.objects.filter(company = com.id)
             
@@ -16485,14 +16519,14 @@ def Fin_attendance_history(request,mn,yr,id):
         if log.User_Type == 'Staff':
             staff =Fin_Staff_Details.objects.get(Login_Id =log)
             history = Fin_Attendance_history.objects.filter(company = staff.company_id,attendance = id)
-            allmodules = Fin_Modules_List.objects.get(company_id = staff.company_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = staff.company_id, status = 'New')
             att = Fin_Attendances.objects.get(id=id)
             emp = Employee.objects.get(id = att.employee.id)
 
         if log.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = log)
             history = Fin_Attendance_history.objects.filter(company = com.id,attendance = id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
             att = Fin_Attendances.objects.get(id=id)
             emp = Employee.objects.get(id = att.employee.id)
 
@@ -17926,6 +17960,7 @@ def getitemdata2(request):
         
 
 
+
 def create_stockadjustment(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
@@ -17982,7 +18017,20 @@ def create_stockadjustment(request):
                     for i in range(len(item_names)):
 
                         item_instance = Fin_Items.objects.get(name=item_names[i],Company=com)
-                        item_instance.current_stock += int(new_qty_on_hand[i])
+
+                        if ( float(new_qty_on_hand[i]) > float(qty_available[i])):
+                            diff = float(qty_available[i]) + float(qty_adjusted[i])
+                            print('diff',diff)
+                            item_instance.current_stock = diff
+                            print("greater")
+                        
+                        else:
+                            diff = float(qty_available[i]) + float(qty_adjusted[i])
+                            item_instance.current_stock = diff
+                            # item_instance.current_stock -= int(new_qty_on_hand[i])
+                            print("lesser")
+
+                        
                         item_instance.save()
 
                         items1 = Stock_Adjustment_Items.objects.create(
@@ -18018,7 +18066,7 @@ def create_stockadjustment(request):
                 if len(items) == len(current_value) == len(changed_value) == len(value_adjusted):
                     for j in range(len(items)):
 
-                        item_inst = Fin_Items.objects.get(name=items[j])
+                        item_inst = Fin_Items.objects.get(name=items[j],Company=com)
 
                         item_list= Stock_Adjustment_Items.objects.create(
                             item=item_inst,
@@ -18043,6 +18091,7 @@ def create_stockadjustment(request):
                     stock_adj_history.save()
 
             return redirect('StockAdjustment')
+
             
 
             
@@ -18065,7 +18114,9 @@ def StockAdjustmentOverview(request,id):
         stocks=Stock_Adjustment.objects.get(id=id,company=com)
         st_items=Stock_Adjustment_Items.objects.filter(stock_adjustment =stocks,company = com)
         comment=Stock_Adjustment_Comment.objects.filter(stock_adjustment=id,company=com)
-        return render(request,'company/Fin_StockAdjustmentOverview.html',{'allmodules':allmodules,'com':com,'data':data,'terms':terms,'noti':noti,'n':n,'stocks':stocks,'comment':comment,'st_items':st_items})
+        history=Stock_Adjustment_History.objects.filter(stock_adjustment=id,company=com).last()
+        print(history,'history')
+        return render(request,'company/Fin_StockAdjustmentOverview.html',{'allmodules':allmodules,'com':com,'data':data,'terms':terms,'noti':noti,'n':n,'stocks':stocks,'comment':comment,'st_items':st_items,'history':history})
 
 
 def del_stockadj(request,id):
@@ -18191,7 +18242,7 @@ def Stk_adjHistory(request,id):
 
         stockadj = Stock_Adjustment.objects.get(id=id,company=com)
         stockadj_history=Stock_Adjustment_History.objects.filter(stock_adjustment=stockadj,company=com)
-        return render(request,'company/Fin_StockAdjustmentHistory.html',{'history':stockadj_history,'allmodules':allmodules})
+        return render(request,'company/Fin_StockAdjustmentHistory.html',{'history':stockadj_history,'allmodules':allmodules,'stockadj':stockadj})
     return redirect('StockAdjustmentOverview',id)
 
 
@@ -18268,7 +18319,17 @@ def updatedStockAdj(request,id):
                     for i in range(len(item_names)):
 
                         item_instance = Fin_Items.objects.get(name=item_names[i],Company=com)
-                        item_instance.current_stock += float(new_qty_on_hand[i])
+                        if ( float(new_qty_on_hand[i]) > float(qty_available[i])):
+                            diff = float(qty_available[i]) + float(qty_adjusted[i])
+                            print('diff',diff)
+                            item_instance.current_stock = diff
+                            print("greater")
+                        
+                        else:
+                            diff = float(qty_available[i]) + float(qty_adjusted[i])
+                            item_instance.current_stock = diff
+                            # item_instance.current_stock -= int(new_qty_on_hand[i])
+                            print("lesser")
                         item_instance.save()
 
                         items1 = Stock_Adjustment_Items.objects.create(
@@ -18304,7 +18365,7 @@ def updatedStockAdj(request,id):
                 if len(items) == len(current_value) == len(changed_value) == len(value_adjusted):
                     for j in range(len(items)):
 
-                        item_inst = Fin_Items.objects.get(name=items[j])
+                        item_inst = Fin_Items.objects.get(name=items[j],Company=com)
 
                         item_list= Stock_Adjustment_Items.objects.create(
                             item=item_inst,
@@ -20666,12 +20727,12 @@ def fin_employee_save_atndnce_EDIT(request,mn,yr,pk):
         loginn = Fin_Login_Details.objects.get(id=sid)
         if loginn.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
             employee = Employee.objects.filter(company_id=com.id)
             
         elif loginn.User_Type == 'Staff' :
             com = Fin_Staff_Details.objects.get(Login_Id = sid)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
             employee = Employee.objects.filter(company_id=com.company_id_id)
         return redirect('Fin_editAttendance',mn,yr,pk)
         
@@ -20736,7 +20797,7 @@ def loan_create_page(request):
         print(loginn)
         if loginn.User_Type == 'Company':
             com = Fin_Company_Details.objects.get(Login_Id = loginn)
-            allmodules = Fin_Modules_List.objects.get(company_id = com)
+            allmodules = Fin_Modules_List.objects.get(company_id = com, status = 'New')
             loan = loan_account.objects.filter(company=com)
             bank_holder =Fin_BankHolder.objects.filter(Company=com)
             bank=Fin_Banking.objects.filter(company=com)
@@ -20750,7 +20811,7 @@ def loan_create_page(request):
 
         elif loginn.User_Type == 'Staff' :
             com = Fin_Staff_Details.objects.get(Login_Id = loginn)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id, status = 'New')
             loan = loan_account.objects.filter(company=com.company_id)
             bank_holder =Fin_BankHolder.objects.filter(Company=com.company_id)
             bank=Fin_Banking.objects.filter(company=com.company_id)
@@ -23426,7 +23487,7 @@ def Fin_recurring_bill_create_page(request):
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
         companyDetails = Fin_Company_Details.objects.get(id = com.id)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status='New')
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         vendors = Fin_Vendors.objects.filter(Company_id=com.id,status='Active')
         payment_terms = Fin_Company_Payment_Terms.objects.filter(Company_id=com.id)
         customers = Fin_Customers.objects.filter(Company_id=com.id,status='Active')
@@ -25656,25 +25717,32 @@ def Fin_salary_details(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
+
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
             salary_details = Fin_SalaryDetails.objects.filter(company=com)
-            print('hii',salary_details)   
 
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             salary_details = Fin_SalaryDetails.objects.filter(company=com.company_id)
+
         for salary_detail in salary_details:
                 try:
                     salary_detail.month = int(salary_detail.month)
                     salary_detail.month_name = calendar.month_name[salary_detail.month]
+
                 except (ValueError, IndexError):
                     salary_detail.month_name = 'Invalid Month'
+
                 salary_detail.save()  
+                 
               
-        return render(request,'company/salarydetails/Fin_salarydetails.html',{'allmodules':allmodules,'com':com,'data':data,'salary_details':salary_details})
+        return render(request,'company/salarydetails/Fin_salarydetails.html',{'allmodules':allmodules,
+                                                                              'com':com,'data':data,
+                                                                              'salary_details':salary_details
+                                                                              })
     else:
        return redirect('/')
 
@@ -25805,37 +25873,38 @@ def filter_by_status_draft(request):
 def payroll_addsalarydetails(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
+        data = Fin_Login_Details.objects.get(id=s_id)
         if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id=s_id, status='New')
             salary_details = Fin_SalaryDetails.objects.filter(company=com)
-            company=com
-
+            company = com
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            com = Fin_Staff_Details.objects.get(Login_Id=s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id=com.company_id, status='New')
             salary_details = Fin_SalaryDetails.objects.filter(company=com.company_id)
-            company=com.company_id
+            company = com.company_id
 
         if request.method == 'POST':
-           
             employee_id = request.POST.get('employee')
-            selected_employee =Employee.objects.get(id=employee_id, company=company)        
-            # Validate and convert form data
+            selected_employee = Employee.objects.get(id=employee_id, company=company)
+
             casual_leave = int(request.POST.get('casual_leave', 0))
             other_cuttings = Decimal(request.POST.get('other_cuttings', 0))
             add_bonus = Decimal(request.POST.get('add_bonus', 0))
-            salary_str = request.POST.get('salary', '0')  # Provide a default string value
-            salary = Decimal(salary_str) if salary_str.replace('.', '', 1).isdigit() else Decimal(0)  # Ensure a valid decimal
-            leaves_str = request.POST.get('attendance', '0')  # Provide a default string value
-            leave = Decimal(leaves_str) if leaves_str.replace('.', '', 1).isdigit() else Decimal(0)  # Ensure a valid decimal
+            salary_str = request.POST.get('salary', '0')
+            leaves_str = request.POST.get('attendance', '0')
+            leave = Decimal(leaves_str) if leaves_str.replace('.', '', 1).isdigit() else Decimal(0)
             holiday = int(request.POST.get('holidays', 0))
             total_working_days = int(request.POST.get('working_days', 0))
-            monthly_salary_str = request.POST.get('monthly_salary', '0')  # Provide a default string value
-            monthly_salary = Decimal(monthly_salary_str) if monthly_salary_str.replace('.', '', 1).isdigit() else Decimal(0)  # Ensure a valid decimal
-            month = int(request.POST.get('month'))
+            monthly_salary_str = request.POST.get('monthly_salary', '0')
+            monthly_salary = Decimal(monthly_salary_str) if monthly_salary_str.replace('.', '', 1).isdigit() else Decimal(0)
+            month = int(request.POST.get('month', 0))
             year = int(request.POST.get('year', 0))
+            hra = int(request.POST.get('HRA', 0))
+            other_allowance = int(request.POST.get('Other_Allowance', 0))
+            conveyance_allowance = int(request.POST.get('Conveyance_Allowance', 0))
+
             if selected_employee.salary_amount:
                 _, num_days = monthrange(year, month)
                 selected_employee_amount = Decimal(selected_employee.salary_amount)
@@ -25843,23 +25912,22 @@ def payroll_addsalarydetails(request):
                 leave_deduction = round((leave - casual_leave) * daily_wage)
             else:
                 leave_deduction = 0
-            print(f"Leave Deduction: {leave_deduction}")
 
-            submit = request.POST.get('submit')
-            if submit == "save":
-                status = "save"
+            # submit = request.POST.get('submit')
+            # status = "save" if submit == "save" else "draft"
+            if 'Save' in request.POST:
+                status='save' 
             else:
-                status = "draft"
-
+                status='draft'
 
             salary_detail = Fin_SalaryDetails(
                 employee=selected_employee,
                 company=company,
                 salary_date=request.POST.get('salary_date'),
-                month=request.POST.get('month'),
-                year=request.POST.get('year'),
+                month=month,
+                year=year,
                 casual_leave=casual_leave,
-                leave = leave,
+                leave=leave,
                 holiday=holiday,
                 other_cuttings=other_cuttings,
                 add_bonus=add_bonus,
@@ -25868,23 +25936,25 @@ def payroll_addsalarydetails(request):
                 total_working_days=total_working_days,
                 leave_deduction=leave_deduction,
                 status=status,
-                
+                hra=hra,
+                other_allowance=other_allowance,
+                conveyance_allowance=conveyance_allowance,
             )
             salary_detail.save()
-            sal_history_obj = Fin_SalaryDetailsHistory()
-            sal_history_obj.company=company
-            sal_history_obj.login_details=data
-            sal_history_obj.salary_details=salary_detail
-            sal_history_obj.date=date.today()
-            sal_history_obj.action='Created'
 
-            
+            sal_history_obj = Fin_SalaryDetailsHistory()
+            sal_history_obj.company = company
+            sal_history_obj.login_details = data
+            sal_history_obj.salary_details = salary_detail
+            sal_history_obj.date = date.today()
+            sal_history_obj.action = 'Created'
             sal_history_obj.save()
+
             return redirect('Fin_salary_details')
 
         months = list(calendar.month_name)[1:]
         years = range(2000, 2030)
-        employees = Employee.objects.filter(company=company)
+        employees = Employee.objects.filter(company=company,employee_status='Active')
         holiday = Holiday.objects.filter(company=company)
 
         context = {
@@ -25894,17 +25964,21 @@ def payroll_addsalarydetails(request):
             'com': com,
             'leave': 0,
             'holiday': 0,
-            'working_days': 0, 
-            'allmodules':allmodules,
-            'data':data,
-            'salary_details':salary_details,
-
+            'working_days': 0,
+            'allmodules': allmodules,
+            'data': data,
+            'salary_details': salary_details,
         }
         return render(request, 'company/salarydetails/Fin_payroll_addsalarydetails.html', context)
     else:
-      
-      return redirect('/')
-
+        return redirect('/')
+        
+def Fin_salarysave(request,employee_id,salary_id):
+    sal_obj = Fin_SalaryDetails.objects.get(id=salary_id)
+    sal_obj.status='save'
+    sal_obj.save()
+    return redirect('Fin_salary_overview',employee_id,salary_id)
+    
 def listemployee_salary(request):
     if request.method == 'POST':
                 if 's_id' in request.session:
@@ -25915,17 +25989,30 @@ def listemployee_salary(request):
                 employee_id = request.POST.get('id').split(" ")[0]
                 try:
                     cust = Employee.objects.get(id=employee_id)
+                    sal_obj = Fin_SalaryDetails.objects.filter(employee=cust).last()
+
+
                     employee_mail = cust.employee_mail
                     employee_number = cust.employee_number
                     date_of_joining = cust.date_of_joining
                     salary_amount = cust.salary_amount
                     employee_designation = cust.employee_designation
+
+                    hra = 0  # Initialize hra with a default value
+
+                    if sal_obj is not None:
+                        if sal_obj.hra:   
+                            hra = sal_obj.hra              
+    
+
                     return JsonResponse({
                         'email': employee_mail,
                         'employeeno': employee_number,
                         'joindate': date_of_joining,
                         'amount': salary_amount,
-                        'designation': employee_designation, 
+                        'designation': employee_designation,
+                        'hra': hra,
+
                         
                         
 
@@ -25971,52 +26058,55 @@ def AddEmployeeInSalaryPage(request):
             company=com.company_id
 
         try: 
-            if request.method == 'POST':
-                title = request.POST['title']
+            if request.POST:
+                print('values inserted')
+                title = request.POST['Title']
                 first_name = request.POST['firstname'].replace(' ','')
                 last_name = request.POST['lastname'].replace(' ','')
                 alias = request.POST['alias']
-                employee_current_location = request.POST['location']
-                employee_mail = request.POST['email']
-            
-                mobile = request.POST['mobile']
-                employees = request.POST['employees']
                 date_of_joining = request.POST['joindate']
-                try:
-                    img1 = request.FILES.get('image')
-                except:
-                    img1 = 'default' 
-                salary_details = request.POST['salarydetails']
-                salary_effective_from = request.POST['effectivefrom']
-                pay_head = request.POST['payhead']
-                total_working_hours = request.POST['hours']
-                rate = request.POST['rate']
+                salarydate = request.POST['Salary_Date']
+                print(request.POST['amount'])
                 salary_amount = request.POST['amount']
+                if request.POST['amount'] == '':
+                    salary_amount = None
+                else:
+                    salary_amount = request.POST['amount']
+
+                amountperhour = request.POST['perhour']
+                if amountperhour == '' or amountperhour == '0':
+                    amountperhour = 0
+                else:
+                    amountperhour = request.POST['perhour']
+
+                workinghour = request.POST['workhour']
+                if workinghour == '' or workinghour == '0':
+                    workinghour = 0
+                else:
+                    workinghour = request.POST['workhour']
+
+                salary_type = request.POST['salary_type']
                 employee_number = request.POST['employeeno']
                 employee_designation = request.POST['designation']
-                function = request.POST['function']
+                employee_current_location = request.POST['location']   
                 gender = request.POST['gender']
+                image = request.FILES.get('Image', None)
+                if image:
+                    image = request.FILES['Image']
+                else:
+                    image = ''
                 date_of_birth = request.POST['dateofbirth']
                 blood_group = request.POST['bloodgroup']
+                mobile = request.POST['mobile']
+                emergency_contact = request.POST['generalphone']
+                employee_mail = request.POST['email'] 
                 fathers_name_mothers_name = request.POST['fathersmothersname']
                 spouse_name = request.POST['spousename']
-                
-            
-                emergency_contact = request.POST['generalphone']
-                provide_bank_details = request.POST['bankdetails']
-                account_number = request.POST['acno']
-                ifsc = request.POST['ifsccode']
-                name_of_bank = request.POST['bankname']
-                branch_name = request.POST['branchname']
-                bank_transaction_type = request.POST['transactiontype']
-                pan_number = request.POST['pannumber']
-                universal_account_number = request.POST['universalaccountnumber']
-                pf_account_number = request.POST['pfaccountnumber']
-                pr_account_number = request.POST['praccountnumber']
-                esi_number = request.POST['esinumber']
-                tds_applicable = request.POST['tdsapp']
-                tds_type = request.POST['tdstype']
-                tds = request.POST['tds']
+                file = request.FILES.get('File', None)
+                if file:
+                    file = request.FILES['File']
+                else:
+                    file=''
                 street = request.POST['street']
                 city = request.POST['city']
                 state = request.POST['state']
@@ -26027,89 +26117,158 @@ def AddEmployeeInSalaryPage(request):
                 temporary_state = request.POST['tempstate']
                 temporary_pincode = request.POST['temppincode']
                 temporary_country = request.POST['tempcountry'] 
+                provide_bank_details = request.POST['bankdetails']
+                account_number = request.POST['acno']
+                ifsc = request.POST['ifsccode']
+                name_of_bank = request.POST['bankname']
+                branch_name = request.POST['branchname']       
+                bank_transaction_type = request.POST['transactiontype']
+           
+                if request.POST['tds_applicable'] == 'Yes':
+                    tdsapplicable = request.POST['tds_applicable']
+                    tdstype = request.POST['TDS_Type']
+                    
+                    if tdstype == 'Amount':
+                        tdsvalue = request.POST['TDS_Amount']
+                    elif tdstype == 'Percentage':
+                        tdsvalue = request.POST['TDS_Percentage']
+                    else:
+                        tdsvalue = 0
+                elif request.POST['tds_applicable'] == 'No':
+                    tdsvalue = 0
+                    tdstype = ''
+                    tdsapplicable = request.POST['tds_applicable']
+                else:
+                    tdsvalue = 0
+                    tdstype = ''
+                    tdsapplicable = ''
+                incometax = request.POST['Income_Tax']
                 aadhar_number = request.POST['adharnumber'] 
-                try:
-                    file = request.FILES.get('file')
-                except:
-                    file = '' 
+                universal_account_number = request.POST['universalaccountnumber']
+                pan_number = request.POST['pannumber']
+                pf_account_number = request.POST['pfaccountnumber']
+                pr_account_number = request.POST['praccountnumber']
+
+                if date_of_birth == '':
+                    age = 2
+                else:
+                    dob2 = date.fromisoformat(date_of_birth)
+                    today = date.today()
+                    age = int(today.year - dob2.year - ((today.month, today.day) < (dob2.month, dob2.day)))    
+
+
+                if Employee.objects.filter(employee_mail=employee_mail,mobile = mobile,employee_number=employee_number,company_id = company.id).exists():
+                            messages.error(request,'user exist')
+                            return redirect('payroll_addsalarydetails')
+                        
+                elif Employee.objects.filter(mobile = mobile,company_id = company.id).exists():
+                    messages.error(request,'phone number exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif Employee.objects.filter(emergency_contact = emergency_contact,company_id = company.id).exists():
+                    messages.error(request,'emergency phone number exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif Employee.objects.filter(employee_mail=employee_mail,company_id = company.id).exists():
+                    messages.error(request,'email exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif Employee.objects.filter(employee_number=employee_number,company_id = company.id).exists():
+                    messages.error(request,'employee id exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif incometax != '' and Employee.objects.filter(income_tax_number = incometax,company_id = company.id).exists():
+                    messages.error(request,'Income Tax Number exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif pf_account_number != '' and Employee.objects.filter(pf_account_number = pf_account_number,company_id = company.id).exists():
+                    messages.error(request,'PF account number exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif aadhar_number != '' and Employee.objects.filter(aadhar_number = aadhar_number,company_id = company.id).exists():
+                    messages.error(request,'Aadhar number exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif pan_number != '' and Employee.objects.filter(pan_number = pan_number,company_id = company.id).exists():
+                    messages.error(request,'PAN number exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif universal_account_number != '' and Employee.objects.filter(universal_account_number = universal_account_number,company_id = company.id).exists():
+                    messages.error(request,'Universal account number exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif pr_account_number != '' and Employee.objects.filter(pr_account_number = pr_account_number,company_id = company.id).exists():
+                    messages.error(request,'PR account number exist')
+                    return redirect('payroll_addsalarydetails')
+                
+                elif provide_bank_details.lower() == 'yes':
+                    if account_number != '' and Employee.objects.filter(account_number=account_number,company_id = company.id).exists():
+                        messages.error(request,'Bank account number already exist')
+                        return redirect('payroll_addsalarydetails')
+                        
                 
                 emppayroll = Employee(title=title,first_name=first_name,
-                                            last_name=last_name,alias=alias,company=company,
-                                            employee_current_location=employee_current_location,
-                                            employee_mail=employee_mail,
-                                            mobile=mobile,
-                                            date_of_joining=date_of_joining,
-                                            salary_details=salary_details,salary_effective_from=salary_effective_from,
-                                            total_working_hours =total_working_hours,
-                                            salary_amount=salary_amount,employee_number=employee_number,
-                                            employee_designation=employee_designation,function=function,
-                                            gender=gender,date_of_birth=date_of_birth,
-                                            blood_group=blood_group,fathers_name_mothers_name=fathers_name_mothers_name,
-                                            spouse_name= spouse_name,
-                                            emergency_contact=emergency_contact,
-                                            provide_bank_details=provide_bank_details,account_number=account_number,ifsc=ifsc,
-                                            name_of_bank=name_of_bank, branch_name= branch_name,
-                                            bank_transaction_type=bank_transaction_type,pan_number=pan_number,
-                                            universal_account_number=universal_account_number,
-                                            pf_account_number=pf_account_number,pr_account_number= pr_account_number,
-                                            esi_number= esi_number,tds_applicable=tds_applicable,
-                                            tds_type=tds_type,street=street,
-                                            city=city,state=state,
-                                            pincode=pincode,country=country,
-                                            temporary_street=temporary_street,temporary_city=temporary_city,
-                                            temporary_state=temporary_state,temporary_pincode=temporary_pincode,
-                                            temporary_country=temporary_country,pay_head=pay_head,
-                                            aadhar_number=aadhar_number
-                                            )
-                if img1 != 'default':
-                    emppayroll.upload_image = img1
-
-                if file !="":
-                    emppayroll.upload_file=file
-
+                                                    last_name=last_name,alias=alias,company=company,
+                                                    employee_current_location=employee_current_location,
+                                                    employee_mail=employee_mail,
+                                                    mobile=mobile,
+                                                    date_of_joining=date_of_joining,
+                                                    salary_effective_from=salarydate,                                                  
+                                                    salary_amount=salary_amount,amount_per_hour=amountperhour,total_working_hours = workinghour,employee_number=employee_number,
+                                                    employee_designation=employee_designation,employee_salary_type =salary_type,
+                                                    gender=gender,date_of_birth=date_of_birth,
+                                                    blood_group=blood_group,fathers_name_mothers_name=fathers_name_mothers_name,
+                                                    spouse_name= spouse_name,upload_image=image,upload_file = file,
+                                                    emergency_contact=emergency_contact,
+                                                    provide_bank_details=provide_bank_details,account_number=account_number,ifsc=ifsc,
+                                                    name_of_bank=name_of_bank, branch_name= branch_name,
+                                                    bank_transaction_type=bank_transaction_type,pan_number=pan_number,
+                                                    universal_account_number=universal_account_number,
+                                                    pf_account_number=pf_account_number,pr_account_number= pr_account_number,                                               
+                                                    street=street,income_tax_number = incometax,
+                                                    city=city,state=state,employee_status='Active',
+                                                    pincode=pincode,country=country,
+                                                    temporary_street=temporary_street,temporary_city=temporary_city,
+                                                    temporary_state=temporary_state,temporary_pincode=temporary_pincode,
+                                                    temporary_country=temporary_country,age = age,
+                                                    aadhar_number=aadhar_number, tds_applicable = tdsapplicable, tds_type = tdstype,percentage_amount = tdsvalue
+                                                    )
+                       
                 emppayroll.save()
                 print('done')
                 return redirect('payroll_addsalarydetails')
-        except:    
-            print('sorry')
-            return redirect('payroll_addsalarydetails') 
+        except:
+             print('sorry')
+             return redirect('payroll_addsalarydetails') 
 
 def getDays(request):
      if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
+
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            salary_details = Fin_SalaryDetails.objects.filter(company=com)
             company=com
-           
-
+        
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            salary_details = Fin_SalaryDetails.objects.filter(company=com.company_id)
             company=com.company_id
 
-        if request.method == 'POST':
-            if 's_id' in request.session:
-                s_id = request.session.get('s_id')
-            else:
-                return JsonResponse({'error': 'Session UID not found'}, status=401)
-
-           
+        if request.method == 'POST':   
             employee_id = request.POST.get('id')
             empid = Employee.objects.get(id=employee_id)
-            print('hello',empid)
             month = request.POST.get('month')
             year = request.POST.get('year')
             month = int(month)
             year = int(year)
+
             try:
                 result = Fin_SalaryDetails.objects.get(employee=empid, month=month, year=year)
                 if result:
                     return JsonResponse({'error': 'Salary Already Executed.'}, status=404)
+                
             except Fin_SalaryDetails.DoesNotExist:
+
                 start_date = datetime(year, month, 1)
                 if month == 12:
                     end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
@@ -26117,14 +26276,31 @@ def getDays(request):
                     end_date = datetime(year, month % 12 + 1, 1) - timedelta(days=1)
                 start_date = start_date.strftime("%Y-%m-%d")
                 end_date = end_date.strftime("%Y-%m-%d")
+
                 leave_count = Fin_Attendances.objects.filter(
                     employee=empid,
                     company=company,
                     start_date__range=(start_date, end_date),
                     status='Leave'
-                ).count()
+                )
+
+
+                # Clculating leave days ----------------
+                count_leave = 0
+
+                for i in leave_count:
+                    x = i.end_date - i.start_date
+                    leave_days = x.days
+                    if leave_days == 0:
+                        leave_days = 1
+                    else:
+                        leave_days = leave_days + 1
+                    count_leave = int(count_leave + leave_days)
+
+
+
                 holidays_count = Holiday.objects.filter(company=company,start_date__range=(start_date, end_date)).count()
-                print(holidays_count,leave_count)
+
                 _, num_days = calendar.monthrange(year, month)
                 working_days = num_days - holidays_count
                 
@@ -26132,7 +26308,7 @@ def getDays(request):
                     return JsonResponse({
                         'month': MONTH_NAMES.get(month, ''),
                         'holiday': holidays_count,
-                        'leave': leave_count,   
+                        'leave': count_leave,   
                         'working_days' : working_days, 
                                 
                     }, safe=False)
@@ -26140,40 +26316,37 @@ def getDays(request):
                 except Employee.DoesNotExist:
                     return JsonResponse({'error': 'Selected employee not found.'}, status=404)
 
-        return JsonResponse({'error': 'Invalid request method'}, status=400) 
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 def calculate_salary(request):
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id = s_id)
-        if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            salary_details = Fin_SalaryDetails.objects.filter(company=com)
-            company=com
-           
-
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            salary_details = Fin_SalaryDetails.objects.filter(company=com.company_id)
-            company=com.company_id
-
+   
         if request.method == 'POST':
-           
-            casual_leave = int(request.POST.get('casual_leave', 0))
+            salary = Decimal(request.POST.get('salary', 0))        
+            casual_leave = int(request.POST.get('casual_leave',0))
             other_cuttings = Decimal(request.POST.get('other_cuttings', 0))
             add_bonus = Decimal(request.POST.get('add_bonus', 0))
-            salary = Decimal(request.POST.get('salary', 0))
             leave = int(request.POST.get('attendance', 0))
             holiday = int(request.POST.get('holiday', 0))
             month = int(request.POST.get('month'))
             year = int(request.POST.get('year', 0))
+            
+            hra_str = request.POST.get('hra', '0')
+            hra_float = float(hra_str)
+            hra = int(round(hra_float)) 
+
+            Other_Allowance_str = request.POST.get('Other_Allowance')
+            Other_Allowance_float = float(Other_Allowance_str)
+            Other_Allowance = int(round(Other_Allowance_float)) 
+
+            Conveyance_Allowance_str = request.POST.get('Conveyance_Allowance')
+            Conveyance_Allowance_float = float(Conveyance_Allowance_str)
+            Conveyance_Allowance = int(round(Conveyance_Allowance_float)) 
+
             _, num_days = monthrange(year, month)
             wg = salary / num_days
             s1 = wg * leave
             leave_deduction = round((leave - casual_leave) * wg, 2)
-            monthly_salary = (salary - s1 - other_cuttings) + add_bonus
+            monthly_salary = (salary - s1 - other_cuttings) + (add_bonus + hra + Other_Allowance + Conveyance_Allowance)
             monthly_salary = int(monthly_salary)
             if leave == 0:
                 pass
@@ -26278,7 +26451,7 @@ def Fin_salary_overview(request, employee_id, salary_id):
             'comments':comments,
         }
 
-        return render(request, 'company/salarydetails/Fin_salary_overviewnew.html', context)
+        return render(request, 'company/salarydetails/Fin_overview.html', context)
     else:
       
       return redirect('/')
@@ -26515,12 +26688,9 @@ def Fin_salaryedit(request, employee_id,salary_id=None):
         
         salary_detail.month = int(salary_detail.month)
         salary_detail.month_name = calendar.month_name[salary_detail.month]
-        # print("Employee ID:", employee.employeeid)
-        # print("Salary ID:", salary_id) 
-        # print("Salary Month:", salary_detail.month)
-        
+       
 
-        if request.method == 'POST':
+        if request.POST:
             salary_detail=Fin_SalaryDetails.objects.get(id=salary_id)
             salary_detail.salary_date = request.POST.get('salary_date')
             salary_detail.month = request.POST.get('month')
@@ -26533,18 +26703,21 @@ def Fin_salaryedit(request, employee_id,salary_id=None):
             salary_detail.total_working_days = request.POST.get('working_days')
             salary_detail.description = request.POST.get('description')
             salary_detail.total_salary = request.POST.get('monthly_salary')
-            salary_detail.status = 'save' if request.POST.get('submit') == 'save' else 'draft'
-
+            salary_detail.hra = request.POST.get('HRA')
+            salary_detail.conveyance_allowance = request.POST.get('Conveyance_Allowance')
+            salary_detail.other_allowance = request.POST.get('Other_Allowance')
             salary_detail.save()
+
+
+           
             sal_history_obj = Fin_SalaryDetailsHistory()
             sal_history_obj.company=company
             sal_history_obj.login_details=data
             sal_history_obj.salary_details=salary_detail
             sal_history_obj.date=date.today()
             sal_history_obj.action='Edited'
-
-            
             sal_history_obj.save()
+
             return redirect('Fin_salary_overview', employee_id=salary_detail.employee.id, salary_id=salary_detail.id)
         
         employees = Employee.objects.filter(company=company)
@@ -26552,7 +26725,37 @@ def Fin_salaryedit(request, employee_id,salary_id=None):
         years = range(2000, 2030)
         years = range(2000, 2030)
         holiday =  Holiday.objects.filter(company=company)
-        leave = Fin_Attendances.objects.filter(company=company)
+        result = Fin_SalaryDetails.objects.get(id=salary_id,employee=employee_id)
+        month = int(result.month)
+        year = int(result.year)
+
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
+        else:
+            end_date = datetime(year, month % 12 + 1, 1) - timedelta(days=1)
+            start_date = start_date.strftime("%Y-%m-%d")
+            end_date = end_date.strftime("%Y-%m-%d")
+
+        leave_count = Fin_Attendances.objects.filter( employee=employee_id,
+                    company=company,
+                    start_date__range=(start_date, end_date),
+                    status='Leave')
+
+         # Clculating leave days ----------------
+        count_leave = 0
+
+        for i in leave_count:
+            x = i.end_date - i.start_date
+            leave_days = x.days
+            if leave_days == 0:
+                leave_days = 1
+            else:
+                leave_days = leave_days + 1
+            count_leave = int(count_leave + leave_days)
+        result.leave=count_leave
+        result.save()
+        print(result)
 
         context = {
             'salary_detail': salary_detail,
@@ -26563,8 +26766,9 @@ def Fin_salaryedit(request, employee_id,salary_id=None):
             'com': com,
             'leave': 0,
             'holiday': 0,
-            'working_days': 0,
+            'working_days': 0,           
             'month_name': calendar.month_name[salary_detail.month],
+            
         }
 
         return render(request, 'company/salarydetails/Fin_salaryedit.html', context)
@@ -27604,8 +27808,8 @@ def Fin_Get_All_Items_Edit(request):
         else:
             itm_data.append({'id': i.id, 'name': i.name, 'hsn': i.hsn, 'cstock': i.current_stock, 'price': i.purchase_price, 'intra_tax': i.intra_state_tax, 'inter_tax': i.inter_state_tax})
     return JsonResponse(itm_data, safe=False)
-
-
+    
+    
 # < ------------- Shemeem -------- > CASH IN HAND < ------------------------------- >
 def Fin_cashInHand(request):
     if 's_id' in request.session:
@@ -27928,7 +28132,8 @@ def Fin_cashInHandStatementPdf(request):
         html = template.render(context)
 
         # create a pdf
-        pisa_status = pisa.CreatePDF(html, dest=response)
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
         # if error then show some funny view
         if pisa_status.err:
             return HttpResponse('We had some errors <pre>' + html + '</pre>')
@@ -28273,8 +28478,1090 @@ def Fin_deleteAddedCash(request, id):
         return redirect(Fin_cashInHand)
     else:
         return redirect('/')
+        
+# End
+
+@csrf_exempt
+def check_employee_id(request):
+    if request.method == 'POST' and request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+        try:
+            employee_id = request.POST.get('employeeId')
+            # Check if the employee ID already exists
+            if Employee.objects.filter(employee_number=employee_id).exists():
+                return JsonResponse({'exists': True})
+            else:
+                return JsonResponse({'exists': False})
+        except Exception as e:
+            print('Error:', e)
+            return JsonResponse({'error': 'An error occurred'})
+
+    # If the request is not AJAX or not POST, return error
+    return JsonResponse({'error': 'Invalid request'})
+    
+#-----------Reshna-Retainer_Invoice---------------------------------------------#
+def Fin_RET_INV_Listout(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            ret_inv = Fin_Retainer_Invoice.objects.filter(Company = com)
+            return render(request,'company/RET_INV/Ret_Inv_Listout.html',{'allmodules':allmodules,'com':com,'data':data,'ret_inv': ret_inv})
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            ret_inv = Fin_Retainer_Invoice.objects.filter(Company = com.company_id)
+            return render(request,'company/RET_INV/Ret_Inv_Listout.html',{'allmodules':allmodules,'com':com,'data':data,'ret_inv': ret_inv})
+    else:
+       return redirect('/')
+
+def Fin_RET_INV_Add(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id=s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id=s_id, status='New')
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id=s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id=com.company_id, status='New')
+            cmp = com.company_id
+
+        item = Fin_Items.objects.filter(Company=cmp, status='Active')
+        customer = Fin_Customers.objects.filter(Company=cmp, status='Active')
+        payment_terms = Fin_Company_Payment_Terms.objects.filter(Company=cmp)
+        bank = Fin_Banking.objects.filter(company=cmp)
+        plist = Fin_Price_List.objects.filter(Company=cmp, status='Active')
+        units = Fin_Units.objects.filter(Company=cmp)
+        account = Fin_Chart_Of_Account.objects.filter(
+            Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'),
+            Company=cmp).order_by('account_name')
+
+        latest_ri = Fin_Retainer_Invoice.objects.filter(Company = cmp).order_by('-id').first()
+
+        new_number = int(latest_ri.Reference_number) + 1 if latest_ri else 1
+
+        if Fin_Retainer_Invoice_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_Retainer_Invoice_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.Reference_no)>= new_number:
+                    new_number+=1
+
+        new_ri_number = "" 
+        if latest_ri:
+            last_ri_number = latest_ri.Retainer_Invoice_number
+            code_prefix = last_ri_number[:last_ri_number.find(next(filter(str.isdigit, last_ri_number)))]
+            numeric_part = last_ri_number[len(code_prefix):] 
+            new_numeric_part = int(numeric_part) + 1
+            new_ri_number = f'{code_prefix}{str(new_numeric_part).zfill(len(numeric_part))}'
+
+        context = {
+            'allmodules': allmodules, 'com': com, 'cmp': cmp, 'data': data, 'customer': customer, 'item': item,
+            'banks': bank, 'pterm': payment_terms, 'unit': units, 'account': account, 'plist': plist,
+            'ref_no': new_number, 'riNo': new_ri_number
+        }
+        return render(request, 'company/RET_INV/RET_INV_add.html', context)
+    else:
+        return redirect('/')
+
+def Fin_validate_retinv_number(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id=s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
+        
+        RINo = request.GET['ret_inv_no']
+
+        nxtRI = ""
+        lastRI = Fin_Retainer_Invoice.objects.filter(Company=com).last()
+        if lastRI:
+            last_ri_number = lastRI.Retainer_Invoice_number
+            code_prefix = last_ri_number[:last_ri_number.find(next(filter(str.isdigit, last_ri_number)))]
+            numeric_part = last_ri_number[len(code_prefix):] 
+            new_numeric_part = int(numeric_part) + 1
+            nxtRI = f'{code_prefix}{str(new_numeric_part).zfill(len(numeric_part))}'
+
+        if Fin_Retainer_Invoice.objects.filter(Company=com, Retainer_Invoice_number__iexact=RINo).exists():
+            return JsonResponse({'status': False, 'message': 'Retainer Invoice No already Exists.!'})
+        elif nxtRI != "" and RINo != nxtRI:
+            return JsonResponse({'status': False, 'message': 'Retainer Invoice No is not continuous.!'})
+        else:
+            return JsonResponse({'status': True, 'message': 'Retainer Number is okay.!'})
+    else:
+       return redirect('/')
+
+    return JsonResponse({'valid': False, 'error': 'Session not found'})
 
 
+def Fin_Create_RET_INV(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        if request.method == 'POST':
+            customer = Fin_Customers.objects.get(id=request.POST.get('customer_id'))
+            customer_email = request.POST.get('customerEmail')
+            billing_address = request.POST.get('bill_address')
+            gst_type = request.POST.get('gst_type')
+            gstin = request.POST.get('gstin')
+            place_of_supply = request.POST.get('place_of_supply')
+            ret_inv_no = request.POST.get('ret_inv_no')
+            reference_no=request.POST.get('reference_no')
+            ret_inv_date = request.POST.get('ret_inv_date')
+            note = request.POST.get('note')
+            payment_method = None if request.POST.get('payment_method') == "" else request.POST.get('payment_method')
+            upi = None if request.POST.get('upi') == "" else request.POST.get('upi')
+            acc_no = None if request.POST.get('a/c_no')   == "" else request.POST.get('a/c_no')
+            cheque = None if request.POST.get('cheque') == "" else request.POST.get('cheque')
+            sub_total = 0.0 if request.POST.get('sub_total') == "" else float(request.POST.get('sub_total'))
+            adjustment = 0.0 if request.POST.get('adjustment') == "" else float(request.POST.get('adjustment'))
+            grand_total = 0.0 if request.POST.get('grand_total') == "" else float(request.POST.get('grand_total'))
+            paid_amount= 0.0 if request.POST.get('paid_amount') == "" else float(request.POST.get('paid_amount'))
+            balance = request.POST.get('grand_total') if request.POST.get('balance') == "" else request.POST.get('balance')
+            note=request.POST.get('note')
+            sent = request.POST.get('Sent')
+            draft = request.POST.get('Draft')
+            ret_inv = Fin_Retainer_Invoice(
+                Company = com,
+                LoginDetails = com.Login_Id,
+                Customer=customer,
+                Customer_email=customer_email,
+                Customer_billing_address=billing_address,
+                Customer_gst_type=gst_type,
+                Customer_gstin=gstin,
+                Customer_place_of_supply=place_of_supply,
+                Retainer_Invoice_number=ret_inv_no,
+                Reference_number=reference_no,
+                Retainer_Invoice_date=ret_inv_date,
+                Payment_Method=payment_method,
+                Cheque_number=cheque,
+                UPI_number=upi,
+                Bank_account_no=acc_no,
+                Description=note,
+                Sub_total=sub_total,
+                Adjustment=adjustment,
+                Grand_total=grand_total,
+                Paid_amount=paid_amount,
+                Balance=balance,
+            )
+
+            ret_inv.save()
+
+            if len(request.FILES) != 0:
+               ret_inv.file=request.FILES.get('file')
+            ret_inv.save()
+
+            if sent != None:
+                ret_inv.status = 'Sent'
+                ret_inv.save()
+            else:
+                ret_inv.status = 'Draft'
+                ret_inv.save()
+            ret_inv.save()
+
+
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("price[]")
+            description = request.POST.getlist("description[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
+
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(description)==len(discount)==len(total) and itemId and itemName and hsn and qty and price and description and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,description,discount,total)
+                mapped = list(mapped)
+                for ele in mapped:
+                    item = Fin_Items.objects.get(id = int(ele[0]))
+                    Fin_Retainer_Invoice_Items.objects.create(Ret_Inv=ret_inv, Item = item, HSN = ele[2], Quantity= int(ele[3]), Price= float(ele[4]), Discription = ele[5], discount = float(ele[6]), Total = float(ele[7]))
+                    item.current_stock -= int(ele[3])
+                    item.save()
+            
+            Fin_Retainer_Invoice_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                Ret_Invoice = ret_inv,
+                action = 'Created'
+            )
+
+
+            return redirect(Fin_RET_INV_Listout)
+        else:
+            return redirect(Fin_RET_INV_Add)
+    else:
+       return redirect('/')
+
+def Fin_RET_INV_Customer(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            lst = Fin_Price_List.objects.filter(Company=com, status='Active')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+            lst = Fin_Price_List.objects.filter(Company=com, status='Active')
+
+        fName = request.POST['first_name']
+        lName = request.POST['last_name']
+        gstIn = request.POST['gstin']
+        pan = request.POST['pan_no']
+        email = request.POST['email']
+        phn = request.POST['mobile']
+
+        if Fin_Customers.objects.filter(Company = com, first_name__iexact = fName, last_name__iexact = lName).exists():
+            res = f"Customer `{fName} {lName}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif gstIn != "" and Fin_Customers.objects.filter(Company = com, gstin__iexact = gstIn).exists():
+            res = f"GSTIN `{gstIn}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Customers.objects.filter(Company = com, pan_no__iexact = pan).exists():
+            res = f"PAN No `{pan}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Customers.objects.filter(Company = com, mobile__iexact = phn).exists():
+            res = f"Phone Number `{phn}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+        elif Fin_Customers.objects.filter(Company = com, email__iexact = email).exists():
+            res = f"Email `{email}` already exists, try another!"
+            return JsonResponse({'status': False, 'message':res})
+    
+        
+        cust = Fin_Customers(
+            Company = com,
+            LoginDetails = data,
+            title = request.POST['title'],
+            first_name = fName,
+            last_name = lName,
+            company = request.POST['company_name'],
+            location = request.POST['location'],
+            place_of_supply = request.POST['place_of_supply'],
+            gst_type = request.POST['gst_type'],
+            gstin = None if request.POST['gst_type'] == "Unregistered Business" or request.POST['gst_type'] == 'Overseas' or request.POST['gst_type'] == 'Consumer' else gstIn,
+            pan_no = pan,
+            email = email,
+            mobile = phn,
+            website = request.POST['website'],
+            price_list = None if request.POST['price_list'] ==  "" else Fin_Price_List.objects.get(id = request.POST['price_list']),
+            payment_terms = None if request.POST['payment_terms'] == "" else Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_terms']),
+            opening_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
+            open_balance_type = request.POST['balance_type'],
+            current_balance = 0 if request.POST['open_balance'] == "" else float(request.POST['open_balance']),
+            credit_limit = 0 if request.POST['credit_limit'] == "" else float(request.POST['credit_limit']),
+            billing_street = request.POST['street'],
+            billing_city = request.POST['city'],
+            billing_state = request.POST['state'],
+            billing_pincode = request.POST['pincode'],
+            billing_country = request.POST['country'],
+            ship_street = request.POST['shipstreet'],
+            ship_city = request.POST['shipcity'],
+            ship_state = request.POST['shipstate'],
+            ship_pincode = request.POST['shippincode'],
+            ship_country = request.POST['shipcountry'],
+            status = 'Active'
+        )
+        cust.save()
+
+        
+
+        Fin_Customers_History.objects.create(
+            Company = com,
+            LoginDetails = data,
+            customer = cust,
+            action = 'Created'
+        )
+
+        return JsonResponse({'status': True})
+    
+    else:
+        return redirect('/')
+    
+def Fin_get_RET_INV_Customers(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        options = {}
+        option_objects = Fin_Customers.objects.filter(Company = com, status = 'Active')
+        for option in option_objects:
+            options[option.id] = [option.id , option.title, option.first_name, option.last_name]
+
+        return JsonResponse(options)
+    else:
+        return redirect('/')
+
+def Fin_Retinvcustomer_paymentterm(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        term = request.POST['term']
+        days = request.POST['days']
+
+        if not Fin_Company_Payment_Terms.objects.filter(Company = com, term_name__iexact = term).exists():
+            Fin_Company_Payment_Terms.objects.create(Company = com, term_name = term, days =days)
+            
+            list= []
+            terms = Fin_Company_Payment_Terms.objects.filter(Company = com)
+
+            for term in terms:
+                termDict = {
+                    'name': term.term_name,
+                    'id': term.id
+                }
+                list.append(termDict)
+
+            return JsonResponse({'status':True,'terms':list},safe=False)
+        else:
+            return JsonResponse({'status':False})
+
+    else:
+        return redirect('/')         
+
+def Fin_RETINV_CustomerData(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        customerid = request.POST['id']
+        cust = Fin_Customers.objects.get(id = customerid)
+        email = cust.email
+        street = cust.billing_street
+        city = cust.billing_city
+        state = cust.billing_state
+        pincode = cust.billing_pincode
+        country = cust.billing_country
+        gsttype = cust.gst_type
+        gstno = cust.gstin
+        placesupply = cust.place_of_supply
+        
+        context = {
+                'id':cust.id,'placesupply':placesupply,'country':country,'city':city,'street':street,'pincode':pincode,'state':state,'email' : email, 'gstno' : gstno, 'gsttype': gsttype}
+    return JsonResponse(context, safe=False)
+
+def fetch_bank_account(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+    
+        bank_id = request.GET.get('bankid')
+    
+        try:
+            bank = Fin_Banking.objects.get(id=bank_id,company = com)
+            bank_account = bank.account_number 
+            print(bank_account)
+            return JsonResponse({'bank_account': bank_account})
+        except Fin_Banking.DoesNotExist:
+            return JsonResponse({'error': 'Bank account not found'}, status=404)
+       
+def Fin_RETInvoiceItem(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        name = request.POST['name']
+        type = request.POST['type']
+        unit = request.POST.get('unit')
+        hsn = request.POST['hsn']
+        tax = request.POST['taxref']
+        gstTax = 0 if tax == 'non taxable' else request.POST['intra_st']
+        igstTax = 0 if tax == 'non taxable' else request.POST['inter_st']
+        purPrice = request.POST['pcost']
+        purAccount = None if not 'pur_account' in request.POST or request.POST['pur_account'] == "" else request.POST['pur_account']
+        purDesc = request.POST['pur_desc']
+        salePrice = request.POST['salesprice']
+        saleAccount = None if not 'sale_account' in request.POST or request.POST['sale_account'] == "" else request.POST['sale_account']
+        saleDesc = request.POST['sale_desc']
+        inventory = request.POST.get('invacc')
+        stock = 0 if request.POST.get('stock') == "" else request.POST.get('stock')
+        stockUnitRate = 0 if request.POST.get('stock_rate') == "" else request.POST.get('stock_rate')
+        minStock = request.POST['min_stock']
+        createdDate = date.today()
+        
+        item = Fin_Items(
+                Company = com,
+                LoginDetails = data,
+                name = name,
+                item_type = type,
+                unit = unit,
+                hsn = hsn,
+                tax_reference = tax,
+                intra_state_tax = gstTax,
+                inter_state_tax = igstTax,
+                sales_account = saleAccount,
+                selling_price = salePrice,
+                sales_description = saleDesc,
+                purchase_account = purAccount,
+                purchase_price = purPrice,
+                purchase_description = purDesc,
+                item_created = createdDate,
+                min_stock = minStock,
+                inventory_account = inventory,
+                opening_stock = stock,
+                current_stock = stock,
+                stock_in = 0,
+                stock_out = 0,
+                stock_unit_rate = stockUnitRate,
+                status = 'Active'
+            )
+        item.save()
+
+            #save transaction
+
+        Fin_Items_Transaction_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                item = item,
+                action = 'Created'
+            )
+            
+        return JsonResponse({'status': True})
+    else:
+       return redirect('/')
+
+def validate_hsn(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id=s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
+        hsn = request.POST.get('hsn')
+        if hsn:
+            if Fin_Items.objects.filter(hsn__iexact=hsn,Company = com).exists():
+                return JsonResponse({'status': False, 'message': f"HSN - {hsn} already exists, try another."})
+            else:
+                return JsonResponse({'status': True})
+        
+
+def validate_name(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id=s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
+   
+        name = request.POST.get('name')
+        if name:
+            if Fin_Items.objects.filter(Company=com, name__iexact=name).exists():
+                return JsonResponse({'status': False, 'message': f"Item with name '{name}' already exists, please choose another name."})
+            else:
+                return JsonResponse({'status': True})
+        
+def Fin_Reloaditems(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        items = {}
+        option_objects = Fin_Items.objects.filter(Company = com, status='Active')
+        for option in option_objects:
+            items[option.id] = [option.name]
+
+        return JsonResponse(items)
+    else:
+        return redirect('/')
+
+def Fin_RETINVItemDetails(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        itemName = request.GET['item']
+        item = Fin_Items.objects.get(Company = com, name = itemName)
+
+       
+        context = {
+            'status':True,
+            'id': item.id,
+            'hsn':item.hsn,
+            'sales_rate':item.selling_price,
+            'avl':item.current_stock,
+
+        }
+        return JsonResponse(context)
+    else:
+       return redirect('/')
+
+def Fin_RI_Overview(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        ri = Fin_Retainer_Invoice.objects.get(id = id)
+        cmt = Fin_Retainer_Invoice_Comments.objects.filter(Ret_Invoice = ri)
+        history = Fin_Retainer_Invoice_History.objects.filter(Ret_Invoice =ri).last()
+        riItems = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = ri)
+        created = Fin_Retainer_Invoice_History.objects.get(Ret_Invoice =ri, action = 'Created')
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+            allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+       
+        bank_name = None
+        if ri.Payment_Method not in ['Cash', 'Cheque', 'UPI']:
+            try:
+                bank = Fin_Banking.objects.get(id=ri.Payment_Method,company=cmp)
+                bank_name = bank.bank_name
+                
+            except Fin_Banking.DoesNotExist:
+               
+                pass
+        is_bank_payment = ri.Payment_Method not in ['Cash', 'Cheque', 'UPI']
+        return render(request,'company/RET_INV/RET_INV_overview.html',{'allmodules':allmodules,'com':com,'cmp':cmp, 'data':data, 'Ret_Invoice':ri,'riItems':riItems, 'history':history, 'comments':cmt, 'created':created,'bank_name': bank_name, 'is_bank_payment': is_bank_payment})
+    else:
+       return redirect('/')
+       
+def Fin_addRETINVComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        rtinv = Fin_Retainer_Invoice.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_Retainer_Invoice_Comments.objects.create(Company = com, Ret_Invoice =  rtinv , comments = cmt,LoginDetails = com.Login_Id)
+            return redirect(Fin_RI_Overview, id)
+        return redirect(Fin_RI_Overview, id)
+    return redirect('/')
+
+def Fin_deleteRETINVComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_Retainer_Invoice_Comments.objects.get(id = id)
+        riId = cmt.Ret_Invoice.id
+        cmt.delete()
+        return redirect(Fin_RI_Overview,  riId )
+    
+def Fin_RIHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        retinv = Fin_Retainer_Invoice.objects.get(id = id)
+        history = Fin_Retainer_Invoice_History.objects.filter(Ret_Invoice= retinv)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/RET_INV/RET_INV_history.html',{'allmodules':allmodules,'com':com,'data':data,'history':history, 'retinv':retinv})
+    else:
+       return redirect('/')
+    
+def Fin_deleteRI(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        retinv = Fin_Retainer_Invoice.objects.get( id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        for i in Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = retinv):
+            item = Fin_Items.objects.get(id = i.Item.id)
+            item.current_stock += i.Quantity
+            item.save()
+        
+        Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = retinv).delete()
+
+        
+        if Fin_Retainer_Invoice_Reference.objects.filter(Company = com).exists():
+            deleted = Fin_Retainer_Invoice_Reference.objects.get(Company = com)
+            if int(retinv.Reference_number) > int(deleted.Reference_no):
+                deleted.Reference_no = retinv.Reference_number
+                deleted.save()
+        else:
+            Fin_Retainer_Invoice_Reference.objects.create(Company = com, Reference_no= retinv.Reference_number)
+        
+        retinv.delete()
+        return redirect(Fin_RET_INV_Listout)
+
+def Fin_RIPdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        retinv = Fin_Retainer_Invoice.objects.get(id = id)
+        itms = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv= retinv)
+    
+        context = {'retinv':retinv, 'riItems':itms,'cmp':com}
+        
+        template_path = 'company/RET_INV/RET_INV_Pdf.html'
+        fname = 'RetainerInvoice_'+retinv.Retainer_Invoice_number
+        # return render(request, 'company/Fin_Invoice_Pdf.html',context)
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_shareRIEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        retinv = Fin_Retainer_Invoice.objects.get(id = id)
+        itms = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = retinv)
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                context = {'retinv':retinv, 'riItems':itms,'cmp':com}
+                template_path = 'company/RET_INV/RET_INV_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Retainer_Invoice_{retinv.Retainer_Invoice_number}'
+                subject = f"Invoice_{retinv.Retainer_Invoice_number}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Retainer Invoice for -RETAINER INVOICE-{retinv.Retainer_Invoice_number}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Retainer_Invoice details has been shared via email successfully..!')
+                return redirect(Fin_RI_Overview,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_RI_Overview, id)
+
+
+def Fin_RET_INV_edit(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+            cmp = com.company_id
+       
+        retinv = Fin_Retainer_Invoice.objects.get(id = id)
+        retItms = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv=retinv)
+        item = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        customer = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        payment_terms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bank = Fin_Banking.objects.filter(company = cmp)
+        list = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        account = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+       
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customer':customer, 'item':item, 
+           'banks':bank,'pterm':payment_terms,'unit':units,'account':account,'plist':list,'retinv':retinv,'retItms':retItms
+        }
+        return render(request,'company/RET_INV/RET_INV_edit.html',context)
+    else:
+       return redirect('/')
+
+def Fin_RET_INV_update(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        retinv = Fin_Retainer_Invoice.objects.get(id = id)
+        if request.method == 'POST':
+            rinum = request.POST['ret_inv_no']
+            if retinv.Retainer_Invoice_number != rinum and Fin_Retainer_Invoice.objects.filter(Company = com, Retainer_Invoice_number__iexact = rinum).exists():
+                res = f'<script>alert("Retainer Invoice Number `{rinum}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            retinv.Customer = Fin_Customers.objects.get(id = request.POST['customer_id'])
+            retinv.Customer_email = request.POST['customerEmail']
+            retinv.Customer_billing_address = request.POST['bill_address']
+            retinv.Customer_gst_type = request.POST['gst_type']
+            retinv.Customer_gstin = request.POST['gstin']
+            retinv.Customer_place_of_supply = request.POST['place_of_supply']
+            retinv.Retainer_Invoice_number= rinum
+            retinv.Retainer_Invoice_date = request.POST['ret_inv_date']
+            retinv.Payment_Method= None if request.POST['payment_method'] == "" else request.POST['payment_method']
+            retinv.Cheque_number= None if request.POST['cheque'] == "" else request.POST['cheque']
+            retinv.UPI_number = None if request.POST['upi'] == "" else request.POST['upi']
+            retinv.Bank_account_no = None if request.POST['a/c_no'] == "" else request.POST['a/c_no']
+            retinv.Sub_total = 0.0 if request.POST['sub_total'] == "" else float(request.POST['sub_total'])
+          
+          
+            retinv.Adjustment = 0.0 if request.POST['adjustment'] == "" else float(request.POST['adjustment'])
+           
+            retinv.Grand_total = 0.0 if request.POST['grand_total'] == "" else float(request.POST['grand_total'])
+            retinv.Paid_amount = 0.0 if request.POST['paid_amount'] == "" else float(request.POST['paid_amount'])
+            retinv.Balance = request.POST['grand_total'] if request.POST['balance'] == "" else float(request.POST['balance'])
+            retinv.Description= request.POST['note']
+
+            if len(request.FILES) != 0:
+                retinv.Document=request.FILES.get('file')
+
+            retinv.save()
+
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("price[]")
+            description = request.POST.getlist("description[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
+            ri_item_ids = request.POST.getlist("id[]")
+
+            riitem_ids = [int(id) for id in ri_item_ids]
+
+            ri_items = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = retinv)
+            object_ids = [obj.id for obj in ri_items]
+
+            ids_to_delete = [obj_id for obj_id in object_ids if obj_id not in riitem_ids]
+            for itmId in ids_to_delete:
+                riItem = Fin_Retainer_Invoice_Items.objects.get(id = itmId)
+                item = Fin_Items.objects.get(id = riItem.Item.id)
+                item.current_stock += riItem.Quantity
+                item.save()
+
+            Fin_Retainer_Invoice_Items.objects.filter(id__in=ids_to_delete).delete()
+            
+            count = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv= retinv).count()
+           
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(description)==len(discount)==len(total)==len(riitem_ids) and riitem_ids and itemId and itemName and hsn and qty and price and description and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,description,discount,total,riitem_ids)
+                mapped = list(mapped)
+                for ele in mapped:
+                   
+                    if int(len(itemId))>int(count):
+                        if ele[8] == 0:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_Retainer_Invoice_Items.objects.create(Ret_Inv= retinv, Item = itm, HSN = ele[2], Quantity = int(ele[3]), Price = float(ele[4]), Discription = ele[5], discount = float(ele[6]), Total = float(ele[7]))
+                            itm.current_stock -= int(ele[3])
+                            itm.save()
+                        else:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            retinvItm = Fin_Retainer_Invoice_Items.objects.get(id = int(ele[8]))
+                            crQty = int(retinvItm.Quantity)
+                            
+                            Fin_Retainer_Invoice_Items.objects.filter( id = int(ele[8])).update(Ret_Inv =retinv, Item = itm, HSN = ele[2], Quantity = int(ele[3]), Price = float(ele[4]),  Discription= ele[5], discount = float(ele[6]), Total = float(ele[7]))
+                            
+                            if crQty < int(ele[3]):
+                                itm.current_stock -=  abs(crQty - int(ele[3]))
+                            elif crQty > int(ele[3]):
+                                itm.current_stock += abs(crQty - int(ele[3]))
+                            itm.save()
+                    else:
+                        itm = Fin_Items.objects.get(id = int(ele[0]))
+                        retinvItm= Fin_Retainer_Invoice_Items.objects.get(id = int(ele[8]))
+                        crQty = int(retinvItm.Quantity)
+
+                        Fin_Retainer_Invoice_Items.objects.filter( id = int(ele[8])).update(Ret_Inv = retinv, Item = itm, HSN = ele[2], Quantity = int(ele[3]), Price = float(ele[4]), Discription = ele[5], discount = float(ele[6]), Total = float(ele[7]))
+
+                        if crQty < int(ele[3]):
+                            itm.current_stock -=  abs(crQty - int(ele[3]))
+                        elif crQty > int(ele[3]):
+                            itm.current_stock += abs(crQty - int(ele[3]))
+                        itm.save()
+            
+           
+                    
+            Fin_Retainer_Invoice_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                Ret_Invoice = retinv,
+                action = 'Edited'
+            )
+
+            return redirect(Fin_RI_Overview, id)
+        else:
+            return redirect(Fin_RET_INV_edit, id)
+    else:
+       return redirect('/')
+
+def Fin_convertRI(request,id):
+    if 's_id' in request.session:
+
+        RI= Fin_Retainer_Invoice.objects.get(id = id)
+        RI.status = 'Sent'
+        RI.save()
+        return redirect(Fin_RI_Overview, id)
+        
+#End
+
+def emp_dropdown_active_not(request):                                                                 
+    sid = request.session['s_id']
+    login = Fin_Login_Details.objects.get(id=sid)
+    if login.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id = sid)
+            options = {}
+            option_objects = Employee.objects.filter(company=com,employee_status='Active')
+            print(1111)
+            for option in option_objects:
+                title=option.title
+                first_name=option.first_name
+                last_name=option.last_name
+                options[option.id] = [title,first_name,last_name,f"{title}"]
+            return JsonResponse(options)
+    elif login.User_Type == 'Staff':
+            staf = Fin_Staff_Details.objects.get(Login_Id = sid)
+            options = {}
+            option_objects = Employee.objects.filter(company=staf.company_id,employee_status='Active')
+            for option in option_objects:
+                title=option.title
+                first_name=option.first_name
+                last_name=option.last_name
+                options[option.id] = [title,first_name,last_name,f"{title}"]
+            return JsonResponse(options)
+            
+            
+def employee_edit(request, employee_id,sal_id):
+    if request.method == 'POST':
+
+        try:
+
+            emp_obj = Employee.objects.get(id=employee_id)
+
+            emp_obj.title = request.POST['Title']
+            emp_obj.first_name = request.POST['firstname'].capitalize()
+            emp_obj.last_name = request.POST['lastname'].capitalize()
+            emp_obj.alias = request.POST['alias']
+            emp_obj.date_of_joining= request.POST['joindate']
+            emp_obj.salary_effective_from = request.POST['Salary_Date']
+            emp_obj.salary_amount = request.POST['amount']
+            emp_obj.employee_salary_type = request.POST['salary_type']
+
+            image = request.FILES.get('Image', None)
+            if image:
+                emp_obj.upload_image = request.FILES['Image']
+            else:
+                emp_obj.upload_image = emp_obj.upload_image
+
+            emp_obj.date_of_birth = request.POST['dateofbirth']
+            emp_obj.blood_group = request.POST['bloodgroup']
+            emp_obj.gender = request.POST['gender']
+
+            dob = request.POST['dateofbirth']
+
+            if dob == '':
+                age = 2
+            else:
+                dob2 = date.fromisoformat(dob)
+                today = date.today()
+                emp_obj.age = int(today.year - dob2.year - ((today.month, today.day) < (dob2.month, dob2.day)))
+
+            if request.POST['amount'] == '':
+                emp_obj.salary_amount = None
+            else:
+                 emp_obj.salary_amount = request.POST['amount']
+
+            emp_obj.amount_per_hour = request.POST.get('perhour') or 0
+            emp_obj.total_working_hours = request.POST.get('workhour') or 0
+            emp_obj.employee_designation = request.POST['designation']
+            emp_obj.employee_current_location = request.POST['location']
+            emp_obj.gender = request.POST['gender']
+            emp_obj.upload_image = request.FILES.get('Image', '') or ''
+            emp_obj.date_of_birth = request.POST['dateofbirth']
+            emp_obj.blood_group = request.POST['bloodgroup']
+            emp_obj.mobile = request.POST['mobile']
+            emp_obj.emergency_contact = request.POST['generalphone']
+            emp_obj.employee_mail = request.POST['email']
+            emp_obj.fathers_name_mothers_name = request.POST['fathersmothersname']
+            emp_obj.spouse_name = request.POST['spousename']
+            emp_obj.upload_file = request.FILES.get('File', '') or ''
+            emp_obj.street = request.POST['street']
+            emp_obj.city = request.POST['city']
+            emp_obj.state = request.POST['state']
+            emp_obj.pincode = request.POST['pincode']
+            emp_obj.country = request.POST['country']
+            emp_obj.temporary_street = request.POST['tempstreet']
+            emp_obj.temporary_city = request.POST['tempcity']
+            emp_obj.temporary_state = request.POST['tempstate']
+            emp_obj.temporary_pincode = request.POST['temppincode']
+            emp_obj.temporary_country = request.POST['tempcountry']
+            emp_obj.provide_bank_details = request.POST['bankdetails']
+            emp_obj.account_number = request.POST['acno']
+            emp_obj.ifsc = request.POST['ifsccode']
+            emp_obj.name_of_bank = request.POST['bankname']
+            emp_obj.branch_name = request.POST['branchname']
+            emp_obj.bank_transaction_type = request.POST['transactiontype']
+            emp_obj.tds_applicable = request.POST['tds_applicable']
+            emp_obj.tds_type = request.POST['TDS_Type']
+            emp_obj.percentage_amount = request.POST['TDS_Amount'] if request.POST['TDS_Type'] == 'Amount' else request.POST['TDS_Percentage']
+            emp_obj.income_tax_number = request.POST['Income_Tax']
+            emp_obj.aadhar_number = request.POST['adharnumber']
+            emp_obj.universal_account_number = request.POST['universalaccountnumber']
+            emp_obj.pan_number = request.POST['pannumber']
+            emp_obj.pf_account_number = request.POST['pfaccountnumber']
+            emp_obj.pr_account_number = request.POST['praccountnumber']
+
+           
+
+            
+            emp_obj.save()
+            return redirect('Fin_salaryedit',employee_id,sal_id)
+
+        except Employee.DoesNotExist:
+            print('Employee Not Found')
+            
+            
+def Edit_getDays(request):
+     if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            company=com
+        
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            company=com.company_id
+
+        if request.method == 'POST':   
+            employee_id = request.POST.get('id')
+            empid = Employee.objects.get(id=employee_id)
+            month = request.POST.get('month')
+            year = request.POST.get('year')
+            month = int(month)
+            year = int(year)
+
+            try:
+                result = Fin_SalaryDetails.objects.get(employee=empid, month=month, year=year)
+                start_date = datetime(year, month, 1)
+                if month == 12:
+                    end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
+                else:
+                    end_date = datetime(year, month % 12 + 1, 1) - timedelta(days=1)
+                start_date = start_date.strftime("%Y-%m-%d")
+                end_date = end_date.strftime("%Y-%m-%d")
+
+                leave_count = Fin_Attendances.objects.filter(
+                    employee=empid,
+                    company=company,
+                    start_date__range=(start_date, end_date),
+                    status='Leave'
+                )
+
+
+                # Clculating leave days ----------------
+                count_leave = 0
+
+                for i in leave_count:
+                    x = i.end_date - i.start_date
+                    leave_days = x.days
+                    if leave_days == 0:
+                        leave_days = 1
+                    else:
+                        leave_days = leave_days + 1
+                    count_leave = int(count_leave + leave_days)
+
+
+
+                holidays_count = Holiday.objects.filter(company=company,start_date__range=(start_date, end_date)).count()
+
+                _, num_days = calendar.monthrange(year, month)
+                working_days = num_days - holidays_count
+                
+                try:
+                    return JsonResponse({
+                        'month': MONTH_NAMES.get(month, ''),
+                        'holiday': holidays_count,
+                        'leave': count_leave,   
+                        'working_days' : working_days, 
+                                
+                    }, safe=False)
+
+                except Employee.DoesNotExist:
+                    return JsonResponse({'error': 'Selected employee not found.'}, status=404)
+               
+                
+            except Fin_SalaryDetails.DoesNotExist:
+                    return JsonResponse({'error': 'Salary details not found.',
+                                         'month': MONTH_NAMES.get(month, ''),
+                        'holiday': 0,
+                        'leave': 0,   
+                        'working_days' : 0,}, status=404)
+
+               
+
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+        
+        
 # < ------------- Shemeem -------- > CHEQUES < ------------------------------- >
 
 def Fin_cheques(request):
@@ -29709,7 +30996,7 @@ def Fin_deleteCreditNote(request, id):
         
         crd.delete()
         return redirect(Fin_creditNotes)
-
+        
 def Fin_getInvoicePaidAmount(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
@@ -29735,6 +31022,7 @@ def Fin_getInvoicePaidAmount(request):
     else:
         return redirect('/')
 
+#End
 
 # < ------------- Shemeem -------- > Reports - Sales by Item & Customer < ------------------------------- >
 def Fin_salesByCustomerReport(request):
@@ -30328,3 +31616,657 @@ def Fin_shareSalesByItemReportToEmail(request):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_salesByItemReport)
+
+# < ------------- Shemeem -------- > Reports - DayBook < ------------------------------- >
+
+def Fin_dayBookReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        currentDate = datetime.today()
+        print('currentDate',currentDate)
+
+        reportData = []
+        totMoneyIn = 0
+        totMoneyOut = 0
+
+        sOrder = Fin_Sales_Order.objects.filter(Company=cmp, sales_order_date = currentDate)
+        if sOrder:
+            for s in sOrder:
+                partyName = s.Customer.first_name +" "+s.Customer.last_name
+                date = s.sales_order_date
+                ref = s.reference_no
+                type = 'Sales Order'
+                total = s.grandtotal
+                mIn = s.grandtotal
+                mOut = 0
+                totMoneyIn += float(s.grandtotal)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date = currentDate)
+        if inv:
+            for i in inv:
+                partyName = i.Customer.first_name +" "+i.Customer.last_name
+                date = i.invoice_date
+                ref = i.reference_no
+                type = 'Invoice'
+                total = i.grandtotal
+                mIn = i.grandtotal
+                mOut = 0
+                totMoneyIn += float(i.grandtotal)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date = currentDate)
+        if recInv:
+            for r in recInv:
+                partyName = r.Customer.first_name +" "+r.Customer.last_name
+                date = r.start_date
+                ref = r.reference_no
+                type = 'Recurring Invoice'
+                total = r.grandtotal
+                mIn = r.grandtotal
+                mOut = 0
+                totMoneyIn += float(r.grandtotal)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date = currentDate)
+        if rtInv:
+            for rt in rtInv:
+                partyName = rt.Customer.first_name +" "+rt.Customer.last_name
+                date = rt.Retainer_Invoice_date
+                ref = rt.Reference_number
+                type = 'Retainer Invoice'
+                total = rt.Grand_total
+                mIn = rt.Grand_total
+                mOut = 0
+                totMoneyIn += float(rt.Grand_total)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        dbNote = Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date = currentDate)
+        if dbNote:
+            for d in dbNote:
+                partyName = d.Vendor.first_name +" "+d.Vendor.last_name
+                date = d.debit_note_date
+                ref = d.reference_number
+                type = 'Debit Note'
+                total = d.grandtotal
+                mIn = d.grandtotal
+                mOut = 0
+                totMoneyIn += float(d.grandtotal)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        mJournal = Fin_Manual_Journal.objects.filter(Company = cmp, journal_date = currentDate)
+        if mJournal:
+            for debit in mJournal:
+                partyName = ''
+                date = debit.journal_date
+                ref = debit.reference_no
+                type = 'Manual Journal Debit'
+                total = debit.total_debit
+                mIn = debit.total_debit
+                mOut = 0
+                totMoneyIn += float(debit.total_debit)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+            for credit in mJournal:
+                partyName = ''
+                date = credit.journal_date
+                ref = credit.reference_no
+                type = 'Manual Journal Credit'
+                total = credit.total_credit
+                mOut = credit.total_credit
+                mIn = 0
+                totMoneyOut += float(credit.total_credit)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        pBill = Fin_Purchase_Bill.objects.filter(company = cmp, bill_date = currentDate)
+        if pBill:
+            for bill in pBill:
+                partyName = bill.vendor.first_name +" "+bill.vendor.last_name
+                date = bill.bill_date
+                ref = bill.ref_no
+                type = 'Purchase Bill'
+                total = bill.grandtotal
+                mOut = bill.grandtotal
+                mIn = 0
+                totMoneyOut += float(bill.grandtotal)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        rBill = Fin_Recurring_Bills.objects.filter(company = cmp, date = currentDate)
+        if rBill:
+            for rbill in rBill:
+                partyName = rbill.vendor.first_name +" "+rbill.vendor.last_name
+                date = rbill.date
+                ref = rbill.reference_number
+                type = 'Recurring Bill'
+                total = rbill.grand_total
+                mOut = rbill.grand_total
+                mIn = 0
+                totMoneyOut += float(rbill.grand_total)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        cNote = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date = currentDate)
+        if cNote:
+            for note in cNote:
+                partyName = note.Customer.first_name +" "+note.Customer.last_name
+                date = note.creditnote_date
+                ref = note.reference_number
+                type = 'Credit Note'
+                total = note.grandtotal
+                mOut = note.grandtotal
+                mIn = 0
+                totMoneyOut += float(note.grandtotal)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalMoneyIn':totMoneyIn, 'totalMoneyOut':totMoneyOut,
+            'startDate':None, 'endDate':None, 'currentDate':currentDate.strftime("%d-%m-%Y")
+        }
+        return render(request,'company/reports/Fin_DayBook.html', context)
+    else:
+        return redirect('/')
+
+def Fin_dayBookReportCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            currentDate = datetime.today()
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+
+
+            reportData = []
+            totMoneyIn = 0
+            totMoneyOut = 0
+
+            sOrder = Fin_Sales_Order.objects.filter(Company=cmp, sales_order_date__range = [startDate, endDate])
+            if sOrder:
+                for s in sOrder:
+                    partyName = s.Customer.first_name +" "+s.Customer.last_name
+                    date = s.sales_order_date
+                    ref = s.reference_no
+                    type = 'Sales Order'
+                    total = s.grandtotal
+                    mIn = s.grandtotal
+                    mOut = 0
+                    totMoneyIn += float(s.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate])
+            if inv:
+                for i in inv:
+                    partyName = i.Customer.first_name +" "+i.Customer.last_name
+                    date = i.invoice_date
+                    ref = i.reference_no
+                    type = 'Invoice'
+                    total = i.grandtotal
+                    mIn = i.grandtotal
+                    mOut = 0
+                    totMoneyIn += float(i.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate])
+            if recInv:
+                for r in recInv:
+                    partyName = r.Customer.first_name +" "+r.Customer.last_name
+                    date = r.start_date
+                    ref = r.reference_no
+                    type = 'Recurring Invoice'
+                    total = r.grandtotal
+                    mIn = r.grandtotal
+                    mOut = 0
+                    totMoneyIn += float(r.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate])
+            if rtInv:
+                for rt in rtInv:
+                    partyName = rt.Customer.first_name +" "+rt.Customer.last_name
+                    date = rt.Retainer_Invoice_date
+                    ref = rt.Reference_number
+                    type = 'Retainer Invoice'
+                    total = rt.Grand_total
+                    mIn = rt.Grand_total
+                    mOut = 0
+                    totMoneyIn += float(rt.Grand_total)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            dbNote = Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate])
+            if dbNote:
+                for d in dbNote:
+                    partyName = d.Vendor.first_name +" "+d.Vendor.last_name
+                    date = d.debit_note_date
+                    ref = d.reference_number
+                    type = 'Debit Note'
+                    total = d.grandtotal
+                    mIn = d.grandtotal
+                    mOut = 0
+                    totMoneyIn += float(d.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            mJournal = Fin_Manual_Journal.objects.filter(Company = cmp, journal_date__range = [startDate, endDate])
+            if mJournal:
+                for debit in mJournal:
+                    partyName = ''
+                    date = debit.journal_date
+                    ref = debit.reference_no
+                    type = 'Manual Journal Debit'
+                    total = debit.total_debit
+                    mIn = debit.total_debit
+                    mOut = 0
+                    totMoneyIn += float(debit.total_debit)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+                for credit in mJournal:
+                    partyName = ''
+                    date = credit.journal_date
+                    ref = credit.reference_no
+                    type = 'Manual Journal Credit'
+                    total = credit.total_credit
+                    mOut = credit.total_credit
+                    mIn = 0
+                    totMoneyOut += float(credit.total_credit)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            pBill = Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate])
+            if pBill:
+                for bill in pBill:
+                    partyName = bill.vendor.first_name +" "+bill.vendor.last_name
+                    date = bill.bill_date
+                    ref = bill.ref_no
+                    type = 'Purchase Bill'
+                    total = bill.grandtotal
+                    mOut = bill.grandtotal
+                    mIn = 0
+                    totMoneyOut += float(bill.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            rBill = Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate])
+            if rBill:
+                for rbill in rBill:
+                    partyName = rbill.vendor.first_name +" "+rbill.vendor.last_name
+                    date = rbill.date
+                    ref = rbill.reference_number
+                    type = 'Recurring Bill'
+                    total = rbill.grand_total
+                    mOut = rbill.grand_total
+                    mIn = 0
+                    totMoneyOut += float(rbill.grand_total)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            cNote = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate])
+            if cNote:
+                for note in cNote:
+                    partyName = note.Customer.first_name +" "+note.Customer.last_name
+                    date = note.creditnote_date
+                    ref = note.reference_number
+                    type = 'Credit Note'
+                    total = note.grandtotal
+                    mOut = note.grandtotal
+                    mIn = 0
+                    totMoneyOut += float(note.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalMoneyIn':totMoneyIn, 'totalMoneyOut':totMoneyOut,
+                'startDate':startDate, 'endDate':endDate, 'currentDate':None
+            }
+            return render(request,'company/reports/Fin_DayBook.html', context)
+    else:
+        return redirect('/')
+
+def Fin_shareDayBookReportToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                trans = request.POST['transaction']
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                reportData = []
+                totInv = 0
+                totRecInv = 0
+                totCrdNote = 0
+                subTot = 0
+                subTotWOCrd = 0
+
+                cust = Fin_Customers.objects.filter(Company=com)
+
+                for c in cust:
+                    customerName = c.first_name +" "+c.last_name
+                    count = 0
+                    sales = 0
+
+                    if startDate == None or endDate == None:
+                        if trans == "all":
+                            inv = Fin_Invoice.objects.filter(Customer=c, status = 'Saved')
+                            recInv = Fin_Recurring_Invoice.objects.filter(Customer=c, status = 'Saved')
+                            crd = Fin_CreditNote.objects.filter(Customer=c, status = 'Saved')
+                        elif trans == 'invoice':
+                            inv = Fin_Invoice.objects.filter(Customer=c, status = 'Saved')
+                            recInv = None
+                            crd = None
+                        elif trans == 'recurring_invoice':
+                            inv = None
+                            recInv = Fin_Recurring_Invoice.objects.filter(Customer=c, status = 'Saved')
+                            crd = None
+                        elif trans == 'credit_notes':
+                            inv = None
+                            recInv = None
+                            crd = Fin_CreditNote.objects.filter(Customer=c, status = 'Saved')
+                    else:
+                        if trans == 'all':
+                            inv = Fin_Invoice.objects.filter(Customer=c, invoice_date__range = [startDate, endDate], status = 'Saved')
+                            recInv = Fin_Recurring_Invoice.objects.filter(Customer=c, start_date__range = [startDate, endDate], status = 'Saved')
+                            crd = Fin_CreditNote.objects.filter(Customer=c, creditnote_date__range = [startDate, endDate], status = 'Saved')
+                        elif trans == 'invoice':
+                            inv = Fin_Invoice.objects.filter(Customer=c, invoice_date__range = [startDate, endDate], status = 'Saved')
+                            recInv = None
+                            crd = None
+                        elif trans == 'recurring_invoice':
+                            inv = None
+                            recInv = Fin_Recurring_Invoice.objects.filter(Customer=c, start_date__range = [startDate, endDate], status = 'Saved')
+                            crd = None
+                        elif trans == 'credit_notes':
+                            inv = None
+                            recInv = None
+                            crd = Fin_CreditNote.objects.filter(Customer=c, creditnote_date__range = [startDate, endDate], status = 'Saved')
+
+                    if inv:
+                        count += len(inv)
+                        for i in inv:
+                            sales += float(i.grandtotal)
+                            totInv += float(i.grandtotal)
+                            subTot += float(i.subtotal)
+                            subTotWOCrd += float(i.subtotal)
+
+                    if recInv:
+                        count += len(recInv)
+                        for r in recInv:
+                            sales += float(r.grandtotal)
+                            totRecInv += float(r.grandtotal)
+                            subTot += float(r.subtotal)
+                            subTotWOCrd += float(r.subtotal)
+                    
+                    if crd:
+                        count += len(crd)
+                        for n in crd:
+                            sales -= float(n.grandtotal)
+                            totCrdNote += float(n.grandtotal)
+                            subTot -= float(n.subtotal)
+
+                    details = {
+                        'name': customerName,
+                        'count':count,
+                        'sales':sales
+                    }
+
+                    reportData.append(details)
+
+                totCust = len(cust)
+                totSale = totInv + totRecInv - totCrdNote
+                totSaleWOCrdNote = totInv + totRecInv
+            
+                context = {'reportData':reportData,'cmp':com, 'startDate':startDate, 'endDate':endDate,'totalCustomers':totCust, 'totalInvoice':totInv, 'totalRecInvoice':totRecInv, 'totalCreditNote': totCrdNote,'subtotal':subTot, 'subtotalWOCredit':subTotWOCrd, 'totalSale':totSale, 'totalSaleWOCredit':totSaleWOCrdNote}
+                template_path = 'company/reports/Fin_DayBook_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_SalesByCustomer'
+                subject = f"Report_SalesByCustomer"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Sales By Customer. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_salesByCustomerReport)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_salesByCustomerReport)
