@@ -831,7 +831,6 @@ urlpatterns = [
     path('Fin_report_day_book',views.Fin_dayBookReport, name='Fin_dayBookReport'),
     path('Fin_day_book_report_customized',views.Fin_dayBookReportCustomized, name='Fin_dayBookReportCustomized'),
     path('Fin_share_day_book_report_to_email',views.Fin_shareDayBookReportToEmail, name='Fin_shareDayBookReportToEmail'),
-
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

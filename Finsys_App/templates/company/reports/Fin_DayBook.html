@@ -18,14 +18,14 @@
 
     }
 
-    .bar .left {
+    /* .bar .left {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-    }
+    } */
 
-    .bar .left input {
+    /* .bar .left input {
         height: 5vh;
-    }
+    } */
 
 
     .hidden {
@@ -107,6 +107,7 @@
         width: 99%;
         height: 29.7cm;
         overflow: hidden;
+        overflow-y: auto;
     }
     #reportTable {
     border-collapse: collapse;
@@ -163,6 +164,22 @@
     .arrow.up {
         transform: rotate(180deg);
     }
+    /* ::-webkit-scrollbar{
+        display: none;
+    } */
+
+    .page::-webkit-scrollbar {
+    width: 8px;
+    }
+    
+    .page::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page::-webkit-scrollbar-thumb {
+    background-color: darkgrey;
+    outline: 1px solid slategrey;
+    }
 </style>
 <div class="page-content">
     <div class="card radius-15">
@@ -177,8 +194,8 @@
 
             <div class="bar">
 
-                <div class=" left">
-                    <div class="position-relative">
+                <div class=" left d-flex justify-content-start">
+                    <div class="position-relative mr-2">
                         <button class="btn btn-secondary" onclick="toggleContent()"><i class="fa-solid fa-gear"></i> Customize Report</button>
                         <div id="contentDiv" class="content">
                             <h6>Customize Report</h6>
@@ -198,7 +215,9 @@
                             </form>
                         </div>
                     </div>
-
+                    <!-- <div class="search">
+                        <input type="text" id="search" class="form-control" placeholder="Search.." autocomplete="off"/>
+                    </div> -->
 
                 </div>
                 <div class="right d-flex">
@@ -225,6 +244,9 @@
     <div class="card radius-15 print-only" id="pdf-card">
         <div class="card-body">
             <div class="container-fluid">
+                <div class="search">
+                    <input type="text" id="search" class="form-control w-25" placeholder="Search.." autocomplete="off"/>
+                </div>
 
                 <div  id="printReport"  class="printReportTemplate" style="display: block;">
                     <div class="my-5 page" size="A4" >
@@ -252,7 +274,7 @@
                                             <thead>
                                                 <tr>
                                                     <th class="text-center">DATE</th>
-                                                    <th class="text-center">REFERENCE NUMBER</th>
+                                                    <th class="text-center">TYPE NUMBER</th>
                                                     <th class="text-center">PARTY NAME</th>
                                                     <th class="text-center">TYPE</th>
                                                     <th class="text-center">TOTAL AMOUNT</th>
@@ -315,7 +337,7 @@
             </div>
             <div class="modal-body">
                 <div class="card p-3">
-                    <form action="{% url 'Fin_shareSalesByCustomerReportToEmail' %}" method="post" class="needs-validation" id="share_to_email_form">
+                    <form action="{% url 'Fin_shareDayBookReportToEmail' %}" method="post" class="needs-validation" id="share_to_email_form">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="emailIds">Email IDs</label>
@@ -325,7 +347,6 @@
                             <label for="item_unitname">Message(optional)</label>
                             <textarea name="email_message" id="email_message" class="form-control" cols="" rows="4" placeholder="This message will be sent along with Bill details."></textarea>
                         </div>
-                        <input type="text" name="transaction" id="trans" hidden>
                         <input type="date" name="start" id="startDt" hidden>
                         <input type="date" name="end" id="endDt" hidden>
                     </form>
@@ -340,6 +361,15 @@
 
 
 <script>
+    var $rows = $('#reportTable tbody tr');
+    $('#search').keyup(function() {
+        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+        
+        $rows.show().filter(function() {
+        var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+        return !~text.indexOf(val);
+        }).hide();
+    });
     $(document).ready(function(){
         var trans = `{{transaction}}`;
         // alert(trans)
@@ -363,9 +393,7 @@
     $('#toggleEmailModal').on('click',function(){
         var st = $('#startDate').val();
         var end = $('#endDate').val();
-        var trns = $('#salesTransactions').val();
 
-        $('#trans').val(trns)
         $('#startDt').val(st)
         $('#endDt').val(end)
 
@@ -430,11 +458,17 @@
     })
 
     function reportPDF(){
+        var dt = `{{currentDate}}`
+        if(dt != 'None'){
+            var date = dt
+        }else{
+            var date = `{{startDate}}`+"_"+`{{endDate}}`
+        }
         var element = document.getElementById('printReport');
         var opt =
         {
             margin: [0.5, 0.3, 0.3, 0.5],
-            filename: 'Report_SalesByCustomer',
+            filename: 'Report_DayBook_' + date,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'cm', format: 'letter', orientation: 'portrait' }
@@ -456,11 +490,17 @@
     }
 
     function ExportToExcel(){
+        var dt = `{{currentDate}}`
+        if(dt != 'None'){
+            var date = dt
+        }else{
+            var date = `{{startDate}}`+"_"+`{{endDate}}`
+        }
         const Table = document.getElementById("reportTable");
         const ws = XLSX.utils.table_to_sheet(Table);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-        XLSX.writeFile(wb, "Report_SalesByCustomer.xlsx");
+        XLSX.writeFile(wb, "Report_DayBook_"+date+".xlsx");
     }
 
     let sortOrder = false; // false for ascending, true for descending

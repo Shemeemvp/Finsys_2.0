@@ -81,11 +81,14 @@
                     <center style="color: black;">
                         <p> {{cmp.Company_name}}</p>
                         <b>
-                            <p style="font-size: 1.3rem;">SALES BY CUSTOMER</p>
+                            <p style="font-size: 1.3rem;">DAY BOOK</p>
                         </b>
                     </center>
                     {% if startDate and endDate %}
                     <center class="h6 text-white">{{startDate}} TO {{endDate}}</center>
+                    {% endif %}
+                    {% if currentDate %}
+                    <center class="h6 text-white">{{currentDate}}</center>
                     {% endif %}
                 </div>
                 <hr>
@@ -93,54 +96,42 @@
                 <table class="table2" id="table1">
                     <thead>
                         <tr>
-                            <th style="text-align: center; text-transform:uppercase;">CUSTOMER</th>
-                            <th style="text-align: center; text-transform:uppercase;">INVOICE COUNT</th>
-                            <th style="text-align: center; text-transform:uppercase;">SALES WITH TAX</th>
+                            <th style="text-align: center; text-transform:uppercase;">DATE</th>
+                            <th style="text-align: center; text-transform:uppercase;">TYPE NUMBER</th>
+                            <th style="text-align: center; text-transform:uppercase;">PARTY NAME</th>
+                            <th style="text-align: center; text-transform:uppercase;">TYPE</th>
+                            <th style="text-align: center; text-transform:uppercase;">TOTAL AMOUNT</th>
+                            <th style="text-align: center; text-transform:uppercase;">MONEY IN</th>
+                            <th style="text-align: center; text-transform:uppercase;">MONEY OUT</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for i in reportData %}
                         <tr>
-                            <td style="text-align: center;">{{i.name}}</td>
-                            <td style="text-align: center;">{{i.count}}</td>
-                            <td style="text-align: center;">Rs. {{i.sales|floatformat:2 }}</td>
+                            <td style="text-align: center;">{{i.date}}</td>
+                            <td style="text-align: center;">{{i.ref|default:'Nill'}}</td>
+                            <td style="text-align: center;">{{i.partyName|default:'Nill'}}</td>
+                            <td style="text-align: center;">{{i.type}}</td>
+                            <td style="text-align: center;">Rs. {{i.amount|floatformat:2 }}</td>
+                            <td style="text-align: center;">{{i.moneyIn|floatformat:2 }}</td>
+                            <td style="text-align: center;">{{i.moneyOut|floatformat:2 }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                {% if not reportData %}
+                <center><h4 class="text-dark">No Transactions available for Today.!</h4></center>
+                {% endif %}
             </section>
             <hr>
             <section style="margin-top: 1rem; display: flex; justify-content: right;">
-                <div style="margin-left: 1rem;">Total customers : <p style="font-size: 19px; margin-top: 3px;">{{totalCustomers|default:0}}</p>
-                <table>
-                    <tbody>
-                        <tr>
-                            <td style="text-align: left;">
-                                <div>Invoice Sale: <p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalInvoice">{{totalInvoice|default:0|floatformat:2 }}</span></p></div>
-                            </td>
-                            <td style="text-align: center;">
-                                <div>Recurring Invoice Sale: <p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalReccuringinvoice">{{totalRecInvoice|default:0|floatformat:2}}</span></p></div>
-                            </td>
-                            <td style="text-align: right;">
-                                <div>Credit Note: <p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalCreditnote">{{totalCreditNote|default:0|floatformat:2}}</span></p></div>
-                            </td>
-                        </tr>
-                        <tr style="margin-top: 1rem;">
-                            <td style="text-align: left;">
-                                <div>SubTotal: <p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalSale">{{subtotal|default:0|floatformat:2}}</span></p></div>
-                            </td>
-                            <td style="text-align: center;">
-                                <div>SubTotal Without Credit Note:<p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalSalewithoutCreditnotes">{{subtotalWOCredit|default:0|floatformat:2}}</span></p></div>
-                            </td>
-                            <td style="text-align: right;">
-                                <div>Total Sale: <br>(Without Credit Note)<p style="font-size: 16px; margin-top: 3px;">Rs. <span id="grantTotal">{{totalSaleWOCredit|default:0|floatformat:2}}</span></p></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
                 <div class="margin-left: 1rem;">
-                    <h5 style="padding-top: 10px; color: #000; font-size: 17px;">Total Sale</h5>
-                    <h4 style="font-size: 20px; font-weight: bold; margin-top: 5px;" id="totvalue">Rs. <span id="superTotal">{{totalSale|default:0|floatformat:2}}</span></h4>
+                    <h5 style="padding-top: 10px; color: #000; font-size: 17px;">Total money In:</h5>
+                    <h4 style="font-size: 20px; font-weight: bold; margin-top: 5px;" id="totvalue">Rs. <span id="superTotal">{{totalMoneyIn|default:0|floatformat:2}}</span></h4>
+                </div>
+                <div class="margin-left: 1rem;">
+                    <h5 style="padding-top: 10px; color: #000; font-size: 17px;">Total money Out:</h5>
+                    <h4 style="font-size: 20px; font-weight: bold; margin-top: 5px;" id="totvalue">Rs. <span id="superTotal">{{totalMoneyOut|default:0|floatformat:2}}</span></h4>
                 </div>
             </section>
         </div>
