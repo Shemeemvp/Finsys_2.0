@@ -32421,3 +32421,402 @@ def Fin_shareDayBookReportToEmail(request):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_dayBookReport)
+
+
+# < ------------- Shemeem -------- > Reports - Sales Order Details < ------------------------------- >
+
+def Fin_salesOrderDetailsReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        currentDate = datetime.today()
+
+        reportData = []
+        totalSales = 0
+
+        sOrder = Fin_Sales_Order.objects.filter(Company=cmp)
+        if sOrder:
+            for s in sOrder:
+                partyName = s.Customer.first_name +" "+s.Customer.last_name
+                date = s.sales_order_date
+                ship_date = s.exp_ship_date
+                ref = s.sales_order_no
+                total = s.grandtotal
+                totalSales += float(s.grandtotal)
+                if s.converted_to_invoice != None:
+                    st = 'Converted to Invoice'
+                elif s.converted_to_rec_invoice != None:
+                    st = 'Converted to Rec. Invoice'
+                else:
+                    st = s.status
+
+                details = {
+                    'date': date,
+                    'name': partyName,
+                    'sales_no':ref,
+                    'ship_date':ship_date,
+                    'total':total,
+                    'status':st
+                }
+                reportData.append(details)
+
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalSales':totalSales,
+            'startDate':None, 'endDate':None
+        }
+        return render(request,'company/reports/Fin_SalesOrderReport.html', context)
+    else:
+        return redirect('/')
+
+def Fin_salesOrderDetailsCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            currentDate = datetime.today()
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+
+
+            reportData = []
+            totalSales = 0
+
+            sOrder = Fin_Sales_Order.objects.filter(Company=cmp)
+            if sOrder:
+                for s in sOrder:
+                    partyName = s.Customer.first_name +" "+s.Customer.last_name
+                    date = s.sales_order_date
+                    ship_date = s.exp_ship_date
+                    ref = s.sales_order_no
+                    total = s.grandtotal
+                    totalSales += float(s.grandtotal)
+                    if s.converted_to_invoice != None:
+                        st = 'Converted to Invoice'
+                    elif s.converted_to_rec_invoice != None:
+                        st = 'Converted to Rec. Invoice'
+                    else:
+                        st = s.status
+
+                    details = {
+                        'date': date,
+                        'name': partyName,
+                        'sales_no':ref,
+                        'ship_date':ship_date,
+                        'total':total,
+                        'status':st
+                    }
+                    reportData.append(details)
+
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalSales':totalSales,
+                'startDate':startDate, 'endDate':endDate
+            }
+            return render(request,'company/reports/Fin_SalesOrderReport.html', context)
+    else:
+        return redirect('/')
+
+def Fin_shareSalesOrderDetailsReportToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                if startDate is None and endDate is None:
+                    currentDate = datetime.today().strftime("%d-%m-%Y")
+                else:
+                    currentDate = None
+
+                reportData = []
+                totMoneyIn = 0
+                totMoneyOut = 0
+
+                sOrder = Fin_Sales_Order.objects.filter(Company=cmp, sales_order_date__range = [startDate, endDate])
+                if sOrder:
+                    for s in sOrder:
+                        partyName = s.Customer.first_name +" "+s.Customer.last_name
+                        date = s.sales_order_date
+                        ref = s.sales_order_no
+                        type = 'Sales Order'
+                        total = s.grandtotal
+                        mIn = s.grandtotal
+                        mOut = 0
+                        totMoneyIn += float(s.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate])
+                if inv:
+                    for i in inv:
+                        partyName = i.Customer.first_name +" "+i.Customer.last_name
+                        date = i.invoice_date
+                        ref = i.invoice_no
+                        type = 'Invoice'
+                        total = i.grandtotal
+                        mIn = i.grandtotal
+                        mOut = 0
+                        totMoneyIn += float(i.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate])
+                if recInv:
+                    for r in recInv:
+                        partyName = r.Customer.first_name +" "+r.Customer.last_name
+                        date = r.start_date
+                        ref = r.rec_invoice_no
+                        type = 'Recurring Invoice'
+                        total = r.grandtotal
+                        mIn = r.grandtotal
+                        mOut = 0
+                        totMoneyIn += float(r.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate])
+                if rtInv:
+                    for rt in rtInv:
+                        partyName = rt.Customer.first_name +" "+rt.Customer.last_name
+                        date = rt.Retainer_Invoice_date
+                        ref = rt.Retainer_Invoice_number
+                        type = 'Retainer Invoice'
+                        total = rt.Grand_total
+                        mIn = rt.Grand_total
+                        mOut = 0
+                        totMoneyIn += float(rt.Grand_total)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                dbNote = Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate])
+                if dbNote:
+                    for d in dbNote:
+                        partyName = d.Vendor.first_name +" "+d.Vendor.last_name
+                        date = d.debit_note_date
+                        ref = d.debit_note_number
+                        type = 'Debit Note'
+                        total = d.grandtotal
+                        mIn = d.grandtotal
+                        mOut = 0
+                        totMoneyIn += float(d.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                mJournal = Fin_Manual_Journal.objects.filter(Company = cmp, journal_date__range = [startDate, endDate])
+                if mJournal:
+                    for debit in mJournal:
+                        partyName = ''
+                        date = debit.journal_date
+                        ref = debit.journal_no
+                        type = 'Manual Journal Debit'
+                        total = debit.total_debit
+                        mIn = debit.total_debit
+                        mOut = 0
+                        totMoneyIn += float(debit.total_debit)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                    for credit in mJournal:
+                        partyName = ''
+                        date = credit.journal_date
+                        ref = credit.journal_no
+                        type = 'Manual Journal Credit'
+                        total = credit.total_credit
+                        mOut = credit.total_credit
+                        mIn = 0
+                        totMoneyOut += float(credit.total_credit)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                pBill = Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate])
+                if pBill:
+                    for bill in pBill:
+                        partyName = bill.vendor.first_name +" "+bill.vendor.last_name
+                        date = bill.bill_date
+                        ref = bill.bill_no
+                        type = 'Purchase Bill'
+                        total = bill.grandtotal
+                        mOut = bill.grandtotal
+                        mIn = 0
+                        totMoneyOut += float(bill.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                rBill = Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate])
+                if rBill:
+                    for rbill in rBill:
+                        partyName = rbill.vendor.first_name +" "+rbill.vendor.last_name
+                        date = rbill.date
+                        ref = rbill.recurring_bill_number
+                        type = 'Recurring Bill'
+                        total = rbill.grand_total
+                        mOut = rbill.grand_total
+                        mIn = 0
+                        totMoneyOut += float(rbill.grand_total)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                cNote = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate])
+                if cNote:
+                    for note in cNote:
+                        partyName = note.Customer.first_name +" "+note.Customer.last_name
+                        date = note.creditnote_date
+                        ref = note.creditnote_number
+                        type = 'Credit Note'
+                        total = note.grandtotal
+                        mOut = note.grandtotal
+                        mIn = 0
+                        totMoneyOut += float(note.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+                context = {'cmp':cmp, 'reportData':reportData, 'totalMoneyIn':totMoneyIn, 'totalMoneyOut':totMoneyOut, 'startDate':startDate, 'endDate':endDate, 'currentDate':currentDate}
+                template_path = 'company/reports/Fin_DayBook_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_DayBook'
+                subject = f"Report_DayBook"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Day Book. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_dayBookReport)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_dayBookReport)

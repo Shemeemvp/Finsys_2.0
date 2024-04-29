@@ -831,6 +831,11 @@ urlpatterns = [
     path('Fin_report_day_book',views.Fin_dayBookReport, name='Fin_dayBookReport'),
     path('Fin_day_book_report_customized',views.Fin_dayBookReportCustomized, name='Fin_dayBookReportCustomized'),
     path('Fin_share_day_book_report_to_email',views.Fin_shareDayBookReportToEmail, name='Fin_shareDayBookReportToEmail'),
+    
+    # < ------------- Shemeem -------- > Reports - Sales Order Details < ------------------------------- >
+    path('Fin_report_sales_order_details',views.Fin_salesOrderDetailsReport, name='Fin_salesOrderDetailsReport'),
+    path('Fin_sales_order_details_report_customized',views.Fin_salesOrderDetailsCustomized, name='Fin_salesOrderDetailsCustomized'),
+    path('Fin_share_sales_order_details_report_to_email',views.Fin_shareSalesOrderDetailsReportToEmail, name='Fin_shareSalesOrderDetailsReportToEmail'),
     # End
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
