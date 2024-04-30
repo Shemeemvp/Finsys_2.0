@@ -119,12 +119,17 @@
                 {% endif %}
             </section>
             <hr>
-            <section style="margin-top: 1rem; display: flex; justify-content: right;">
-                <div class="margin-left: 1rem;">
-                    <h5 style="padding-top: 10px; color: #000; font-size: 17px;">Total Sales:</h5>
-                    <h4 style="font-size: 20px; font-weight: bold; margin-top: 5px;" id="totvalue">Rs. <span id="superTotal">{{totalSales|default:0|floatformat:2}}</span></h4>
+            <div style="width: 100%;">
+                <div class="invoice_data">
+                    <div class="data_row">
+                        <div class="data_1"></div>
+                        <div class="data_2 data_value" style="margin-right: 1rem;">
+                            <h5 style="padding-top: 10px; color: #000; font-size: 17px;">Total Sales:</h5>
+                            <h4 style="font-size: 20px; font-weight: bold; margin-top: 5px;" id="totvalue">Rs. <span id="superTotal">{{totalSales|default:0|floatformat:2}}</span></h4>
+                        </div>
+                    </div>
                 </div>
-            </section>
+            </div>
         </div>
     </div>
 </body>
