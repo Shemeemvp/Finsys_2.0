@@ -301,7 +301,7 @@
                                             </tbody>
                                         </table>
                                         {% if not reportData %}
-                                        <center><h4 class="text-dark">No Data available.!</h4></center>
+                                        <center><h4 class="text-dark">No data available.!</h4></center>
                                         {% endif %}
                                     </section>
                         
@@ -348,7 +348,7 @@
                             <label for="item_unitname">Message(optional)</label>
                             <textarea name="email_message" id="email_message" class="form-control" cols="" rows="4" placeholder="This message will be sent along with Bill details."></textarea>
                         </div>
-                        <input type="text" name="status" id="stat" hidden
+                        <input type="text" name="status" id="stat" hidden>
                         <input type="date" name="start" id="startDt" hidden>
                         <input type="date" name="end" id="endDt" hidden>
                     </form>
@@ -363,6 +363,13 @@
 
 
 <script>
+    $(document).ready(function(){
+        var stat = `{{status}}`;
+        // alert(trans)
+        if(stat != "" && stat != 'all'){
+            $('#salesStatus').val(stat)
+        }
+    });
     var $rows = $('#reportTable tbody tr');
     $('#search').keyup(function() {
         var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
