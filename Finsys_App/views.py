@@ -32658,3 +32658,224 @@ def Fin_shareSalesOrderDetailsReportToEmail(request):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_salesOrderDetailsReport)
+
+
+# < ------------- Shemeem -------- > Reports - Purchase Order Details < ------------------------------- >
+
+def Fin_purchaseOrderDetailsReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        reportData = []
+        totalPurchase = 0
+
+        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp)
+        if pOrder:
+            for p in pOrder:
+                partyName = p.Vendor.first_name +" "+p.Vendor.last_name
+                date = p.purchase_order_date
+                due_date = p.due_date
+                ref = p.purchase_order_no
+                total = p.grandtotal
+                totalPurchase += float(p.grandtotal)
+                if p.converted_to_bill != None:
+                    st = 'Converted to Bill'
+                else:
+                    st = p.status
+
+                details = {
+                    'date': date,
+                    'name': partyName,
+                    'purchase_no':ref,
+                    'due_date':due_date,
+                    'total':total,
+                    'status':st
+                }
+                reportData.append(details)
+
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalPurchase':totalPurchase,
+            'startDate':None, 'endDate':None
+        }
+        return render(request,'company/reports/Fin_PurchaseOrderReport.html', context)
+    else:
+        return redirect('/')
+
+def Fin_purchaseOrderDetailsCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            status = request.GET['status']
+
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+
+
+            reportData = []
+            totalPurchase = 0
+
+            if startDate is None or endDate is None:
+                if status == 'bill':
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = False)
+                elif status == 'saved':
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, status = 'Saved')
+                elif status == 'draft':
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, status = 'Draft')
+                else:
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp)
+            else:
+                if status == 'bill':
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = False)
+                elif status == 'saved':
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, status = 'Saved')
+                elif status == 'draft':
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, status = 'Draft')
+                else:
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate])
+
+            if pOrder:
+                for p in pOrder:
+                    partyName = p.Vendor.first_name +" "+p.Vendor.last_name
+                    date = p.purchase_order_date
+                    due_date = p.due_date
+                    ref = p.purchase_order_no
+                    total = p.grandtotal
+                    totalPurchase += float(p.grandtotal)
+                    if p.converted_to_bill != None:
+                        st = 'Converted to Bill'
+                    else:
+                        st = p.status
+
+                    details = {
+                        'date': date,
+                        'name': partyName,
+                        'purchase_no':ref,
+                        'due_date':due_date,
+                        'total':total,
+                        'status':st
+                    }
+                    reportData.append(details)
+
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalPurchase':totalPurchase,
+                'startDate':startDate, 'endDate':endDate, 'status':status
+            }
+            return render(request,'company/reports/Fin_PurchaseOrderReport.html', context)
+    else:
+        return redirect('/')
+
+def Fin_sharePurchaseOrderDetailsReportToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                status = request.POST['status']
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                reportData = []
+                totalPurchase = 0
+                if startDate is None or endDate is None:
+                    if status == 'bill':
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = False)
+                    elif status == 'saved':
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, status = 'Saved')
+                    elif status == 'draft':
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, status = 'Draft')
+                    else:
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp)
+                else:
+                    if status == 'bill':
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = False)
+                    elif status == 'saved':
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, status = 'Saved')
+                    elif status == 'draft':
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, status = 'Draft')
+                    else:
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate])
+
+                if pOrder:
+                    for p in pOrder:
+                        partyName = p.Vendor.first_name +" "+p.Vendor.last_name
+                        date = p.purchase_order_date
+                        due_date = p.due_date
+                        ref = p.purchase_order_no
+                        total = p.grandtotal
+                        totalPurchase += float(p.grandtotal)
+                        if p.converted_to_bill != None:
+                            st = 'Converted to Bill'
+                        else:
+                            st = p.status
+
+                        details = {
+                            'date': date,
+                            'name': partyName,
+                            'purchase_no':ref,
+                            'due_date':due_date,
+                            'total':total,
+                            'status':st
+                        }
+                        reportData.append(details)
+                
+                context = {'cmp':cmp, 'reportData':reportData, 'totalPurchase':totalPurchase, 'startDate':startDate, 'endDate':endDate}
+                template_path = 'company/reports/Fin_PurchaseOrderDetails_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_PurchaseOrderDetails'
+                subject = f"Report_PurchaseOrderDetails"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Purchase Order Details. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_purchaseOrderDetailsReport)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_purchaseOrderDetailsReport)

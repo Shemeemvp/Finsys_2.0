@@ -721,7 +721,12 @@
               
               <li><a href=""><i class="bx bx-right-arrow-alt"></i>Creditnote Details</a></li>
                             <li><a href=""><i class="bx bx-right-arrow-alt"></i>Debitnote Report</a></li>
-              <li id="accountspayables"><a href=""><i class="bx bx-right-arrow-alt"></i>Accounts Payables</a></li>
+              <li id="accountspayables">
+                <a><i class="bx bx-right-arrow-alt"></i>Accounts Payables</a>
+                <ul class="px-4">
+                  <li><a href="{% url 'Fin_purchaseOrderDetailsReport' %}"><i class="bx bx-right-arrow-alt"></i> Purchase Order Details</a></li>
+                </ul>
+              </li>
 
               <li id="stocksummary"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Summary </a></li>
               <li id="stockvaluation"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Valuation</a></li>
