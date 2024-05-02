@@ -83,7 +83,7 @@
                   </button>
                   <ul class="dropdown-menu">
                     <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertPurchaseOrderToBill' a.id %}`">To Bill</button></li>
-                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=``">To Recurring Bill</button></li>
+                    <li><button type="button" class="dropdown-item fw-bold" onclick="window.location.href=`{% url 'Fin_convertPurchaseOrderToRecBill' a.id %}`">To Recurring Bill</button></li>
                   </ul>
               </div>
               {% endif %}

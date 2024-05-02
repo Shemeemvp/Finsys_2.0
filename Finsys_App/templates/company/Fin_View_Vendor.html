@@ -474,7 +474,15 @@
                     <div class="col-md-10">
                         <table id="dataTable" class="table tabledata  table-bordered table-hover" style="border-width: 2px;">
                             <thead>
-                                <tr>
+                                <tr id="tH1" style="visibility: collapse;">
+                                    <th>#</th>
+                                    <th class="filterTable-column">Type</th>
+                                    <th class="filterTable-column">Date</th>
+                                    <th class="filterTable-column">Number</th>
+                                    <th class="filterTable-column">Total</th>
+                                    <th class="filterTable-column">Balance</th>
+                                </tr>
+                                <tr id="tH2" style="visibility: visible;">
                                     <th>#</th>
                                     <th class="filterTable-column">Type
                                         <span class="dropdown">
@@ -566,7 +574,7 @@
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="dataTableBody">
                                 {% for data in combined_data %}
                                 <tr>
                                     <td>{{forloop.counter}}</td>
@@ -846,8 +854,8 @@
         $('#editBtn').hide();
         $('#exportBtn').show();
         $('#deleteBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
         $('#activeBtn').hide();
         $('#inactiveBtn').hide();
     }
@@ -865,7 +873,7 @@
         $('#deleteBtn').hide();
         $('#editBtn').hide();
         $('#exportBtn').hide();
-        $('#historyBtn').show();
+        $('#historyBtn').hide();
         $('#commentsBtn').hide();
         $('#activeBtn').hide();
         $('#inactiveBtn').hide();
@@ -923,10 +931,14 @@
     });
     
     function ExportToExcel(type, fn, dl) {
-        $('span.dropdown').hide();
+        // $('span.dropdown').hide();
+        $("#tH1").css('visibility','visible')
+        $("#tH2").css('display','none')
         var elt = document.getElementById('dataTable');
         var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
-        $('span.dropdown').show();
+        // $('span.dropdown').show();
+        $("#tH1").css('visibility','collapse')
+        $("#tH2").css('display','')
         return dl ? XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }) : XLSX.writeFile(wb, fn || ('{{vendor.first_name}}_transactions.' + (type || 'xlsx')));
     }
 
@@ -941,14 +953,14 @@
     });
 
     function filterSearchValues(col, fieldId, ele) {
-        var table = document.getElementById("dataTable");
+        var table = document.getElementById("dataTableBody");
         
         var rows = table.getElementsByTagName("tr");
         
         var filterValue = $('#' + fieldId).val().toLowerCase();
 
         if (filterValue !== "") {
-            for (var i = 1; i < rows.length; i++) {
+            for (var i = 0; i < rows.length; i++) {
                 var statusCell = rows[i].getElementsByTagName("td")[col];
 
                 if (statusCell.textContent.toLowerCase() == filterValue) {
@@ -959,17 +971,18 @@
             }
         }
         $(ele).closest('.dropdown').find('.dropdown-menu').removeClass('show');
+        calculateBalance();
     }
 
     function filterAmount(col, fieldId, ele) {
-        var table = document.getElementById("dataTable");
+        var table = document.getElementById("dataTableBody");
         
         var rows = table.getElementsByTagName("tr");
         
         var filterValue = parseFloat($('#' + fieldId).val());
 
         if (!isNaN(filterValue)) {
-            for (var i = 1; i < rows.length; i++) {
+            for (var i = 0; i < rows.length; i++) {
                 var statusCell = rows[i].getElementsByTagName("td")[col];
 
                 if (parseFloat(statusCell.textContent.toLowerCase()) == filterValue) {
@@ -980,16 +993,18 @@
             }
         }
         $(ele).closest('.dropdown').find('.dropdown-menu').removeClass('show');
+        calculateBalance();
     }
 
     function clearSearch(fieldId,ele) {
-        var table = document.getElementById("dataTable");
+        var table = document.getElementById("dataTableBody");
         var rows = table.getElementsByTagName("tr");
-        for (var i = 1; i < rows.length; i++) {
+        for (var i = 0; i < rows.length; i++) {
             rows[i].style.display = "";
         }
         $('#' + fieldId).val("");
         $(ele).closest('.dropdown').find('.dropdown-menu').removeClass('show');
+        calculateBalance();
     }
 
     function templatePrint(){
@@ -1024,6 +1039,39 @@
             $('#fromDate').prop('max',date2)
         })
     })
+
+    function calculateBalance(){
+        var table = document.getElementById("dataTableBody");
+        var rows = table.getElementsByTagName("tr");
+        var bal = 0
+
+        for (var i = 0; i < rows.length; i++) {
+            if(rows[i].style.display != "none"){
+                var type = rows[i].getElementsByTagName("td")[1];
+                if (type.textContent.toLowerCase() == 'opening balance') {
+                    var bl = parseFloat(rows[i].getElementsByTagName("td")[5].textContent);
+                    if(bl < 0){
+                        bal -= Math.abs(bl)
+                    }else{
+                        bal += Math.abs(bl)
+                    }
+                }else if (type.textContent.toLowerCase() == 'Expense') {
+                    var bl = parseFloat(rows[i].getElementsByTagName("td")[5].textContent);
+                    if(bl < 0){
+                        bal -= Math.abs(bl)
+                    }else{
+                        bal += Math.abs(bl)
+                    }
+                }else{
+                    var bl = parseFloat(rows[i].getElementsByTagName("td")[5].textContent);
+                    bal -= Math.abs(bl)
+                }
+            }
+
+        }
+
+        $("#vendorBalance").text(bal)
+    }
 </script>
 
 {% endblock %}

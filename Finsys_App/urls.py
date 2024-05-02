@@ -904,6 +904,9 @@ urlpatterns = [
     path('Fin_shareestimateDetailsReportToEmail',views.Fin_shareestimateDetailsReportToEmail, name='Fin_shareestimateDetailsReportToEmail'),
     #End
 
+    #---Updates ----shemeem--------------------------------------------------------
+    path('Fin_convert_purchase_order_to_rec_bill/<int:id>',views.Fin_convertPurchaseOrderToRecBill, name='Fin_convertPurchaseOrderToRecBill'),
+
 
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

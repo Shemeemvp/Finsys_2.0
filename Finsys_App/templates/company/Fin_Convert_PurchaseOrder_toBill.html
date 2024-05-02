@@ -623,14 +623,31 @@
                         </div>   
                     </div>
                 </div>
-                <div class="mt-3">
+                <div class="row">
+                    <div class="col-md-7 mt-3">
+                        <!-- <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="agreeTerms" required style="background-color: #43596c;">
+                            <label for="agreeTerms">Agree to terms and conditions</label>
+                            <div class="invalid-feedback">You must agree before submitting.</div>
+                        </div> -->
+                    </div>
+                    <div class="col-md-5 mt-3 d-flex">
+                        <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="CONVERT">
+                        <input type="button" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL" onclick="window.location.href=`{% url 'Fin_purchaseOrder' %}`">
+                    </div>
+                </div>
+                <div class="my-5">
                     <div class="text-muted">NOTICE:</div>
                     <div class="text-muted">
                         Fin sYs Terms and Conditions Apply
                     </div>
                 </div>
-                <div class="row">
+                <!-- <div class="row mb-4">
                     <div class="col-md-3"></div>
+                    <div class="col-md-6 mt-3 d-flex">
+                        <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="CONVERT">
+                        <input type="button" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL" onclick="window.location.href=`{% url 'Fin_purchaseOrder' %}`">
+                    </div>
                     <div class="col-md-3">
                         <button class="btn btn-outline-info rounded-pill text-grey w-100 mt-3 mb-3" type="submit" name="Save"> Save</button>
                     </div>
@@ -638,7 +655,7 @@
                         <a href='{% url "Fin_purchaseOrder" %}' class="btn btn-outline-info rounded-pill text-grey w-100 mt-3 mb-3">Cancel</a>
                     </div>
                     <div class="col-md-3"></div>
-                </div>
+                </div> -->
             </form>
 
             <div class="modal fade" id="newvendor">

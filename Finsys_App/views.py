@@ -4068,18 +4068,122 @@ def Fin_viewCustomer(request,id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
-        cust = Fin_Customers.objects.get(id = id)
-        cmt = Fin_Customers_Comments.objects.filter(customer = cust)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            hist = Fin_Customers_History.objects.filter(Company = com, customer = cust).last()
-            return render(request,'company/Fin_View_Customer.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'history':hist, 'comments':cmt})
+            cmp = com
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            hist = Fin_Customers_History.objects.filter(Company = com.company_id, customer = cust).last()
-            return render(request,'company/Fin_View_Customer.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'history':hist, 'comments':cmt})
+            cmp = com.company_id
+        
+        trans = []
+        bal = 0
+        cust = Fin_Customers.objects.get(id = id)
+        cmt = Fin_Customers_Comments.objects.filter(customer = cust)
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        hist = Fin_Customers_History.objects.filter(Company = cmp, customer = cust).last()
+
+        if cust.opening_balance != 0:
+            tran = {
+                'type':'Opening Balance',
+                'number':'-',
+                'date':cust.date,
+                'total':cust.opening_balance,
+                'balance':cust.current_balance
+            }
+            bal += float(cust.current_balance)
+            trans.append(tran)
+
+        est = Fin_Estimate.objects.filter(Customer = cust)
+        if est:
+            for e in est:
+                tran = {
+                    'type':'Estimate',
+                    'number':e.estimate_no,
+                    'date':e.estimate_date,
+                    'total':e.grandtotal,
+                    'balance':e.balance
+                }
+                bal += float(e.balance)
+                trans.append(tran)
+
+        sOrder = Fin_Sales_Order.objects.filter(Customer = cust)
+        if sOrder:
+            for s in sOrder:
+                tran = {
+                    'type':'Sales Order',
+                    'number':s.sales_order_no,
+                    'date':s.sales_order_date,
+                    'total':s.grandtotal,
+                    'balance':s.balance
+                }
+                bal += float(s.balance)
+                trans.append(tran)
+
+        inv = Fin_Invoice.objects.filter(Customer = cust)
+        if inv:
+            for i in inv:
+                tran = {
+                    'type':'Invoice',
+                    'number':i.invoice_no,
+                    'date':i.invoice_date,
+                    'total':i.grandtotal,
+                    'balance':i.balance
+                }
+                bal += float(i.balance)
+                trans.append(tran)
+
+        cNote = Fin_CreditNote.objects.filter(Customer = cust)
+        if cNote:
+            for c in cNote:
+                tran = {
+                    'type':'Credit Note',
+                    'number':c.creditnote_number,
+                    'date':c.creditnote_date,
+                    'total':c.grandtotal,
+                    'balance':c.balance
+                }
+                bal -= float(c.balance)
+                trans.append(tran)
+        
+        rtInv = Fin_Retainer_Invoice.objects.filter(Customer = cust)
+        if rtInv:
+            for rt in rtInv:
+                tran = {
+                    'type':'Retainer Invoice',
+                    'number':rt.Retainer_Invoice_number,
+                    'date':rt.Retainer_Invoice_date,
+                    'total':rt.Grand_total,
+                    'balance':rt.Balance
+                }
+                bal += float(rt.Balance)
+                trans.append(tran)
+
+        dChallan = Fin_Delivery_Challan.objects.filter(Customer = cust)
+        if dChallan:
+            for ch in dChallan:
+                tran = {
+                    'type':'Delivery Challan',
+                    'number':ch.challan_no,
+                    'date':ch.challan_date,
+                    'total':ch.grandtotal,
+                    'balance':ch.balance
+                }
+                trans.append(tran)
+
+        rcInv = Fin_Recurring_Invoice.objects.filter(Customer = cust)
+        if rcInv:
+            for rc in rcInv:
+                tran = {
+                    'type':'Recurring Invoice',
+                    'number':rc.rec_invoice_no,
+                    'date':rc.start_date,
+                    'total':rc.grandtotal,
+                    'balance':rc.balance
+                }
+                bal += float(rc.balance)
+                trans.append(tran)
+
+        return render(request,'company/Fin_View_Customer.html',{'allmodules':allmodules,'com':com,'data':data, 'customer':cust, 'history':hist, 'comments':cmt, 'transactions':trans, 'BALANCE':bal})
     else:
        return redirect('/')
 
@@ -7898,13 +8002,12 @@ def Fin_viewVendor(request,id):
         data = Fin_Login_Details.objects.get(id = s_id)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
             cmp = com
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
             cmp = com.company_id
         
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
         vnd = Fin_Vendors.objects.get(id = id)
         cmt = Fin_Vendor_Comments.objects.filter(Vendor = vnd)
         hist = Fin_Vendor_History.objects.filter(Vendor = vnd).last()
@@ -7928,6 +8031,74 @@ def Fin_viewVendor(request,id):
             Bal -= float(vnd.opening_balance)
 
         # Vendor Purchase order, Purchase bill, expense, recurring bill etc, goes here..
+
+        pOrder = Fin_Purchase_Order.objects.filter(Vendor = vnd)
+        if pOrder:
+            for p in pOrder:
+                dict = {
+                    'Type':'Purchase Order',
+                    'Number':p.purchase_order_no,
+                    'Date':p.purchase_order_date,
+                    'Total':p.grandtotal,
+                    'Balance':p.balance
+                }
+                Bal -= float(p.balance)
+                combined_data.append(dict)
+
+        bill = Fin_Purchase_Bill.objects.filter(vendor = vnd)
+        if bill:
+            for b in bill:
+                dict = {
+                    'Type':'Bill',
+                    'Number':b.bill_no,
+                    'Date':b.bill_date,
+                    'Total':b.grandtotal,
+                    'Balance':b.balance
+                }
+                Bal -= float(b.balance)
+                combined_data.append(dict)
+
+        exp = Fin_Expense.objects.filter(Vendor = vnd)
+        if exp:
+            for e in exp:
+                dict = {
+                    'Type':'Expense',
+                    'Number':e.expense_no,
+                    'Date':e.expense_date,
+                    'Total':e.amount,
+                    'Balance':e.amount
+                }
+                if e.amount_type == 'Credit':
+                    Bal -= float(abs(e.amount))
+                else:
+                    Bal += float(abs(e.amount))
+                combined_data.append(dict)
+
+        dNote = Fin_Debit_Note.objects.filter(Vendor = vnd)
+        if dNote:
+            for d in dNote:
+                dict = {
+                    'Type':'Debit Note',
+                    'Number':d.debit_note_number,
+                    'Date':d.debit_note_date,
+                    'Total':d.grandtotal,
+                    'Balance':d.balance
+                }
+                Bal += float(d.balance)
+                combined_data.append(dict)
+
+        rcBill = Fin_Recurring_Bills.objects.filter(vendor = vnd)
+        if rcBill:
+            for rb in rcBill:
+                dict = {
+                    'Type':'Recurring Bill',
+                    'Number':rb.recurring_bill_number,
+                    'Date':rb.date,
+                    'Total':rb.grand_total,
+                    'Balance':rb.balance
+                }
+                Bal -= float(rb.balance)
+                combined_data.append(dict)
 
         context = {'allmodules':allmodules,'com':com,'cmp':cmp,'data':data, 'vendor':vnd, 'history':hist, 'comments':cmt, 'BALANCE':Bal, 'combined_data':combined_data}
 
@@ -12915,7 +13086,7 @@ def Fin_View_Purchase_Bill(request,id):
     itm = Fin_Purchase_Bill_Item.objects.filter(pbill=pbill)
     dis = 0
     for i in itm:
-        dis += int(i.discount)
+        dis += float(i.discount)
     hist = Fin_Purchase_Bill_History.objects.get(company = com, pbill = pbill, action = 'Created')
     comments = Fin_Purchase_Bill_Comment.objects.filter(pbill = pbill)
     context = {'allmodules':allmodules, 'data':data, 'com':com,'pbill':pbill, 'itm':itm, 'hist':hist, 'comments':comments, 'dis':dis}
@@ -34485,3 +34656,54 @@ def Fin_shareestimateDetailsReportToEmail(request):
             return redirect(Fin_estimate_report)
             
 #End
+
+#---Updates ----shemeem--------------------------------------------------------
+
+def Fin_convertPurchaseOrderToRecBill(request,id):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        cmp = com
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+        cmp = com.company_id
+
+    allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
+
+    ven = Fin_Vendors.objects.filter(Company = cmp, status = 'Active')
+    cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+    bnk = Fin_Banking.objects.filter(company = cmp, bank_status = 'Active')
+    itm = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+    plist = Fin_Price_List.objects.filter(Company = cmp, type = 'Purchase', status = 'Active')
+    terms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+    units = Fin_Units.objects.filter(Company = cmp)
+    account = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+    tod = datetime.now().strftime('%Y-%m-%d')
+    if Fin_Purchase_Bill.objects.filter(company = cmp):
+        try:
+            ref_no = int(Fin_Purchase_Bill_Ref_No.objects.filter(company = cmp).last().ref_no) + 1
+        except:
+            ref_no =  1
+        bill_no = Fin_Purchase_Bill.objects.filter(company = cmp).last().bill_no
+        match = re.search(r'^(\d+)|(\d+)$', bill_no)
+        if match:
+            numeric_part = match.group(0)
+            incremented_numeric = str(int(numeric_part) + 1).zfill(len(numeric_part))
+            bill_no = re.sub(r'\d+', incremented_numeric, bill_no, count=1)
+    else:
+        try:
+            ref_no = int(Fin_Purchase_Bill_Ref_No.objects.filter(company = cmp).last().ref_no) + 1
+        except:
+            ref_no =  1
+        bill_no = 1000
+
+    pbill = Fin_Purchase_Order.objects.get(id = id)
+    pitm = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = pbill)
+    context = {
+        'allmodules':allmodules, 'data':data, 'com':com, 'ven':ven, 'cust':cust, 'bnk':bnk, 'units':units,
+        'account':account, 'itm':itm, 'tod':tod, 'plist':plist, 'ref_no': ref_no, 'bill_no':bill_no, 'terms':terms,
+        'pbill':pbill, 'pitm':pitm
+    }
+
+    return render(request, 'company/Fin_Convert_PurchaseOrder_toRecBill.html', context)
