@@ -225,7 +225,8 @@
                                 <td>
                                     <input type="hidden" name="id[]" value="{{itm.id}}">
                                     <input type="hidden" name="item_id[]" value="{{itm.Item.id}}" id="itemId{{forloop.counter}}">
-                                    <input type="text" name='hsn[]' id="hsn{{forloop.counter}}" value="{{itm.hsn}}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
+                                    <input type="text" name='hsn[]' id="hsn{{forloop.counter}}" value="{{itm.hsn}}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;{% if not itm.hsn %}display:none;{% endif %}" readonly />
+                                    <input type="text" name='sac[]' id="sac{{forloop.counter}}" value="{{itm.sac}}" placeholder='SAC Code' class="form-control SACCODE" style="background-color: #43596c; color: white;{% if not itm.sac %}display:none;{% endif %}" readonly />
                                 </td>
                                 <td >
                                     <input type="number" name='qty[]' id="qty{{forloop.counter}}"  class="form-control qty" step=0 min=1 style="background-color: #43596c; color: white;" value={{itm.quantity}} required/>
@@ -419,7 +420,7 @@
         <div class="modal-content" style="background-color: #213b52;">
             <div class="modal-header">
                 <h5 class="m-3">New Customer Payment Term</h5>
-                <button type="button" class="close" data-toggle="modal" data-target="#newCustomer" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" data-toggle="modal" data-target="#newCustomer" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -846,7 +847,7 @@
         <div class="modal-content" style="background-color: #213b52;">
             <div class="modal-header">
                 <h5 class="m-3">New Item Unit</h5>
-                <button type="button" class="close" data-toggle="modal" data-target="#newItem" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" data-toggle="modal" data-target="#newItem" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -880,7 +881,7 @@
         <div class="modal-content" style="background-color: #213b52;">
             <div class="modal-header">
                 <h5 class="m-3">New Account</h5>
-                <button type="button" class="close" data-toggle="modal" data-target="#newItem" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" data-toggle="modal" data-target="#newItem" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -1007,10 +1008,15 @@
                                     </a>
                                 </div>
                             </div>
-                            <div class="col-md-6 mt-3">
+                            <div class="col-md-6 mt-3" id="hsnDiv">
                                 <label for="hsnField" style="color: white;">HSN Code</label>
                                 <input type="number" name="hsn" class="form-control" style="background-color: #2a4964; color: white;" placeholder="Enter a valid HSN code" required id="hsnField" oninput="validateHSN()">
                                 <div id="hsnError" style="color: red;"></div>
+                            </div>
+                            <div class="col-md-6 mt-3" id="sacDiv" style="display: none;">
+                                <label for="sacField" style="color: white;">SAC Code</label>
+                                <input type="number" name="sac" class="form-control" style="background-color: #2a4964; color: white;" placeholder="Enter a valid SAC code" id="sacField" oninput="validateSAC()">
+                                <div id="sacError" style="color: red;"></div>
                             </div>
                         </div>
                         <div class="row mt-3">
@@ -1513,7 +1519,18 @@
                     if (response.status){
                         $('#'+inpId).val(value);
                         document.getElementById('itemId'+n).value = response.id;
-                        document.getElementById('hsn'+n).value = response.hsn;
+                        if( response.item_type ==='Goods')
+                        {
+                            $('#hsn'+n).show();
+                            $('#sac'+n).hide();
+                            $('#hsn'+n).val(response.hsn);
+                        }
+                        else
+                        {
+                            $('#sac'+n).show();
+                            $('#hsn'+n).hide();
+                            $('#sac'+n).val(response.sac);
+                        }
                         document.getElementById('price'+n).value = response.sales_rate;
                         document.getElementById('taxGST'+n).value = response.gst;
                         document.getElementById('taxIGST'+n).value = response.igst;
@@ -1737,6 +1754,7 @@ $(document).ready(function(){
                 <input type="hidden" name="id[]" value=0>
                 <input type="hidden" name="item_id[]" id="itemId${roinc}">
                 <input type="text" name='hsn[]' id="hsn${roinc}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
+                <input type="text" name='sac[]' id="sac${roinc}" placeholder='SAC Code' class="form-control SACCODE" style="background-color: #43596c; color: white;display:none;" readonly />
             </td>
             <td >
                 <input type="number" name='qty[]' id="qty${roinc}"  class="form-control qty" step=0 min=1 style="background-color: #43596c; color: white;" value=0 required/>
@@ -2270,10 +2288,12 @@ $(document).ready(function(){
             errorText.innerText = "HSN must contain at least 6 digits";
             hsnField.setCustomValidity("HSN must contain at least 6 digits");
             hsnField.style.borderColor = "red";
+            return false
         } else {
             errorText.innerText = "";
             hsnField.setCustomValidity(""); 
             hsnField.style.borderColor = ""; 
+            return true
         }
     }
 
@@ -2517,6 +2537,8 @@ $(document).on("click","#saveNewItem",function(){
     var type = $("#itemType").val();
     var unit = $("#itemUnit").val();
     var hsn = $("#hsnField").val();
+    var sac = $("#sacField").val();
+    var hsn_or_sac;
     if($('#inclusive').prop('checked') || $('#check').prop('checked')){
         if($('#inclusive').prop('checked')){
             var tax = 'taxable'
@@ -2528,7 +2550,28 @@ $(document).on("click","#saveNewItem",function(){
         return
     }
 
-    if (name !="" && type !="" && unit != "" && hsn != "" && tax != ""){
+    if($('#itemType').val()=== 'Goods' )
+    {
+        
+        hsn_or_sac = hsn;
+        if(!validateHSN())
+        {
+            alert('HSN must contain at least 6 digits')
+            return
+        }
+    }
+    else 
+    {
+        
+        hsn_or_sac = sac;
+        if(!validateSAC())
+        {
+            alert('SAC must contain at least 6 digits')
+            return
+        }
+    }
+
+    if (name !="" && type !="" && unit != ""  && tax != ""){
         $.ajax({
             type : 'POST',
             url:"{% url 'Fin_createInvoiceItem' %}",
@@ -2537,6 +2580,7 @@ $(document).on("click","#saveNewItem",function(){
                 'type' : type,
                 'unit' : unit,
                 'hsn' : hsn,
+                'sac':sac,
                 'taxref' : tax,
                 'intra_st' : $("#intraStateTax").val(),
                 'inter_st' : $("#interStateTax").val(),
@@ -2616,6 +2660,50 @@ function reloadItems() {
         $('#createNewUnit').modal('toggle');
     }
 }
+</script>
+
+<script>
+    function validateSAC() {
+        var sacField = document.getElementById("sacField");
+        var errorText = document.getElementById("sacError");
+        var sacValue = sacField.value;
+
+        if (sacValue.length < 6) {
+            errorText.innerText = "SAC must contain at least 6 digits";
+            sacField.setCustomValidity("SAC must contain at least 6 digits");
+            sacField.style.borderColor = "red";
+            return false;
+        } else {
+            errorText.innerText = "";
+            sacField.setCustomValidity(""); 
+            sacField.style.borderColor = ""; 
+            return true;
+        }
+    }
+    $(document).ready(function(){
+        $('#itemType').on('input',function(){
+            if($(this).val()=== 'Goods' )
+            {
+                $('#sacField').val('');
+                $('#hsnField').prop('required',true);
+                $('#sacField').prop('required',false);
+                $('#hsnDiv').show();
+                $('#sacDiv').hide();
+                $('#sacError').text('');
+                $('#sacField').css({'border-color':'white'});
+            }
+            else
+            {
+                $('#hsnField').val('')
+                $('#hsnField').prop('required',false);
+                $('#sacField').prop('required',true);
+                $('#sacDiv').show();
+                $('#hsnDiv').hide();
+                $('#hsnError').text('');
+                $('#hsnField').css({'border-color':'white'});
+            }
+        })
+    })
 </script>
 
 {% endblock %}

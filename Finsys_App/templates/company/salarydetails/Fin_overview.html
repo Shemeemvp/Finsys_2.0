@@ -1,0 +1,934 @@
+<!-- Created -- Arya E.R  -->
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load social_share %}
+<style>
+    .card-registration .select-input.form-control[readonly]:not([disabled]) {
+        font-size: 1rem;
+        line-height: 2.15;
+        padding-left: .75em;
+        padding-right: .75em;
+    }
+
+    .card-registration .select-arrow {
+        top: 13px;
+    }
+
+    .bg-grey {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    @media (min-width: 992px) {
+        .card-registration-2 .bg-grey {
+            border-top-right-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .card-registration-2 .bg-grey {
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+    }
+
+    .vl {
+        border-left: 6px solid gray;
+    }
+
+    .table-row {
+        cursor: pointer;
+    }
+    .submitShareEmailBtn, #commentSaveBtn {
+        background: #192d3e;
+        border: 1px solid #3a4b5a;
+        border-radius: 4px;
+        color: white;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+    }
+    .submitShareEmailBtn:hover, #commentSaveBtn:hover {
+        background: #3a4b5a;
+    }
+    .customer_data p{
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    @media print {
+        body{
+            visibility: hidden !important;
+            background-color: white;
+        }
+
+        .printContainer {
+            visibility: visible !important;
+            position: absolute;
+            z-index: 99999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: medium;
+        }
+
+    }
+
+
+
+    #printContent
+    {
+        background-color: rgba(255, 255, 255, 0.926);
+        padding: 40px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #whatToPrint
+    {
+        border: 1px solid #000000;
+        width: 75%;
+        
+    }
+    #whatToPrint h1{
+        font-size: 23px;
+        text-align: center;
+        letter-spacing: 1px;
+        color: #161515;
+        font-weight: 600;
+        padding-top: 10px;
+        font-family:Georgia, 'Times New Roman', Times, serif
+    }
+    .employee-details
+    {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-top: 1.3px solid #000000d9;
+        padding: 3rem 0.10rem;
+        border-bottom: 1.3px solid #000000d9;
+        color: #000000;
+    }
+    .employee-details ul li{
+        list-style: none;
+        padding-top: 12px;
+        font-size: 13px;
+        letter-spacing: 1px;
+        display: grid;
+        grid-template-columns: 2fr 0.20fr 2fr;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        font-weight: 600;
+        font-family:'Courier New', Courier, monospace
+    }
+    .employee-details ul li span{
+        text-align:start;
+    }
+    .salary-section h3{
+        font-size: 14px;
+        text-align: center;
+        letter-spacing: 1px;
+        color: #1f1d1dd4;
+        font-weight: 600;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        font-family:Georgia, 'Times New Roman', Times, serif;
+        text-transform: uppercase;
+    }
+    .table
+    {
+        border-top: 1px solid #161515;
+        border-bottom: 1px solid #161515;
+        color: #2d2d2d;
+    }
+    .table tr td,
+    .table tr th{
+        border-right: 1px solid #161515;
+    }
+    .table tr td:nth-child(2)
+    {
+        text-align: center;
+    }
+    .table tr td:last-child{
+        border-right: none;
+        text-align: center;
+    }
+    .authorization-section
+    {
+        display: grid;
+        grid-template-columns: 2fr 0.80fr;
+        padding: 20px;
+    }
+    .authorization-seal
+    {
+        text-align: center;
+        padding: 1rem;
+    }
+    .authorization-sign img{
+        padding-top: 1rem;
+    }
+    .authorization-sign p{
+     color: #161515;
+     font-size: 12px;
+     padding-top: 18px;
+     font-weight: 500;
+
+    }
+   .pay{
+    color: black;
+   }
+
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.debug.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+
+<div class="page-content ">
+    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_salary_details' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+    <div class="card radius-15">
+        <div class="card-body" style="width:100%;">
+            <div class="card-title">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a style="padding: 10px; cursor: pointer; border-radius: 1vh; background-color: rgba(22,37,50,255);" onclick="overview()" id="overviewBtn" >Overview</a>
+                            <a style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="transaction()" id="transactionBtn" > Payslip</a>
+                        </div> 
+
+                        <div class="col-md-6 d-flex justify-content-end">
+                            <!-- {% if employee.status == 'Inactive' %}
+                            <a href="" id="activeBtn" class="ml-2 fa fa-ban btn btn-outline-secondary text-grey" role="button" >&nbsp;Inactive</a> 
+                            {% else %}
+                            <a href="" id="inactiveBtn" class="ml-2 fa fa-check-circle btn btn-outline-secondary text-grey" role="button" >&nbsp;Active</a> 
+                            {% endif %} -->
+                            <a class="" role="button" id="exportBtn" style="display: none;" onclick="ExportToExcel('xlsx')">&nbsp;</a>
+                            
+                            <a href="{% url 'Fin_salarypdf' employee.id salary_id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
+
+                           
+                            <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('printContent')">&nbsp;Print</a>
+                            <div class="dropdown p-0 nav-item"  id="shareBtn" style="display: none;">
+                                <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-share-alt" data-toggle="dropdown">&nbsp;Share</li>
+                                <ul class="dropdown-menu" style="background-color: black;" id="listdiv">
+                                    <li style="text-align: center;" >{% post_to_whatsapp object_or_url "WhatsApp" %}</li>
+                                    <li style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</li>
+                                </ul>
+                            </div>
+                            {% for salary_detail in salary_details %}
+
+                             {% if salary_detail.status == 'draft' %}
+
+                            <a href="{% url 'Fin_salarysave' employee.id salary_id %}" class="ml-2 fa fa-rotate-right btn btn-outline-secondary text-grey" id="">&nbsp;Convert</a>
+
+                            {% endif %}
+                            {% endfor %}
+                            <a href="{% url 'Fin_salaryedit' employee.id salary_id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
+                            <a href="{% url 'Fin_deletesalary' employee.id salary_id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Employee - {{employee.first_name}}.?')">&nbsp;Delete</a>
+                            <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
+                            <a href="{% url 'Fin_SalaryHistory' employee.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
+                        </div>
+                    </div> 
+                </div>
+                <center>
+                    <h3 class="card-title">SALARY DETAILS OVERVIEW</h3>
+                </center>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card card-registration card-registration-2" style="border-radius: 15px;">
+        <div class="card-body p-0">
+
+            <div id="overview">
+                <div class="row g-0 mx-0">
+                    <div class="col-lg-8">
+                        <div class="history_highlight pt-3 px-2 d-flex">
+                            <div class="col-12 d-flex justify-content-start align-items-center">
+                                {% if history %}{% if history.action == 'Created' %}<p class="text-success m-0" style="font-size: 1.07rem; font-weight: 500;">Created by :</p>{% else %}<p class="text-warning m-0" style="font-size: 1.07rem; font-weight: 500;">Last Edited by :</p>{% endif %}{% endif %}
+                                <span class="ml-2" style="font-size: 1.15rem; font-weight: 500;">{{history.login_details.First_name}} {{history.login_details.Last_name}}</span>
+                                <span class="ml-5">{{history.date}}</span>
+                            </div>
+                        </div>
+
+                        <div class="pb-3 px-2">
+                            <div class="card-body">
+                                <div class="card-title">
+                                    <div class="row">
+                                        <div class="col mt-3">
+                                            <h2 class="mb-0">{{ employee.title }}.
+                                                {{employee.first_name }} {{ employee.last_name }}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr />
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-2 mt-3">
+                                        <h6 class="mb-0">Employee ID</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0">{{ employee.employee_number }}</p>
+
+                                    </div>
+                                    <div class="col-md-2 mt-3 vl">
+                                        <h6 class="mb-0">Designation</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0">{{ employee.employee_designation }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-2 mt-3">
+                                        <h6 class="mb-0">Age</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0"> {{ employee.age }}</p>
+                                    </div>
+                                    <div class="col-md-2 mt-3 vl">
+                                        <h6 class="mb-0">Date Of Joining</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0"> {{ employee.date_of_joining }}</p>
+                                    </div>
+                                </div>                              
+                    
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-2 mt-3">
+                                        <h6 class="mb-0">Contact</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0">{{ employee.mobile }}</p>
+                                    </div>
+                                    <div class="col-md-2 mt-3 vl">
+                                        <h6 class="mb-0">Email</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0">{{ employee.employee_mail }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-2 mt-3">
+                                        <h6 class="mb-0">Email</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0"> {{ employee.employee_mail }}</p>
+                                    </div>
+                                    <div class="col-md-2 mt-3 vl">
+                                        <h6 class="mb-0">Basic Salary</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0"> {{ employee.salary_amount }}</p>
+                                    </div>
+                                </div> -->
+
+                                {% for salary_detail in salary_details %}
+
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-2 mt-3">
+                                        <h6 class="mb-0">Holidays</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0"> {{ salary_detail.holiday }}</p>
+                                    </div>
+                                    <div class="col-md-2 mt-3 vl">
+                                        <h6 class="mb-0">Leave</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0">{{ salary_detail.leave }}</p>
+                                    </div>
+                                </div>
+
+
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-2 mt-3">
+                                        <h6 class="mb-0">Working Days</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0">{{ salary_detail.total_working_days }}</p>
+                                    </div>
+                                    <div class="col-md-2 mt-3 vl">
+                                        <h6 class="mb-0">Casual Leave</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0">{{ salary_detail.casual_leave }}</p>
+                                    </div>
+                                </div>
+
+
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-2 mt-3">
+                                        <h6 class="mb-0">Salary</h6>
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        :
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0">{{ salary_detail.total_salary }}</p>
+                                    </div>
+                                    <div class="col-md-2 mt-3 vl">
+                                        <!-- <h6 class="mb-0">Casual Leave</h6> -->
+                                    </div>
+                                    <div class="col-md-1 mt-3">
+                                        <!-- : -->
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <!-- <p class="mb-0">{{ salary_detail.casual_leave }}</p> -->
+                                    </div>
+                                </div>
+
+
+                                {% endfor %}
+
+
+
+
+
+
+
+                    
+                                <hr>
+                               
+
+                            </div>
+                        </div>
+
+
+
+
+
+
+                    </div>
+                    <div class="col-lg-4 bg-grey">
+
+
+
+                        <div class="px-3">
+                            <h3 class="fw-bold mb-2 mt-4 pt-1">SALARY DETAILS</h3>
+                            <hr class="my-4">
+                            <div class="d-flex justify-content-between mb-4">
+                                
+                            </div>
+                            {% for salary_detail in salary_details %}
+
+                            <div class="d-flex justify-content-between mb-4">
+                                <h6 class="">Status</h6>
+                                {% if salary_detail.status == 'save' %} <i class="fa fa-check-circle text-success">&nbsp;SAVE</i>{% else %}<i class="fa fa-ban text-danger">&nbsp;DRAFT</i>{% endif %}
+                               
+
+                            </div>
+                            {% endfor %}
+                            <div class="d-flex justify-content-between mb-4">
+                                <h6 class="">Basic Salary</h6>
+                                {{ employee.salary_amount }}
+                            </div>
+                            {% for salary_detail in salary_details %}
+
+
+                            <div class="d-flex justify-content-between mb-4">
+                                <h6 class="">Salary Date</h6>
+                                {{ salary_detail.salary_date }}
+                            </div>
+                           
+                          
+                            <div class="d-flex justify-content-between mb-4">
+                                <h6 class="">Month-Year</h6>
+                                {{ salary_detail.month_name}}-{{ salary_detail.year }}
+                            </div>
+                            <div class="d-flex justify-content-between mb-4">
+                                <h6 class="">Add Bonus</h6>
+                                {{ salary_detail.add_bonus }}
+                            </div>
+                           
+
+                            <div class="d-flex justify-content-between mb-4">
+                                <h6 class="">Other Cuttings</h6>
+                                {{ salary_detail.other_cuttings }}
+                            </div>
+                            <div class="d-flex justify-content-between mb-4">
+                                <h6 class="">HRA</h6>
+                                {{ salary_detail.hra }}
+                            </div><div class="d-flex justify-content-between mb-4">
+                                <h6 class="">Conveyance Allowance</h6>
+                                {{ salary_detail.conveyance_allowance }}
+                            </div><div class="d-flex justify-content-between mb-4">
+                                <h6 class="">Other Allowance</h6>
+                                {{ salary_detail.other_allowance }}
+                            </div>
+
+
+                           
+
+
+
+                            
+                        </div>
+
+
+                        {% endfor %}
+
+
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div id="transaction" style="display: none;">
+                <div id="printContent" style="background-color: white;">
+                    <center><h3 class="mt-3">{{employee.title}} {{employee.first_name}} {{employee.last_name}}</h3></center>
+                                
+
+             <div class="table-responsive px-2">
+                <table class="table table-bordered" id="transactionTable"> 
+
+            <div id="whatToPrint" class="print-only" style="border: 1px solid black; padding: 20px;">
+                <div class="my-5 page" size="A4" style="border: 1px solid black">
+                    <br>
+                    <br>
+                    {% for i in salary_details %}
+                    <h1 style="text-align: center; color: #000000; border-bottom: 1px solid #000; margin-bottom: 0;">PAYSLIP</h1>
+                    <div style="display: flex; justify-content: space-between; color: #000000; border-bottom: 1px solid #000; padding: 10px 0;">
+                        <div style="width: 48%;">
+                            <ul>
+                                <li>Employee Name: {{employee.title}} {{ employee.first_name }} {{ employee.last_name }}</li>
+                                <li>Employee Code: {{ employee.employee_number }}</li>
+                                <li>Month-Year: {{ i.month_name }}-{{i.year}}</li>
+                                <li>Designation: {{ employee.employee_designation }}</li>
+                            </ul>
+                        </div>
+                        <div style="width: 48%;">
+                            <ul>
+                                <li>Location: {{ employee.employee_current_location }}</li>
+                                <li>Date of Joining: {{ employee.date_of_joining }}</li>
+                                <li>Working Days: {{ i.total_working_days }}</li>
+                                <li>Leave: {{ i.leave_minus_casual_leave }}</li>
+                                
+                            </ul>
+                        </div>
+                    </div>
+                    <div style="text-align: center;  padding: 20px 0;">
+                        <h3 style="text-align: center; color: #000000;">Confirmed Salary</h3>
+                        
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Particulars</th>
+                                <th>Gross Amount (Rs)</th>
+                                <th>Deduction Amount (Rs)</th>
+                                <th>Amount (Rs)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="height: 100px; border-bottom: 0;">Basic Salary</td>
+                                <td style="height: 100px;">{{i.employee.salary_amount}}</td>
+                                <td style="height: 100px; border-bottom: 0;">{% if i.other_cuttings %}Other Cuttings{% endif %}</td>
+                                <td style="height: 100px;">{% if i.other_cuttings %}{{ i.other_cuttings }}{% endif %}</td>
+                            </tr>
+                            <tr>
+                                <td style="height: 100px; border-bottom: 0;">Conveyance Allowance</td>
+                                <td style="height: 100px;">{{i.conveyance_allowance}}</td>
+                                <td style="height: 100px; border-bottom: 0;">{% if i.leave_deduction %}Leave Deduction{% endif %}</td>
+                                <td style="height: 100px;">{% if i.leave_deduction %}{{ i.leave_deduction }}{% endif %}</td>
+    
+    
+    
+                            </tr>
+                            <tr>
+                                <td style="height: 100px; border-bottom: 0;">HRA</td>
+                                <td style="height: 100px;">{{i.hra}}</td>
+                                <td style="height: 100px; border-bottom: 0;"></td>
+                                <td style="height: 100px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="height: 100px; border-bottom: 0;">Other Allowance</td>
+                                <td style="height: 100px;">{{i.other_allowance}}</td>
+                                <td style="height: 100px; border-bottom: 0;"></td>
+                                <td style="height: 100px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="height: 100px; border-bottom: 0;">{% if i.add_bonus %}Bonus{% endif %}</td>
+                                <td style="height: 100px;">{% if i.add_bonus %}{{ i.add_bonus }}{% endif %}</td>
+                                <td style="height: 100px; border-bottom: 0;"></td>
+                                <td style="height: 100px;"></td>
+                            </tr>
+            
+                            <tr>
+                                <td style="height: 50px;"></td>
+                                <td style="height: 50px;"></td>
+                                <td style="height: 50px;">Total Deduction</td>
+                                <td style="height: 50px;">{{i.total_deduction}}</td>
+                            </tr>
+                            <tr>
+                                <td style="height: 50px;">Netsalary</td>
+                                <td style="height: 50px;"></td>
+                                <td style="height: 50px;" id="salaryCell">{{i.total_salary}}</td>
+                                <td style="height: 50px;">{{i.total_salary}}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    {% endfor %} 
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; text-align: right; color: #000000; padding-top: 20px;">
+                        <div>
+                            <img src="" alt="Company Seal" style="max-width: 150px;">
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <img src="" alt="Authorized Signature" style="max-width: 150px;">
+                            </div>
+                            <p>Authorized Signature</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </table>
+    </div> 
+
+
+
+
+        </div> 
+
+
+        </div> -->
+
+        <div id="transaction" class="container" style="display: none;">
+            <div id="printContent">
+                    
+                <div id="whatToPrint" class="print-only">
+                    <div class="page" size="A4" >
+                        {% for i in salary_details %}
+
+                        <h1>PAYSLIP</h1>
+                     
+                        <div class="employee-details">
+                            <div>
+                                <ul>                                   
+                                    
+                                    <li><span>Employee Name</span><span>:</span><span> {{employee.title}} {{ employee.first_name }} {{ employee.last_name }}</span></li>
+                                    <li><span>Employee Code</span><span>:</span><span> {{ employee.employee_number }}</span></li>
+                                    <li><span>Month-Year</span><span>:</span><span>{{ i.month_name }}-{{i.year}}</span></li>
+                                    <li><span>Designation</span><span>:</span><span> {{ employee.employee_designation }}</span></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <ul>
+                                                                       
+                                    <li><span>Location</span><span>:</span><span>{{ employee.employee_current_location }}</span> </li>
+                                    <li><span>Date of Joining</span><span>:</span><span> {{ employee.date_of_joining }}</span></li>
+                                    <li><span>Working Days</span><span>:</span><span>{{ i.total_working_days }}</span> </li>
+                                    <li><span>Leave</span><span>:</span> <span>{{ i.leave_minus_casual_leave }}</span> </li>
+                                    
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="salary-section">
+                            <h3>Confirmed Salary</h3>
+                            
+                            <table class="table">
+                                <thead>
+                                    <tr style="border-right: 1px solid #161515;">
+                                        <th class="pay" style="color: #161515" >Particulars</th>
+                                        <th class="pay" style="color: #161515">Gross Amount (Rs)</th>
+                                        <th class="pay" style="color: #161515">Deduction Amount (Rs)</th>
+                                        <th class="pay" style="color: #161515">Amount (Rs)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <p class="pay">Basic Salary</p>
+                                            <p class="pay">Conveyance Allowance</p>
+                                            <p class="pay">HRA</p>
+                                            <p class="pay">Other Allowance</p>
+                                            <p class="pay">{% if i.add_bonus %}Bonus{% endif %}</p>
+                                        </td>
+                                        <td >
+                                            <p class="pay">{{i.employee.salary_amount}}</p>
+                                            <p class="pay">{{i.conveyance_allowance}}</p>
+                                            <p class="pay">{{i.hra}}</p>
+                                            <p class="pay">{{i.other_allowance}}</p>
+                                            <p class="pay">{% if i.add_bonus %}{{ i.add_bonus }}{% endif %}</p>
+                                        </td>
+                                        <td>
+                                            <p class="pay" style="height: 50px; color: #161515;">Leave Deduction</p>
+                                        </td>
+                                        <td>
+                                            <p class="pay" style="height: 50px; color: #161515;">{{i.leave_deduction}}</p>
+                                        </td>
+                                    </tr>
+        
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td class="pay" style="height: 50px; color: #161515;">Total Deduction</td>
+                                        <td class="pay" style="height: 50px; color: #161515;">{{i.total_deduction}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="pay" colspan="3" style="height: 50px; color: #161515;">Netsalary</td>
+                                        <!-- <td style="height: 50px;" id="salaryCell">15100</td> -->
+                                        <td class="pay" style="height: 50px; color: #161515;">{{i.total_salary}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            {% endfor %}
+                       
+                        </div>
+                        <div class="authorization-section">
+                            <div class="authorization-seal">
+                                <img src="" alt="Company Seal" style="max-width: 150px;color: #161515; ">
+                            </div>
+                            <div class="authorization-sign">
+                                <div style="display: flex; justify-content: flex-end;">
+                                    <img src="" alt="Authorized Signature" style="max-width: 150px; color: #161515;">
+                                </div>
+                                <!-- <p>Authorized Signature</p> -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        
+            </div> 
+        </div>
+
+
+
+
+
+    </div>
+</div>
+
+
+<!-- Share To Email Modal -->
+<div class="modal fade" id="shareToEmail">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">Share Customer Transactions</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form action="{% url 'Fin_shareSalaryToEmail' employee.id salary_id %}" method="post" class="needs-validation" id="share_to_email_form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="emailIds">Email IDs</label>
+                            <textarea class="form-control" name="email_ids" id="emailIds" rows="3" placeholder="Multiple emails can be added by separating with a comma(,)." required></textarea>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label for="item_unitname">Message(optional)</label>
+                            <textarea name="email_message" id="email_message" class="form-control" cols="" rows="4" placeholder="This message will be sent along with Bill details."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer d-flex justify-content-center" style="border-top: 1px solid #ffffff;">
+                    <button type="submit" id="share_with_email" class="submitShareEmailBtn w-50 text-uppercase">SEND MAIL</button>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
+<!-- Add Comments Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLabel">Add Comments</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form action="{% url 'Fin_addEmployeeComment' employee.id salary_id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <textarea type="text" class="form-control" name="comment" placeholder="Add Comments.." required></textarea>
+                    {% if not comments %}
+                    <span class="my-2 font-weight-bold d-flex justify-content-center">No Comments.!</span>
+                    {% else %}
+                    <div class="container-fluid">
+                        <table class="table mt-4">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">sl no.</th>
+                                    <th class="text-center">Comment</th>
+                                    <th class="text-center">Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in comments %}
+                                <tr class="">
+                                    <td class="text-center">{{forloop.counter }}</td>
+                                    <td class="text-center">{{c.comment}}</td>
+                                    <td class="text-center"><a class="text-danger" href="{% url 'Fin_deleteEmployeeComment' c.id salary_id %}" onclick="return confirm('Are you sure you want to delete.?')"><i class="fa fa-trash" style="font-size: 1.1rem;"></i></a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn" id="commentSaveBtn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script>
+    $(document).ready(function ($) {
+        $(".table-row").click(function () {
+            window.document.location = $(this).data("href");
+        });
+    });
+
+
+    function overview() {
+        document.getElementById('overview').style.display = 'block';
+        document.getElementById('transaction').style.display = 'none';
+        document.getElementById('printBtn').style.display = 'none';
+        document.getElementById('pdfBtn').style.display = 'none';
+        document.getElementById('shareBtn').style.display = 'none';
+        document.getElementById('editBtn').style.display = 'block';
+        document.getElementById('deleteBtn').style.display = 'block';
+        document.getElementById('exportBtn').style.display = 'none';
+        document.getElementById('overviewBtn').style.backgroundColor='rgba(22,37,50,255)'
+        document.getElementById('transactionBtn').style.backgroundColor='transparent';
+        $('#historyBtn').show();
+        $('#activeBtn').show();
+        $('#inactiveBtn').show();
+        $('#commentsBtn').show();
+    }
+    
+    function transaction() {
+        document.getElementById('overview').style.display = 'none';
+        document.getElementById('transaction').style.display = 'block';
+        document.getElementById('printBtn').style.display = 'block';
+        document.getElementById('pdfBtn').style.display = 'block';
+        document.getElementById('shareBtn').style.display = 'block';
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('deleteBtn').style.display = 'none';
+        document.getElementById('exportBtn').style.display = 'block';
+        document.getElementById('overviewBtn').style.backgroundColor='transparent';
+        document.getElementById('transactionBtn').style.backgroundColor='rgba(22,37,50,255)';
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
+        $('#activeBtn').hide();
+        $('#inactiveBtn').hide();
+    }
+
+    function printSection(sectionId) {
+        document.body.style.backgroundColor = ' #192d3e';
+        $('#transaction, #transaction *').css('color', 'black');
+
+        var printContents = document.getElementById(sectionId).innerHTML;
+        var $printerDiv = $('<div class="printContainer"></div>');
+        $printerDiv.html(printContents);
+        $('body').append($printerDiv).addClass("printingContent");
+
+        window.print();
+        $printerDiv.remove();
+        $('body').removeClass("printingContent");
+        $('#transaction, #transaction *').css('color', 'black');
+    
+    }
+
+    $(document).ready(function(){
+        $('#share_with_email').on('click',function(){
+            var emailsInput = document.getElementById('emailIds');
+            var emailsString = emailsInput.value.trim();
+
+            var emails = emailsString.split(',').map(function(email) {
+                return email.trim();
+            });
+
+            var emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+
+            var invalidEmails = []
+            if(emailsString == ""){
+                alert('Enter valid email addresses..')
+            }
+            else{
+                for (var i = 0; i < emails.length; i++) {
+                    var currentEmail = emails[i];
+
+                    if (currentEmail!="" && !emailRegex.test(currentEmail)) {
+                        console.log(currentEmail + ' is invalid!');
+                        invalidEmails.push(currentEmail)
+                    }
+                }
+                
+                if(invalidEmails.length > 0){
+                    alert('Invalid emails..Please check!\n'+invalidEmails)
+                    // alert(invalidEmails)
+                }else{
+                    $('#share_to_email_form').submit();
+                }
+            }
+        })
+    });
+    
+    function ExportToExcel(type, fn, dl) {
+        var elt = document.getElementById('transactionTable');
+        var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+        return dl ?
+            XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }) :
+            XLSX.writeFile(wb, fn || ('{{customer.first_name}}_transactions.' + (type || 'xlsx')));
+    }
+</script>
+
+{% endblock %}

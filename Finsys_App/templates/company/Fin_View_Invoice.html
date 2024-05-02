@@ -478,10 +478,10 @@
                                                 </div>
                 
                                                 <div class="col-md-3 mt-3 vl">
-                                                    <h6 class="mb-0">HSN</h6>
+                                                    <h6 class="mb-0">{% if itm.Item.item_type == 'Goods' %} HSN {% else %} SAC {% endif %}</h6>
                                                 </div>
                                                 <div class="col-md-3 mt-3">
-                                                    <p class="mb-0 text-right">{{itm.hsn}}</p>
+                                                    <p class="mb-0 text-right">{% if itm.Item.item_type == 'Goods' %} {{ itm.hsn }} {% else %} {{ itm.sac }} {% endif %}</p>
                                                 </div>
                                                 
                                             </div>

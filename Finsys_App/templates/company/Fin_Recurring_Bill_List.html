@@ -27,9 +27,18 @@
 </style>
 
     <div class="page-content ">
+
+        <div class="card radius-15 h-20">
+            <div class="row">
+              <div class="col-md-12">
+                <center><h2 class="mt-3">RECURRING BILL</h2></center>
+                <hr/>
+              </div>
+            </div>
+          </div>
+
         <div class="card radius-15">
             <div class="card-body">
-                <center><h2>RECURRING BILL </h2></center><br>
 
                 <div class="row">
                     <div class="col-3 ml-1">
@@ -63,7 +72,7 @@
                                 <a class="dropdown-item" style="cursor: pointer;" data-status="Draft" onclick="filterTable()">Draft</a>
                             </div>
 
-                            <a class="btn btn-outline-secondary text-grey" href="{% url 'Fin_recurring_bill_create_page' %}"><i class="fa fa-plus font-weight-light"></i> New </a>
+                            <a class="btn btn-outline-secondary text-grey" href="{% url 'Fin_recurring_bill_create_page' %}"><i class="fa fa-plus font-weight-light"></i> REC. BILL </a>
                           
                     </div>
                     
@@ -75,14 +84,14 @@
                     <table class="table " id="Bill_List">
                         <thead>
                             <tr>
-                                <th >#</th>
-                                <th >Date</th>
-                                <th >Reucrring Bill Number</th>
-                                <th >Vendor Name</th>
-                                <th >Vendor Mail</th>
-                                <th >Amount</th>
-                                <th >Status</th>
-                                <th >Balance</th>
+                                <th class="text-uppercase">#</th>
+                                <th class="text-uppercase">Date</th>
+                                <th class="text-uppercase">Reucrring Bill Number</th>
+                                <th class="text-uppercase">Vendor Name</th>
+                                <th class="text-uppercase">Vendor Mail</th>
+                                <th class="text-uppercase">Amount</th>
+                                <th class="text-uppercase">Status</th>
+                                <th class="text-uppercase">Balance</th>
                             </tr>
                         </thead>
 

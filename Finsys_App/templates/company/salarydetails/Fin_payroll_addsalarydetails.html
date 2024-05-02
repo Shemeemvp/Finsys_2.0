@@ -17,228 +17,117 @@
             margin-left: 0px !important;
         }
     }
+    #error_msg
+    {
+        font-size: 12px;
+        margin-top: 0.60rem;
+        color: #f32f2f;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: white !important;
+    line-height: 28px;
+}
 </style>
 
-<form action="{% url 'payroll_addsalarydetails' %}" method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
-    {% csrf_token %}
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
-    <!-- jQuery library -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-/4YbHY5q5lGynbhHacwPMS0cm6E5P6WfJxJ0+K5I2LZ1vgyMIH7EWrC5LlOQibQ" crossorigin="anonymous"></script>
-
-    <!-- Select2 CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" integrity="sha384-GLhlTQ8iHXYr4Ll6ZtL4z+U4ViH6EX46MzT5N5tiSdY6Pmash4FgW1VaERuDQ2M" crossorigin="anonymous">
-
-    <!-- Select2 JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha384-oS/4h5ujr+q1I0e/B0ABtuW1NmMzqDvXRG5e2PDuL1V+omlYT1tDHDV1NsuIKD6L" crossorigin="anonymous"></script>
-
-
-    
-    <script>
-        $(document).ready(function () {
-            $('#empl_id').select2({
-                placeholder: 'Search for an employee',
-                minimumInputLength: 0, // Minimum number of characters before searching
-                ajax: {
-                    url: "{% url 'listemployee_salary' %}",
-                    dataType: 'json',
-                    delay: 250,
-                    processResults: function (data) {
-                        return {
-                            results: $.map(data, function (item) {
-                                return {
-                                    id: item.employeeid,
-                                    text: item.title + ' ' + item.firstname + ' ' + item.lastname
-                                };
-                            })
-                        };
-                    },
-                    cache: true,
-                },
-            });
-        });
-
-        function fetchEmployeeDetails() {
-            console.log("Fetching employee details...");
-            var selectedEmployeeId = $('#empl_id').val();
-            console.log("Selected Employee ID:", selectedEmployeeId);
-    
-            $.ajax({
-                type: 'POST',
-                url: "{% url 'listemployee_salary' %}",
-                data: {
-                    id: selectedEmployeeId,
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                },
-                dataType: 'json',
-                success: function (data) {
-                    console.log("Employee details received:", data);
-                    updateFormFields(data); 
-                },
-                error: function (error) {
-                    console.error("Error fetching employee details:", error);
-                }
-            });
-        }
-
-    
-        function updateFormFields(data) {
-            console.log(data);
-            document.getElementById('email').value = data.email || '';
-            document.getElementById('eid').value = data.employeeno || '';
-            document.getElementById('joindate').value = data.joindate || '';
-            document.getElementById('Salary').value = data.amount || '';
-            document.getElementById('designation').value = data.designation || '';
-            
-            {% comment %} if (data.holidays_data) {
-            var holidaysList = data.holidays_data.map(function (holiday) {
-                return holiday.start_date + ' to ' + holiday.end_date;
-            });
-            updateFieldValue('holidays', holidaysList.join(', '));
-        }
-
-        if (data.attendance_data) {
-            var attendanceList = data.attendance_data.map(function (attendance) {
-                return attendance.date + ' (' + attendance.status + ')';
-            });
-            updateFieldValue('attendance', attendanceList.join(', '));
-        }
-
-        if (data.working_days) {
-            updateFieldValue('working_days', data.working_days);
-        } {% endcomment %}
+<style>         /* SEARCH STYLE */
+    /* Style the Select2 search input */
+    .select2-search__field {
+      width: 100%; /* Set the width as needed */
+      padding: 8px; /* Adjust padding as needed */
+      border: 1px solid #92acc6; /* Add border color */
+      border-radius: 4px; /* Add border-radius for rounded corners */
+      outline: none; /* Remove the outline */
+      color: #000;
     }
+  /*   
+    .select2-container .select2-selection--single{box-sizing:border-box;cursor:pointer;display:block;height:35px;user-select:none;color: black;
+      -webkit-user-select:none;background-color: #fff;} */
+  .select2-container .select2-selection--single .select2-selection__rendered{border: 1px solid white; border-radius: 6px; display:block;padding-left:20px;padding-right:20px; height: 35px;color: rgb(252, 252, 252);background-color: #2f516f;border-radius: 2px;box-shadow: #fcfcfc;border-color: #f2e8e8;}
+      .select2-dropdown{background-color:#2f516f;color: rgb(253, 253, 253);position:absolute;left:-100000px;width:100%;z-index:1051;color: rgb(255, 255, 255);border-color: #f2e8e8;}
+      .select2-results{display:block;border: #ced4da;border-color: #f2e8e8;}
+      .select2-results__options{list-style:none;margin:0;padding:0;color: rgb(255, 255, 255);background-color: #2f516f;padding-left: 20px;border-color: #f2e8e8;} 
+      .select2-results__option[aria-selected]{cursor:pointer;color: rgb(251, 251, 251);background-color: #2f516f;border-color: #f2e8e8;}
+      .select2-container--open .select2-dropdown{left:0;color: rgb(255, 255, 255);background-color: #2f516f;border-color: #f2e8e8;}
+  
+      .select2-hidden-accessible{background-color: #2f516f;border:2px !important;clip:rect(0 0 0 0) !important;-webkit-clip-path:inset(50%) !important;clip-path:inset(50%) !important;height:0px !important;padding:0 !important;position:absolute !important;width:1px !important;white-space:nowrap !important;color: rgb(250, 250, 250)} 
+      /* .select2-container--default .select2-selection--single{background-color:#000000;border:1px solid #000000;border-radius:4px;color: rgb(0, 0, 0);background-color: #ede4e4;} */
+  /* .select2-hidden-accessible{background-color: #fff;border:0 !important;clip:rect(0 0 0 0) !important;-webkit-clip-path:inset(50%) !important;clip-path:inset(50%) !important;height:1px !important;overflow:hidden !important;padding:0 !important;position:absolute !important;width:1px !important;white-space:nowrap !important;color: black}  */
+  .select2-container--default .select2-selection--single:focus, .select2-container--default .select2-selection--single .select2-search__field:focus, .typeahead:focus, .tt-query:focus, .tt-hint:focus {
+      border: 1px solid rgba(250, 250, 250, 0.5);
+      background-color: #d3bcbc;
+  }
+  </style>
 
-    function updateFieldValue(elementId, value) {
-        var element = document.getElementById(elementId);
-        if (element) {
-            element.value = value;
-        } else {
-            console.warn("Element with ID '" + elementId + "' not found in the DOM.");
-        }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" >
+
+<style>
+    #bloodDiv {
+        display: none;
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        width:300px;
+        transform: translate(-50%, -50%);
+        background-color: #163753 !important;
     }
-        function clearEmployeeDetails() {
-            updateFormFields({
-                email: '',
-                employeeno: '',
-                joindate: '',
-                amount: '',
-                designation: '',
-                holidays_data: [],
-                attendance_data: [],
-                working_days: '',
-               
-            });
-        }
-    </script>
-    <script>
-        $(document).ready(function () {
-            setCurrentDate();
-            $('#empl_id').on('change', function () {
-                fetchDays();
-            });
-        });
-
-        function setCurrentDate() {
-            var currentDate = new Date();
-            var currentYear = currentDate.getFullYear();
-            var currentMonth = currentDate.getMonth() + 1; 
-            var currentDay = currentDate.getDate();
-            var formattedDate = currentYear + '-' + (currentMonth < 10 ? '0' : '') + currentMonth + '-' + (currentDay < 10 ? '0' : '') + currentDay;
-            $('#salary_date').val(formattedDate);
-            $('#month').val(currentMonth);
-            $('#year_').val(currentYear);
-        }
-        function fetchDays() {
-            var selectedEmployeeId = $('#empl_id').val();
-            var sd = $('#salary_date').val();
-            var selectedMonth = $('#month').val();
-            var selectedYear = $('#year_').val();
-            $.ajax({
-                type: 'POST',
-                url: "{% url 'getDays' %}",
-                data: {
-                    sd : sd,
-                    id: selectedEmployeeId,
-                    month: selectedMonth,
-                    year: selectedYear,
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                },
-                dataType: 'json',
-                success: function (data) {
-                    document.getElementById('error_msg').innerHTML = ""
-                    console.log("Employee details received:", data);
-                    document.getElementById('holidays').value = data.holiday ;
-                    document.getElementById('attendance').value = data.leave ;
-                    document.getElementById('working_days').value = data.working_days ;
-                },
-                error: function (error) {
-                    console.error("Error fetching employee details:", error);
-                    document.getElementById('error_msg').innerHTML = error.responseJSON && error.responseJSON.error || 'Unknown error';
-                }
-            });
-        }  
-    </script>
-    <script>
-        function calculateSalary() { 
-            var casualLeave = $('#casual_leave').val() || 0;
-            var otherCuttings = $('#other_cuttings').val() || 0;
-            var addBonus = $('#add_bonus').val() || 0;
-            var salary = $('#Salary').val() || 0;
-            var holiday = $('#holidays').val() || 0;
-            var leave = $('#attendance').val()|| 0;
-            var month = $('#month').val();  
-            var year = $('#year').val();  
-
-            $.ajax({
-                type: 'POST',
-                url: "{% url 'calculate_salary' %}",
-                data: {
-                    leave : leave,
-                    holiday : holiday,
-                    attendance : leave,
-                    casual_leave: casualLeave,
-                    other_cuttings: otherCuttings,
-                    add_bonus: addBonus,
-                    salary:salary,
-                    month: month,
-                    year: year,
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                },
-                dataType: 'json',
-                success: function (data) {
-                    console.log("Monthly salary calculated:", data);
-                    var formattedSalary = parseFloat(data.monthly_salary).toFixed(2);
-                    document.getElementById('monthly_salary').value = formattedSalary;
-                    {% comment %} updateMonthlySalary(data); {% endcomment %}
-                },
-                error: function (error) {
-                    console.error("Error calculating monthly salary:", error);
-                }
-            });
-        }
+    #preview-img
+    .col-imgBox
+    {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         
-    
-        function updateMonthlySalary(data) {
-            var monthlySalaryElement = document.getElementById('monthly_salary');
-    
-            if (monthlySalaryElement) {
-                monthlySalaryElement.value = data.monthly_salary;
-            } else {
-                console.warn("Element with ID 'monthly_salary' not found in the DOM.");
-            }
-        }   
-    </script>
-    
-    
-    <div class="page-content">
-        <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_salary_details' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+    }
+    #preview-img img{
+        object-fit: fill;
+        border-radius: 50%;
+        width: 130px;
+        height: 130px;
+    }
+   
 
-        <h2 id="hel"></h2>
+   
+    @media (max-width:668px)
+    {
+        #bloodDiv
+        {
+            width: calc(100% - 20%);
+        }
+        #bloodDiv h5
+        {
+            font-size: 13px;
+        }
+    }
+</style>
+
+<form action="{% url 'payroll_addsalarydetails' %}" method="post" class="needs-validation" enctype="multipart/form-data">
+    {% csrf_token %}
+   
+    <!-- Select2 CSS -->
+
+
+
+    
+    
+    
+    <div class="page-content pt-0">
+
+        <div class="d-flex justify-content-end mb-1">
+            <a href="{% url 'Fin_salary_details' %}"><i class="fa fa-times-circle text-white mx-4 p-1" style="font-size: 1.2rem;margin-right: -0rem !important;"></i></a>
+          </div>
+        <div class="card radius-15 h-20">
+            <div class="row">
+              <div class="col-md-12">
+                <center><h2 class="mt-3">ADD SALARY DETAILS</h2></center>
+                <hr/>
+              </div>
+            </div>
+          </div>
+
+        <!-- <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_salary_details' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span> -->
+
+        <!-- <h2 id="hel"></h2>
         <div class="card radius-15">
             <div class="card-body">
                 <div class="card-title">
@@ -248,7 +137,7 @@
                 </div>
                 <hr />
             </div>
-        </div>
+        </div> -->
         <div class="card radius-15">
             <div class="card-body">
                 <div class="row">
@@ -258,7 +147,7 @@
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Employee*</label>
                         <div class="d-flex">
-                            <select name="employee" id="empl_id" class="form-control" style="width: 95%;" required onchange="fetchEmployeeDetails()">
+                            <select name="employee" id="empl_id" class="form-control" style="width: 95%; color: white;" required>
                                 <option value="NIL">Select Employee</option>
                                 {% for cust in employees %}
                                         <option value="{{ cust.id }}">{{ cust.title }} {{ cust.first_name }} {{ cust.last_name }}</option>
@@ -278,18 +167,23 @@
                         <label class="col-form-label">Email</label>
                         <input type="text" class="form-control" id="email" name="email" placeholder="Email" required>
                     </div>
-                    <div class="col-md-5 ml-4">
+                    <!-- <div class="col-md-5 ml-4">
                         <label class="col-form-label">Salary</label>
-                        <input type="number" class="form-control" id="Salary" name="Salary" placeholder="Salary" required>
-                    </div>
+                        <input type="number" class="form-control" id="#" name="#" placeholder="Salary" required>
+                    </div> -->
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Join Date</label>
                         <input type="date" class="form-control" id="joindate" name="joindate" required><br>
                     </div>
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Designation</label>
-                        <input type="text" class="form-control" id="designation" name="designation" placeholder="Designation" required><br>
+                        <input type="text" class="form-control" id="designation" name="designation" placeholder="Designation"><br>
                     </div>
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label">Salary</label>
+                        <input type="number"  name="Salary" class="form-control" id="sal" value="0" readonly>
+                    </div>
+               
                 </div>
                 <div class="row mt-3">
                     <div class="col-md-5 ml-4">
@@ -299,10 +193,13 @@
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Month</label> 
                         <select name="month" id="month" class="form-control" required onchange="fetchDays()">
+
                             {% for month_name in months %}
                                 <option value="{{ forloop.counter }}">{{ month_name }}</option>
                             {% endfor %}
                         </select>
+                        <p id="error_msg"></p>  
+
                     </div>
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Year</label>
@@ -312,13 +209,10 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <p id="error_msg"></p>  
-                </div>
-
-                <div class="row mt-3">
+                
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Leave</label>
-                        <input type="text" class="form-control" id="attendance" name="attendance">
+                        <input type="text" class="form-control" id="attendance" name="attendance"  readonly>
                     </div>
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Casual Leave</label>
@@ -332,10 +226,32 @@
                         <label class="col-form-label">Working Day</label>
                         <input type="text" class="form-control" id="working_days" name="working_days" readonly>
                     </div>
+                     
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label">Basic Salary</label>
+                        <input type="number"  name="Salary" class="form-control" id="bassal" value="0">
+                    </div>
+               
+                   
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label">HRA</label>
+                        <input type="number"  name="HRA" class="form-control" id="hra" value="0">
+                    </div>
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label">Conveyance Allowance</label>
+                        <input type="number" name="Conveyance_Allowance" class="form-control" id="Conveyance_Allowance"value="0">
+                    </div>
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label">Other Allowance</label>
+                        <input type="number"  name="Other_Allowance"  class="form-control" id="Other_Allowance" value="0" >
+                    </div>
                     
-                </div>
 
-                <div class="row mt-3">
+
+
+
+
+
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Other Cuttings</label>
                         <input type="number" class="form-control" name="other_cuttings" id="other_cuttings" value="0" placeholder="Other Cuttings">
@@ -346,13 +262,11 @@
                     </div>
                     
                     <div class="col-md-5 ml-4">
-                        <label class="col-form-label">Calculate Salary</label>
+                        <label class="col-form-label">Salary</label>
                         <input type="text" class="form-control" id="monthly_salary" name="monthly_salary" readonly>
-                        <button type="button" class="btn btn-outline-secondary w-50 text-light" onclick="calculateSalary();">Calculate Salary</button>
+                        <button type="button" class="btn btn-outline-secondary w-50 text-light mt-2" onclick="calculateSalary();">Calculate Salary</button>
                     </div>
-                </div>
-
-                <div class="row mt-3">
+               
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Description</label>
                         <textarea class="form-control" name="description" rows="3" ></textarea>
@@ -369,21 +283,1418 @@
                     </div>
                 </div> 
                 <div class="row justify-content-end">
-                    <!-- <div class="col-md-4"></div> -->
                     <div class="col-md-2">
-                        <button name="submit" value="draft" class="btn btn-outline-info rounded-pill text-grey w-100 mt-3 mb-3" type="submit">
-                            Save as Draft
-                        </button>
+                        <input type="submit" class="btn btn-outline-secondary w-100 text-light" name="Draft" value="Draft">
+                       
                     </div>
                     <div class="col-md-2">
-                        <button name="submit"  value="save" class="btn btn-outline-info rounded-pill text-grey w-100 mt-3 mb-3" type="submit">
-                            Save 
-                        </button>
+                        <input type="submit" class="btn btn-outline-secondary w-100 ml-1 text-light" name="Save" value="Save">
+
+                        
                     </div>
             </div>
         </div>
     </div>
 </form>
+
+<!-- modal section -->
+
+
+<div class="modal fade" id="emplyeeterm">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h3 class="m-3">ADD TERM</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <form action="" method="post"  autocomplete="off" id="modalItem">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="col-md-5 p-2">
+                                        <label  for="">Duration</label>
+                                        <input type="number"  id="duration" name="duration" class="form-control" placeholder="Number">
+    
+                                    </div>
+                                    
+                                    <div class="col-md-5 p-2">
+                                        <label for="">Term</label>
+                                        <input type="text" id="term" name="term" class="form-control" placeholder="Year / Month" oninput="this.value = this.value.toUpperCase()">
+    
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4"></div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-outline-info rounded-pill text-grey w-100 mt-3 mb-3"
+                                          <button class="btn btn-outline-info rounded-pill w-100 text-light" data-dismiss="modal" type="submit" id="itemSave">SUBMIT</button>
+                                    </button>
+                                </div>
+                                <div class="col-md-4"></div>
+                            </div>
+    
+                        </div>
+                    </form>
+                </center>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="employeecreation">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <center><h3 class="m-3">ADD EMPLOYEE</h3></center>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+              
+                <form action="{% url 'AddEmployeeInSalaryPage' %}" method="post" id="modalEmployee" enctype="multipart/form-data">
+                    {% csrf_token %}
+               <!-- <center> <h2>CREATE EMPLOYEE </h2></center><br> -->
+
+                
+                <!-- basic -->
+                <div class="row">
+                    <div class="col-md-6">
+                       
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label for="title">Title</Label></td>
+                                    <td>
+                                        <select name="Title" id="title" class="form-control"   required>
+                                            <option value="">--select--</option>
+                                            <option value="Mr">Mr</option>
+                                            <option value="Mrs">Mrs</option>
+                                            <option value="Miss">Miss</option>
+                                            <option value="Ms">Ms</option>
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>First Name</Label></td>
+                                    <td><input placeholder="First Name" name="firstname" id="firstname" type="text" class="form-control"></td>
+                                </div>
+                            </tr>
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>Last Name</Label></td>
+                                    <td><input placeholder="Last Name" name="lastname" id="last_name" type="text" class="form-control"></td>
+                                </div>
+                            </tr>
+                            
+                            
+                        
+                    </div>
+
+                    <!-- <div class="col-md-4 ">
+
+                        <label for="Image" class="ml-5 mt-5" style="cursor:pointer; padding: 20% 35%; background-image: url('{% static "assets/images/upload.png" %}'); background-repeat: no-repeat; background-size: contain;"></label> <br> <span class="ml-5">Upload Image</span>
+                        <input type="file" name="Image" id="Image" accept="image/*" style="display: none;">
+                    </div> -->
+                    <div class="col-md-3">
+
+                        <div id="preview-img" style="display: none;">
+                           
+                        </div>
+
+                        <label for="Image" class="ml-5 mt-5" style="cursor:pointer; padding: 20% 35%; background-image: url('{% static "assets/images/upload.png" %}'); background-repeat: no-repeat; background-size: contain;"></label>
+                        <br>
+                        <span class="ml-5">Upload Image</span>
+                        <input type="file" name="Image" id="Image" accept="image/*" style="display: none;">
+                        
+                    </div>
+
+
+                    
+                </div> <br>
+
+                <div class="row">
+                    <div class="col">
+                        <tr>
+                            <div class="form-group" >
+                                <td><Label>Alias (optional)</Label></td>
+                                <td><input placeholder="Alias" id="alias" name="alias" type="text" class="form-control"></td>
+                            </div>
+                        </tr>
+                        
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>Date of Joining</Label></td>
+                                    <td><input placeholder="Joining Date" required id="joindate" name="joindate" type="date" class="form-control"></td>
+                                </div>
+                            </tr>
+                    </div>
+                    <div class="col">
+                            <tr >
+                                <div class="form-group" >
+                                    <td><Label>Salary Date</Label></td>
+                                    <td>
+                                        <select class="form-control" name="Salary_Date" id="">
+                                            <option value="">--select--</option>
+                                            <option value="1-10">1-10</option>
+                                            <option value="11-15">11-15</option>
+                                            <option value="16-31">16-31</option>
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                            <tr >
+                                <div class="form-group" > 
+                                    <td><Label>Define salary details</Label></td>
+                                    <td>
+                                        <select  class="form-control" name="salary_type" id="salary_type">
+                                            <option value="">--select--</option>
+                                            <option value="Fixed">Fixed</option>
+                                            <option value="Temporary">Temporary</option>
+                                            <option value="Time Based">Time Based</option>
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                            
+                            <div id="salary_timebase">
+                                <tr>
+                                    <div class="form-group"  >
+                                        <td><Label>Amount Per Hour</Label></td>
+                                        <td><input placeholder="Amount Per Hour" name="perhour" oninput="calculateAndSetSalary()" id="amount_perhour" type="number" class="form-control"></td>
+                                    </div>
+                                </tr>
+                                <tr>
+                                    <div class="form-group"  >
+                                        <td><Label>Total Working Hour(s)</Label></td>
+                                        <td><input placeholder="Total Working Hour(s)" name="workhour" oninput="calculateAndSetSalary()" id="working_hours" type="number" class="form-control"></td>
+                                    </div>
+                                </tr>
+                                
+                            </div>
+                            <tr>
+                                <div class="form-group" id="salary_amount" >
+                                    <td><Label>Salary Amount</Label></td>
+                                    <td><input placeholder="Salary Amount" id="amount" name="amount"
+                                        type="number" class="form-control"></td>
+                                </div>
+                            </tr>
+                    </div>
+                </div>
+                
+                <!-- basic end -->
+
+                
+
+                <!-- ---general------ -->
+                <br>
+
+                <center><p><b>General Information</b></p></center>
+                <div class="row">
+
+                    
+                        
+                            
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Employee Number</Label></td>
+                                <td><input placeholder="Employee Number" required id="employeeno" name="employeeno" type="text" class="form-control"></td>
+                            </div>
+                        </tr>
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Designation</Label></td>
+                                <td><input placeholder="Designation" id="designation" name="designation" type="text" class="form-control"></td>
+                            </div>
+                        </tr>
+                        <tr>
+                            <div class="form-group col">
+                                <td><Label>Location</Label></td>
+                                <td><input placeholder="Current Location" name="location" type="text" class="form-control"></td>
+                            </div>
+                        </tr>
+                    </div>
+                    <div class="row">
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label for="gender">Gender</Label></td>
+                                <td><select class="form-control" name="gender" id="gender" required>
+                                    <option value="">--select--</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                    </select>
+                                </td>
+                            </div>
+                        </tr>
+                    
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Date Of Birth</Label><label style="float: right;margin-right: 50px;" for="">Age </label></td>
+                                <td> <div class="row"><div class="col-9"><input placeholder="Date Of Birth" required id="dateofbirth" name="dateofbirth" type="date" class="form-control"></div><div class="col-3"><input id="ageDisplay" disabled class="form-control " type="text"></div></div></td>
+                            </div>
+                           
+                        </tr>
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Blood Group</Label></td>
+                                
+                                    
+                                <div style="display: flex;">
+                                    <select name="bloodgroup" id="bloodGroupSelect" style="width: 85%;" class="form-control col-11" >
+                                        <option value="">--select--</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">O+</option>
+                                        
+                                        {% for i in bloodgroup %}
+                                        <option value="{{i.blood_group}}">{{i.blood_group}}</option>
+                                        {% endfor %}
+                                    </select>      
+                                    <button type="button" class="btn btn-outline-secondary text-grey mb-2 ml-1" id="blood-Divshow">+</button>   
+                                </div>        
+                                  
+                                
+                            </div>
+                          
+                            
+                        </tr>
+                    </div>
+
+
+                    <div class="row">
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Contact Number</Label></td>
+                                <td><input placeholder="Contact Number" required id="mobile" name="mobile"
+                                    maxlength="10" type="text" pattern="^\d{10}$" class="form-control" onchange="checkphone(this)"></td>
+                                    <div class="text-danger m-2" id="warnphone"></div>
+                            </div>
+                        </tr>
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Emergency Contact Number</Label></td>
+                                <td><input placeholder="Emergency Contact Number" id="phone" name="generalphone" maxlength="10" pattern="^\d{10}$" type="text" class="form-control" onchange="checkphonenew(this)"></td>
+                                <div class="text-danger m-2" id="warnphones"></div>
+
+                            </div>
+                        </tr>
+                        <tr>
+                            <div class="form-group col" >
+                                <td><Label>Email</Label></td>
+                                <td><input placeholder="Email" required id="email" name="email"
+                                    type="email" class="form-control" onchange="checkemail(this)"></td>
+                                    <div class="text-danger m-2" id="warnemail"></div>
+
+                            </div>
+                        </tr>
+                    </div>
+
+
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Father's Name / Mother's Name</Label></td>
+                                    <td><input placeholder="Father's Name / Mother's Name" id="fathersmothersname" name="fathersmothersname" type="text" class="form-control"></td>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Spouse's Name</Label></td>
+                                    <td><input placeholder="Spouse's Name" id="spousename" name="spousename"
+                                        type="text" class="form-control"></td>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>File</Label></td>
+                                    <td><input id="file" name="File" type="file" class="form-control"></td>
+                                </div>
+                            </tr>
+                        </div>
+
+                        <div class="row">
+                            
+                                <tr>
+                                    <td>
+                                        <div class="form-group col" id="perAddress">
+                                            <br>
+                                            <Label style="font-size: large;">Permanent Address</Label>
+                                            <br><br>
+                                            <div class="row">
+                                                <div class="col"><Label>Street</Label><input placeholder="street" type="text" id="street" name="street"
+                                                    class="form-control"></div>
+                                                <div class="col"><Label>City</Label><input placeholder="city" type="text" id="city" name="city" class="form-control"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>State</Label><input placeholder="state" type="text" id="state" name="state" class="form-control"></div>
+                                                <div class="col"><Label>Pincode</Label><input placeholder="pincode" type="text" class="form-control" id="pinco" name="pincode"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>Country</Label><input placeholder="country" type="text" class="form-control" id="country" name="country"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group col" id="temAddress">
+                                            <br>
+                                            <Label style="font-size: large;">Temporary Address </Label>
+                                            <label style="float: right;" for=""><input id="okay"
+                                                name="okay" type="checkbox" onclick="poppins1()"> Same as permanent address</label>
+                                            <br><br>
+                                            <div class="row">
+                                                <div class="col"><Label>Street</Label><input placeholder="street" type="text" id="tempstreet" name="tempstreet" class="form-control" ></div>
+                                                <div class="col"><Label>City</Label><input placeholder="city" type="text"  class="form-control" id="tempcity" name="tempcity"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>State</Label><input placeholder="state" type="text"  class="form-control" id="tempstate" name="tempstate"></div>
+                                                <div class="col"><Label>Pincode</Label><input placeholder="pincode" type="text"  class="form-control" id="temppinco" name="temppincode"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>Country</Label><input placeholder="country" type="text"  class="form-control" id="tempcountry" name="tempcountry"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            
+                        </div>
+
+
+                        
+                        
+                    
+
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Provide bank Details</Label></td>
+                                    <td>
+                                        <select class="form-control" name="bankdetails" id="drp_Bank_Details">
+                                            <option value="">--select--</option>
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+
+                            <tr> 
+                                <div class="form-group col">
+                                    <td><Label>TDS Applicable</Label></td>
+                                    <td>
+                                        <select class="form-control" name="tds_applicable" id="TDS">
+                                            <option value="">--select--</option>
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                        </div><br>
+
+                        <div class="row">
+                            
+                                <div class="form-group col"  id="BankInfo">
+                                    <center><p><b>Banking Information</b></p></center>
+                                        
+                                        <tr >
+                                            <td><label for="">Account Number</label></td>
+                                            <td><input placeholder="Account Number" style="width: 96%;" id="bank_num" name="acno" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="">IFSC</label></td>
+                                            <td><input placeholder="SBIN0071242" style="width: 96%;" pattern="^[A-Za-z]{4}0[A-Za-z0-9]{6}$" id="IFSCCode" name="ifsccode" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="">Name of Bank</label></td>
+                                            <td><input placeholder="Name Of Bank" style="width: 96%;" id="BankName" name="bankname"
+                                                type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="">Branch Name</label></td>
+                                            <td><input placeholder="Branch Name" style="width: 96%;" id="bank_Branch_Name" name="branchname"
+                                                type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                    
+                                    
+                                    <br>
+                                    <center><p><b>For Banking</b></p></center>
+                                    <tr>
+                                        <td><label for="">Transaction Type</label></td>
+                                        <td>
+                                            <select style="width: 96%;" class="form-control ml-4" name="transactiontype" id="transactiontype">
+                                                <option value="">--select--</option>
+                                                <option value="ATM">ATM</option>
+                                                <option value="Cash">Cash</option>
+                                                <option value="Cheque">Cheque</option>
+                                            </select>    
+                                        </td>
+                                    </tr>
+                                    
+                                </div>
+                            
+
+                            
+                                <div class="form-group col" id="TDSinfo">
+                                    <center><p><b>TDS Application</b></p></center>
+                                    <tr>
+                                        <td><label for="">Percentage/Amount</label></td>
+                                        <td>
+                                            <select style="width: 96%;" class="form-control ml-4" id="TDStype" name="TDS_Type" >
+                                                <option value="">--select--</option>
+                                                <option value="Percentage">Percentage</option>
+                                                <option value="Amount">Amount</option>
+                                                
+                                            </select>    
+                                        </td>
+                                    </tr><br>
+
+                                    <div id="TDSpercentage">
+                                        <tr>
+                                            <td><label for="">Enter TDS Percentage</label></td>
+                                            <td><input placeholder="TDS Percentage" style="width: 96%;" name="TDS_Percentage" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                    </div><br>
+
+                                    <div id="TDSamount">
+                                        <tr>
+                                            <td><label for="">Enter TDS Amount</label></td>
+                                            <td><input placeholder="TDS Amount" style="width: 96%;" name="TDS_Amount" type="text" class="form-control ml-4"></td>
+                                        </tr>
+                                    </div>
+                                </div><br>
+                            
+                        </div>
+                    
+
+                    
+                
+
+                <!-- ---general end ------>
+
+
+                <!------ statutory -------->
+                <br><br>
+                    <center><p><b>Statutory Information</b></p></center><br>
+                        <div class="row">
+                            
+                            <div class="col">
+                                <div >
+                                    <tr>
+                                        <td><label for="">Income Tax Number</label></td>
+                                        <td><input placeholder="Income Tax Number"  name="Income_Tax" type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                <div >
+                                    <tr>
+                                        <td><label for="">Aadhar Number</label></td>
+                                        <td><input id="aadhaarnumber" name="adharnumber" required placeholder="12 Digit Unique Number" maxlength="14" pattern="\d{4} \d{4} \d{4}"  type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                <div >
+                                    <tr>
+                                        <td><label for="">Universal Account Number (UAN)</label></td>
+                                        <td><input placeholder="12 digit number" pattern="\d{12}" maxlength="12" type="text" class="form-control " id="universalaccountnumber" name="universalaccountnumber">
+                                            </td>
+                                    </tr>
+                                </div><br>
+                                
+                            </div>
+                            <div class="col">
+                                <div >
+                                    <tr>
+                                        <td><label for="">PF Account Number</label></td>
+                                        <td><input placeholder="MH/PUN/1234567/12" id="pfaccountnumber" name="pfaccountnumber" pattern="[A-Z]{2}/[A-Z0-9]{3}/[0-9]{7}/[0-9]{0,2}" type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                <div >
+                                    <tr>
+                                        <td><label for="">PAN Number</label></td>
+                                        <td><input placeholder="ABCDE1234F" id="pannumber" name="pannumber" pattern="[A-Z]{5}[0-9]{4}[A-Z]" maxlength="10" type="text" class="form-control " onchange="checkpan(this)"></td>
+                                        <div class="text-danger m-2" id="warnpan"></div>
+
+                                   
+                                    </tr>
+                                </div><br>
+                                <div >
+                                    <tr>
+                                        <td><label for="">PR Account Number</label></td>
+                                        <td><input placeholder="12 digit number" pattern="\d{12}" id="praccountnumber" name="praccountnumber" type="text" class="form-control "></td>
+                                    </tr>
+                                </div><br>
+                                
+                            </div>
+
+                        </div><br>
+                    
+                <!------ statutory end------>
+                <center><button type="submit"class="btn btn-secondary w-50" >Save</button></center><br>
+            </form>
+            <div id="bloodDiv" style="display: none;">
+                <form id="bloodGroupForm" method="post">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Add New Blood Group </h5>
+                        <button type="button" class="close" id="bloodDivCloseButton">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="">Add New Blood Group</label>
+                        <input type="text" name="bloodGroup"  class="form-control" id="bloodGroupInput" required>
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="bloodDivCancelButton">Close</button>
+                        <button type="button" class="btn btn-primary" id="add-bloodgroup">Add</button>
+                        
+                    </div>
+                </form>   
+            </div>   
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+
+
+<!-- script section -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" defer ></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
+<!-- jQuery library -->
+
+<script>
+    $(document).ready(function () {
+        $('#empl_id').select2({
+            placeholder: 'Search for an employee',
+            minimumInputLength: 0, // Minimum number of characters before searching
+            ajax: {
+                url: "{% url 'listemployee_salary' %}",
+                dataType: 'json',
+                delay: 250,
+                processResults: function (data) {
+                    return {
+                        results: $.map(data, function (item) {
+                            return {
+                                id: item.employeeid,
+                                text: item.title + ' ' + item.firstname + ' ' + item.lastname
+                            };
+                        })
+                    };
+                },
+                cache: true,
+            },
+        });
+    });
+
+    function fetchEmployeeDetails() {
+        console.log("Fetching employee details...");
+        var selectedEmployeeId = $('#empl_id').val();
+        console.log("Selected Employee ID:", selectedEmployeeId);
+
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'listemployee_salary' %}",
+            data: {
+                id: selectedEmployeeId,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+            dataType: 'json',
+            success: function (data) {
+                console.log("Employee details received:", data);
+                updateFormFields(data); 
+            },
+            error: function (error) {
+                console.error("Error fetching employee details:", error);
+            }
+        });
+    }
+
+
+    function updateFormFields(data) {
+        console.log(data);
+        document.getElementById('email').value = data.email || '';
+        document.getElementById('eid').value = data.employeeno || '';
+        document.getElementById('joindate').value = data.joindate || '';
+        document.getElementById('sal').value = data.amount || '';
+        document.getElementById('designation').value = data.designation || '';
+        document.getElementById('hra').value = data.hra || 0;
+        document.getElementById('Conveyance_Allowance').value = data.Conveyance_Allowance || 0;
+        document.getElementById('Other_Allowance').value = data.Other_Allowance || 0;
+
+        
+        {% comment %} if (data.holidays_data) {
+        var holidaysList = data.holidays_data.map(function (holiday) {
+            return holiday.start_date + ' to ' + holiday.end_date;
+        });
+        updateFieldValue('holidays', holidaysList.join(', '));
+    }
+
+    if (data.attendance_data) {
+        var attendanceList = data.attendance_data.map(function (attendance) {
+            return attendance.date + ' (' + attendance.status + ')';
+        });
+        updateFieldValue('attendance', attendanceList.join(', '));
+    }
+
+    if (data.working_days) {
+        updateFieldValue('working_days', data.working_days);
+    } {% endcomment %}
+}
+
+function updateFieldValue(elementId, value) {
+    var element = document.getElementById(elementId);
+    if (element) {
+        element.value = value;
+    } else {
+        console.warn("Element with ID '" + elementId + "' not found in the DOM.");
+    }
+}
+    function clearEmployeeDetails() {
+        updateFormFields({
+            email: '',
+            employeeno: '',
+            joindate: '',
+            amount: '',
+            designation: '',
+            holidays_data: [],
+            attendance_data: [],
+            working_days: '',
+           
+        });
+    }
+</script>
+
+<script>
+    function poppins() {
+        var chkbtn = document.getElementById('okay');
+        if (chkbtn.checked == true) {
+            document.getElementById('tempstreet').value = document.getElementById('street').value;
+            document.getElementById('tempcity').value = document.getElementById('city').value;
+            document.getElementById('temppinco').value = document.getElementById('pinco').value;
+            document.getElementById('tempcountry').value = document.getElementById('country').value;
+            document.getElementById('tempstate').value = document.getElementById('state').value; 
+        } else {
+            document.getElementById('tempstreet').value = '';
+            document.getElementById('tempcity').value = '';
+            document.getElementById('tempstate').value = '';
+            document.getElementById('temppinco').value = '';
+            document.getElementById('tempcountry').value = '';
+        }
+    }
+</script>
+<script>
+    function hidinput(divId, element) {
+        if (element.value == 'GST-registered-Regular') {
+            document.getElementById(divId).style.display = 'block';
+        } else {
+            document.getElementById(divId).style.display = 'none';
+        }
+    }
+
+    function disinput(divId, element) {
+        if (element.value == 'GST-registered-Regular') {
+            document.getElementById(divId).style.display = 'block';
+        } else {
+            document.getElementById(divId).style.display = 'none';
+        }
+    }
+
+    function disinput2(divId, element) {
+        if (element.value == 'GST-registered-Regular') {
+            document.getElementById(divId).style.display = 'block';
+        } else {
+            document.getElementById(divId).style.display = 'none';
+        }
+    }
+    function checkgst(element) {
+        var gstinput = element.value;
+        var gstregexp = "[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9A-Za-z]{1}[Z]{1}[0-9a-zA-Z]{1}";
+        if (gstinput.match(gstregexp)) {
+            document.getElementById('warngst').innerHTML = '';
+        } else {
+            document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
+            alert('Please provide a valid GST Number');
+        }
+    }
+
+    function checkpan(element) {
+        var paninput = element.value;
+        var panregexp = ["[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}"]
+        if (paninput.match(panregexp)) {
+            document.getElementById('warnpan').innerHTML = '';
+        } else {
+            document.getElementById('warnpan').innerHTML = 'Please provide a valid PAN Number';
+            alert('Please provide a valid PAN Number')
+        }
+    }
+
+    function checkweb(element) {
+        var webinput = element.value;
+        var webregexp = "www."
+        if (webinput.startsWith(webregexp)) {
+            document.getElementById('warnweb').innerHTML = '';
+        } else {
+            document.getElementById('warnweb').innerHTML = 'Please provide a valid Website Address';
+            alert('Please provide a valid Website Address')
+        }
+    }
+</script>
+<script>
+    (function () {
+        'use strict';
+        window.addEventListener('load', function () {
+            var forms = document.getElementsByClassName('needs-validation');
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+</script>
+</script>
+<script type="text/javascript">
+    function show(str) { 
+        if (document.getElementById('Employees').value != 'Timebased') {
+            $('#amount').prop('readonly', false);
+        }
+        else {
+            $('#amount').prop('readonly', true);
+        }
+        document.getElementById('Salarydetails').style.display = 'none';
+        document.getElementById('Salarydetails').style.display = 'block';
+    }
+
+    function show2(sign) {
+        document.getElementById('Salarydetails').style.display = 'block';
+        document.getElementById('Salarydetails').style.display = 'none'; 
+    }
+
+    function toggleDivVisibility() {
+        var selectElement = document.getElementById("drp_Bank_Details");
+        var selectedValue = selectElement.value;
+        var bankDiv = document.getElementById("Bank_Details");
+
+        if (selectedValue === "Yes") {
+            bankDiv.style.display = "block";  
+        } else {
+            bankDiv.style.display = "none";   
+        }
+    }
+    function DefineSalaryShow() {
+        var time_based = document.getElementById("time_based_show");
+        if (document.getElementById('Employees').value != 'Timebased') {
+            $('#amount').prop('readonly', false);  
+            time_based.style.display = "none";
+        }
+        else {
+            $('#amount').prop('readonly', true); 
+            time_based.style.display = "flex";
+        }
+ 
+    }
+    $('#hours, #rate').on('input', function () {
+        var hours = parseFloat($('#hours').val());
+        var rate = parseFloat($('#rate').val());
+        var amount = hours * rate;
+        $('#amount').val(amount);
+    });
+
+    function showPreview(event) {
+        if (event.target.files.length > 0) {
+            var src = URL.createObjectURL(event.target.files[0]);
+            var preview = document.getElementById("file-ip-1-preview");
+            preview.src = src;
+            preview.style.display = "block";
+        }
+    }
+    function toggleDivTds() {
+        var selectElement = document.getElementById("tdsapplicable");
+        var selectedValue = selectElement.value;
+        var tdsDiv = document.getElementById("div-tds");
+
+        if (selectedValue === "Yes") {
+            tdsDiv.style.display = "block"; 
+        } else {
+            tdsDiv.style.display = "none";   
+        }
+    }
+</script>
+
+<script>
+    var dateOfBirthInput = document.getElementById('dateofbirth');
+    var ageInput = document.getElementById('age');
+    dateOfBirthInput.addEventListener('change', function () {
+        var dob = new Date(this.value);
+        var today = new Date();
+        var age = today.getFullYear() - dob.getFullYear();
+        if (today.getMonth() < dob.getMonth() ||
+            (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        ageInput.value = age;
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        console.log("Script is running");
+        var selectedDate = $('#salary_date').val();
+        console.log("Selected Date:", selectedDate);
+    });
+</script>
+
+
+
+
+
+
+
+<script>
+  
+    
+  // blood group add
+    
+  $(document).ready(function() {
+        $('#add-bloodgroup').click(function(e) {
+            // Prevent the default form submission behavior
+            e.preventDefault(); 
+        
+            // Get the form data
+            var formData = {
+                'bloodGroup': $('#bloodGroupInput').val()
+            };
+        
+            // Perform Ajax request
+            $.ajax({
+                type: 'POST',
+                url: '{% url "employee_blood_group" %}',
+                data: formData,
+                dataType: 'json',
+                headers: {
+                    'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log('success');
+                        $('#bloodDiv').hide();
+                        alert('Blood group added successfully!');
+                        
+                        // Update the entire section in the dropdown with the new bloodgroup data
+                        updateBloodGroupSection(response.bloodgroup);
+                    } else {
+                        // Failure case: Display an error message
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle Ajax errors here
+                    console.error('Ajax Error: ' + status + ' - ' + error);
+                }
+            });
+        });
+    
+        // Function to update the entire section in the dropdown
+        function updateBloodGroupSection(bloodgroup) {
+            // Assuming you have a select element with the id 'bloodGroupSelect'
+            var bloodGroupSelect = $('#bloodGroupSelect');
+    
+            // Remove all existing options
+            bloodGroupSelect.empty();
+    
+            // Append new options based on the received data
+            bloodGroupSelect.append($('<option>', {
+                value: '',  // Default option
+                text: '--select--'
+            }));
+    
+            addStaticOption('A+', 'A+');
+            addStaticOption('A-', 'A-');
+            addStaticOption('B+', 'B+');
+            addStaticOption('O+', 'O+');
+    
+            for (var i = 0; i < bloodgroup.length; i++) {
+                bloodGroupSelect.append($('<option>', {
+                    value: bloodgroup[i].blood_group,
+                    text: bloodgroup[i].blood_group
+                }));
+            }
+    
+            $('#bloodGroupModal').modal('hide');
+        }
+    
+        function addStaticOption(value, text) {
+        // Assuming you have a select element with the id 'bloodGroupSelect'
+        var bloodGroupSelect = $('#bloodGroupSelect');
+    
+        // Append the new static option
+        bloodGroupSelect.append($('<option>', {
+            value: value,
+            text: text
+        }));
+    }
+    
+    });
+    
+    
+    // -------------------------------------
+    // age display
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        // Add change event listener to the DOB input
+        document.getElementById("dateofbirth").addEventListener("input", function() {
+            // Get the selected date of birth
+            var dobValue = this.value;
+    
+            // Calculate the age
+            var age = calculateAge(new Date(dobValue));
+    
+            // Display the age in the ageDisplay input
+            document.getElementById("ageDisplay").value = age ;
+        });
+    
+        // Function to calculate age based on the provided date of birth
+        function calculateAge(dob) {
+            var today = new Date();
+            var birthDate = new Date(dob);
+            var age = today.getFullYear() - birthDate.getFullYear();
+            var monthDiff = today.getMonth() - birthDate.getMonth();
+    
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+    
+            return age;
+        }
+    });
+    
+    
+    
+    
+    // -------------------------------------
+    // joining date = current date
+    
+    document.addEventListener("DOMContentLoaded", function() {
+            var currentDate = new Date();
+            var dateString = currentDate.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+    
+            document.getElementById("joindate").value = dateString;
+        });
+    
+    
+    
+    // -------------------------------------
+    // 12 digit aadhar number 
+    
+     document.addEventListener('input', function (event) {
+         var input = event.target;
+    
+         // Check if the input has the id "accountnumber"
+         if (input.tagName === 'INPUT' && input.type === 'text' && input.id === 'aadhaarnumber' && input.pattern) {
+             var pattern = new RegExp(input.pattern);
+    
+             if (!pattern.test(input.value)) {
+                 // Remove any non-digit characters
+                 var digitsOnly = input.value.replace(/\D/g, '');
+    
+                 // Add a space after every 4 digits
+                 var formattedValue = digitsOnly.replace(/(\d{4})(?=\d)/g, '$1 ');
+                // Update the input value
+                input.value = formattedValue;
+            }
+        }
+     });
+    
+    // display salary --------------------------------------------
+    $(document).ready(function () {
+        // Initially hide the salary_amount div
+        $("#salary_amount").hide();
+        $("#salary_timebase").hide();
+    
+        // Add change event listener to the salary_details dropdown
+        $("#salary_type").change(function () {
+            // Get the selected value
+            var selectedValue = $(this).val();
+    
+            // Check if the selected value is "Temporary" or "Fixed"
+            if (selectedValue === "Temporary" || selectedValue === "Fixed") {
+                // Display the salary_amount div
+                $("#salary_amount").show();
+                $("#salary_timebase").hide();
+            } else if (selectedValue === 'Time Based') {
+                // Hide the salary_amount div and show salary_timebase div for other options
+                $("#salary_amount").show();
+                $("#salary_timebase").show();
+            } else {
+                // Hide the salary_amount div for other options
+                $("#salary_amount").hide();
+                $("#salary_timebase").hide();
+            }
+        });
+    });
+    
+    
+    // ----------------------------------------------------------------------------------------------
+    // calculate salary amount in time base 
+    function calculateAndSetSalary() {
+        // Get values from amount_perhour and working_hours
+        var firstValue = parseFloat($('#amount_perhour').val()) || 0;
+        var secondValue = parseFloat($('#working_hours').val()) || 0;
+    
+        // Check if both values are greater than 0
+        if (firstValue > 0 && secondValue > 0) {
+            // Perform calculations and set the value for amount
+            var thirdValue = firstValue * secondValue;
+            $('#amount').val(thirdValue);
+        } else {
+            // Reset the value of amount if one or both values are not greater than 0
+            $('#amount').val('');
+        }
+    }
+    
+    // -----------------------------------------------------------------------------
+    // display banking ---
+    
+    $(document).ready(function () {
+        // Initially hide the salary_amount div
+        $("#BankInfo").hide();
+        
+    
+        // Add change event listener to the salary_details dropdown
+        $("#drp_Bank_Details").change(function () {
+            // Get the selected value
+            var selectedValue = $(this).val();
+    
+            if (selectedValue === "Yes") {
+                // Display the bankinfo div
+                $("#BankInfo").show();
+            } else if (selectedValue === 'No') {
+                // Hide the BankInfo div for other options
+                $("#BankInfo").hide();
+            } else {
+                // Hide the BankInfo div for other options
+                $("#BankInfo").hide();
+            }
+        });
+    });
+    
+    // ------------------------------------------------------------------
+    // TDS display-----------
+    $(document).ready(function () {
+        // Initially hide the salary_amount div
+        $("#TDSinfo").hide();
+        
+    
+        // Add change event listener to the salary_details dropdown
+        $("#TDS").change(function () {
+            // Get the selected value
+            var selectedValue = $(this).val();
+    
+            if (selectedValue === "Yes") {
+                // Display the bankinfo div
+                $("#TDSinfo").show();
+            } else if (selectedValue === 'No') {
+                // Hide the BankInfo div for other options
+                $("#TDSinfo").hide();
+            } else {
+                // Hide the BankInfo div for other options
+                $("#TDSinfo").hide();
+            }
+        });
+    });
+    // ------------------------------------------------------------------------------
+    // Tds percentage/amount display
+    
+    $(document).ready(function () {
+        // Initially hide the salary_amount div
+        $("#TDSamount").hide();
+        $("#TDSpercentage").hide();
+    
+        // Add change event listener to the salary_details dropdown
+        $("#TDStype").change(function () {
+            // Get the selected value
+            var selectedValue = $(this).val();
+    
+            // Check if the selected value is "Temporary" or "Fixed"
+            if (selectedValue === "Percentage" ) {
+                // Display the salary_amount div
+                $("#TDSamount").hide();
+                $("#TDSpercentage").show();
+            } else if (selectedValue === 'Amount') {
+                // Hide the salary_amount div and show salary_timebase div for other options
+                $("#TDSamount").show();
+                $("#TDSpercentage").hide();
+            } else {
+                // Hide the salary_amount div for other options
+                $("#TDSamount").hide();
+                $("#TDSpercentage").hide();
+            }
+        });
+    });
+    
+    // ---------------------------------------------------------------------
+    // address copy 
+    
+    $(document).ready(function(){
+        
+        
+        // Handle checkbox click event
+        $('#okay').on('change', function(){
+            if($(this).is(':checked')){
+                // Copy values from permanent address to temporary address
+                $('#tempstreet').val($('#street').val());
+                $('#tempcity').val($('#city').val());
+                $('#tempstate').val($('#state').val());
+                $('#temppinco').val($('#pinco').val());
+                $('#tempcountry').val($('#country').val());
+    
+                // Show temporary address
+                $('#temAddress').show();
+            } 
+        });
+    });
+    
+    // --------------------------------------------------------------------
+    // age validation
+    
+    document.addEventListener('DOMContentLoaded', function () {
+    // Get the current date
+    var currentDate = new Date();
+    
+    // Calculate the date 18 years ago
+    var eighteenYearsAgo = new Date(currentDate);
+    eighteenYearsAgo.setFullYear(currentDate.getFullYear() - 18);
+    
+    // Format the date to YYYY-MM-DD for the input field
+    var formattedDate = eighteenYearsAgo.toISOString().split('T')[0];
+    
+    // Set the default value and maximum allowed date of the input field
+    var dobInput = document.getElementById('dateofbirth');
+    // dobInput.value = formattedDate;
+    dobInput.max = formattedDate;
+    });
+    
+    // --------------------------------------------------------------------
+    // back function
+    
+    function goBack() {
+        window.history.back();
+      }
+    
+    // --------------------------------------------------------------------
+    // 
+    
+
+    function checkphone(element) {
+        var phoneinput = element.value;
+        var phoneregexp = /^\d{10}$/;
+        if (phoneinput.match(phoneregexp)) {
+            document.getElementById('warnphone').innerHTML = '';
+            checkCustomerPhone(phoneinput)
+        } else {
+            document.getElementById('warnphone').innerHTML = 'Please provide a valid Phone Number';
+            alert('Please provide a valid Phone Number')
+        }
+    }
+    function checkphonenew(element) {
+        var phoneinput = element.value;
+        var phoneregexp = /^\d{10}$/;
+        if (phoneinput.match(phoneregexp)) {
+            document.getElementById('warnphones').innerHTML = '';
+            checkCustomerPhone(phoneinput)
+        } else {
+            document.getElementById('warnphones').innerHTML = 'Please provide a valid Phone Number';
+            alert('Please provide a valid Phone Number')
+        }
+    }
+
+    function checkemail(element) {
+        var emailinput = element.value;
+        var emailregexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+        if (emailinput.match(emailregexp)) {
+            document.getElementById('warnemail').innerHTML = '';
+            checkCustomerEmail(emailinput)
+        } else {
+            document.getElementById('warnemail').innerHTML = 'Please provide a valid Email ID';
+            alert('Please provide a valid Email id')
+        }
+    }
+
+    function checkpan(element) {
+        var paninput = element.value;
+        var panregexp = ["[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}"]
+        if (paninput.match(panregexp)) {
+            document.getElementById('warnpan').innerHTML = '';
+            checkCustomerPAN(paninput)
+        } else {
+            document.getElementById('warnpan').innerHTML = 'Please provide a valid PAN Number';
+            alert('Please provide a valid PAN Number')
+        }
+    }
+    </script>
+
+
+<script>
+  
+
+
+$(document).ready(function() {
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    $('#employeeno').on('blur', function() {
+        var employeeId = $(this).val().trim();
+        if (employeeId !== '') {
+            $.ajax({
+                url: '/check_employee_id/',
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }, // Include CSRF token
+                data: {'employeeId': employeeId},
+                success: function(response) {
+                    if (response.exists) {
+                        $('#employeeno-validation-message').text('Employee ID already exists');
+                    } else {
+                        $('#employeeno-validation-message').text('');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+    });
+});
+</script>
+
+
+
+<!-- emp detais -->
+<script>
+    $(document).ready(function() {
+      // Initialize select2
+      $('#empl_id').select2();
+  
+      // Handle change event for the 'selected' element
+      $(document).on('change', '#empl_id', function () {
+        var selectedEmployeeId = $('#empl_id').val();
+        $.ajax({
+                type: 'POST',
+                url: "{% url 'listemployee_salary' %}",
+                data: {
+                    id: selectedEmployeeId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                },
+                dataType: 'json',
+                success: function (data) {
+                    console.log("Employee details received:", data);
+                    updateFormFields(data); 
+                    fetchDays()
+
+                },
+                error: function (error) {
+                    console.error("Error fetching employee details:", error);
+                }
+            });       
+                
+                
+         
+      });
+    });
+  </script>
+
+
+<script>
+  
+  function reloadEnit() {
+    
+    $.ajax({
+      url: "{% url 'emp_dropdown_active_not' %}",
+      type: "GET",
+      dataType: "json",
+      data: $(this).serialize(),
+      csrfmiddlewaretoken: '{{ csrf_token }}',
+    
+      success: function(data) {
+          console.log("success2")
+        var dropdown = $('#empl_id');
+  
+        $.each(data, function(key, value) {
+     
+          dropdown.append($('<option></option>').attr('value', key).text(value[0] + " " + value[1] + " " + value[2]));
+          console.log("emp load")
+        });
+  
+      },
+   
+    });
+    }
+</script>
+
+<script>
+    $(document).ready(function() {
+        // Add click event listener to the preview-img div
+        $('#preview-img').click(function() {
+            // Trigger click on the file input field
+            $('#Image').click();
+        });
+    
+        // Add change event listener to the file input field
+        $('#Image').change(function() {
+            // Check if a file is selected
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    // Show the preview image
+                    $('#preview-img').html('<img src="' + e.target.result + '" style="max-width: 100%; max-height: 100%;">').show();
+                    
+                    // Hide the label
+                    $('label[for="Image"]').hide();
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    });
+</script>
 <script>
     function poppins1() {
         var chkbtn = document.getElementById('okay');
@@ -825,868 +2136,125 @@
         select.insertBefore(newOption, select.lastChild);
     }
 </script>
-<div class="modal fade" id="emplyeeterm">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content" style="background-color: #213b52;">
-            <div class="modal-header">
-                <h3 class="m-3">ADD TERM</h3>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <center>
-                    <form action="" method="post"  autocomplete="off" id="modalItem">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="col-md-5 p-2">
-                                        <label  for="">Duration</label>
-                                        <input type="number"  id="duration" name="duration" class="form-control" placeholder="Number">
-    
-                                    </div>
-                                    
-                                    <div class="col-md-5 p-2">
-                                        <label for="">Term</label>
-                                        <input type="text" id="term" name="term" class="form-control" placeholder="Year / Month" oninput="this.value = this.value.toUpperCase()">
-    
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4"></div>
-                                <div class="col-md-4">
-                                    <button class="btn btn-outline-info rounded-pill text-grey w-100 mt-3 mb-3"
-                                          <button class="btn btn-outline-info rounded-pill w-100 text-light" data-dismiss="modal" type="submit" id="itemSave">SUBMIT</button>
-                                    </button>
-                                </div>
-                                <div class="col-md-4"></div>
-                            </div>
-    
-                        </div>
-                    </form>
-                </center>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="employeecreation">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content" style="background-color: #213b52;">
-            <div class="modal-header">
-                <h3 class="m-3">ADD EMPLOYEE</h3>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form action="{% url 'AddEmployeeInSalaryPage' %}" method="POST" autocomplete="on" id="modalEmployee" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="card-body">
-                        <div class="card-title">
-                            <div class="row">
-                                <div class="col-md-4 mt-3">
-                                    <h4 class="mb-0">Employee Information</h4>
-                                </div>
-                                <div class="col-md-4 mt-3">
-                                    <label for="file">Upload File : </label>
-                                    <input type="file" id="file" name="file" class="form-control">
-                                </div>
-                                <div class="col-md-4 mt-3">
 
-                                    <label for="file-ip-1">Upload Image : </label>
-                                    <input type="file" id="file-ip-1" name="image" accept="image/*" class="form-control">
-                                </div>
-                            </div>
-
-                        </div>
-                        <hr />
-                        <div class="row">
-                            <div class="col-md-4 mt-3">
-                                <label for="title">Title</label>
-                                <select name="title" id="title" class="form-control">
-                                    <option value="Mr">Mr</option>
-                                    <option value="Mrs">Mrs</option>
-                                    <option value="Miss">Miss</option>
-                                    <option value="Ms">Ms</option>
-                                </select>
-
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <label for="firstname">First name</label>
-                                <input type="text" class="form-control" id="firstname" name="firstname"
-                                    style="background-color: #2f516f;color: white;" required>
-
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <label for="lastname">Last name</label>
-                                <input type="text" class="form-control" id="last_name" name="lastname" required
-                                    style="background-color: #2f516f;color: white;">
-
-                            </div>
-                        </div>
-
-
-                        <div class="row">
-                            <div class="col-md-4 mt-3">
-
-                                <label for="alias">Alias</label>
-                                <input type="text" class="form-control" id="alias" name="alias"
-                                    style="background-color: #2f516f;color: white;">
-
-
-                            </div>
-                            <div class="col-md-4 mt-3">
-
-                                <label for="location"> Employee Current Location</label>
-                                <input type="text" class="form-control" id="location" name="location" required
-                                    style="background-color: #2f516f;color: white;">
-
-
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <label for="email"> Empoyee Mail Id</label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                    style="background-color: #2f516f;color: white;" placeholder="finsys@mail.com"
-                                    pattern="[^@\s]+@[^@\s]+\.[^@\s]+" required>
-                                <div class="invalid-feedback">Please provide a valid Email</div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 mt-3">
-
-                                <label for="employeeno">Employee No:</label>
-                                <input type="text" class="form-control" id="employeeno" name="employeeno"
-                                    style="background-color: #2f516f;color: white;" required>
-
-
-                            </div>
-                            <div class="col-md-4 mt-3">
-
-                                <label for="mobile">Mobile</label>
-                                <input type="text" class="form-control" id="mobile" name="mobile"
-                                    style="background-color: #2f516f;color: white;" required maxlength="10">
-                                <div class="text-danger m-2 invalid-feedback">Please provide a valid Number</div>
-
-
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <label for="join_date">Date Of Joining</label>
-                                <input type="date" class="form-control" id="joindate" name="joindate"
-                                    style="background-color: #2f516f;color: white;" required>
-                            </div>
-                        </div>
-
-
-
-                        <div class="row">
-                            <div class="col-md-4 mt-3">
-                                <label for="Employees">Employees</label>
-                                <select name="employees" id="Employees" class="form-control"
-                                    onchange="DefineSalaryShow()">
-                                    <option value="Fixed">Fixed</option>
-                                    <option value="Timebased">Time Based</option>
-                                    <option value="Temporary">Temporary</option>
-                                </select>
-
-                            </div>
-
-                            <div class="col-md-4 mt-3 pt-4">
-                                <label>Define Salary Details :</label>&nbsp;&nbsp;
-
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" id="no" name="salarydetails"
-                                        onchange="show2(this.value)" value="No" checked>
-                                    <label class="form-check-label">No</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" id="yes" name="salarydetails"
-                                        onchange="show(this.value)" value="Yes">
-                                    <label class="form-check-label">Yes</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="desc" id="Salarydetails" style="display: none;">
-                            <div class="card-title mt-3">
-                                <h5 class="mb-0">Salary Details</h5>
-                            </div>
-                            <hr>
-                            <div class="row mt-3">
-                                <div class="col-3 col-md-4">
-                                    <label for="effectivefrom">Effective From</label>
-                                    <input type="date" class="form-control" id="effectivefrom" name="effectivefrom"
-                                        style="background-color: #2f516f; color: white;" min="0" value="0">
-                                    <div class="text-danger m-2" id="effectivefrom"></div>
-                                </div>
-                                <div class="col-3 col-md-4">
-                                    <label for="payhead">Pay Head</label>
-                                    <select name="payhead" id="payhead" class="form-control">
-                                        <option value="Cash">Cash</option>
-                                        <option value="BankThrough">Bank</option>
-                                        <option value="Cheque">Cheque</option>
-                                    </select>
-
-                                </div>
-
-                                <div class="col-3 col-md-4">
-                                    <label for="amount">Amount</label>
-                                    <input type="number" class="form-control" id="amount" name="amount"
-                                        style="background-color: #2f516f; color: white;" min="0" value="0">
-                                    <div class="text-danger m-2" id="Amount"></div>
-                                </div>
-                            </div>
-
-                            <div class="row mt-3" id="time_based_show" style="display: none;">
-
-                                <div class="col-3 col-md-4">
-                                    <label for="hours">Hours</label>
-                                    <input type="number" class="form-control" id="hours" name="hours"
-                                        style="background-color: #2f516f; color: white;" min="0" value="0">
-                                    <div class="text-danger m-2" id="Hours"></div>
-                                </div>
-                                <div class="col-3 col-md-4">
-                                    <label for="rate">Rate</label>
-                                    <input type="number" class="form-control" id="rate" name="rate"
-                                        style="background-color: #2f516f; color: white;" min="0" value="0">
-                                    <div class="text-danger m-2" id="Rate"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="card-title">
-                            <h4 class="mb-0">General Information</h4>
-                        </div>
-                        <hr>
-                        <div class="row mt-3">
-                            <div class="col-md-4 mt-3">
-                                <label for="designation">Designation</label>
-                                <input type="text" class="form-control" id="designation" name="designation"
-                                    style="background-color: #2f516f;color: white;" required>
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <label for="function">Function</label>
-                                <input type="text" class="form-control" id="function" name="function"
-                                    style="background-color: #2f516f;color: white;">
-                            </div>
-
-                            <div class="col-md-4 mt-3">
-                                <label for="gender">Gender</label>
-                                <select name="gender" id="gender" class="form-control">
-                                    <option value="Unknown">Unknown</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Others">Others</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-4 mt-3">
-                                <label for="dateofbirth">Date Of Birth</label>
-                                <input type="date" class="form-control" id="dateofbirth" name="dateofbirth"
-                                    style="background-color: #2f516f;color: white;" required>
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <label for="bloodgroup">Blood Group</label>
-                                <select name="bloodgroup" id="bloodgroup" class="form-control">
-                                    <option value="O+ve">O+ve</option>
-                                    <option value="O-ve">O-ve</option>
-                                    <option value="A+ve">A+ve</option>
-                                    <option value="B+ve">B+ve</option>
-                                    <option value="AB+ve">AB+ve</option>
-                                    <option value="AB-ve">AB-ve</option>
-                                    <option value="A-ve">A-ve</option>
-                                    <option value="B-ve">B-ve</option>
-                                    <option value="Others">Others</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4 mt-3">
-                                <label for="fathersmothersname">Father's/Mother's Name</label>
-                                <input type="text" class="form-control" id="fathersmothersname"
-                                    name="fathersmothersname" style="background-color: #2f516f;color: white;" required>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-4 mt-3">
-                                <label for="spousename">Spouse Name</label>
-                                <input type="text" class="form-control" id="spousename" name="spousename"
-                                    style="background-color: #2f516f;color: white;" required>
-                            </div>
-                            <div class="col-md-4 mt-3">
-                                <label for="phone">Emergency Contact No:</label>
-                                <input type="text" class="form-control" id="phone" name="generalphone"
-                                    style="background-color: #2f516f;color: white;" required maxlength="10">
-                                <div class="text-danger m-2 invalid-feedback" id="">Please provide a valid Number</div>
-                            </div>
-
-                            <div class="col-3 col-md-4">
-
-                            </div>
-                        </div>
-                        <div class="card-title mt-4">
-                            <h4 class="mb-0"> Bank Details</h4>
-                        </div>
-                        <hr> 
-                                    <div class="row gx-1 ">
-                    
-                                        <div class="col-md-6">
-                                              <div class="card-body">
-                                               
-                                                <div class="row">
-                                                    <div class="col">
-                                                        <label for="pannumber">PAN Number </label>
-                                                        <input type="text" class="form-control" id="pannumber" name="pannumber"
-                                                            placeholder="ABCDE1234A" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" 
-                                                            style="background-color: #2f516f;color: white;" required>
-                                                       
-                                                    </div>
-                                                    <div class="col">
-                                                        <label for="aadhaarnumber">Aadhaar Number </label>
-                                                        <input type="text" class="form-control pan" id="aadhaarnumber" name="adharnumber"
-                                                            size=20" placeholder="1234 1234 1234" pattern="[0-9]{4} [0-9]{4} [0-9]{4}" 
-                                                            style="background-color: #2f516f;color: white;" required>
-                                                        
-                                                    </div>
-                                                </div>
-                                                &nbsp;
-                                                <div class="row">
-                                                    <div class="col">
-                                                        <label for="universalaccountnumber">Universal Account Number </label>
-                                                        <input type="text" class="form-control" id="universalaccountnumber"
-                                                            name="universalaccountnumber" style="background-color: #2f516f;color: white;" required>
-                                                        
-                                                    </div>
-                                                    <div class="col">
-                                                        <label for="pfaccountnumber">PF Account Number</label>
-                                                        <input type="text" class="form-control" id="pfaccountnumber" name="pfaccountnumber"
-                                                            style="background-color: #2f516f;color: white;" required>
-                                                       
-                                                    </div>
-                                                </div>
-                                                &nbsp;
-                                                <div class="row">
-                                                    <div class="col">
-                                                        <label for="praccountnumber">PR Account Number</label>
-                                                        <input type="text" class="form-control" id="praccountnumber" name="praccountnumber"
-                                                            style="background-color: #2f516f;color: white;" required>
-                                                        
-                                                    </div>
-                                                    <div class="col">
-                                                        <label for="esinumber">ESI Number </label>
-                                                        <input type="text" class="form-control" id="esinumber" name="esinumber"
-                                                            style="background-color: #2f516f;color: white;" required>
-                                                        
-                                                    </div>
-                                                </div>
-                                                &nbsp;
-                                                <div class="row">
-                                                    <div class="col">
-                                                        <label for="tdsapplicable">TDS Applicable</label>
-                                                        <select name="tdsapp" id="tdsapplicable" class="form-control"
-                                                            onchange="toggleDivTds()">
-                                                            <option value="No">No</option>
-                                                            <option value="Yes">Yes</option>
-                                                        </select>
-                                                        
-                                                    </div>
-                                                    <div class="col"  id="div-tds" style="display: none;">
-                                                        <label for="tdsamtperc">TDS Type</label>
-                                                        <select name="tdstype" id="tdsamtperc" class="form-control">
-                                                            <option value="Amount">Amount</option>
-                                                            <option value="Percentage">Percentage</option>
-                    
-                                                        </select>
-                                                        <label for="tds"></label>
-                                                        <input type="text" class="form-control" id="tds" name="tds"
-                                                            style="background-color: #2f516f; color: white;" value="0">
-                                                        
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="card-body">
-                                                 <div class="row">
-                                                    <div class="col">
-                                                        <label for="drp_Bank_Details">Account Details </label>
-                                                        <select name="bankdetails" id="drp_Bank_Details" class="form-control"
-                                                            onchange="toggleDivVisibility()">
-                                                            <option value="No">No</option>
-                                                            <option value="Yes">Yes</option>
-                                                            <option value="Unknown">Unknown</option>
-                                                        </select>
-                                                    </div> 
-                                                </div>
-                                                &nbsp;
-                                                <div class="desc" id="Bank_Details" style="display: none;">
-                                                <div class="row">
-                                                    <div class="col">
-                                                        <label for="bank_num">A/C No:</label>
-                                                        <input type="text" class="form-control" id="bank_num" name="acno"
-                                                            style="background-color: #2f516f; color: white;" >
-                                                        <div class="text-danger"></div>
-                                                       
-                                                    </div>
-                                                    <div class="col">
-                                                        <label for="IFSCCode">IFSC Code</label>
-                                                        <input type="text" class="form-control" id="IFSCCode" name="ifsccode"
-                                                            style="background-color: #2f516f; color: white;" >
-                                                        <div class="text-danger"></div>
-                                                    </div>
-                                                </div>
-                                                &nbsp;   
-                                                <div class="row">
-                                                    <div class="col">
-                                                        <label for="BankName">Bank Name</label>
-                                                            <input type="text" class="form-control" id="BankName" name="bankname"
-                                                                style="background-color: #2f516f; color: white;" >
-                                                            <div class="text-danger"></div>
-                                                       
-                                                    </div>
-                                                    <div class="col">
-                                                        <label for="bank_Branch_Name">Branch Name</label>
-                                                        <input type="text" class="form-control" id="bank_Branch_Name" name="branchname"
-                                                            style="background-color: #2f516f; color: white;" >
-                                                        <div class="text-danger"></div>
-                                                    </div>
-                                                </div>
-                                                </div>
-                                                &nbsp;
-                                                <div class="row">
-                                                    <div class="col">
-                                                        <label for="transactiontype"> Transaction Type</label>
-                                                        <select name="transactiontype" id="transactiontype" class="form-control">
-                                                            <option value="Unknown">Unknown</option>
-                                                            <option value="EndofList">End of List</option>
-                                                            <option value="Cheque">Cheque</option>
-                                                            <option value="eFundTransfer">e-Fund Transfer</option>
-                                                            <option value="ATM">ATM</option>
-                                                            <option value="Card">Card</option>
-                                                            <option value="ECS">ECS</option>
-                                                            <option value="Others">Others</option>
-                                                        </select>
-                                                    </div> 
-                                                </div>
-                                            </div>
-                                        </div>
-                     
-                                    </div>
-                                    <hr>
-                        <div class="row">
-                            <div class="col-md-6 mt-3">
-                                <div class="row">
-                                    <div class="col-md-12 card-title">
-                                        <h5 class="mb-0">Permanant Address</h5>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12 mt-3">
-                                        <div class="form-row">
-                                            <label for="street">Street</label>
-                                            <textarea class="form-control street" id="street" name="street"
-                                                style="background-color: #2f516f;color: white;" required></textarea>
-                                            <div class="invalid-feedback">Please provide a valid Street</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mt-3">
-                                        <div class="form-row">
-                                            <label for="city">City</label>
-                                            <input type="text" class="form-control" id="city" name="city"
-                                                style="background-color: #2f516f;color: white;" placeholder="City"
-                                                required>
-                                            <div class="invalid-feedback">Please provide a valid City</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mt-3">
-                                        <div class="form-row">
-                                            <label for="state">State</label>
-                                            <select type="text" class="form-control" id="state" name="state"
-                                                style="background-color: #2f516f; color: white;" required>
-                                                <option value="" disabled selected>Choose</option>
-                                                <option value="Andaman and Nicobar Islads">Andaman and Nicobar
-                                                    Islands
-                                                </option>
-                                                <option value="Andhra Predhesh">Andhra Predhesh</option>
-                                                <option value="Arunachal Predesh">Arunachal Predesh</option>
-                                                <option value="Assam">Assam</option>
-                                                <option value="Bihar">Bihar</option>
-                                                <option value="Chandigarh">Chandigarh</option>
-                                                <option value="Chhattisgarh">Chhattisgarh</option>
-                                                <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli
-                                                </option>
-                                                <option value="Damn anad Diu">Damn anad Diu</option>
-                                                <option value="Delhi">Delhi</option>
-                                                <option value="Goa">Goa</option>
-                                                <option value="Gujarat">Gujarat</option>
-                                                <option value="Haryana">Haryana</option>
-                                                <option value="Himachal Predesh">Himachal Predesh</option>
-                                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                                                <option value="Jharkhand">Jharkhand</option>
-                                                <option value="Karnataka">Karnataka</option>
-                                                <option value="Kerala">Kerala</option>
-                                                <option value="Ladakh">Ladakh</option>
-                                                <option value="Lakshadweep">Lakshadweep</option>
-                                                <option value="Madhya Predesh">Madhya Predesh</option>
-                                                <option value="Maharashtra">Maharashtra</option>
-                                                <option value="Manipur">Manipur</option>
-                                                <option value="Meghalaya">Meghalaya</option>
-                                                <option value="Mizoram">Mizoram</option>
-                                                <option value="Nagaland">Nagaland</option>
-                                                <option value="Odisha">Odisha</option>
-                                                <option value="Puducherry">Puducherry</option>
-                                                <option value="Punjab">Punjab</option>
-                                                <option value="Rajasthan">Rajasthan</option>
-                                                <option value="Sikkim">Sikkim</option>
-                                                <option value="Tamil Nadu">Tamil Nadu</option>
-                                                <option value="Telangana">Telangana</option>
-                                                <option value="Tripura">Tripura</option>
-                                                <option value="Uttar Predesh">Uttar Predesh</option>
-                                                <option value="Uttarakhand">Uttarakhand</option>
-                                                <option value="West Bengal">West Bengal</option>
-                                                <option value="Other Territory">Other Territory</option>
-                                            </select>
-                                            <div class="invalid-feedback">Please provide a valid State</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mt-3">
-                                        <div class="form-row">
-                                            <label for="pinco">Pin Code</label>
-                                            <input type="text" class="form-control" id="pinco" name="pincode"
-                                                maxlength="6" style="background-color: #2f516f;color: white;"
-                                                placeholder="PIN code" required>
-                                            <div class="invalid-feedback">Please provide a valid Pin Code</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mt-3">
-                                        <div class="form-row">
-                                            <label for="country">Country</label>
-                                            <input type="text" class="form-control" id="country" name="country"
-                                                style="background-color: #2f516f;color: white;" placeholder="Country"
-                                                required>
-                                            <div class="invalid-feedback">Please provide a valid Country</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mt-3">
-                                <div class="row">
-                                    <div class="col-md-12 d-flex">
-                                        <h5>Temporary Address</h5>
-                                        <input class="ml-4 mb-2 ml-2" type="checkbox" onclick="poppins1()" id="okay"
-                                            name="okay">
-                                        <label class="ml-2 mb-2 ml-2 mb-0" for="okay">Same As Permanant Address</label>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12 mt-3">
-                                        <div class="form-row">
-                                            <label for="tempstreet">Street</label>
-                                            <textarea class="form-control" id="tempstreet" name="tempstreet"
-                                                style="background-color: #2f516f;color: white;" required></textarea>
-                                            <div class="invalid-feedback">Please provide a valid Street</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mt-3">
-                                        <div class="form-row">
-                                            <label for="tempcity">City</label>
-                                            <input type="text" class="form-control" id="tempcity" name="tempcity"
-                                                style="background-color: #2f516f;color: white;" placeholder="City"
-                                                required>
-                                            <div class="invalid-feedback">Please provide a valid City</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mt-3">
-                                        <div class="form-row">
-                                            <label for="tempstate">State</label>
-                                            <select type="text" class="form-control" id="tempstate" name="tempstate"
-                                                style="background-color: #2f516f; color: white;" required>
-                                                <option id="tempst" selected>Choose</option>
-                                                <option value="Andaman and Nicobar Islads">Andaman and Nicobar
-                                                    Islands
-                                                </option>
-                                                <option value="Andhra Predhesh">Andhra Pradhesh</option>
-                                                <option value="Arunachal Predesh">Arunachal Pradesh</option>
-                                                <option value="Assam">Assam</option>
-                                                <option value="Bihar">Bihar</option>
-                                                <option value="Chandigarh">Chandigarh</option>
-                                                <option value="Chhattisgarh">Chhattisgarh</option>
-                                                <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli
-                                                </option>
-                                                <option value="Damn anad Diu">Damn anad Diu</option>
-                                                <option value="Delhi">Delhi</option>
-                                                <option value="Goa">Goa</option>
-                                                <option value="Gujarat">Gujarat</option>
-                                                <option value="Haryana">Haryana</option>
-                                                <option value="Himachal Predesh">Himachal Pradesh</option>
-                                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                                                <option value="Jharkhand">Jharkhand</option>
-                                                <option value="Karnataka">Karnataka</option>
-                                                <option value="Kerala">Kerala</option>
-                                                <option value="Ladakh">Ladakh</option>
-                                                <option value="Lakshadweep">Lakshadweep</option>
-                                                <option value="Madhya Predesh">Madhya Pradesh</option>
-                                                <option value="Maharashtra">Maharashtra</option>
-                                                <option value="Manipur">Manipur</option>
-                                                <option value="Meghalaya">Meghalaya</option>
-                                                <option value="Mizoram">Mizoram</option>
-                                                <option value="Nagaland">Nagaland</option>
-                                                <option value="Odisha">Odisha</option>
-                                                <option value="Puducherry">Puducherry</option>
-                                                <option value="Punjab">Punjab</option>
-                                                <option value="Rajasthan">Rajasthan</option>
-                                                <option value="Sikkim">Sikkim</option>
-                                                <option value="Tamil Nadu">Tamil Nadu</option>
-                                                <option value="Telangana">Telangana</option>
-                                                <option value="Tripura">Tripura</option>
-                                                <option value="Uttar Predesh">Uttar Pradesh</option>
-                                                <option value="Uttarakhand">Uttarakhand</option>
-                                                <option value="West Bengal">West Bengal</option>
-                                                <option value="Other Territory">Other Territory</option>
-                                            </select>
-                                            <div class="invalid-feedback">Please provide a valid State</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mt-3">
-                                        <div class="form-row">
-                                            <label for="temppinco">Pin Code</label>
-                                            <input type="text" class="form-control" id="temppinco" name="temppincode"
-                                                maxlength="6" style="background-color: #2f516f;color: white;"
-                                                placeholder="PIN code" required>
-                                            <div class="invalid-feedback">Please provide a valid Pin Code</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mt-3">
-                                        <div class="form-row">
-                                            <label for="tempcountry">Country</label>
-                                            <input type="text" class="form-control" id="tempcountry" name="tempcountry"
-                                                style="background-color: #2f516f;color: white;" placeholder="Country"
-                                                required>
-                                            <div class="invalid-feedback">Please provide a valid Country</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="invalidCheck"
-                                        style="background-color: #2f516f;" required>
-                                    <label>Agree to Terms and Conditions</label>
-                                    <div class="invalid-feedback">You must agree before submitting.</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4"></div>
-                            <div class="col-md-4">
-                                <button class="btn btn-outline-info rounded-pill text-grey w-100 mt-3 mb-3"
-                                    type="submit">
-                                    CREATE
-                                </button>
-                            </div>
-                            <div class="col-md-4"></div>
-                        </div>
-
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
 <script>
-    function poppins() {
-        var chkbtn = document.getElementById('okay');
-        if (chkbtn.checked == true) {
-            document.getElementById('tempstreet').value = document.getElementById('street').value;
-            document.getElementById('tempcity').value = document.getElementById('city').value;
-            document.getElementById('temppinco').value = document.getElementById('pinco').value;
-            document.getElementById('tempcountry').value = document.getElementById('country').value;
-            document.getElementById('tempstate').value = document.getElementById('state').value; 
-        } else {
-            document.getElementById('tempstreet').value = '';
-            document.getElementById('tempcity').value = '';
-            document.getElementById('tempstate').value = '';
-            document.getElementById('temppinco').value = '';
-            document.getElementById('tempcountry').value = '';
-        }
-    }
-</script>
-<script>
-    function hidinput(divId, element) {
-        if (element.value == 'GST-registered-Regular') {
-            document.getElementById(divId).style.display = 'block';
-        } else {
-            document.getElementById(divId).style.display = 'none';
-        }
-    }
-
-    function disinput(divId, element) {
-        if (element.value == 'GST-registered-Regular') {
-            document.getElementById(divId).style.display = 'block';
-        } else {
-            document.getElementById(divId).style.display = 'none';
-        }
-    }
-
-    function disinput2(divId, element) {
-        if (element.value == 'GST-registered-Regular') {
-            document.getElementById(divId).style.display = 'block';
-        } else {
-            document.getElementById(divId).style.display = 'none';
-        }
-    }
-    function checkgst(element) {
-        var gstinput = element.value;
-        var gstregexp = "[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9A-Za-z]{1}[Z]{1}[0-9a-zA-Z]{1}";
-        if (gstinput.match(gstregexp)) {
-            document.getElementById('warngst').innerHTML = '';
-        } else {
-            document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
-            alert('Please provide a valid GST Number');
-        }
-    }
-
-    function checkpan(element) {
-        var paninput = element.value;
-        var panregexp = ["[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}"]
-        if (paninput.match(panregexp)) {
-            document.getElementById('warnpan').innerHTML = '';
-        } else {
-            document.getElementById('warnpan').innerHTML = 'Please provide a valid PAN Number';
-            alert('Please provide a valid PAN Number')
-        }
-    }
-
-    function checkweb(element) {
-        var webinput = element.value;
-        var webregexp = "www."
-        if (webinput.startsWith(webregexp)) {
-            document.getElementById('warnweb').innerHTML = '';
-        } else {
-            document.getElementById('warnweb').innerHTML = 'Please provide a valid Website Address';
-            alert('Please provide a valid Website Address')
-        }
-    }
-</script>
-<script>
-    (function () {
-        'use strict';
-        window.addEventListener('load', function () {
-            var forms = document.getElementsByClassName('needs-validation');
-            var validation = Array.prototype.filter.call(forms, function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (form.checkValidity() === false) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated');
-                }, false);
-            });
-        }, false);
-    })();
-</script>
-</script>
-<script type="text/javascript">
-    function show(str) { 
-        if (document.getElementById('Employees').value != 'Timebased') {
-            $('#amount').prop('readonly', false);
-        }
-        else {
-            $('#amount').prop('readonly', true);
-        }
-        document.getElementById('Salarydetails').style.display = 'none';
-        document.getElementById('Salarydetails').style.display = 'block';
-    }
-
-    function show2(sign) {
-        document.getElementById('Salarydetails').style.display = 'block';
-        document.getElementById('Salarydetails').style.display = 'none'; 
-    }
-
-    function toggleDivVisibility() {
-        var selectElement = document.getElementById("drp_Bank_Details");
-        var selectedValue = selectElement.value;
-        var bankDiv = document.getElementById("Bank_Details");
-
-        if (selectedValue === "Yes") {
-            bankDiv.style.display = "block";  
-        } else {
-            bankDiv.style.display = "none";   
-        }
-    }
-    function DefineSalaryShow() {
-        var time_based = document.getElementById("time_based_show");
-        if (document.getElementById('Employees').value != 'Timebased') {
-            $('#amount').prop('readonly', false);  
-            time_based.style.display = "none";
-        }
-        else {
-            $('#amount').prop('readonly', true); 
-            time_based.style.display = "flex";
-        }
- 
-    }
-    $('#hours, #rate').on('input', function () {
-        var hours = parseFloat($('#hours').val());
-        var rate = parseFloat($('#rate').val());
-        var amount = hours * rate;
-        $('#amount').val(amount);
+    $(document).ready(function () {
+        setCurrentDate();
+        $('#empl_id').on('change', function () {
+            fetchDays();
+        });
     });
 
-    function showPreview(event) {
-        if (event.target.files.length > 0) {
-            var src = URL.createObjectURL(event.target.files[0]);
-            var preview = document.getElementById("file-ip-1-preview");
-            preview.src = src;
-            preview.style.display = "block";
-        }
+    function setCurrentDate() {
+        var currentDate = new Date();
+        var currentYear = currentDate.getFullYear();
+        var currentMonth = currentDate.getMonth() + 1; 
+        var currentDay = currentDate.getDate();
+        var formattedDate = currentYear + '-' + (currentMonth < 10 ? '0' : '') + currentMonth + '-' + (currentDay < 10 ? '0' : '') + currentDay;
+        $('#salary_date').val(formattedDate);
+        $('#month').val(currentMonth);
+        $('#year_').val(currentYear);
     }
-    function toggleDivTds() {
-        var selectElement = document.getElementById("tdsapplicable");
-        var selectedValue = selectElement.value;
-        var tdsDiv = document.getElementById("div-tds");
-
-        if (selectedValue === "Yes") {
-            tdsDiv.style.display = "block"; 
-        } else {
-            tdsDiv.style.display = "none";   
-        }
-    }
+    function fetchDays() {
+        var selectedEmployeeId = $('#empl_id').val();
+        var sd = $('#salary_date').val();
+        var selectedMonth = $('#month').val();
+        var selectedYear = $('#year_').val();
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'getDays' %}",
+            data: {
+                sd : sd,
+                id: selectedEmployeeId,
+                month: selectedMonth,
+                year: selectedYear,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+            dataType: 'json',
+            success: function (data) {
+                document.getElementById('error_msg').innerHTML = ""
+                console.log("Employee details received:", data);
+                document.getElementById('holidays').value = data.holiday ;
+                document.getElementById('attendance').value = data.leave ;
+                document.getElementById('working_days').value = data.working_days ;
+            },
+            error: function (error) {
+                console.error("Error fetching employee details:", error);
+                document.getElementById('error_msg').innerHTML = error.responseJSON && error.responseJSON.error || 'Unknown error';
+            }
+        });
+    }  
 </script>
-
 <script>
-    var dateOfBirthInput = document.getElementById('dateofbirth');
-    var ageInput = document.getElementById('age');
-    dateOfBirthInput.addEventListener('change', function () {
-        var dob = new Date(this.value);
-        var today = new Date();
-        var age = today.getFullYear() - dob.getFullYear();
-        if (today.getMonth() < dob.getMonth() ||
-            (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
-            age--;
+    function calculateSalary() { 
+        console.log('button clicked')
+        var casualLeave = $('#casual_leave').val() || 0;
+        var otherCuttings = $('#other_cuttings').val() || 0;
+        var addBonus = $('#add_bonus').val() || 0;
+        var salary = $('#bassal').val() || 0;
+        var holiday = $('#holidays').val() || 0;
+        var leave = $('#attendance').val()|| 0;
+        var month = $('#month').val();  
+        var year = $('#year').val();  
+        var Other_Allowance = $('#Other_Allowance').val()|| 0;
+        var hra = $('#hra').val()|| 0;  
+        var Conveyance_Allowance = $('#Conveyance_Allowance').val()|| 0;  
+
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'calculate_salary' %}",
+            data: {
+                leave : leave,
+                holiday : holiday,
+                attendance : leave,
+                casual_leave: casualLeave,
+                other_cuttings: otherCuttings,
+                add_bonus: addBonus,
+                salary:salary,
+                month: month,
+                year: year,
+                Other_Allowance:Other_Allowance,
+                hra:hra,
+                Conveyance_Allowance:Conveyance_Allowance,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+            dataType: 'json',
+            success: function (data) {
+                console.log("Monthly salary calculated:", data);
+                var formattedSalary = parseFloat(data.monthly_salary).toFixed(2);
+                document.getElementById('monthly_salary').value = formattedSalary;
+                {% comment %} updateMonthlySalary(data); {% endcomment %}
+            },
+            error: function (error) {
+                console.error("Error calculating monthly salary:", error);
+            }
+        });
+    }
+    
+
+    function updateMonthlySalary(data) {
+        var monthlySalaryElement = document.getElementById('monthly_salary');
+
+        if (monthlySalaryElement) {
+            monthlySalaryElement.value = data.monthly_salary;
+        } else {
+            console.warn("Element with ID 'monthly_salary' not found in the DOM.");
         }
-        ageInput.value = age;
-    });
+    }   
 </script>
 <script>
     $(document).ready(function() {
-        console.log("Script is running");
-        var selectedDate = $('#salary_date').val();
-        console.log("Selected Date:", selectedDate);
+        // Show bloodDiv when blood-Divshow button is clicked
+        $('#blood-Divshow').click(function() {
+            $('#bloodDiv').show();
+        });
+    
+        // Close bloodDiv when bloodDivCloseButton or bloodDivCancelButton is clicked
+        $('#bloodDivCloseButton, #bloodDivCancelButton').click(function() {
+            $('#bloodDiv').hide();
+        });
     });
 </script>
+
 
 {% endblock %}

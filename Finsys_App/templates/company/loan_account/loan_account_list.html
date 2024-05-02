@@ -16,7 +16,7 @@
          <div class="card-body">
          
             <div class="row">
-                <div class="col-3 ml-1">
+                <div class="col-2 ml-1">
                     <input type="search" placeholder="Search..." id="searchInput"  class="form-control ">                         
                 </div>
                 <div class="dropdown show">
@@ -33,19 +33,21 @@
                     </div>
                 </div>
 
-                <div class="col-4 ml-auto">
-                    <button class="btn btn-outline-secondary text-grey" id="exportButton" onclick="ExportToExcel('xlsx')"><i class="fa fa-table"></i> Export To Excel</button>
-                    <a class="btn btn-outline-secondary dropdown-toggle text-grey" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-filter"></i> filter by
-                    </a>
-                          
-                    <div class="dropdown-menu"  id="filter" >
-                        <a class="dropdown-item"href="javascript:void(0);" data-status="All">All</a>
-                        <a class="dropdown-item"href="javascript:void(0);" data-status="Active">Active</a>
-                        <a class="dropdown-item"  href="javascript:void(0);" data-status="Inactive">Inactive</a>
-                    </div>
+                <div class="col-5 ml-auto">
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-outline-secondary text-grey" id="exportButton" onclick="ExportToExcel('xlsx')"><i class="fa fa-table"></i> Export To Excel</button>
+                        <a class="btn btn-outline-secondary dropdown-toggle text-grey ml-1" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-filter"></i> filter by
+                        </a>
+                            
+                        <div class="dropdown-menu"  id="filter" >
+                            <a class="dropdown-item"href="javascript:void(0);" data-status="All">All</a>
+                            <a class="dropdown-item"href="javascript:void(0);" data-status="Active">Active</a>
+                            <a class="dropdown-item"  href="javascript:void(0);" data-status="Inactive">Inactive</a>
+                        </div>
 
-                    <a class="btn btn-outline-secondary text-grey" href="{%url 'loan_create_page' %}"><i class="fa fa-plus font-weight-light"></i> New </a>
+                        <a class="btn btn-outline-secondary text-grey ml-1" href="{%url 'loan_create_page' %}"><i class="fa fa-plus font-weight-light"></i> Account Loan  </a>
+                    </div>
                           
                 </div>
                     

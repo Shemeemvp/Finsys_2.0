@@ -1,0 +1,424 @@
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load static %}
+{% load social_share %}
+
+<!-- fontawesome icons -->
+<link href="{% static 'assets/fontawesome/css/fontawesome.css' %}" rel="stylesheet">
+<link href="{% static 'assets/fontawesome/css/brands.css' %}" rel="stylesheet">
+<link href="{% static 'assets/fontawesome/css/solid.css' %}" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script> <!-- Include jQuery -->
+<script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script> <!-- Include DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css" /> <!-- Include DataTables CSS -->
+
+<!-- Include xlsx library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+
+<style>
+    table tr:not(:last-child):hover{
+        background-color: #5a7684;
+    }
+
+    th a{
+        cursor: pointer;
+    }
+
+    .card{
+        background-color: #243e54;
+    }
+
+    @media print{
+        body{
+            visibility: hidden !important; /* hide everything in body when in print mode*/
+        }
+
+        .printContainer {
+            visibility: visible !important; /* Override the rule above to only show the printables*/
+            position: absolute;
+            z-index: 99999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: large;
+        } 
+
+        .printContainer #report_table thead th{
+            background-color: #243e54 !important;
+        }
+
+        .printContainer #report_table td{
+            background-color: #243e54 !important;
+        }
+    }
+
+    #gdiv{
+        width: 105.5%;
+        background-color: #5a7684;
+    }
+
+    .general {
+        width: 20px;
+        height: 20px;
+        background-color: #243e54;
+        transform: rotate(45deg);
+        z-index: 1;
+        margin-top: -15%;
+        margin-right: -3%;
+        position: absolute;
+        right: 0;
+        border-left: 1px solid white;
+        border-bottom: 1px solid white;
+    }
+
+    #customize{
+        display: none;
+    }
+    
+    ::-webkit-scrollbar{
+        display: none;
+    }
+</style>
+
+<div class="page-content" id="printContainer">
+    <div class="card radius-15">
+        <div class="card-body">
+            <center><h2 class="text-uppercase">{{com.Company_name}}</h2></center>
+            <center><h6>Purchase Report by Vendor</h6></center>
+            {% if from_date and to_date %}
+            <center>
+                <p class="text-uppercase">
+                    From: <span id="from_date">{{from_date | date:'d-m-Y'}}</span> &nbsp;&nbsp; To: <span id="to_date">{{to_date | date:'d-m-Y'}}</span>
+                </p>
+            </center>
+            {% endif %}
+            <hr>
+        </div>
+    </div>
+    <div class="card radius-15">
+        <div class="card-body">
+            <div id="buttons_row">
+                <div class="row">
+                    <div class="col-4 mx-auto">
+                        <button class="btn btn-outline-secondary text-grey" id="customizebtn"><i class="fa fa-gear"></i>&nbsp;Customize Report</button> &nbsp;&nbsp;
+                    </div>
+                    <div class="col-3"></div>
+                    <div class="col-5">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <button class="btn btn-outline-secondary text-grey ml-5" id="exportbtn"><i class="fa fa-table"></i>&nbsp;Export To Excel</button>
+                        <button class="btn btn-outline-secondary text-grey" id="pdfbtn"><i class="fa fa-file"></i>&nbsp;PDF</button>
+                        <button class="btn btn-outline-secondary text-grey" id="printbtn"><i class="fa fa-print"></i>&nbsp;Print</button>
+                        <button class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown" id="sharebtn"><i class="fa fa-share-alt"></i>&nbsp;Share</button>
+                        <ul class="dropdown-menu" style="background-color: black;">
+                            <li class="ml-3"> {% post_to_whatsapp object_or_url "WhatsApp" %}</li>
+                            <li class="ml-3 text-white" data-toggle="modal" data-target="#snd_mail">
+                                Mail
+                            </li>
+                        </ul>
+                    </div>
+                </div> 
+            </div>
+            <br>
+            <div class="table-responsive">
+                <table class="table" id="report_table">
+                    <thead class="text-center">
+                        <th>NAME &nbsp;
+                            <a class="sort_btn" onclick="sort_table(0, 'asce')" title="Sort In Ascending Order"> <span class="fas fa-arrow-up"></span></a>
+                            <a class="sort_btn" onclick="sort_table(0, 'desc')" title="Sort In Descending Order"> <span class="fas fa-arrow-down"></span></a>
+                        </th>
+                        <th>BILL COUNT</th>
+                        <th>BILLS</th>
+                        <th>BILLS WITH TAX</th>
+                    </thead>
+                    <tbody class="text-center">
+                        {% for key, value in bill_data.items %}
+                        <tr style="cursor: pointer;">
+                            <td> {{ key.first_name }} {{ key.last_name }} </td>
+                            <td> {{ value.0 }} </td>
+                            <td> &#8377;{{ value.1 }} </td>
+                            <td> &#8377;{{ value.2 }} </td>  
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td>
+                                <span style="font-size: medium; font-weight: 700;" >TOTAL</span>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-content" id="customize">
+    <form action="{% url 'Fin_customize_purchase_report_vendor' %}" method="post" enctype="multipart/form-data" autocomplete="off" onsubmit="return validate_form()">
+        {% csrf_token %}
+        <div class="card radius-15 p-5">
+            <div class="card-body">
+                <h2>Customize Report</h2><hr class="bg-white"><br>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="pt-3 pl-3 pb-3" id="gdiv">
+                            <h4>General</h4>
+                        </div>
+                        <div class="general"></div>
+                    </div>
+                    <div class="col-9" style="border-left: 1px solid white;">
+                        <label for="" style="font-size: large;">Date Range</label><br>
+                        <div class="row">
+                            <div class="col-1">
+                                <label for="">From</label>
+                            </div>
+                            <div class="col-5"></div>
+                            <div class="col-1">
+                                &nbsp;&nbsp;<label for="">To</label>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <input type="date" class="form-control w-50" name="cfrom_date" id="cfrom_date">
+                            <input type="date" class="form-control w-50 ml-5" name="cto_date" id="cto_date"> 
+                        </div><br>
+                        <span class="text-danger" id="no-option" style="font-size: medium; display: none;">Select Atleast One Option From Below!<br></span>
+                        <input type="checkbox" name="bills" id="bills" onclick="$('#no-option').hide()" checked> <label style="font-size: large;">Include Bills</label><br>
+                        <input type="checkbox" name="dnote" id="dnote" onclick="$('#no-option').hide()" checked> <label style="font-size: large;">Include Debit Notes</label><br>
+                        <input type="checkbox" name="rbills" id="rbills" onclick="$('#no-option').hide()" checked> <label style="font-size: large;">Include Recurring Bills</label><br><br>
+                        <button class="btn btn-outline-secondary text-grey" type="submit">Run Report</button>
+                        <a onclick="location.reload()" class="btn btn-outline-secondary text-grey">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" id="snd_mail">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-10 p-4">
+                        <h2 class="text-uppercase" style="color: white; font-weight: bolder;">Share Report</h2>
+                    </div>
+                    <div class="col-md-2 p-3">
+                        <button type="button" class="btn close" data-dismiss="modal" aria-label="Close" style="float: right;">
+                            <span aria-hidden="true" style="color: white; font-weight: bolder;">&times;</span>
+                        </button>
+                    </div>
+                </div><br>
+                <form action="{% url 'Fin_Share_Purchase_Report_Vendor' %}" method="post" class="needs-validation" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="emailIds">Email IDs</label>
+                        <textarea class="form-control" name="email_ids" id="emailIds" rows="3" placeholder="Multiple emails can be added by separating with a comma(,)." required></textarea>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label for="item_unitname">Message(optional)</label>
+                        <textarea name="email_message" id="email_message" class="form-control" cols="" rows="4" placeholder="This message will be sent along with the Report"></textarea>
+                    </div>
+                    <input type="text" value="{{from_date | date:'Y-m-d'}}" name="from_date" style="display: none;">
+                    <input type="text" value="{{to_date | date:'Y-m-d'}}" name="to_date" style="display: none;">
+                    <input type="checkbox" name="bills_mail" id="bills_mail" style="display: none;">
+                    <input type="checkbox" name="dnote_mail" id="dnote_mail" style="display: none;">
+                    <input type="checkbox" name="rbills_mail" id="rbills_mail" style="display: none;">
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" id="share_with_email" class=" btn btn-outline-secondary text-grey submitShareEmailBtn w-50 text-uppercase">SEND MAIL</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------------------------------- SCRIPTS ----------------------------------->
+
+<!-- Export To Excel -->
+<script>
+    document.getElementById('exportbtn').addEventListener('click', function () {
+        exportToExcel('report_table');
+    });
+
+    function exportToExcel(tableId) {
+        var table = document.getElementById(tableId);
+        var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+        var wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'binary' });
+        function s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+        saveAs(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }), 'Purchase_Report_Vendor.xlsx');
+    }
+</script>
+
+<!-- Convert To PDF -->
+<script>
+    $(document).ready(function () {
+        $(document).on('click', '#pdfbtn', function (event) {
+            var content = document.getElementById('printContainer').cloneNode(true);
+            content.querySelector('#buttons_row').remove();
+            var arrows = content.querySelectorAll("thead a");
+            arrows.forEach(function(arrow) {
+                arrow.parentNode.removeChild(arrow);
+            });
+            var opt =
+            {
+                margin: 1,
+                filename: 'Purchase_Report_Vendor' + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait', }
+            };
+            html2pdf().set(opt).from(content).save();
+        });
+    });
+</script>
+
+<!-- Print Table -->
+<script>
+    $(document).on('click', '#printbtn', function (){
+        var content = document.getElementById('printContainer').cloneNode(true);
+        content.querySelector('#buttons_row').remove();
+        var arrows = content.querySelectorAll("thead a");
+        arrows.forEach(function(arrow) {
+            arrow.parentNode.removeChild(arrow);
+        });
+        var $printerDiv = $('<div class="printContainer"></div>'); // create the div that will contain the stuff to be printed
+        $printerDiv.html(content); // add the content to be printed
+        $('body').append($printerDiv).addClass("printingContent"); // add the div to body, and make the body aware of printing (we apply a set of css styles to the body to hide its contents)
+        window.print(); // call print
+        $printerDiv.remove(); // remove the div
+        $('body').removeClass("printingContent");
+    });
+</script>
+
+<!-- Sort Table Based on Ascending and Descending Order -->
+<script>
+    function sort_table(col, type){
+        var rows, switching, i, x, y, shouldSwitch;
+        switching = true;
+        var table = document.getElementById('report_table');
+        while (switching) {
+            switching = false;
+            rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+            for (i = 0; i < rows.length - 2; i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("td")[col].innerText;
+                y = rows[i + 1].getElementsByTagName("td")[col].innerText;
+                if (col == 0){
+                    x = x.toLowerCase();
+                    y = y.toLowerCase();
+                }else{
+                    if (col != 1){
+                        x = x.slice(1)
+                        y = y.slice(1)
+                    }
+                    x = parseFloat(x)
+                    y = parseFloat(y)
+                }
+                if (type == 'asce'){
+                    if (x > y) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }else{
+                    if (x < y) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+            }
+        }
+    }
+</script>
+
+<!-- Calculate The Values In Total Row -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var table = document.getElementById('report_table');
+        rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+        count = 0
+        bill = 0
+        tax = 0
+        for (i = 0; i < rows.length - 1; i++) {
+            count = count + parseInt(rows[i].getElementsByTagName("td")[1].innerText);
+            bill = bill + parseFloat(rows[i].getElementsByTagName("td")[2].innerText.slice(1));
+            tax = tax + parseFloat(rows[i].getElementsByTagName("td")[3].innerText.slice(1));
+        }
+        rows[rows.length - 1].getElementsByTagName("td")[1].innerText = count
+        rows[rows.length - 1].getElementsByTagName("td")[2].innerText = `₹${bill}`
+        rows[rows.length - 1].getElementsByTagName("td")[3].innerText = `₹${tax}`
+    });
+</script>
+
+<!-- Opening Customize Tab -->
+<script>
+    $('#customizebtn').click(function(){
+        $('#printContainer').hide()
+        $('#customize').show()
+    });
+</script>
+
+<!-- Customize Tab Disbling Date in To Date -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var start = document.getElementById('cfrom_date');
+        var end = document.getElementById('cto_date');
+        start.addEventListener('change', function() {
+            var selectedDate = new Date(start.value);
+            end.min = formatDate(selectedDate);
+            $('#cto_date').prop('required', true)
+        });
+        function formatDate(date) {
+            var year = date.getFullYear();
+            var month = ('0' + (date.getMonth() + 1)).slice(-2);
+            var day = ('0' + date.getDate()).slice(-2);
+            return year + '-' + month + '-' + day;
+        }
+    });
+</script>
+
+<!-- Validate Customize Form -->
+<script>
+    function validate_form(){
+        if($('#bills').prop('checked') || $('#dnote').prop('checked') || $('#rbills').prop('checked')){
+            return true;
+        }else{
+            $('#no-option').show()
+            return false;
+        }
+    }
+</script>
+
+<!-- Send Mail Hidden Checkbox -->
+<script>
+    $(document).ready(function() {
+        if ('{{is_bills}}' == '1'){
+            $('#bills_mail').prop('checked', true)
+        }else{
+            $('#bills_mail').prop('checked', false)
+        }
+
+        if ('{{is_dnote}}' == '1'){
+            $('#dnote_mail').prop('checked', true)
+        }else{
+            $('#dnote_mail').prop('checked', false)
+        }
+
+        if ('{{is_rbills}}' == '1'){
+            $('#rbills_mail').prop('checked', true)
+        }else{
+            $('#rbills_mail').prop('checked', false)
+        }
+    });
+</script>
+{% endblock %}

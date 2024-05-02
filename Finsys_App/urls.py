@@ -744,6 +744,7 @@ urlpatterns = [
     path('Fin_deleteEmployeeComment/<int:id>/<int:salary_id>/',views.Fin_deleteEmployeeComment, name='Fin_deleteEmployeeComment'),
     path('Fin_salaryedit/<int:employee_id>/<int:salary_id>/', views.Fin_salaryedit, name ='Fin_salaryedit'),
     path('Fin_SalaryHistory/<int:id>',views.Fin_SalaryHistory, name='Fin_SalaryHistory'),
+    path('Fin_salarysave/<int:employee_id>/<int:salary_id>/', views.Fin_salarysave, name ='Fin_salarysave'),
     #-------------------------------------------------End---------------------#
     # ...............Payement Recevied.........................Antony.........
     path('Fin_checkpaymentNumber',views.Fin_checkpaymentNumber,name='Fin_checkpaymentNumber'),
@@ -773,7 +774,7 @@ urlpatterns = [
     
     path('Purchase_Bill_All_Items_Add',views.Fin_Get_All_Items_Add,name='Fin_Get_All_Items_Add'),
     path('Purchase_Bill_All_Items_Edit',views.Fin_Get_All_Items_Edit,name='Fin_Get_All_Items_Edit'),
-
+    
     # < ------------- Shemeem -------- > CASH IN HAND < ------------------------------- >
     path('Fin_cash_in_hand',views.Fin_cashInHand, name='Fin_cashInHand'),
     path('Fin_add_cash',views.Fin_addCash, name='Fin_addCash'),
@@ -785,7 +786,42 @@ urlpatterns = [
     path('Fin_share_cash_in_hand_statement_to_email',views.Fin_shareCashInHandStatementToEmail, name='Fin_shareCashInHandStatementToEmail'),
     path('Fin_cash_in_hand_graph/<str:period>',views.Fin_cashInHandGraph, name='Fin_cashInHandGraph'),
     path('Fin_delete_added_cash/<int:id>',views.Fin_deleteAddedCash, name='Fin_deleteAddedCash'),
-
+    # End
+    #------------------Salary Details---------------------------#
+    path('check_employee_id/', views.check_employee_id, name='check_employee_id'),
+    path('emp_dropdown_active_not', views.emp_dropdown_active_not, name='emp_dropdown_active_not'),
+    #-------------------------------------------------End---------------------#
+    #Reshna-Retainer_Invoice--------------------------
+    path('Fin_RET_INV_Listout',views.Fin_RET_INV_Listout,name='Fin_RET_INV_Listout'),
+    path('Fin_Create_RET_INV',views.Fin_Create_RET_INV,name='Fin_Create_RET_INV'),
+    path('Fin_RET_INV_Add',views.Fin_RET_INV_Add,name='Fin_RET_INV_Add'),
+    path('Fin_get_RET_INV_Customers',views.Fin_get_RET_INV_Customers,name='Fin_get_RET_INV_Customers'),
+    path('Fin_RET_INV_Customer',views.Fin_RET_INV_Customer,name='Fin_RET_INV_Customer'),
+    path('Fin_Retinvcustomer_paymentterm',views.Fin_Retinvcustomer_paymentterm,name='Fin_Retinvcustomer_paymentterm'),
+    path('Fin_RETINV_CustomerData',views.Fin_RETINV_CustomerData,name='Fin_RETINV_CustomerData'),
+    path('fetch_bank_account',views.fetch_bank_account,name='fetch_bank_account'),
+    path('Fin_validate_retinv_number',views.Fin_validate_retinv_number,name='Fin_validate_retinv_number'),
+    path('Fin_RETInvoiceItem',views.Fin_RETInvoiceItem,name='Fin_RETInvoiceItem'),
+    path('validate_hsn',views.validate_hsn,name='validate_hsn'),
+    path('validate_name',views.validate_name,name='validate_name'),
+    path('Fin_Reloaditems',views.Fin_Reloaditems,name='Fin_Reloaditems'),
+    path('Fin_RETINVItemDetails',views.Fin_RETINVItemDetails,name='Fin_RETINVItemDetails'),
+    path('Fin_RI_Overview/<int:id>',views.Fin_RI_Overview,name='Fin_RI_Overview'),
+    path('Fin_deleteRI/<int:id>',views.Fin_deleteRI,name='Fin_deleteRI'),
+    path('Fin_addRETINVComment/<int:id>',views.Fin_addRETINVComment,name='Fin_addRETINVComment'),
+    path('Fin_deleteRETINVComment/<int:id>',views.Fin_deleteRETINVComment,name='Fin_deleteRETINVComment'),
+    path('Fin_RIHistory/<int:id>',views.Fin_RIHistory,name='Fin_RIHistory'),
+    path('Fin_deleteRI/<int:id>',views.Fin_deleteRI,name='Fin_deleteRI'),
+    path('Fin_RIPdf/<int:id>',views.Fin_RIPdf,name='Fin_RIPdf'),
+    path('Fin_shareRIEmail/<int:id>',views.Fin_shareRIEmail,name='Fin_shareRIEmail'),
+    path('Fin_RET_INV_edit/<int:id>',views.Fin_RET_INV_edit,name='Fin_RET_INV_edit'),
+    path('Fin_RET_INV_update/<int:id>',views.Fin_RET_INV_update,name='Fin_RET_INV_update'),
+    path('Fin_convertRI/<int:id>',views.Fin_convertRI,name='Fin_convertRI'),
+    #--------------------------------------------------------------------------------
+    #------------------Salary Details---------------------------#
+    path('Employee-Edit/<int:employee_id>/<int:sal_id>/', views.employee_edit, name='employee_edit'),
+    path('Edit_getDays',views.Edit_getDays,name='Edit_getDays'),
+    #-------------------------------------------------End---------------------#
     # < ------------- Shemeem -------- > CHEQUES < ------------------------------- >
     path('Fin_cheques',views.Fin_cheques, name='Fin_cheques'),
     path('Fin_cheque_statement',views.Fin_chequeStatement, name='Fin_chequeStatement'),
@@ -797,7 +833,7 @@ urlpatterns = [
     path('Fin_upi_statement',views.Fin_upiStatement, name='Fin_upiStatement'),
     path('Fin_upi_statement_pdf',views.Fin_upiStatementPdf, name='Fin_upiStatementPdf'),
     path('Fin_share_upi_statement_to_email',views.Fin_shareUpiStatementToEmail, name='Fin_shareUpiStatementToEmail'),
-
+    # End
     # < ------------- Shemeem -------- > CREDIT NOTES < ------------------------------- >
     path('Fin_credit_notes',views.Fin_creditNotes, name = 'Fin_creditNotes'),
     path('Fin_add_credit_note',views.Fin_addCreditNote, name='Fin_addCreditNote'),
@@ -818,7 +854,7 @@ urlpatterns = [
     path('Fin_share_credit_note_to_email/<int:id>',views.Fin_shareCreditNoteToEmail, name='Fin_shareCreditNoteToEmail'),
     path('Fin_delete_credit_note/<int:id>',views.Fin_deleteCreditNote, name= 'Fin_deleteCreditNote'),
     path('Fin_get_inv_paid_amount',views.Fin_getInvoicePaidAmount, name='Fin_getInvoicePaidAmount'),
-
+    # End
     # < ------------- Shemeem -------- > Reports - Sales by Item & Customer < ------------------------------- >
     path('Fin_report_sales_by_customer',views.Fin_salesByCustomerReport, name='Fin_salesByCustomerReport'),
     path('Fin_sales_by_customer_report_customized',views.Fin_salesByCustomerReportCustomized, name='Fin_salesByCustomerReportCustomized'),
@@ -827,21 +863,48 @@ urlpatterns = [
     path('Fin_sales_by_items_report_customized',views.Fin_salesByItemsReportCustomized, name='Fin_salesByItemsReportCustomized'),
     path('Fin_share_sales_by_item_report_to_email',views.Fin_shareSalesByItemReportToEmail, name='Fin_shareSalesByItemReportToEmail'),
 
+    # End
+    path('Fin_Check_New_Item_SAC',views.Fin_Check_New_Item_SAC, name='Fin_Check_New_Item_SAC'),
+    # ------------------------------------ Purchase Report ------------------------------------
+    path('Fin_purchase_report_vendor',views.Fin_purchase_report_vendor, name='Fin_purchase_report_vendor'),
+    path('Fin_Share_Purchase_Report_Vendor',views.Fin_Share_Purchase_Report_Vendor, name='Fin_Share_Purchase_Report_Vendor'),
+    path('Fin_customize_purchase_report_vendor',views.Fin_customize_purchase_report_vendor, name='Fin_customize_purchase_report_vendor'),
+    path('Fin_purchase_report_item',views.Fin_purchase_report_item, name='Fin_purchase_report_item'),
+    path('Fin_customize_purchase_report_item',views.Fin_customize_purchase_report_item, name='Fin_customize_purchase_report_item'),
+    path('Fin_Share_Purchase_Report_Item',views.Fin_Share_Purchase_Report_Item, name='Fin_Share_Purchase_Report_Item'),
+    #End
     # < ------------- Shemeem -------- > Reports - DayBook < ------------------------------- >
     path('Fin_report_day_book',views.Fin_dayBookReport, name='Fin_dayBookReport'),
     path('Fin_day_book_report_customized',views.Fin_dayBookReportCustomized, name='Fin_dayBookReportCustomized'),
     path('Fin_share_day_book_report_to_email',views.Fin_shareDayBookReportToEmail, name='Fin_shareDayBookReportToEmail'),
-    
+    # End
+    # ------------------------------------ customerbalence Report ------------------------------------
+    path('Fin_customerbalence',views.Fin_customerbalence, name='Fin_customerbalence'),
+    path('Fin_shareCustomerBalenceReportToEmail',views.Fin_shareCustomerBalenceReportToEmail, name='Fin_shareCustomerBalenceReportToEmail'),
+    path('Fin_customerbalence_report_customized',views.Fin_customerbalence_report_customized, name='Fin_customerbalence_report_customized'),
+    #End
+    # < ------------- Haripriya -------- > Reports -Retainer Invoice < ------------------------------- >
+    path('Fin_Retainer_Report',views.Fin_Retainer_Report, name='Fin_Retainer_Report'),
+    path('Fin_RetainerInvoReportCustomized',views.Fin_RetainerInvoReportCustomized, name='Fin_RetainerInvoReportCustomized'),
+    path('Fin_shareRetainerInvoiceReportToEmail',views.Fin_shareRetainerInvoiceReportToEmail, name='Fin_shareRetainerInvoiceReportToEmail'),
+    #End
     # < ------------- Shemeem -------- > Reports - Sales Order Details < ------------------------------- >
     path('Fin_report_sales_order_details',views.Fin_salesOrderDetailsReport, name='Fin_salesOrderDetailsReport'),
     path('Fin_sales_order_details_report_customized',views.Fin_salesOrderDetailsCustomized, name='Fin_salesOrderDetailsCustomized'),
     path('Fin_share_sales_order_details_report_to_email',views.Fin_shareSalesOrderDetailsReportToEmail, name='Fin_shareSalesOrderDetailsReportToEmail'),
-
+    # End
     # < ------------- Shemeem -------- > Reports - Purchase Order Details < ------------------------------- >
     path('Fin_report_purchase_order_details',views.Fin_purchaseOrderDetailsReport, name='Fin_purchaseOrderDetailsReport'),
     path('Fin_purchase_order_details_report_customized',views.Fin_purchaseOrderDetailsCustomized, name='Fin_purchaseOrderDetailsCustomized'),
     path('Fin_share_purchase_order_details_report_to_email',views.Fin_sharePurchaseOrderDetailsReportToEmail, name='Fin_sharePurchaseOrderDetailsReportToEmail'),
     # End
+    # ------------------------------------ estimate Report ------------------------------------
+    path('Fin_estimate_report',views.Fin_estimate_report, name='Fin_estimate_report'),
+    path('Fin_estimateDetailsCustomized',views.Fin_estimateDetailsCustomized, name='Fin_estimateDetailsCustomized'),
+    path('Fin_shareestimateDetailsReportToEmail',views.Fin_shareestimateDetailsReportToEmail, name='Fin_shareestimateDetailsReportToEmail'),
+    #End
+
+
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 ]

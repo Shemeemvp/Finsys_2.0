@@ -64,8 +64,21 @@
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <form action="{% url 'Fin_newdebitnote' %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validateForm()">
   {% csrf_token %}
-  <div class="page-content">
-    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_debitnotelist' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+  <div class="page-content pt-0">
+
+    <div class="d-flex justify-content-end mb-1">
+        <a href="{% url 'Fin_debitnotelist' %}"><i class="fa fa-times-circle text-white mx-4 p-1" style="font-size: 1.2rem;margin-right: -0rem !important;"></i></a>
+      </div>
+    <div class="card radius-15 h-20">
+        <div class="row">
+          <div class="col-md-12">
+            <center><h2 class="mt-3">New Debit Note</h2></center>
+            <hr/>
+          </div>
+        </div>
+      </div>
+
+    <!-- <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_debitnotelist' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
     <div class="card radius-15">
       <div class="card-body">
         <div class="card-title">
@@ -73,7 +86,7 @@
         </div>
         <hr />
       </div>
-    </div>
+    </div> -->
     <div class="card radius-15">
       <div class="card-body">
         <div id="estimate">
@@ -519,7 +532,18 @@ console.log("end")
 
                                             console.log("hii")
                                             $("#itemId"+n).val(response.id);
-                                            $("#hsn"+n).val(response.hsn);
+                                            if( response.item_type ==='Goods')
+                                            {
+                                                $('#hsn'+n).show();
+                                                $('#sac'+n).hide();
+                                                $('#hsn'+n).val(response.hsn);
+                                            }
+                                            else
+                                            {
+                                                $('#sac'+n).show();
+                                                $('#hsn'+n).hide();
+                                                $('#sac'+n).val(response.sac);
+                                            }
                                             $("#price"+n).val(response.purchase_rate);
                                             $("#taxGST"+n).val(response.gst);
                                             $("#taxIGST"+n).val(response.igst);
@@ -584,6 +608,7 @@ console.log("end")
                                 <td> 
                                     <input type="hidden" name="item_id[]" id="itemId1">
                                     <input type="text" name='hsn[]' id="hsn1" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
+                                    <input type="text" name='sac[]' id="sac1" placeholder='SAC Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;display: none;" readonly />
                                 </td>
                                 <td >
                                     <input type="number" name='qty[]' id="qty1"  class="form-control qty mb-1 d-flex qty" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value=0 onchange="changeItemQty1(this.id)" required/><span class="text-danger ml-3" id="excqty1"></span>
@@ -1638,7 +1663,7 @@ $.ajax({
         <div class="modal-content" style="background-color: #213b52;">
             <div class="modal-header">
                 <h5 class="m-3">New Item Unit</h5>
-                <button type="button" class="close" data-toggle="modal" data-target="#newItem" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal"data-toggle="modal" data-target="#newItem" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -1672,7 +1697,7 @@ $.ajax({
         <div class="modal-content" style="background-color: #213b52;">
             <div class="modal-header">
                 <h5 class="m-3">New Account</h5>
-                <button type="button" class="close" data-toggle="modal" data-target="#newItem" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal"data-toggle="modal" data-target="#newItem" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -1799,10 +1824,15 @@ $.ajax({
                                     </a>
                                 </div>
                             </div>
-                            <div class="col-md-6 mt-3">
+                            <div class="col-md-6 mt-3" id="hsnDiv">
                                 <label for="hsnField" style="color: white;">HSN Code</label>
                                 <input type="number" name="hsn" class="form-control" style="background-color: #2a4964; color: white;" placeholder="Enter a valid HSN code" required id="hsnField" oninput="validateHSN()">
                                 <div id="hsnError" style="color: red;"></div>
+                            </div>
+                            <div class="col-md-6 mt-3" id="sacDiv" style="display: none;">
+                                <label for="sacField" style="color: white;">SAC Code</label>
+                                <input type="number" name="sac" class="form-control" style="background-color: #2a4964; color: white;" placeholder="Enter a valid SAC code" id="sacField" oninput="validateSAC()">
+                                <div id="sacError" style="color: red;"></div>
                             </div>
                         </div>
                         <div class="row mt-3">
@@ -2523,6 +2553,7 @@ $(document).ready(function(){
             <td>
                 <input type="hidden" name="item_id[]" id="itemId${roinc}">
                 <input type="text" name='hsn[]' id="hsn${roinc}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
+                <input type="text" name='sac[]' id="sac${roinc}" placeholder='SAC Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;display: none;" readonly />
             </td>
             <td >
                 <input type="number" name='qty[]' id="qty${roinc}"  class="form-control qty mb-1" step=0 min=1 style="background-color: #43596c;margin-top: 21px; color: white;" value=0 onchange="changeItemQty1(this.id)" required/><span class="text-danger ml-3" id="excqty${roinc}"></span>
@@ -3181,10 +3212,12 @@ $(document).ready(function(){
             errorText.innerText = "HSN must contain at least 6 digits";
             hsnField.setCustomValidity("HSN must contain at least 6 digits");
             hsnField.style.borderColor = "red";
+            return false
         } else {
             errorText.innerText = "";
             hsnField.setCustomValidity(""); 
             hsnField.style.borderColor = ""; 
+            return true
         }
     }
 
@@ -3428,6 +3461,8 @@ $(document).on("click","#saveNewItem",function(){
     var type = $("#itemType").val();
     var unit = $("#itemUnit").val();
     var hsn = $("#hsnField").val();
+    var sac = $("#sacField").val();
+    var hsn_or_sac;
     if($('#inclusive').prop('checked') || $('#check').prop('checked')){
         if($('#inclusive').prop('checked')){
             var tax = 'taxable'
@@ -3439,7 +3474,28 @@ $(document).on("click","#saveNewItem",function(){
         return
     }
 
-    if (name !="" && type !="" && unit != "" && hsn != "" && tax != ""){
+    if($('#itemType').val()=== 'Goods' )
+    {
+        
+        hsn_or_sac = hsn;
+        if(!validateHSN())
+        {
+            alert('HSN must contain at least 6 digits')
+            return
+        }
+    }
+    else 
+    {
+        
+        hsn_or_sac = sac;
+        if(!validateSAC())
+        {
+            alert('SAC must contain at least 6 digits')
+            return
+        }
+    }
+
+    if (name !="" && type !="" && unit != "" && tax != ""){
         $.ajax({
             type : 'POST',
             url:"{% url 'Fin_createInvoiceItem' %}",
@@ -3448,6 +3504,7 @@ $(document).on("click","#saveNewItem",function(){
                 'type' : type,
                 'unit' : unit,
                 'hsn' : hsn,
+                'sac':sac,
                 'taxref' : tax,
                 'intra_st' : $("#intraStateTax").val(),
                 'inter_st' : $("#interStateTax").val(),
@@ -3597,7 +3654,7 @@ function reloadItems() {
         <div class="modal-content" style="background-color: #213b52;">
             <div class="modal-header">
                 <h5 class="m-3">New Vendor Payment Term</h5>
-                <button type="button" class="close" data-dismiss="modal"  data-target="#newVendor" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" onclick="$('#newVendor').modal('show')"  data-target="#newVendor" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -4503,5 +4560,51 @@ function reloadItems() {
             }
         }
     </script>
+
+
+<script>
+    function validateSAC() {
+        var sacField = document.getElementById("sacField");
+        var errorText = document.getElementById("sacError");
+        var sacValue = sacField.value;
+
+        if (sacValue.length < 6) {
+            errorText.innerText = "SAC must contain at least 6 digits";
+            sacField.setCustomValidity("SAC must contain at least 6 digits");
+            sacField.style.borderColor = "red";
+            return false;
+        } else {
+            errorText.innerText = "";
+            sacField.setCustomValidity(""); 
+            sacField.style.borderColor = ""; 
+            return true;
+        }
+    }
+    $(document).ready(function(){
+        $('#itemType').on('input',function(){
+            if($(this).val()=== 'Goods' )
+            {
+                $('#sacField').val('');
+                $('#hsnField').prop('required',true);
+                $('#sacField').prop('required',false);
+                $('#hsnDiv').show();
+                $('#sacDiv').hide();
+                $('#sacError').text('');
+                $('#sacField').css({'border-color':'white'});
+            }
+            else
+            {
+                $('#hsnField').val('')
+                $('#hsnField').prop('required',false);
+                $('#sacField').prop('required',true);
+                $('#sacDiv').show();
+                $('#hsnDiv').hide();
+                $('#hsnError').text('');
+                $('#hsnField').css({'border-color':'white'});
+            }
+        })
+    })
+</script>
+
 
 {% endblock %}

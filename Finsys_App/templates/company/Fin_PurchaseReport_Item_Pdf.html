@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinsYs</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        border: 1px solid #dddddd;
+        padding: 5px 2px;
+        /* text-align: left; */
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    body {
+        font-size: 14px;
+    }
+</style>
+
+<body>
+    <div class="my-5 page" size="A4">
+        <div class="p-5">
+            <div id="ember2512" class="row tooltip-container ember-view text-ellipsis" style="display: flex; justify-content: space-between;">
+                <div class="col-md-4"></div>
+                <div class="col-md-4">
+                    <center style="color: black;">
+                        <p><span style="font-size: 1.3rem; font-weight: bold; text-transform: capitalize;">{{com.Company_name}}</span><br>
+                            Purchase Report by Item <br>
+                            From: {{from_date}} &nbsp;&nbsp; To: {{to_date}}
+                        </p>
+                    </center>
+                </div>
+            </div>
+            <hr >
+            <section class="mt-4">
+                <table class="table" id="report_table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center; text-transform:uppercase;">ITEM NAME</th>
+                            <th style="text-align: center; text-transform:uppercase;">QUANTITY PURCHASED</th>
+                            <th style="text-align: center; text-transform:uppercase;">PRICE</th>
+                            <th style="text-align: center; text-transform:uppercase;">AMOUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, value in itm_data.items %}
+                        <tr>
+                            <td style="text-align: center;"> {{ key }} </td>
+                            <td style="text-align: center;"> {{ value.0 }} </td>
+                            <td style="text-align: center;"> Rs{{ value.1 }} </td>
+                            <td style="text-align: center;"> Rs{{ value.2 }} </td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td style="text-align: center;">
+                                <span style="font-size: medium; font-weight: 700;" >TOTAL</span>
+                            </td>
+                            <td style="text-align: center;"> {{ total_count }} </td>
+                            <td style="text-align: center;"> Rs{{ total_amount }} </td>
+                            <td style="text-align: center;"> Rs{{ total_price }} </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

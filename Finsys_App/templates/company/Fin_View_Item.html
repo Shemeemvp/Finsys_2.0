@@ -145,13 +145,13 @@
 
                             <div class="row mb-3">
                                 <div class="col-4 d-flex justify-content-start">
-                                    <label style="color: white;" > HSN Code </label>
+                                    <label style="color: white;" >{% if item.item_type == 'Goods' %} HSN Code {% else %} SAC Code {% endif %}</label>
                                 </div>
                                 <div class="col-4 d-flex justify-content-center">
                                     <p>:</p>
                                 </div>
                                 <div class="col-4 d-flex justify-content-start">
-                                    <p style="color: white;font-size:15px;text-transform:Uppercase;"> {{item.hsn}}</p>
+                                    <p style="color: white;font-size:15px;text-transform:Uppercase;">{% if item.hsn %}{{ item.hsn }}{% else %}{{ item.sac }}{% endif %}</p>
                                 </div>
                             </div>
 

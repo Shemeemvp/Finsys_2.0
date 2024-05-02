@@ -4,7 +4,33 @@
 
 {% load static %}
 
+<!-- Select2 CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" >
+
 <style>
+    #bloodDiv {
+        display: none;
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        width:300px;
+        transform: translate(-50%, -50%);
+        background-color: #163753 !important;
+    }
+    #preview-img
+    .col-imgBox
+    {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+    }
+    #preview-img img{
+        object-fit: fill;
+        border-radius: 50%;
+        width: 130px;
+        height: 130px;
+    }
     input {
         background-color: #2f516f;
         border: 0;
@@ -17,222 +43,28 @@
             margin-left: 0px !important;
         }
     }
+    @media (max-width:668px)
+    {
+        #bloodDiv
+        {
+            width: calc(100% - 20%);
+        }
+        #bloodDiv h5
+        {
+            font-size: 13px;
+        }
+    }
+    #error_msg
+    {
+        font-size: 12px;
+        margin-top: 0.60rem;
+        color: #f32f2f;
+    }
 </style>
 
-<form action="{% url 'Fin_salaryedit' employee.id salary_detail.id %}" method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
+<form action="{% url 'Fin_salaryedit' employee.id salary_detail.id %}" method="post" class="needs-validation" >
     {% csrf_token %}
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
-    <!-- jQuery library -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-/4YbHY5q5lGynbhHacwPMS0cm6E5P6WfJxJ0+K5I2LZ1vgyMIH7EWrC5LlOQibQ" crossorigin="anonymous"></script>
-
-    <!-- Select2 CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" integrity="sha384-GLhlTQ8iHXYr4Ll6ZtL4z+U4ViH6EX46MzT5N5tiSdY6Pmash4FgW1VaERuDQ2M" crossorigin="anonymous">
-
-    <!-- Select2 JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha384-oS/4h5ujr+q1I0e/B0ABtuW1NmMzqDvXRG5e2PDuL1V+omlYT1tDHDV1NsuIKD6L" crossorigin="anonymous"></script>
-
-
-    
-    <script>
-        $(document).ready(function () {
-            $('#empl_id').select2({
-                placeholder: 'Search for an employee',
-                minimumInputLength: 0, // Minimum number of characters before searching
-                ajax: {
-                    url: "{% url 'listemployee_salary' %}",
-                    dataType: 'json',
-                    delay: 250,
-                    processResults: function (data) {
-                        return {
-                            results: $.map(data, function (item) {
-                                return {
-                                    id: item.employeeid,
-                                    text: item.title + ' ' + item.firstname + ' ' + item.lastname
-                                };
-                            })
-                        };
-                    },
-                    cache: true,
-                },
-            });
-        });
-
-        function fetchEmployeeDetails() {
-            console.log("Fetching employee details...");
-            var selectedEmployeeId = $('#empl_id').val();
-            console.log("Selected Employee ID:", selectedEmployeeId);
-    
-            $.ajax({
-                type: 'POST',
-                url: "{% url 'listemployee_salary' %}",
-                data: {
-                    id: selectedEmployeeId,
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                },
-                dataType: 'json',
-                success: function (data) {
-                    console.log("Employee details received:", data);
-                    updateFormFields(data); 
-                },
-                error: function (error) {
-                    console.error("Error fetching employee details:", error);
-                }
-            });
-        }
-
-    
-        function updateFormFields(data) {
-            console.log(data);
-            document.getElementById('email').value = data.email || '';
-            document.getElementById('eid').value = data.employeeno || '';
-            document.getElementById('joindate').value = data.joindate || '';
-            document.getElementById('Salary').value = data.amount || '';
-            document.getElementById('designation').value = data.designation || '';
-            
-            {% comment %} if (data.holidays_data) {
-            var holidaysList = data.holidays_data.map(function (holiday) {
-                return holiday.start_date + ' to ' + holiday.end_date;
-            });
-            updateFieldValue('holidays', holidaysList.join(', '));
-        }
-
-        if (data.attendance_data) {
-            var attendanceList = data.attendance_data.map(function (attendance) {
-                return attendance.date + ' (' + attendance.status + ')';
-            });
-            updateFieldValue('attendance', attendanceList.join(', '));
-        }
-
-        if (data.working_days) {
-            updateFieldValue('working_days', data.working_days);
-        } {% endcomment %}
-    }
-
-    function updateFieldValue(elementId, value) {
-        var element = document.getElementById(elementId);
-        if (element) {
-            element.value = value;
-        } else {
-            console.warn("Element with ID '" + elementId + "' not found in the DOM.");
-        }
-    }
-        function clearEmployeeDetails() {
-            updateFormFields({
-                email: '',
-                employeeno: '',
-                joindate: '',
-                amount: '',
-                designation: '',
-                holidays_data: [],
-                attendance_data: [],
-                working_days: '',
-               
-            });
-        }
-    </script>
-    <script>
-        $(document).ready(function () {
-            setCurrentDate();
-            $('#empl_id').on('change', function () {
-                fetchDays();
-            });
-        });
-
-        function setCurrentDate() {
-            var currentDate = new Date();
-            var currentYear = currentDate.getFullYear();
-            var currentMonth = currentDate.getMonth() + 1; 
-            var currentDay = currentDate.getDate();
-            var formattedDate = currentYear + '-' + (currentMonth < 10 ? '0' : '') + currentMonth + '-' + (currentDay < 10 ? '0' : '') + currentDay;
-            $('#salary_date').val(formattedDate);
-            $('#month').val(currentMonth);
-            $('#year_').val(currentYear);
-        }
-        function fetchDays() {
-            var selectedEmployeeId = $('#empl_id').val();
-            var sd = $('#salary_date').val();
-            var selectedMonth = $('#month').val();
-            var selectedYear = $('#year_').val();
-            $.ajax({
-                type: 'POST',
-                url: "{% url 'getDays' %}",
-                data: {
-                    sd : sd,
-                    id: selectedEmployeeId,
-                    month: selectedMonth,
-                    year: selectedYear,
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                },
-                dataType: 'json',
-                success: function (data) {
-                    document.getElementById('error_msg').innerHTML = ""
-                    console.log("Employee details received:", data);
-                    document.getElementById('holidays').value = data.holiday ;
-                    document.getElementById('attendance').value = data.leave ;
-                    document.getElementById('working_days').value = data.working_days ;
-                },
-                error: function (error) {
-                    console.error("Error fetching employee details:", error);
-                    document.getElementById('error_msg').innerHTML = error.responseJSON && error.responseJSON.error || 'Unknown error';
-                }
-            });
-        }  
-    </script>
-    <script>
-        function calculateSalary() { 
-            var casualLeave = $('#casual_leave').val() || 0;
-            var otherCuttings = $('#other_cuttings').val() || 0;
-            var addBonus = $('#add_bonus').val() || 0;
-            var salary = $('#Salary').val() || 0;
-            var holiday = $('#holidays').val() || 0;
-            var leave = $('#attendance').val()|| 0;
-            var month = $('#month').val();  
-            var year = $('#year').val();  
-            console.log('hii',salary)
-            $.ajax({
-                type: 'POST',
-                url: "{% url 'calculate_salary' %}",
-                data: {
-                    leave : leave,
-                    holiday : holiday,
-                    attendance : leave,
-                    casual_leave: casualLeave,
-                    other_cuttings: otherCuttings,
-                    add_bonus: addBonus,
-                    salary:salary,
-                    month: month,
-                    year: year,
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                },
-                dataType: 'json',
-                success: function (data) {
-                    console.log("Monthly salary calculated:", data);
-                    var formattedSalary = parseFloat(data.monthly_salary).toFixed(2);
-                    document.getElementById('monthly_salary').value = formattedSalary;
-                    {% comment %} updateMonthlySalary(data); {% endcomment %}
-                },
-                error: function (error) {
-                    console.error("Error calculating monthly salary:", error);
-                }
-            });
-        }
-        function updateMonthlySalary(data) {
-            var monthlySalaryElement = document.getElementById('monthly_salary');
-    
-            if (monthlySalaryElement) {
-                monthlySalaryElement.value = data.monthly_salary;
-            } else {
-                console.warn("Element with ID 'monthly_salary' not found in the DOM.");
-            }
-        }   
-    </script>
-    
-    
     <div class="page-content">
         <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_salary_details' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
 
@@ -249,17 +81,20 @@
         </div>
         <div class="card radius-15">
             <div class="card-body">
-                <div class="row">
-                    <div class="col"> </div>
-                </div>
+               
                 <div class="row mt-3">
                     <div class="col-md-5 ml-4">
+
                         <label class="col-form-label">Employee*</label>
+                        <div class="d-flex">
+
                          <input type="hidden" id="empl_id" value="{{employee.id}}">
                            
-                            <input type="text" class="form-control" id="empl_id" name="employee" placeholder="Employee" value="{{ employee.title }} {{ employee.first_name }} {{ employee.last_name }}" required> 
+                            <input type="text" class="form-control" id="empl_id" name="employee" placeholder="Employee"  style="width: 95%;" value="{{ employee.title }} {{ employee.first_name }} {{ employee.last_name }}" required> 
+                            <button type="button" class="btn btn-outline-secondary ml-1" data-target="#employeecreation" data-toggle="modal">+</button>
+                        
 
-                            
+                       </div>     
                     </div>
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Employee Id</label>
@@ -268,16 +103,11 @@
                 </div>
 
                 <div class="row mt-3">
-                    <div class="col-md-5 ml-4 " style="width: 100%;">
+                    <div class="col-md-5 ml-4 " style="width: 95%;">
                         <label class="col-form-label">Email</label>
                         <input type="text" class="form-control" id="email" name="email" placeholder="Email" value="{{employee.employee_mail}}" required>
                     </div>
-                    <div class="col-md-5 ml-4">
-                        <label class="col-form-label">Salary</label>
-                        <input type="hidden" value="{{employee.id}}">
-
-                        <input type="number" class="form-control" id="Salary" name="Salary" placeholder="Salary" value="{{employee.salary_amount}}" required>
-                    </div>
+                  
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Join Date</label>
                         <input type="date" class="form-control" id="joindate" name="joindate" value="{{employee.date_of_joining|date:'Y-m-d'}}" required><br>
@@ -285,6 +115,10 @@
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Designation</label>
                         <input type="text" class="form-control" id="designation" name="designation" placeholder="Designation" value="{{employee.employee_designation}}" required><br>
+                    </div>
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label">Salary</label>
+                        <input type="number"  name="Salary" class="form-control" id="sal" value="{{ employee.salary_amount}}"readonly>
                     </div>
                 </div>
                 <div class="row mt-3">
@@ -299,6 +133,8 @@
                             <option value="{{ month_name.value }}" {% if salary_detail.month == month_name.value %}selected{% endif %}>{{ month_name.name }}</option>
                             {% endfor %}
                         </select>
+                        <p id="error_msg"></p>  
+
                     </div>
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Year</label>
@@ -309,13 +145,10 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <p id="error_msg"></p>  
-                </div>
-
-                <div class="row mt-3">
+               
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Leave</label>
-                        <input type="text" class="form-control" id="attendance" name="attendance" value="{{ salary_detail.leave }}">
+                        <input type="text" class="form-control" id="attendance" name="attendance" value="{{ salary_detail.leave }}" readonly>
                     </div>
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Casual Leave</label>
@@ -329,27 +162,47 @@
                         <label class="col-form-label">Working Day</label>
                         <input type="text" class="form-control" id="working_days" name="working_days" value="{{ salary_detail.total_working_days }}" readonly>
                     </div>
-                    
-                </div>
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label"> Basic Salary</label>
+                        <input type="hidden" value="{{employee.id}}">
 
-                <div class="row mt-3">
+                        <input type="number" class="form-control" id="Salary" name="Salary" placeholder="Salary" value="0" required>
+                    </div>
+               
+                   
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label">HRA</label>
+                        <input type="number" name="HRA" class="form-control" id="hra" value="{{ salary_detail.hra | default:0 }}">
+                    </div>
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label">Conveyance Allowance</label>
+                        <input type="number" name="Conveyance_Allowance" class="form-control" id="Conveyance_Allowance" value="{{ salary_detail.conveyance_allowance | default:0 }}">
+                    </div>
+                    <div class="col-md-5 ml-4">
+                        <label class="col-form-label">Other Allowance</label>
+                        <input type="number" name="Other_Allowance"  class="form-control" id="Other_Allowance" value="{{ salary_detail.other_allowance | default:0}}">
+                    </div>
+                    
+
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Other Cuttings</label>
                         <input type="number" class="form-control" name="other_cuttings" id="other_cuttings" value="{{ salary_detail.other_cuttings }}" placeholder="Other Cuttings">
                     </div>
+                </div>
+
+                <div class="row mt-3">
+                    
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Add Bonus</label>
                         <input type="number" class="form-control" name="add_bonus"  id="add_bonus" value="{{ salary_detail.add_bonus }}" placeholder="Add Bonus">
                     </div>
                     
                     <div class="col-md-5 ml-4">
-                        <label class="col-form-label">Calculate Salary</label>
+                        <label class="col-form-label">Salary</label>
                         <input type="text" class="form-control" id="monthly_salary" name="monthly_salary" value="{{ salary_detail.total_salary }}" readonly>
-                        <button type="button" class="btn btn-outline-secondary w-50 text-light" onclick="calculateSalary();">Calculate Salary</button>
+                        <button type="button" class="btn btn-outline-secondary w-50 text-light mt-3" id="calculateButton">Calculate Salary</button>
                     </div>
-                </div>
-
-                <div class="row mt-3">
+              
                     <div class="col-md-5 ml-4">
                         <label class="col-form-label">Description</label>
                         <textarea class="form-control" name="description" rows="3" >{{ salary_detail.description }}</textarea>
@@ -365,22 +218,705 @@
                         </div>
                     </div>
                 </div> 
-                <div class="row justify-content-end">
-                    <!-- <div class="col-md-4"></div> -->
-                    <div class="col-md-2">
-                        <button name="submit" value="draft" class="btn btn-outline-info rounded-pill text-grey w-100 mt-3 mb-3" type="submit">
-                            Save as Draft
-                        </button>
+                <div class="row justify-content-center">
+                    
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-outline-secondary w-100 ml-1 text-light">Save</button>
                     </div>
-                    <div class="col-md-2">
-                        <button name="submit"  value="save" class="btn btn-outline-info rounded-pill text-grey w-100 mt-3 mb-3" type="submit">
-                            Save 
-                        </button>
-                    </div>
+                </div>    
             </div>
         </div>
     </div>
+
 </form>
+
+
+
+<!-- ----------------------------------------------Modal  Section -------------------------------->
+
+
+<div class="modal fade" id="employeecreation" tabindex="-1" role="dialog"  aria-hidden="true" >
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <center><h3 class="m-3">EDIT EMPLOYEE</h3></center>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+           
+            <div class="modal-body">
+              
+                <form action="{% url 'employee_edit' employee.id salary_detail.id %}"  method="post"  enctype="multipart/form-data">
+                    {% csrf_token %}
+             
+                    <div class="row">
+                        <div class="col-md-6">
+                        
+                                <tr >
+                                    <div class="form-group" >
+                                        <td><Label for="title">Title</Label></td>
+                                        <td>
+                                            <select name="Title" id="title" class="form-control"   required>
+                                                <option value="{{employee.title}}" selected>{{employee.title}}</option>
+                                                <option value="Mr">Mr</option>
+                                                <option value="Mrs">Mrs</option>
+                                                <option value="Miss">Miss</option>
+                                                <option value="Ms">Ms</option>
+                                            </select>
+                                        </td>
+                                    </div>
+                                </tr>
+                                <tr >
+                                    <div class="form-group" >
+                                        <td><Label>First Name</Label></td>
+                                        <td><input placeholder="First Name" name="firstname" id="firstname" type="text" class="form-control" value="{{employee.first_name}}"></td>
+                                    </div>
+                                </tr>
+                                <tr >
+                                    <div class="form-group" >
+                                        <td><Label>Last Name</Label></td>
+                                        <td><input placeholder="Last Name" name="lastname" id="last_name" type="text" class="form-control" value="{{employee.last_name}}"></td>
+                                    </div>
+                                </tr>
+                                
+                                
+                            
+                        </div>
+
+                        <div class="col-md-3">
+
+                            <div id="preview-img" style="display: none;">
+                               
+                            </div>
+
+                            <label for="Image" class="ml-5 mt-5" style="cursor:pointer; padding: 20% 35%; background-image: url('{% static "assets/images/upload.png" %}'); background-repeat: no-repeat; background-size: contain;"></label>
+                            <br>
+                            <span class="ml-5">Upload Image</span>
+                            <input type="file" name="Image" id="Image" accept="image/*" style="display: none;">
+                            
+                        </div>
+
+                        
+                    </div> <br>
+
+                    <div class="row">
+                        <div class="col">
+                            <tr>
+                                <div class="form-group" >
+                                    <td><Label>Alias (optional)</Label></td>
+                                    <td><input placeholder="Alias" id="alias" name="alias" type="text" class="form-control" value="{{employee.alias}}"></td>
+                                </div>
+                            </tr>
+                            
+                                <tr >
+                                    <div class="form-group" >
+                                        <td><Label>Date of Joining</Label></td>
+                                        <td><input placeholder="Joining Date" required id="joindate" name="joindate" type="date" class="form-control" value="{{employee.date_of_joining|date:'Y-m-d'}}"></td>
+                                    </div>
+                                </tr>
+                        </div>
+                        <div class="col">
+                                <tr >
+                                    <div class="form-group" >
+                                        <td><Label>Salary Date</Label></td>
+                                        <td>
+                                            <select class="form-control" name="Salary_Date" id="">
+                                                <option value="{{employee.salary_effective_from}}" selected>{{employee.salary_effective_from}}</option>
+
+                                                <option value="1-10">1-10</option>
+                                                <option value="11-15">11-15</option>
+                                                <option value="16-31">16-31</option>
+                                            </select>
+                                        </td>
+                                    </div>
+                                </tr>
+                                <tr >
+                                    <div class="form-group" > 
+                                        <td><Label>Define salary details</Label></td>
+                                        <td>
+                                            <select  class="form-control" name="salary_type" id="salary_type">
+                                                <option value="{{employee.employee_salary_type}}" selected>{{employee.employee_salary_type}}</option>
+
+                                                <option value="Fixed">Fixed</option>
+                                                <option value="Temporary">Temporary</option>
+                                                <option value="Time Based">Time Based</option>
+                                            </select>
+                                        </td>
+                                    </div>
+                                </tr>
+                                
+                                <div id="salary_timebase">
+                                    <tr>
+                                        <div class="form-group"  >
+                                            <td><Label>Amount Per Hour</Label></td>
+                                            <td><input placeholder="Amount Per Hour" name="perhour" oninput="calculateAndSetSalary()" id="amount_perhour" type="number" class="form-control" value="{{employee.amount_per_hour}}"></td>
+                                        </div>
+                                    </tr>
+                                    <tr>
+                                        <div class="form-group"  >
+                                            <td><Label>Total Working Hour(s)</Label></td>
+                                            <td><input placeholder="Total Working Hour(s)" name="workhour" oninput="calculateAndSetSalary()" id="working_hours" type="number" class="form-control" value="{{employee.total_working_hours}}"></td>
+                                        </div>
+                                    </tr>
+                                    
+                                </div>
+                                <tr>
+                                    <div class="form-group" id="salary_amount" >
+                                        <td><Label>Salary Amount</Label></td>
+                                        <td><input placeholder="Salary Amount" id="amount" name="amount"
+                                            type="number" class="form-control" value="{{employee.salary_amount}}"></td>
+                                    </div>
+                                </tr>
+                        </div>
+                    </div>
+                    
+                    <!-- basic end -->
+
+                    
+
+                    <!-- ---general------ -->
+                    <br>
+
+                    <center><p><b>General Information</b></p></center>
+                        <div class="row">
+                                
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Employee Number</Label></td>
+                                    <td><input placeholder="Employee Number" required id="employeeno" name="employeeno" type="text" class="form-control" value="{{employee.employee_number}}"></td>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Designation</Label></td>
+                                    <td><input placeholder="Designation" id="designation" name="designation" type="text" class="form-control" value="{{employee.employee_designation}}"></td>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col">
+                                    <td><Label>Location</Label></td>
+                                    <td><input placeholder="Current Location" name="location" type="text" class="form-control" value="{{employee.employee_current_location}}"></td>
+                                </div>
+                            </tr>
+                        </div>
+
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label for="gender">Gender</Label></td>
+                                    <td><select class="form-control" name="gender" id="gender" required>
+                                        <option value="{{employee.gender}}" selected>{{employee.gender}}</option>
+
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                        
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Date Of Birth</Label><label style="float: right;margin-right: 50px;" for="">Age </label></td>
+                                    <td> <div class="row"><div class="col-9"><input placeholder="Date Of Birth" required id="dateofbirth" name="dateofbirth" type="date" class="form-control" value="{{employee.date_of_birth|date:'Y-m-d'}}"></div><div class="col-3"><input id="ageDisplay" disabled class="form-control " type="text" value="{{employee.age}}"></div></div></td>
+                                </div>
+                            
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Blood Group</Label></td>
+                                    
+                                        
+                                    <div style="display: flex;">
+                                        <select name="bloodgroup" id="bloodGroupSelect" style="width: 85%;" class="form-control col-11" >
+                                            <option value="{{employee.blood_group}}" selected>{{employee.blood_group}}</option>
+
+                                            <option value="A+">A+</option>
+                                            <option value="A-">A-</option>
+                                            <option value="B+">B+</option>
+                                            <option value="B-">O+</option>
+                                            
+                                            {% for i in bloodgroup %}
+                                            <option value="{{i.blood_group}}">{{i.blood_group}}</option>
+                                            {% endfor %}
+                                        </select>      
+                                        <button type="button" class="btn btn-outline-secondary text-grey mb-2 ml-1 " id="blood-Divshow">+</button>   
+                                    </div>  
+                                    
+                                    
+                                    
+                                </div>
+                               
+                                
+                            </tr>
+                        </div>
+
+
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Contact Number</Label></td>
+                                    <td><input placeholder="Contact Number" required id="mobile" name="mobile"
+                                        maxlength="10" type="text" pattern="^\d{10}$" class="form-control" onchange="checkphone(this)" value="{{employee.mobile}}"></td>
+                                        <div class="text-danger m-2" id="warnphone"></div>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Emergency Contact Number</Label></td>
+                                    <td><input placeholder="Emergency Contact Number" id="phone" name="generalphone" maxlength="10" pattern="^\d{10}$" type="text" class="form-control" onchange="checkphonenew(this)" value="{{employee.emergency_contact}}"></td>
+                                    <div class="text-danger m-2" id="warnphones"></div>
+
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Email</Label></td>
+                                    <td><input placeholder="Email" required id="email" name="email"
+                                        type="email" class="form-control" onchange="checkemail(this)" value="{{employee.employee_mail}}"></td>
+                                        <div class="text-danger m-2" id="warnemail"></div>
+
+                                </div>
+                            </tr>
+                        </div>
+
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Father's Name / Mother's Name</Label></td>
+                                    <td><input placeholder="Father's Name / Mother's Name" id="fathersmothersname" name="fathersmothersname" type="text" class="form-control" value="{{employee.fathers_name_mothers_name}}"></td>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Spouse's Name</Label></td>
+                                    <td><input placeholder="Spouse's Name" id="spousename" name="spousename"
+                                        type="text" class="form-control" value="{{employee.spouse_name}}"></td>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>File</Label></td>
+                                    <td><input id="file" name="File" type="file" class="form-control" value="{{employee.upload_file}}"></td>
+                                </div>
+                            </tr>
+                        </div>
+
+                        <div class="row">
+                            
+                                <tr>
+                                    <td>
+                                        <div class="form-group col" id="perAddress">
+                                            <br>
+                                            <Label style="font-size: large;">Permanent Address</Label>
+                                            <br><br>
+                                            <div class="row">
+                                                <div class="col"><Label>Street</Label><input placeholder="street" type="text" id="street" name="street"
+                                                    class="form-control" value="{{employee.street}}"></div>
+                                                <div class="col"><Label>City</Label><input placeholder="city" type="text" id="city" name="city" class="form-control" value="{{employee.city}}"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>State</Label><input placeholder="state" type="text" id="state" name="state" class="form-control" value="{{employee.state}}"></div>
+                                                <div class="col"><Label>Pincode</Label><input placeholder="pincode" type="text" class="form-control" id="pinco" name="pincode" value="{{employee.pincode}}"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>Country</Label><input placeholder="country" type="text" class="form-control" id="country" name="country" value="{{employee.country}}"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group col" id="temAddress">
+                                            <br>
+                                            <Label style="font-size: large;">Temporary Address </Label>
+                                            <label style="float: right;" for=""><input id="okay"
+                                                name="okay" type="checkbox" onclick="poppins1()"> Same as permanent address</label>
+                                            <br><br>
+                                            <div class="row">
+                                                <div class="col"><Label>Street</Label><input placeholder="street" type="text" id="tempstreet" name="tempstreet" class="form-control" value="{{employee.temporary_street}}"></div>
+                                                <div class="col"><Label>City</Label><input placeholder="city" type="text"  class="form-control" id="tempcity" name="tempcity" value="{{employee.temporary_city}}"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>State</Label><input placeholder="state" type="text"  class="form-control" id="tempstate" name="tempstate" value="{{employee.temporary_state}}"></div>
+                                                <div class="col"><Label>Pincode</Label><input placeholder="pincode" type="text"  class="form-control" id="temppinco" name="temppincode" value="{{employee.temporary_pincode}}"></div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col"><Label>Country</Label><input placeholder="country" type="text"  class="form-control" id="tempcountry" name="tempcountry" value="{{employee.temporary_country}}"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            
+                        </div>
+
+                        <div class="row">
+                            <tr>
+                                <div class="form-group col" >
+                                    <td><Label>Provide bank Details</Label></td>
+                                    <td>
+                                        <select class="form-control" name="bankdetails" id="drp_Bank_Details">
+                                            <option value="{{employee.provide_bank_details}}" selected>{{employee.provide_bank_details}}</option>
+
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+
+                            <tr> 
+                                <div class="form-group col">
+                                    <td><Label>TDS Applicable</Label></td>
+                                    <td>
+                                        <select class="form-control" name="tds_applicable" id="TDS">
+                                            <option value="{{employee.tds_applicable}}" selected>{{employee.tds_applicable}}</option>
+
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </td>
+                                </div>
+                            </tr>
+                        </div><br>
+
+                        <div class="row">
+                            
+                                <div class="form-group col"  id="BankInfo">
+                                    <center><p><b>Banking Information</b></p></center>
+                                        
+                                        <tr >
+                                            <td><label for="">Account Number</label></td>
+                                            <td><input placeholder="Account Number" style="width: 96%;" id="bank_num" name="acno" type="text" class="form-control ml-4" value="{{employee.account_number}}"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="">IFSC</label></td>
+                                            <td><input placeholder="SBIN0071242" style="width: 96%;" pattern="^[A-Za-z]{4}0[A-Za-z0-9]{6}$" id="IFSCCode" name="ifsccode" type="text" class="form-control ml-4" value="{{employee.ifsc}}"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="">Name of Bank</label></td>
+                                            <td><input placeholder="Name Of Bank" style="width: 96%;" id="BankName" name="bankname"
+                                                type="text" class="form-control ml-4" value="{{employee.name_of_bank}}"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="">Branch Name</label></td>
+                                            <td><input placeholder="Branch Name" style="width: 96%;" id="bank_Branch_Name" name="branchname"
+                                                type="text" class="form-control ml-4" value="{{employee.branch_name}}"></td>
+                                        </tr>
+                                    
+                                    
+                                    <br>
+                                    <center><p><b>For Banking</b></p></center>
+                                    <tr>
+                                        <td><label for="">Transaction Type</label></td>
+                                        <td>
+                                            <select style="width: 96%;" class="form-control ml-4" name="transactiontype" id="transactiontype">
+                                                <option value="{{employee.bank_transaction_type}}" selected>{{employee.bank_transaction_type}}</option>
+
+                                                <option value="ATM">ATM</option>
+                                                <option value="Cash">Cash</option>
+                                                <option value="Cheque">Cheque</option>
+                                            </select>    
+                                        </td>
+                                    </tr>
+                                    
+                                </div>
+                            
+
+                            
+                                <div class="form-group col" id="TDSinfo">
+                                    <center><p><b>TDS Application</b></p></center>
+                                    <tr>
+                                        <td><label for="">Percentage/Amount</label></td>
+                                        <td>
+                                            <select style="width: 96%;" class="form-control ml-4" id="TDStype" name="TDS_Type" >
+                                                <option value="{{employee.bank_transaction_type}}" selected>{{employee.bank_transaction_type}}</option>
+
+                                                <option value="Percentage">Percentage</option>
+                                                <option value="Amount">Amount</option>
+                                                
+                                            </select>    
+                                        </td>
+                                    </tr><br>
+
+                                    <div id="TDSpercentage">
+                                        <tr>
+                                            <td><label for="">Enter TDS Percentage</label></td>
+                                            <td><input placeholder="TDS Percentage" style="width: 96%;" name="TDS_Percentage" type="text" class="form-control ml-4" value="{{employee.percentage_amount}}"></td>
+                                        </tr>
+                                    </div><br>
+
+                                    <div id="TDSamount">
+                                        <tr>
+                                            <td><label for="">Enter TDS Amount</label></td>
+                                            <td><input placeholder="TDS Amount" style="width: 96%;" name="TDS_Amount" type="text" class="form-control ml-4" value="{{employee.bank_transaction_type}}"></td>
+                                        </tr>
+                                    </div>
+                                </div><br>
+                            
+                        </div>
+
+                    <!-- ---general end ------>
+
+
+                    <!------ statutory -------->
+                    <br><br>
+                    <center><p><b>Statutory Information</b></p></center><br>
+
+                    <div class="row">
+                                
+                        <div class="col">
+                            <div >
+                                <tr>
+                                    <td><label for="">Income Tax Number</label></td>
+                                    <td><input placeholder="Income Tax Number"  name="Income_Tax" type="text" class="form-control " value="{{employee.income_tax_number}}"></td>
+                                </tr>
+                            </div><br>
+                            <div >
+                                <tr>
+                                    <td><label for="">Aadhar Number</label></td>
+                                    <td><input id="aadhaarnumber" name="adharnumber" required placeholder="12 Digit Unique Number" maxlength="14" pattern="\d{4} \d{4} \d{4}"  type="text" class="form-control " value="{{employee.aadhar_number}}"></td>
+                                </tr>
+                            </div><br>
+                            <div >
+                                <tr>
+                                    <td><label for="">Universal Account Number (UAN)</label></td>
+                                    <td><input placeholder="12 digit number" pattern="\d{12}" maxlength="12" type="text" class="form-control " id="universalaccountnumber" name="universalaccountnumber" value="{{employee.universal_account_number}}">
+                                        </td>
+                                </tr>
+                            </div><br>
+                            
+                        </div>
+                        <div class="col">
+                            <div >
+                                <tr>
+                                    <td><label for="">PF Account Number</label></td>
+                                    <td><input placeholder="MH/PUN/1234567/12" id="pfaccountnumber" name="pfaccountnumber" pattern="[A-Z]{2}/[A-Z0-9]{3}/[0-9]{7}/[0-9]{0,2}" type="text" class="form-control " value="{{employee.pf_account_number}}"></td>
+                                </tr>
+                            </div><br>
+                            <div >
+                                <tr>
+                                    <td><label for="">PAN Number</label></td>
+                                    <td><input placeholder="ABCDE1234F" id="pannumber" name="pannumber" pattern="[A-Z]{5}[0-9]{4}[A-Z]" maxlength="10" type="text" class="form-control " onchange="checkpan(this)" value="{{employee.pan_number}}"></td>
+                                    <div class="text-danger m-2" id="warnpan"></div>
+
+                            
+                                </tr>
+                            </div><br>
+                            <div >
+                                <tr>
+                                    <td><label for="">PR Account Number</label></td>
+                                    <td><input placeholder="12 digit number" pattern="\d{12}" id="praccountnumber" name="praccountnumber" type="text" class="form-control " value="{{employee.pr_account_number}}"></td>
+                                </tr>
+                            </div><br>
+                            
+                        </div>
+
+                    </div><br>
+                            
+                        
+                    <!------ statutory end------>
+                    <center><button type="submit"  class="btn btn-secondary w-50" >Edit</button></center><br>
+                </form>
+
+
+                <div id="bloodDiv" style="display: none;">
+                    <form id="bloodGroupForm" method="post">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Add New Blood Group </h5>
+                            <button type="button" class="close" id="bloodDivCloseButton">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <label for="">Add New Blood Group</label>
+                            <input type="text" name="bloodGroup"  class="form-control" id="bloodGroupInput" required>
+                            
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" id="bloodDivCancelButton">Close</button>
+                            <button type="button" class="btn btn-primary" id="add-bloodgroup">Add</button>
+                            
+                        </div>
+                    </form>   
+                </div>   
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-------------------------------- Script Section------------------- -->
+<script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" ></script>
+
+<script>
+    $(document).ready(function() {
+        // Show bloodDiv when blood-Divshow button is clicked
+        $('#blood-Divshow').click(function() {
+            $('#bloodDiv').show();
+        });
+    
+        // Close bloodDiv when bloodDivCloseButton or bloodDivCancelButton is clicked
+        $('#bloodDivCloseButton, #bloodDivCancelButton').click(function() {
+            $('#bloodDiv').hide();
+        });
+    });
+</script>
+
+<!--- Preview  Image -->
+
+<script>
+    $(document).ready(function() {
+        // Add click event listener to the preview-img div
+        $('#preview-img').click(function() {
+            // Trigger click on the file input field
+            $('#Image').click();
+        });
+    
+        // Add change event listener to the file input field
+        $('#Image').change(function() {
+            // Check if a file is selected
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    // Show the preview image
+                    $('#preview-img').html('<img src="' + e.target.result + '" style="max-width: 100%; max-height: 100%;">').show();
+                    
+                    // Hide the label
+                    $('label[for="Image"]').hide();
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    });
+</script>
+
+
+
+
+<script>
+    $(document).ready(function () {
+        setCurrentDate();
+        $('#empl_id').on('change', function () {
+            fetchDays();
+        });
+    });
+
+    function setCurrentDate() {
+        var currentDate = new Date();
+        var currentYear = currentDate.getFullYear();
+        var currentMonth = currentDate.getMonth() + 1; 
+        var currentDay = currentDate.getDate();
+        var formattedDate = currentYear + '-' + (currentMonth < 10 ? '0' : '') + currentMonth + '-' + (currentDay < 10 ? '0' : '') + currentDay;
+        $('#salary_date').val(formattedDate);
+        $('#month').val(currentMonth);
+        $('#year_').val(currentYear);
+    }
+    function fetchDays() {
+        var selectedEmployeeId = $('#empl_id').val();
+        var sd = $('#salary_date').val();
+        var selectedMonth = $('#month').val();
+        var selectedYear = $('#year_').val();
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'Edit_getDays' %}",
+            data: {
+                sd : sd,
+                id: selectedEmployeeId,
+                month: selectedMonth,
+                year: selectedYear,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+            dataType: 'json',
+            success: function (data) {
+                document.getElementById('error_msg').innerHTML = ""
+                console.log("Employee details received:", data);
+                document.getElementById('holidays').value = data.holiday ;
+                document.getElementById('attendance').value = data.leave ;
+                document.getElementById('working_days').value = data.working_days ;
+            },
+            error: function (error) {
+                console.error("Error fetching employee details:", error);
+                document.getElementById('holidays').value = 0 ;
+                document.getElementById('attendance').value = 0 ;
+                document.getElementById('working_days').value = 0 ;
+                document.getElementById('error_msg').innerHTML = error.responseJSON && error.responseJSON.error || 'Unknown error';
+            }
+        });
+    }  
+</script>
+
+<script>
+    $(document).ready(function() {
+        $("#calculateButton").click(function() {
+            calculateSalary();
+        });
+    });
+    function calculateSalary() { 
+        var casualLeave = $('#casual_leave').val() || 0;
+        var otherCuttings = $('#other_cuttings').val() || 0;
+        var addBonus = $('#add_bonus').val() || 0;
+        var salary = $('#Salary').val() || 0;
+        var holiday = $('#holidays').val() || 0;
+        var leave = $('#attendance').val()|| 0;
+        var month = $('#month').val();  
+        var year = $('#year').val();  
+        var Other_Allowance = $('#Other_Allowance').val()|| 0;
+        var hra = $('#hra').val()|| 0;  
+        var Conveyance_Allowance = $('#Conveyance_Allowance').val()|| 0; 
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'calculate_salary' %}",
+            data: {
+                leave : leave,
+                holiday : holiday,
+                attendance : leave,
+                casual_leave: casualLeave,
+                other_cuttings: otherCuttings,
+                add_bonus: addBonus,
+                salary:salary,
+                month: month,
+                year: year,
+                Other_Allowance:Other_Allowance,
+                hra:hra,
+                Conveyance_Allowance:Conveyance_Allowance,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+            dataType: 'json',
+            success: function (data) {
+                console.log("Monthly salary calculated:", data);
+                var formattedSalary = parseFloat(data.monthly_salary).toFixed(2);
+                document.getElementById('monthly_salary').value = formattedSalary;
+                {% comment %} updateMonthlySalary(data); {% endcomment %}
+            },
+            error: function (error) {
+                console.error("Error calculating monthly salary:", error);
+            }
+        });
+    }
+    function updateMonthlySalary(data) {
+        var monthlySalaryElement = document.getElementById('monthly_salary');
+
+        if (monthlySalaryElement) {
+            monthlySalaryElement.value = data.monthly_salary;
+        } else {
+            console.warn("Element with ID 'monthly_salary' not found in the DOM.");
+        }
+    }   
+</script>
+
 <script>
     function poppins1() {
         var chkbtn = document.getElementById('okay');
@@ -823,8 +1359,6 @@
     }
 </script>
 
-
-</div>
 <script>
     function poppins() {
         var chkbtn = document.getElementById('okay');
@@ -843,6 +1377,7 @@
         }
     }
 </script>
+
 <script>
     function hidinput(divId, element) {
         if (element.value == 'GST-registered-Regular') {
@@ -900,6 +1435,7 @@
         }
     }
 </script>
+
 <script>
     (function () {
         'use strict';
@@ -917,7 +1453,7 @@
         }, false);
     })();
 </script>
-</script>
+
 <script type="text/javascript">
     function show(str) { 
         if (document.getElementById('Employees').value != 'Timebased') {
@@ -1006,6 +1542,619 @@
         var selectedDate = $('#salary_date').val();
         console.log("Selected Date:", selectedDate);
     });
+</script>
+
+<script>
+    function poppins() {
+        var chkbtn = document.getElementById('okay');
+        if (chkbtn.checked == true) {
+            document.getElementById('tempstreet').value = document.getElementById('street').value;
+            document.getElementById('tempcity').value = document.getElementById('city').value;
+            document.getElementById('temppinco').value = document.getElementById('pinco').value;
+            document.getElementById('tempcountry').value = document.getElementById('country').value;
+            document.getElementById('tempstate').value = document.getElementById('state').value; 
+        } else {
+            document.getElementById('tempstreet').value = '';
+            document.getElementById('tempcity').value = '';
+            document.getElementById('tempstate').value = '';
+            document.getElementById('temppinco').value = '';
+            document.getElementById('tempcountry').value = '';
+        }
+    }
+</script>
+
+<script>
+    function hidinput(divId, element) {
+        if (element.value == 'GST-registered-Regular') {
+            document.getElementById(divId).style.display = 'block';
+        } else {
+            document.getElementById(divId).style.display = 'none';
+        }
+    }
+
+    function disinput(divId, element) {
+        if (element.value == 'GST-registered-Regular') {
+            document.getElementById(divId).style.display = 'block';
+        } else {
+            document.getElementById(divId).style.display = 'none';
+        }
+    }
+
+    function disinput2(divId, element) {
+        if (element.value == 'GST-registered-Regular') {
+            document.getElementById(divId).style.display = 'block';
+        } else {
+            document.getElementById(divId).style.display = 'none';
+        }
+    }
+    function checkgst(element) {
+        var gstinput = element.value;
+        var gstregexp = "[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9A-Za-z]{1}[Z]{1}[0-9a-zA-Z]{1}";
+        if (gstinput.match(gstregexp)) {
+            document.getElementById('warngst').innerHTML = '';
+        } else {
+            document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
+            alert('Please provide a valid GST Number');
+        }
+    }
+
+    function checkpan(element) {
+        var paninput = element.value;
+        var panregexp = ["[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}"]
+        if (paninput.match(panregexp)) {
+            document.getElementById('warnpan').innerHTML = '';
+        } else {
+            document.getElementById('warnpan').innerHTML = 'Please provide a valid PAN Number';
+            alert('Please provide a valid PAN Number')
+        }
+    }
+
+    function checkweb(element) {
+        var webinput = element.value;
+        var webregexp = "www."
+        if (webinput.startsWith(webregexp)) {
+            document.getElementById('warnweb').innerHTML = '';
+        } else {
+            document.getElementById('warnweb').innerHTML = 'Please provide a valid Website Address';
+            alert('Please provide a valid Website Address')
+        }
+    }
+</script>
+
+<script>
+    (function () {
+        'use strict';
+        window.addEventListener('load', function () {
+            var forms = document.getElementsByClassName('needs-validation');
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+</script>
+
+<script type="text/javascript">
+    function show(str) { 
+        if (document.getElementById('Employees').value != 'Timebased') {
+            $('#amount').prop('readonly', false);
+        }
+        else {
+            $('#amount').prop('readonly', true);
+        }
+        document.getElementById('Salarydetails').style.display = 'none';
+        document.getElementById('Salarydetails').style.display = 'block';
+    }
+
+    function show2(sign) {
+        document.getElementById('Salarydetails').style.display = 'block';
+        document.getElementById('Salarydetails').style.display = 'none'; 
+    }
+
+    function toggleDivVisibility() {
+        var selectElement = document.getElementById("drp_Bank_Details");
+        var selectedValue = selectElement.value;
+        var bankDiv = document.getElementById("Bank_Details");
+
+        if (selectedValue === "Yes") {
+            bankDiv.style.display = "block";  
+        } else {
+            bankDiv.style.display = "none";   
+        }
+    }
+    function DefineSalaryShow() {
+        var time_based = document.getElementById("time_based_show");
+        if (document.getElementById('Employees').value != 'Timebased') {
+            $('#amount').prop('readonly', false);  
+            time_based.style.display = "none";
+        }
+        else {
+            $('#amount').prop('readonly', true); 
+            time_based.style.display = "flex";
+        }
+ 
+    }
+    $('#hours, #rate').on('input', function () {
+        var hours = parseFloat($('#hours').val());
+        var rate = parseFloat($('#rate').val());
+        var amount = hours * rate;
+        $('#amount').val(amount);
+    });
+
+    function showPreview(event) {
+        if (event.target.files.length > 0) {
+            var src = URL.createObjectURL(event.target.files[0]);
+            var preview = document.getElementById("file-ip-1-preview");
+            preview.src = src;
+            preview.style.display = "block";
+        }
+    }
+    function toggleDivTds() {
+        var selectElement = document.getElementById("tdsapplicable");
+        var selectedValue = selectElement.value;
+        var tdsDiv = document.getElementById("div-tds");
+
+        if (selectedValue === "Yes") {
+            tdsDiv.style.display = "block"; 
+        } else {
+            tdsDiv.style.display = "none";   
+        }
+    }
+</script>
+
+<script>
+    var dateOfBirthInput = document.getElementById('dateofbirth');
+    var ageInput = document.getElementById('age');
+    dateOfBirthInput.addEventListener('change', function () {
+        var dob = new Date(this.value);
+        var today = new Date();
+        var age = today.getFullYear() - dob.getFullYear();
+        if (today.getMonth() < dob.getMonth() ||
+            (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        ageInput.value = age;
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        console.log("Script is running");
+        var selectedDate = $('#salary_date').val();
+        console.log("Selected Date:", selectedDate);
+    });
+</script>
+
+<script>
+  
+    
+    // blood group add
+    
+    $(document).ready(function() {
+        $('#add-bloodgroup').click(function(e) {
+            // Prevent the default form submission behavior
+            e.preventDefault(); 
+        
+            // Get the form data
+            var formData = {
+                'bloodGroup': $('#bloodGroupInput').val()
+            };
+        
+            // Perform Ajax request
+            $.ajax({
+                type: 'POST',
+                url: '{% url "employee_blood_group" %}',
+                data: formData,
+                dataType: 'json',
+                headers: {
+                    'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log('success');
+                        $('#bloodDiv').hide();
+                        alert('Blood group added successfully!');
+                        
+                        // Update the entire section in the dropdown with the new bloodgroup data
+                        updateBloodGroupSection(response.bloodgroup);
+                    } else {
+                        // Failure case: Display an error message
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle Ajax errors here
+                    console.error('Ajax Error: ' + status + ' - ' + error);
+                }
+            });
+        });
+        // Function to update the entire section in the dropdown
+        function updateBloodGroupSection(bloodgroup) {
+            // Assuming you have a select element with the id 'bloodGroupSelect'
+            var bloodGroupSelect = $('#bloodGroupSelect');
+    
+            // Remove all existing options
+            bloodGroupSelect.empty();
+    
+            // Append new options based on the received data
+            bloodGroupSelect.append($('<option>', {
+                value: '',  // Default option
+                text: '--select--'
+            }));
+    
+            addStaticOption('A+', 'A+');
+            addStaticOption('A-', 'A-');
+            addStaticOption('B+', 'B+');
+            addStaticOption('O+', 'O+');
+    
+            for (var i = 0; i < bloodgroup.length; i++) {
+                bloodGroupSelect.append($('<option>', {
+                    value: bloodgroup[i].blood_group,
+                    text: bloodgroup[i].blood_group
+                }));
+            }
+    
+            $('#bloodGroupModal').modal('hide');
+        }
+    
+        function addStaticOption(value, text) {
+        // Assuming you have a select element with the id 'bloodGroupSelect'
+        var bloodGroupSelect = $('#bloodGroupSelect');
+    
+        // Append the new static option
+        bloodGroupSelect.append($('<option>', {
+            value: value,
+            text: text
+        }));
+    }
+    
+    });
+    
+    
+    // -------------------------------------
+    // age display
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        // Add change event listener to the DOB input
+        document.getElementById("dateofbirth").addEventListener("input", function() {
+            // Get the selected date of birth
+            var dobValue = this.value;
+    
+            // Calculate the age
+            var age = calculateAge(new Date(dobValue));
+    
+            // Display the age in the ageDisplay input
+            document.getElementById("ageDisplay").value = age ;
+        });
+    
+        // Function to calculate age based on the provided date of birth
+        function calculateAge(dob) {
+            var today = new Date();
+            var birthDate = new Date(dob);
+            var age = today.getFullYear() - birthDate.getFullYear();
+            var monthDiff = today.getMonth() - birthDate.getMonth();
+    
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+    
+            return age;
+        }
+    });
+    
+    
+    
+    
+    // -------------------------------------
+    // joining date = current date
+    
+    document.addEventListener("DOMContentLoaded", function() {
+            var currentDate = new Date();
+            var dateString = currentDate.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+    
+            document.getElementById("joindate").value = dateString;
+        });
+    
+    
+    
+    // -------------------------------------
+    // 12 digit aadhar number 
+    
+     document.addEventListener('input', function (event) {
+         var input = event.target;
+    
+         // Check if the input has the id "accountnumber"
+         if (input.tagName === 'INPUT' && input.type === 'text' && input.id === 'aadhaarnumber' && input.pattern) {
+             var pattern = new RegExp(input.pattern);
+    
+             if (!pattern.test(input.value)) {
+                 // Remove any non-digit characters
+                 var digitsOnly = input.value.replace(/\D/g, '');
+    
+                 // Add a space after every 4 digits
+                 var formattedValue = digitsOnly.replace(/(\d{4})(?=\d)/g, '$1 ');
+                // Update the input value
+                input.value = formattedValue;
+            }
+        }
+     });
+    
+    // display salary --------------------------------------------
+    $(document).ready(function () {
+        // Initially hide the salary_amount div
+        $("#salary_amount").hide();
+        $("#salary_timebase").hide();
+    
+        // Add change event listener to the salary_details dropdown
+        $("#salary_type").change(function () {
+            // Get the selected value
+            var selectedValue = $(this).val();
+    
+            // Check if the selected value is "Temporary" or "Fixed"
+            if (selectedValue === "Temporary" || selectedValue === "Fixed") {
+                // Display the salary_amount div
+                $("#salary_amount").show();
+                $("#salary_timebase").hide();
+            } else if (selectedValue === 'Time Based') {
+                // Hide the salary_amount div and show salary_timebase div for other options
+                $("#salary_amount").show();
+                $("#salary_timebase").show();
+            } else {
+                // Hide the salary_amount div for other options
+                $("#salary_amount").hide();
+                $("#salary_timebase").hide();
+            }
+        });
+    });
+    
+    
+    // ----------------------------------------------------------------------------------------------
+    // calculate salary amount in time base 
+    function calculateAndSetSalary() {
+        // Get values from amount_perhour and working_hours
+        var firstValue = parseFloat($('#amount_perhour').val()) || 0;
+        var secondValue = parseFloat($('#working_hours').val()) || 0;
+    
+        // Check if both values are greater than 0
+        if (firstValue > 0 && secondValue > 0) {
+            // Perform calculations and set the value for amount
+            var thirdValue = firstValue * secondValue;
+            $('#amount').val(thirdValue);
+        } else {
+            // Reset the value of amount if one or both values are not greater than 0
+            $('#amount').val('');
+        }
+    }
+    
+    // -----------------------------------------------------------------------------
+    // display banking ---
+    
+    $(document).ready(function () {
+        // Initially hide the salary_amount div
+        $("#BankInfo").hide();
+        
+    
+        // Add change event listener to the salary_details dropdown
+        $("#drp_Bank_Details").change(function () {
+            // Get the selected value
+            var selectedValue = $(this).val();
+    
+            if (selectedValue === "Yes") {
+                // Display the bankinfo div
+                $("#BankInfo").show();
+            } else if (selectedValue === 'No') {
+                // Hide the BankInfo div for other options
+                $("#BankInfo").hide();
+            } else {
+                // Hide the BankInfo div for other options
+                $("#BankInfo").hide();
+            }
+        });
+    });
+    
+    // ------------------------------------------------------------------
+    // TDS display-----------
+    $(document).ready(function () {
+        // Initially hide the salary_amount div
+        $("#TDSinfo").hide();
+        
+    
+        // Add change event listener to the salary_details dropdown
+        $("#TDS").change(function () {
+            // Get the selected value
+            var selectedValue = $(this).val();
+    
+            if (selectedValue === "Yes") {
+                // Display the bankinfo div
+                $("#TDSinfo").show();
+            } else if (selectedValue === 'No') {
+                // Hide the BankInfo div for other options
+                $("#TDSinfo").hide();
+            } else {
+                // Hide the BankInfo div for other options
+                $("#TDSinfo").hide();
+            }
+        });
+    });
+    // ------------------------------------------------------------------------------
+    // Tds percentage/amount display
+    
+    $(document).ready(function () {
+        // Initially hide the salary_amount div
+        $("#TDSamount").hide();
+        $("#TDSpercentage").hide();
+    
+        // Add change event listener to the salary_details dropdown
+        $("#TDStype").change(function () {
+            // Get the selected value
+            var selectedValue = $(this).val();
+    
+            // Check if the selected value is "Temporary" or "Fixed"
+            if (selectedValue === "Percentage" ) {
+                // Display the salary_amount div
+                $("#TDSamount").hide();
+                $("#TDSpercentage").show();
+            } else if (selectedValue === 'Amount') {
+                // Hide the salary_amount div and show salary_timebase div for other options
+                $("#TDSamount").show();
+                $("#TDSpercentage").hide();
+            } else {
+                // Hide the salary_amount div for other options
+                $("#TDSamount").hide();
+                $("#TDSpercentage").hide();
+            }
+        });
+    });
+    
+    // ---------------------------------------------------------------------
+    // address copy 
+    
+    $(document).ready(function(){
+        
+        
+        // Handle checkbox click event
+        $('#okay').on('change', function(){
+            if($(this).is(':checked')){
+                // Copy values from permanent address to temporary address
+                $('#tempstreet').val($('#street').val());
+                $('#tempcity').val($('#city').val());
+                $('#tempstate').val($('#state').val());
+                $('#temppinco').val($('#pinco').val());
+                $('#tempcountry').val($('#country').val());
+    
+                // Show temporary address
+                $('#temAddress').show();
+            } 
+        });
+    });
+    
+    // --------------------------------------------------------------------
+    // age validation
+    
+    document.addEventListener('DOMContentLoaded', function () {
+    // Get the current date
+    var currentDate = new Date();
+    
+    // Calculate the date 18 years ago
+    var eighteenYearsAgo = new Date(currentDate);
+    eighteenYearsAgo.setFullYear(currentDate.getFullYear() - 18);
+    
+    // Format the date to YYYY-MM-DD for the input field
+    var formattedDate = eighteenYearsAgo.toISOString().split('T')[0];
+    
+    // Set the default value and maximum allowed date of the input field
+    var dobInput = document.getElementById('dateofbirth');
+    // dobInput.value = formattedDate;
+    dobInput.max = formattedDate;
+    });
+    
+    // --------------------------------------------------------------------
+    // back function
+    
+    function goBack() {
+        window.history.back();
+      }
+    
+    // --------------------------------------------------------------------
+    // 
+    
+
+    function checkphone(element) {
+        var phoneinput = element.value;
+        var phoneregexp = /^\d{10}$/;
+        if (phoneinput.match(phoneregexp)) {
+            document.getElementById('warnphone').innerHTML = '';
+            checkCustomerPhone(phoneinput)
+        } else {
+            document.getElementById('warnphone').innerHTML = 'Please provide a valid Phone Number';
+            alert('Please provide a valid Phone Number')
+        }
+    }
+    function checkphonenew(element) {
+        var phoneinput = element.value;
+        var phoneregexp = /^\d{10}$/;
+        if (phoneinput.match(phoneregexp)) {
+            document.getElementById('warnphones').innerHTML = '';
+            checkCustomerPhone(phoneinput)
+        } else {
+            document.getElementById('warnphones').innerHTML = 'Please provide a valid Phone Number';
+            alert('Please provide a valid Phone Number')
+        }
+    }
+
+    function checkemail(element) {
+        var emailinput = element.value;
+        var emailregexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+        if (emailinput.match(emailregexp)) {
+            document.getElementById('warnemail').innerHTML = '';
+            checkCustomerEmail(emailinput)
+        } else {
+            document.getElementById('warnemail').innerHTML = 'Please provide a valid Email ID';
+            alert('Please provide a valid Email id')
+        }
+    }
+
+    function checkpan(element) {
+        var paninput = element.value;
+        var panregexp = ["[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}"]
+        if (paninput.match(panregexp)) {
+            document.getElementById('warnpan').innerHTML = '';
+            checkCustomerPAN(paninput)
+        } else {
+            document.getElementById('warnpan').innerHTML = 'Please provide a valid PAN Number';
+            alert('Please provide a valid PAN Number')
+        }
+    }
+</script>
+
+<script>
+   
+
+$(document).ready(function() {
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    $('#employeeno').on('blur', function() {
+        var employeeId = $(this).val().trim();
+        if (employeeId !== '') {
+            $.ajax({
+                url: '/check_employee_id/',
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }, // Include CSRF token
+                data: {'employeeId': employeeId},
+                success: function(response) {
+                    if (response.exists) {
+                        $('#employeeno-validation-message').text('Employee ID already exists');
+                    } else {
+                        $('#employeeno-validation-message').text('');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+    });
+});
 </script>
 
 {% endblock %}

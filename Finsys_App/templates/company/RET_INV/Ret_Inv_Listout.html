@@ -1,0 +1,195 @@
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load static %}
+
+
+
+<div class="page-content">
+
+  <div class="card radius-15 h-20">
+    <div class="row">
+      <div class="col-md-12">
+        <center><h2 class="mt-3 text-uppercase">Retainer Invoices</h2></center>
+        <hr/>
+      </div>
+    </div>
+  </div>
+
+    <!-- <div class="card radius-15">
+        <div class="card-body">
+            <div class="card-title">
+                <center>
+                    <h2 class="mb-0 text-uppercase">Retainer Invoices</h2>
+                </center>
+                <hr>
+            </div>
+        </div>
+    </div> -->
+    <div class="card radius-15">
+        <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4"> 
+                        <div class="d-flex">
+                            <input type="text" id="search" class="form-control" placeholder="Search.." autocomplete="off">
+                        <div class="dropdown ml-1">
+                            <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown">Sort by</button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item"  style="height: 40px; font-size: 15px; color: white; text-align: center;">All</a>
+                                <a class="dropdown-item"  style="height: 40px; font-size: 15px; color: white; text-align: center;"onclick="sortTable(3)">Customer Name</a>
+                                <a class="dropdown-item"  style="height: 40px; font-size: 15px; color: white; text-align: center;"onclick="sortTable(2)">Retainer Invoice No</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <div class="col-md-3"></div>
+                <div class="col-md-5 d-flex justify-content-end">
+                    <button type="button" class="btn btn-outline-secondary text-grey"  id="export"><i class="fa fa-table"></i> Export To Excel</button>
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey ml-1" data-toggle="dropdown"><i class="fa fa-filter"></i> Filter by</button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white; text-align: center;" onclick="filterTable(6,'all')">All</a>
+                            <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white; text-align: center;" onclick="filterTable(6,'draft')">Draft</a>
+                            <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white; text-align: center;" onclick="filterTable(6,'sent')">Sent</a>
+                        </div>
+                    </div>
+                
+                   
+                        <a href="{% url 'Fin_Create_RET_INV'%}" class="ml-1"></i><button type="button" class="btn btn-outline-secondary text-grey"><i class="fa fa-plus font-weight-light"></i> Retainer Invoice</button></a>
+                    </a>
+                </div>
+               
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-responsive-md mt-4 table-hover" style="text-align: center" id="ri">
+
+                    <thead>
+                       <tr>
+                            <th style="text-align: center;">#</th>
+                            <th style="text-align: center;">DATE</th>
+                            <th style="text-align: center;">RETAINER INVOICE NO</th>
+                            <th style="text-align: center;">CUSTOMER NAME</th>
+                            <th style="text-align: center;">CUSTOMER EMAIL</th>
+                            <th style="text-align: center;">AMOUNT</th>
+                            <th style="text-align: center;">STATUS</th>
+                            <th style="text-align: center;">BALANCE</th>
+                            <th style="text-align: center;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        {% for i in ret_inv %}
+                        <tr class="clickable-row" data-href="{% url 'Fin_RI_Overview' i.id %}" style="cursor: pointer;">
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{i.Retainer_Invoice_date}}</td>
+                            <td>{{i.Retainer_Invoice_number}}</td>
+                            <td>{{ i.Customer.first_name }} {{ i.Customer.last_name }}</td>
+                            <td>{{ i.Customer_email }} </td>
+                            <td>{{i.Grand_total}}</td>
+                            <td>{{ i.status }}</td>
+                            <td>{{ i.Balance }}</td>
+                        {% endfor %}
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+<script>
+  var $rows = $('#ri tbody tr');
+  $('#search').keyup(function() {
+    var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+    
+    $rows.show().filter(function() {
+      var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+      return !~text.indexOf(val);
+    }).hide();
+  });
+  
+  document.getElementById("export").addEventListener("click", function () {
+    const Table = document.getElementById("ri");
+    const ws = XLSX.utils.table_to_sheet(Table);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    XLSX.writeFile(wb, "Retainer_Invoices.xlsx");
+  });
+
+  jQuery(document).ready(function ($) {
+    $(".clickable-row").click(function () {
+      window.location = $(this).data("href");
+    });
+  });
+
+
+
+
+  function sortTable(columnIndex) {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById("ri");
+    switching = true;
+
+    while (switching) {
+      switching = false;
+      rows = table.rows;
+
+      for (i = 1; i < (rows.length - 1); i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("td")[columnIndex].textContent.toLowerCase();
+        y = rows[i + 1].getElementsByTagName("td")[columnIndex].textContent.toLowerCase();
+
+        if (x > y) {
+            shouldSwitch = true;
+            break;
+        }
+      }
+
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+      }
+    }
+  }
+
+  function filterTable(row,filterValue) {
+    var table = document.getElementById("ri");
+    var rows = table.getElementsByTagName("tr");
+
+    for (var i = 1; i < rows.length; i++) {
+      var statusCell = rows[i].getElementsByTagName("td")[row];
+
+      if (filterValue == "all" || statusCell.textContent.toLowerCase() == filterValue) {
+        rows[i].style.display = "";
+      } else {
+        rows[i].style.display = "none";
+      }
+    }
+  }
+
+  function sortBalAsc() {
+    var table = document.getElementById("ri");
+    var rows = Array.from(table.rows).slice(1);
+
+    rows.sort(function (a, b) {
+      var balA = parseFloat(a.cells[7].textContent);
+      var balB = parseFloat(b.cells[7].textContent);
+      return balA - balB;
+    });
+
+    // Remove existing rows from the table
+    for (var i = table.rows.length - 1; i > 0; i--) {
+        table.deleteRow(i);
+    }
+
+    // Append the sorted rows back to the table
+    rows.forEach(function (row) {
+        table.tBodies[0].appendChild(row);
+    });
+  }
+</script>
+
+{% endblock %}

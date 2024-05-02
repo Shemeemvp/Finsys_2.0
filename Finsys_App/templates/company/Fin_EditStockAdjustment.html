@@ -87,6 +87,7 @@
 
 
     <div class="page-content">
+      <span class="d-flex justify-content-end p-2" style="cursor: pointer; " onclick="window.location.href=`{% url 'StockAdjustmentOverview' stocks.id %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
         <div class="card radius-15">
             <div class="card-body">
                 <div class="card-title">
@@ -96,7 +97,7 @@
                         
                  
                     </center>
-                  
+                    <hr>
                 </div>
             </div>
         </div>
@@ -105,13 +106,13 @@
  
     <br>
 
-    <div class="d-flex justify-content-end mb-1">
+    <!-- <div class="d-flex justify-content-end mb-1">
       <a href="{% url 'StockAdjustmentOverview' stocks.id %}"><i class="fa fa-times-circle text-white mx-4 p-1" style="font-size: 1.2rem;margin-left: -54px !important;"></i></a>
-    </div>
+    </div> -->
     <form action="{% url 'updatedStockAdj' stocks.id%}" method="POST" enctype="multipart/form-data">
     <div class="page-content" style="margin-top:-2rem ;">
       
-        <div class="card radius-15">
+        <div class="card radius-15" style="margin-top: -55px;">
             <div class="card-body">
                 <div class="card-title">
 

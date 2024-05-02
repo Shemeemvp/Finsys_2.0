@@ -400,6 +400,8 @@
                                                 {% for i in itm %}
                                                     <option value="{{i.id}}" 
                                                     data-hsn="{{i.hsn}}"
+                                                    data-sac="{{ i.sac }}"
+                                                    data-item_type="{{ i.item_type }}"
                                                     data-stock="{{i.temp_stock}}" 
                                                     data-price="{{i.purchase_price}}"
                                                     data-intra="{{i.intra_state_tax}}"
@@ -413,7 +415,8 @@
                                     </td>
 
                                     <td style="width:12%">
-                                        <input type="text" name='hsn[]' id="hsn{{forloop.counter}}" class="form-control border-secondary HSNCODE" value="{{p.item.hsn}}" readonly />
+                                        <input type="text" name='hsn[]' id="hsn{{forloop.counter}}" class="form-control border-secondary HSNCODE" value="{{p.item.hsn}}" readonly style="{% if not p.item.hsn %}display:none;{% endif %}"/>
+                                        <input type="text" name='sac[]' id="sac{{forloop.counter}}" class="form-control border-secondary SACCODE" value="{{p.item.sac}}" readonly style="{% if not p.item.sac %}display:none;{% endif %}"/>
                                     </td>
 
                                     <td style="width:13%">
@@ -431,7 +434,27 @@
                                         <br>
                                         <input type="text" id="intrataxval{{forloop.counter}}" value="{{p.item.intra_state_tax}}" hidden>
                                         <input type="text" id="intertaxval{{forloop.counter}}" value="{{p.item.inter_state_tax}}" hidden>
-                                        {% if pbill.ven_psupply == pbill.cust_psupply or pbill.cust_psupply == '' %}
+                                        {% if pbill.ven_psupply == pbill.cust_psupply %}
+                                        <select name='intra_tax[]' id="intra_tax{{forloop.counter}}" class="form-control intra_tax d-flex mb-4" onchange="calc()">
+                                            <option value="{{p.tax}}" selected hidden>{{p.tax}}.0% GST</option>
+                                            <option value=28 >28.0% GST</option>
+                                            <option value=18 >18.0% GST</option>
+                                            <option value=12 >12.0% GST</option>
+                                            <option value=5 >05.0% GST</option>
+                                            <option value=3 >03.0% GST</option>
+                                            <option value=0 >0.0% GST</option>
+                                        </select>
+                                        <select name='inter_tax[]' id="inter_tax{{forloop.counter}}" class="form-control inter_tax d-none mb-4" onchange="calc()">
+                                            <option value="" selected hidden>Select IGST</option>
+                                            <option value=28 >28.0% IGST</option>
+                                            <option value=18 >18.0% IGST</option>
+                                            <option value=12 >12.0% IGST</option>
+                                            <option value=5 >05.0% IGST</option>
+                                            <option value=3 >03.0% IGST</option>
+                                            <option value=0 >0.0% IGST</option>
+                                        </select>
+                                        {% else %}
+                                        {% if pbill.ven_psupply == 'Kerala' and pbill.cust_psupply == '' %}
                                         <select name='intra_tax[]' id="intra_tax{{forloop.counter}}" class="form-control intra_tax d-flex mb-4" onchange="calc()">
                                             <option value="{{p.tax}}" selected hidden>{{p.tax}}.0% GST</option>
                                             <option value=28 >28.0% GST</option>
@@ -470,6 +493,7 @@
                                             <option value=0 >0.0% IGST</option>
                                         </select>
                                         {% endif %}
+                                        {% endif %}
                                         <span class="text-danger nostate" style="font-size: small; font-weight: lighter ;" id="nostate{{forloop.counter}}"></span>                                    
                                     </td>
 
@@ -481,7 +505,7 @@
                                         <input type="number" name='total[]' id="total{{forloop.counter}}" class="form-control border-secondary total" value="{{p.total}}" readonly />
                                     </td>
 
-                                    <td style="display: none;"><input type="number" id="taxamount{{forloop.counter}}" class="form-control border-secondary taxamount" /></td>
+                                    <td style="display: none;"><input type="text" id="taxamount{{forloop.counter}}" class="form-control border-secondary taxamount" /></td>
                                     
                                     <td style="width:5%">
                                         <button type="button" id="{{forloop.counter}}" class="btn btn-danger remove_row px-2 py-1 mx-1 fa fa-close" title="Remove Row"> </button>
@@ -520,32 +544,7 @@
                                 </div>
                                 <div class="col-sm-4 m-0 p-0"></div>
                             </div>
-                            {% if pbill.ven_psupply != pbill.cust_psupply and pbill.ven_psupply != 'Kerala' %}
-                            <div class="row container-fluid p-2 m-0" id="igst_div">
-                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">IGST</label></div>
-                                <div class="col-sm-1 mt-2">:</div>
-                                <div class="col-sm-7 mt-2">
-                                    <input type="number" class="form-control" id="igst" name='igst' step="any" value={{pbill.igst}} readonly/>
-                                </div>
-                                <div class="col-sm-4 m-0 p-0"></div>
-                            </div>
-                            <div class="row container-fluid p-2 m-0" style="display: none;" id="cgst_div">
-                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">CGST</label></div>
-                                <div class="col-sm-1 mt-2">:</div>
-                                <div class="col-sm-7 mt-2">
-                                    <input type="number" class="form-control" id="cgst" name='cgst' step="any" value=0 readonly/>
-                                </div>
-                                <div class="col-sm-4 m-0 p-0"></div>
-                            </div>
-                            <div class="row container-fluid p-2 m-0" style="display: none;" id="sgst_div">
-                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">SGST</label></div>
-                                <div class="col-sm-1 mt-2">:</div>
-                                <div class="col-sm-7 mt-2">
-                                    <input type="number" class="form-control" id="sgst" name='sgst' step="any" value=0 readonly/>
-                                </div>
-                                <div class="col-sm-4 m-0 p-0"></div>
-                            </div>
-                            {% else %}
+                            {% if pbill.ven_psupply == pbill.cust_psupply %}
                             <div class="row container-fluid p-2 m-0" id="igst_div" style="display: none;">
                                 <div class="col-sm-4 mt-2"><label for="a" class="text-center">IGST</label></div>
                                 <div class="col-sm-1 mt-2">:</div>
@@ -570,6 +569,58 @@
                                 </div>
                                 <div class="col-sm-4 m-0 p-0"></div>
                             </div>
+                            {% else %}
+                            {% if pbill.ven_psupply == 'Kerala' and pbill.cust_psupply == '' %}
+                            <div class="row container-fluid p-2 m-0" id="igst_div" style="display: none;">
+                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">IGST</label></div>
+                                <div class="col-sm-1 mt-2">:</div>
+                                <div class="col-sm-7 mt-2">
+                                    <input type="number" class="form-control" id="igst" name='igst' step="any" value=0 readonly/>
+                                </div>
+                                <div class="col-sm-4 m-0 p-0"></div>
+                            </div>
+                            <div class="row container-fluid p-2 m-0" id="cgst_div">
+                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">CGST</label></div>
+                                <div class="col-sm-1 mt-2">:</div>
+                                <div class="col-sm-7 mt-2">
+                                    <input type="number" class="form-control" id="cgst" name='cgst' step="any" value={{pbill.cgst}} readonly/>
+                                </div>
+                                <div class="col-sm-4 m-0 p-0"></div>
+                            </div>
+                            <div class="row container-fluid p-2 m-0" id="sgst_div">
+                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">SGST</label></div>
+                                <div class="col-sm-1 mt-2">:</div>
+                                <div class="col-sm-7 mt-2">
+                                    <input type="number" class="form-control" id="sgst" name='sgst' step="any" value={{pbill.sgst}} readonly/>
+                                </div>
+                                <div class="col-sm-4 m-0 p-0"></div>
+                            </div>
+                            {% else %}
+                            <div class="row container-fluid p-2 m-0" id="igst_div">
+                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">IGST</label></div>
+                                <div class="col-sm-1 mt-2">:</div>
+                                <div class="col-sm-7 mt-2">
+                                    <input type="number" class="form-control" id="igst" name='igst' step="any" value={{pbill.igst}} readonly/>
+                                </div>
+                                <div class="col-sm-4 m-0 p-0"></div>
+                            </div>
+                            <div class="row container-fluid p-2 m-0" style="display: none;" id="cgst_div">
+                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">CGST</label></div>
+                                <div class="col-sm-1 mt-2">:</div>
+                                <div class="col-sm-7 mt-2">
+                                    <input type="number" class="form-control" id="cgst" name='cgst' step="any" value=0 readonly/>
+                                </div>
+                                <div class="col-sm-4 m-0 p-0"></div>
+                            </div>
+                            <div class="row container-fluid p-2 m-0" style="display: none;" id="sgst_div">
+                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">SGST</label></div>
+                                <div class="col-sm-1 mt-2">:</div>
+                                <div class="col-sm-7 mt-2">
+                                    <input type="number" class="form-control" id="sgst" name='sgst' step="any" value=0 readonly/>
+                                </div>
+                                <div class="col-sm-4 m-0 p-0"></div>
+                            </div>
+                            {% endif %}
                             {% endif %}
                             <div class="row container-fluid p-2 m-0">
                                 <div class="col-sm-4 mt-2"><label for="a" class="text-center">Tax Amount</label></div>
@@ -1546,10 +1597,16 @@
                                                         <a class="btn btn-outline-secondary" id="new_unit_btn">+</a>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-6 mt-3">
+                                                <div class="col-md-6 mt-3" id="hsnDiv">
                                                     <label for="nitm_hsn" class="text-white">HSN Code</label>
                                                     <input type="number" name="nitm_hsn" class="form-control" placeholder="Enter a valid HSN code" id="nitm_hsn">
                                                     <span class="font-medium text-danger" id="item-hsn-error"></span>
+                                                </div>
+                                                <div class="col-md-6 mt-3" id="sacDiv" style="display: none;">
+                                                    <label for="sacField" style="color: white;">SAC Code</label>
+                                                    <input type="number" name="sac" class="form-control" style=" color: white;" placeholder="Enter a valid SAC code" id="sacField" oninput="validateSAC()">
+                                                    <span class="font-medium text-danger" id="item-sac-error"></span>
+                                                    <!-- <div id="sacError" style="color: red;"></div> -->
                                                 </div>
                                             </div>
                                             <div class="row mt-3">
@@ -2152,16 +2209,7 @@
             $('#cgst_div').show()
             $('#sgst_div').show()
         } else {
-            if(cust_state != '' || ven_state != 'Kerala'){
-                $(".inter_tax").removeClass('d-none');
-                $(".inter_tax").addClass('d-flex');
-                $(".intra_tax").removeClass('d-flex');
-                $(".intra_tax").addClass('d-none');
-                $(".intra_tax").val('');
-                $('#igst_div').show()
-                $('#cgst_div').hide()
-                $('#sgst_div').hide()
-            }else{
+            if(ven_state == 'Kerala' && cust_state == ''){
                 $(".inter_tax").removeClass('d-flex');
                 $(".inter_tax").addClass('d-none');
                 $(".intra_tax").removeClass('d-none');
@@ -2170,6 +2218,15 @@
                 $('#igst_div').hide()
                 $('#cgst_div').show()
                 $('#sgst_div').show()
+            }else{
+                $(".inter_tax").removeClass('d-none');
+                $(".inter_tax").addClass('d-flex');
+                $(".intra_tax").removeClass('d-flex');
+                $(".intra_tax").addClass('d-none');
+                $(".intra_tax").val('');
+                $('#igst_div').show()
+                $('#cgst_div').hide()
+                $('#sgst_div').hide()
             }
         }
 
@@ -2181,10 +2238,10 @@
             if (ven_state == cust_state){
                 document.getElementById('intra_tax'+l).value = intra
             }else{
-                if(cust_state != ''){
-                    document.getElementById('inter_tax'+l).value = inter
-                }else{
+                if(ven_state == 'Kerala' && cust_state == ''){
                     document.getElementById('intra_tax'+l).value = intra
+                }else{
+                    document.getElementById('inter_tax'+l).value = inter
                 }
             }
         }
@@ -2200,11 +2257,12 @@
         var ven_state = $('#ven_psupply').val()
         var cust_state = $('#cust_psupply').val()
         var hsn = item.data("hsn");
+        var sac = item.data("sac");
+        var item_type = item.data("item_type");
         var stock = item.data("stock");
         var price = item.data("price");
         var intra = item.data("intra");
         var inter = item.data("inter");
-
         var tableBody = document.getElementById("items-table-body");
         var rows = tableBody.getElementsByTagName("tr");
         for (var i = 1; i <= rows.length; i++) {
@@ -2216,8 +2274,19 @@
                 }
             }
         }
-
-        $(`#hsn${no}`).val(hsn)
+        if( item_type ==='Goods')
+        {
+            $(`#hsn${no}`).show();
+            $(`#sac${no}`).hide();
+            $(`#hsn${no}`).val(hsn);
+        }
+        else
+        {
+            $(`#sac${no}`).show();
+            $(`#hsn${no}`).hide();
+            $(`#sac${no}`).val(sac);
+        }
+        // $(`#hsn${no}`).val(hsn)
         if($('#price_list').val() == ''){
             $(`#price${no}`).val(price)
         }else{
@@ -2246,8 +2315,15 @@
         }else{
             $(`#nostate${no}`).hide();
             $(`#tax${no}`).hide()
-            if(cust_state != ''){
-                if (ven_state == cust_state){
+            if (ven_state == cust_state){
+                $(`#inter_tax${no}`).removeClass('d-flex');
+                $(`#inter_tax${no}`).addClass('d-none');
+                $(`#intra_tax${no}`).removeClass('d-none');
+                $(`#intra_tax${no}`).addClass('d-flex');
+                $(`#inter_tax${no}`).val('');
+                $(`#intra_tax${no}`).val(intra)
+            }else{
+                if(ven_state == 'Kerala' && cust_state == ''){
                     $(`#inter_tax${no}`).removeClass('d-flex');
                     $(`#inter_tax${no}`).addClass('d-none');
                     $(`#intra_tax${no}`).removeClass('d-none');
@@ -2262,13 +2338,6 @@
                     $(`#intra_tax${no}`).val('');
                     $(`#inter_tax${no}`).val(inter)
                 }
-            }else{
-                $(`#inter_tax${no}`).removeClass('d-flex');
-                $(`#inter_tax${no}`).addClass('d-none');
-                $(`#intra_tax${no}`).removeClass('d-none');
-                $(`#intra_tax${no}`).addClass('d-flex');
-                $(`#inter_tax${no}`).val('');
-                $(`#intra_tax${no}`).val(intra)
             }
         }
         calc()
@@ -2291,6 +2360,8 @@
                                 {% for i in itm %}
                                     <option value="{{ i.id }}" 
                                     data-hsn="{{i.hsn}}"
+                                    data-sac="{{ i.sac }}"
+                                    data-item_type="{{ i.item_type }}"
                                     data-stock="{{i.temp_stock}}" 
                                     data-price="{{i.purchase_price}}"
                                     data-intra="{{i.intra_state_tax}}"
@@ -2304,7 +2375,8 @@
                     </td>
 
                     <td tyle="width:12%">
-                        <input type="text" name='hsn[]' id="hsn${roinc}" class="form-control border-secondary" readonly />
+                        <input type="text" name='hsn[]' id="hsn${roinc}" class="form-control border-secondary HSNCODE" readonly />
+                        <input type="text" name='sac[]' id="sac${roinc}" class="form-control border-secondary SACCODE" readonly style="display:none"/>
                     </td>
 
                     <td style="width:13%">
@@ -2351,7 +2423,7 @@
                         <input type="number" name='total[]' id="total${roinc}" placeholder=0 class="form-control border-secondary total" value=0 step="any" readonly />
                     </td>
 
-                    <td style="display: none;"><input type="number" step="any" id="taxamount${roinc}" class="form-control border-secondary taxamount" /></td>
+                    <td style="display: none;"><input type="text" step="any" id="taxamount${roinc}" class="form-control border-secondary taxamount" /></td>
                     
                     <td style="width:5%">
                         <button type="button" id="${roinc}" class="btn btn-danger px-2 mx-1 py-1 remove_row fa fa-close"></button>
@@ -2390,11 +2462,13 @@
                     value = item.id
                     name = item.name
                     hsn = item.hsn
+                    sac = item.sac
+                    item_type = item.item_type
                     cstock = item.cstock
                     price = item.price
                     intra_tax = item.intra_tax
                     inter_tax = item.inter_tax
-                    $(`#product${row}`).append('<option value="' + value + '" data-hsn="' + hsn + '" data-stock="' + cstock + '" data-price="' + price + '" data-intra="' + intra_tax + '" data-inter="' + inter_tax + '">' + name + '</option>');
+                    $(`#product${row}`).append('<option value="' + value + '" data-hsn="' + hsn + '" data-sac="' + sac + '" data-item_type="' + item_type+ '" data-stock="' + cstock + '" data-price="' + price + '" data-intra="' + intra_tax + '" data-inter="' + inter_tax + '">' + name + '</option>');
                 });
             },
         });
@@ -2452,10 +2526,10 @@
                 if(ven_state == cust_state){
                     tax = parseFloat($(this).find('.intra_tax').val());
                 }else{
-                    if(cust_state != ''){
-                        tax = parseFloat($(this).find('.inter_tax').val());
-                    }else{
+                    if(ven_state == 'Kerala' && cust_state == ''){
                         tax = parseFloat($(this).find('.intra_tax').val());
+                    }else{
+                        tax = parseFloat($(this).find('.inter_tax').val());
                     }
                 }
                 $(this).find('.total').val((qty * price)-dis);
@@ -3857,15 +3931,61 @@
                     csrfmiddlewaretoken: '{{ csrf_token }}'
                 },
                 success: function(response) {
-                    var hsn_string = /^(\d{6}|\d{7})$/; 
-                    if (hsn_string.test($('#nitm_hsn').val())) {
-                        $('#item-hsn-error').text('')
-                        $('#nitm_hsn').css('border', '2px solid green'); 
-                    } else {
+                    
+                    if(response.is_exist===false)
+                    {
+                        var hsn_string = /^(\d{6}|\d{7})$/; 
+                        if (hsn_string.test($('#nitm_hsn').val())) {
+                            $('#item-hsn-error').text('')
+                            $('#nitm_hsn').css('border', '2px solid green'); 
+                        } else {
+                            $('#nitm_hsn').val('')
+                            $('#item-hsn-error').text('Invalid HSN')
+                            $('#nitm_hsn').css('border', '2px solid red'); 
+                        }
+                    }
+                    else {
                         $('#nitm_hsn').val('')
-                        $('#item-hsn-error').text('Invalid HSN')
+                        $('#item-hsn-error').text(`${itm_hsn} already exists, Try another.!`)
                         $('#nitm_hsn').css('border', '2px solid red'); 
                     }
+
+                },         
+            });
+        }
+    });
+
+     // Validate Item SAC
+     $('#sacField').change(function(){
+        var itm_sac = $('#sacField').val();
+        if (itm_sac != ""){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_Check_New_Item_SAC' %}",
+                data:{
+                    'itm_sac' : itm_sac,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    
+                    if(response.is_exist===false)
+                    {
+                        var sac_string = /^(\d{6}|\d{7})$/; 
+                        if (sac_string.test($('#sacField').val())) {
+                            $('#item-sac-error').text('')
+                            $('#sacField').css('border', '2px solid green'); 
+                        } else {
+                            $('#sacField').val('')
+                            $('#item-sac-error').text('Invalid SAC')
+                            $('#sacField').css('border', '2px solid red'); 
+                        }
+                    }
+                    else {
+                        // $('#sacField').val('')
+                        $('#item-sac-error').text(`${itm_sac} already exists, Try another.!`)
+                        $('#sacField').css('border', '2px solid red'); 
+                    }
+                    
                 },         
             });
         }
@@ -3880,6 +4000,24 @@
             }else{
                 taxref = 'Non Taxable'
             }
+            
+            // if($('#nitm_type').val()=== 'Goods' )
+            // {
+            //     if(!validateHSN())
+            //     {
+            //         alert('HSN must contain at least 6 digits')
+            //         return
+            //     }
+            // }
+            // else 
+            // {
+            //     if(!validateSAC())
+            //     {
+            //         alert('SAC must contain at least 6 digits')
+            //         return
+            //     }
+            // }
+
             $.ajax({
                 url: "{% url 'Fin_New_Item' %}",
                 type : 'GET',
@@ -3889,6 +4027,7 @@
                     type : $('#nitm_type').val(),
                     unit : $('#nitm_unit').val(),
                     hsn : $('#nitm_hsn').val(),
+                    sac : $('#sacField').val(),
                     taxref : taxref,
                     intra_st : $('#nitm_intra_tax').val(),
                     inter_st : $('#nitm_inter_tax').val(),
@@ -3913,6 +4052,8 @@
                             value: response.id 
                         });
                         $option.attr('data-hsn', $('#nitm_hsn').val());
+                        $option.attr('data-sac', $('#sacField').val());
+                        $option.attr('data-item_type', $('#nitm_type').val());
                         $option.attr('data-stock', $('#nitm_stock').val());
                         $option.attr('data-price', $('#nitm_pur_price').val());
                         $option.attr('data-intra',$('#nitm_intra_tax').val());
@@ -3926,4 +4067,67 @@
         }
     });
 </script>
+
+
+<script>
+    function validateSAC() {
+        var sacField = document.getElementById("sacField");
+        var errorText = document.getElementById("sacError");
+        var sacValue = sacField.value;
+
+        if (sacValue.length < 6) {
+            errorText.innerText = "SAC must contain at least 6 digits";
+            sacField.setCustomValidity("SAC must contain at least 6 digits");
+            sacField.style.borderColor = "red";
+            return false;
+        } else {
+            errorText.innerText = "";
+            sacField.setCustomValidity(""); 
+            sacField.style.borderColor = ""; 
+            return true;
+        }
+    }
+    $(document).ready(function(){
+        $('#nitm_type').on('input',function(){
+            if($(this).val()=== 'Goods' )
+            {
+                $('#sacField').val('');
+                $('#nitm_hsn').prop('required',true);
+                $('#sacField').prop('required',false);
+                $('#hsnDiv').show();
+                $('#sacDiv').hide();
+                $('#sacError').text('');
+                $('#sacField').css({'border-color':'white'});
+            }
+            else
+            {
+                $('#nitm_hsn').val('')
+                $('#nitm_hsn').prop('required',false);
+                $('#sacField').prop('required',true);
+                $('#sacDiv').show();
+                $('#hsnDiv').hide();
+                $('#item-hsn-error').text('');
+                $('#nitm_hsn').css({'border-color':'white'});
+            }
+        })
+    })
+    function validateHSN() {
+        var nitm_hsn = document.getElementById("nitm_hsn");
+        var errorText = document.getElementById("hsnError");
+        var hsnValue = nitm_hsn.value;
+
+        if (hsnValue.length < 6) {
+            errorText.innerText = "HSN must contain at least 6 digits";
+            nitm_hsn.setCustomValidity("HSN must contain at least 6 digits");
+            nitm_hsn.style.borderColor = "red";
+            return false
+        } else {
+            errorText.innerText = "";
+            nitm_hsn.setCustomValidity(""); 
+            nitm_hsn.style.borderColor = ""; 
+            return true
+        }
+    }
+</script>
+
 {% endblock %}

@@ -20,7 +20,7 @@
               <input type="text" id="search" class="form-control" placeholder="Search.." autocomplete="off"/>
               <div class="dropdown ml-1" style="justify-content: left">
                 <button type="button" class="btn btn-outline-secondary dropdown-toggle text-grey" data-toggle="dropdown"><i class="fa fa-sort"></i> Sort by</button>
-                <div class="dropdown-menu" style="background-color: black">
+                <div class="dropdown-menu" style="background-color: black"> 
                   <a class="dropdown-item" href="{% url 'Fin_items' %}" style="height: 40px; font-size: 15px; color: white">All</a>
                   <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortTable(1)">Name</a>
                   <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortHsnAscending()">HSN</a>
@@ -40,7 +40,7 @@
                 <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="filterTable(7,'inactive')">Inactive</a>
               </div>
             </div>
-            <a href="{% url 'Fin_createItem' %}" class="ml-1"></i><button type="button" class="btn btn-outline-secondary text-grey"><i class="fa fa-plus font-weight-light"></i> Add Item</button></a>
+            <a href="{% url 'Fin_createItem' %}" class="ml-1"></i><button type="button" class="btn btn-outline-secondary text-grey"><i class="fa fa-plus font-weight-light"></i> Item</button></a>
           </div>
         </div>
       </div>
@@ -51,7 +51,7 @@
           <tr>
             <th>SL.NO.</th>
             <th>NAME</th>
-            <th>HSN</th>
+            <th>HSN/SAC</th>
             <th>SALES RATE</th>
             <th>PURCHASE RATE</th>
             <th>STOCK ON INVENTORY</th>
@@ -64,7 +64,7 @@
           <tr class="clickable-row" data-href="Fin_view_item/{{ a.id }}" style="cursor: pointer;">
             <td>{{ forloop.counter }}</td>
             <td>{{ a.name }}</td>
-            <td>{{ a.hsn }}</td>
+            <td>{% if a.hsn %}{{ a.hsn }}{% else %}{{ a.sac }}{% endif %}</td>
             <td>{{ a.selling_price }}</td>
             <td>{{ a.purchase_price }}</td>
             <td>{{ a.opening_stock }}</td>

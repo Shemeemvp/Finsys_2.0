@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinsYs</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<style>
+    #table1 {
+    border-collapse: collapse;
+    width: 100%;
+    }
+
+    #table1 th, #table1 td {
+    border: 1px solid #dddddd;
+    padding: 5px 2px;
+    /* text-align: left; */
+    }
+
+    #table1 th {
+    background-color: #f2f2f2;
+    }
+
+    body {
+        font-size: 14px;
+    }
+
+    .invoice_data {
+        font-size: 1.2rem;
+    }
+
+    .data_row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .data_1, .data_2 {
+        font-weight: bold;
+    }
+
+    .data_value {
+        flex: 1;
+        text-align: right;
+    }
+
+    .balance_info{
+        display: flex;
+        justify-content: start;
+        align-items: center;
+    }
+    .balance_info .bal_head{
+        width: 48%;
+    }
+
+    .bal_value{
+        width: 48%;
+        flex: 1;
+        text-align: right;
+    }
+
+
+
+
+
+</style>
+
+<body>
+    <div class="my-5 page" size="A4">
+        <div class="p-5">
+            <div id="ember2512" class="row tooltip-container ember-view text-ellipsis" style="display: flex; justify-content: space-between;">
+                <div class="col-md-4"></div>
+                <div class="col-md-4">
+                    <center style="color: black;">
+                        <p> {{cmp.Company_name}}</p>
+                        <b>
+                            <p style="font-size: 1.3rem;"> CUSTOMER BALANCES</p>
+                        </b>
+                    </center>
+                    {% if startDate and endDate %}
+                    <center class="h6 text-white">{{startDate}} TO {{endDate}}</center>
+                    {% endif %}
+                </div>
+                <hr>
+            <section class="mt-4">
+                <table class="table2" id="table1">
+                    <thead>
+                        <tr>
+                            <th class="text-center">CUSTOMER NAME <i class="fa-solid fa-caret-up arrow" onclick="sortName(0)"></i></th>
+                                                    <th class="text-center">INVOICE BALENCE</th>
+                                                    <th class="text-center">AVAILABLE CREDITS</th>
+                                                    <th class="text-center"> BALANCE</th>
+                                                    <th class="text-center">BALANCE </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                            <tr>
+                                <td class="text-center">{{ customer.name }}  </td>
+                                <td class="text-center">{{ customer.invoice_balance |floatformat:2 }}</td>
+                                <td class="text-center">{{ customer.available_credits }}</td>
+                                <td class="text-center">{{ customer.total_balance }}</td>
+                                <td class="text-center">{{ customer.total_balance }}</td>
+
+                            </tr>
+
+                        
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+            <hr>
+            <section style="margin-top: 1rem; display: flex; justify-content: right;">
+                <div style="margin-left: 1rem;">Total customers : <p style="font-size: 19px; margin-top: 3px;">{{totalCustomers|default:0}}</p>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td style="text-align: left;">
+                                <div>Invoice Balance: <p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalInvoice">{{totalInvoice|default:0|floatformat:2 }}</span></p></div>
+                            </td>
+                            <td style="text-align: center;">
+                                <div>Recurring Invoice Balance: <p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalReccuringinvoice">{{totalRecInvoice|default:0|floatformat:2}}</span></p></div>
+                            </td>
+                            <td style="text-align: right;">
+                                <div>Credit Note: <p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalCreditnote">{{totalCreditNote|default:0|floatformat:2}}</span></p></div>
+                            </td>
+                        </tr>
+                        <tr style="margin-top: 1rem;">
+                            
+                           
+                            <td style="text-align: right;">
+                                <div>Total Balance: <br>(Without Credit Note)<p style="font-size: 16px; margin-top: 3px;">Rs. <span id="grantTotal">{{total_invoice_balance|default:0|floatformat:2}}</span></p></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="margin-left: 1rem;">
+                    <h5 style="padding-top: 10px; color: #000; font-size: 17px;">Total Balance</h5>
+                    <h4 style="font-size: 20px; font-weight: bold; margin-top: 5px;" id="totvalue">Rs. <span id="superTotal">{{total_balance1|default:0|floatformat:2}}</span></h4>
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+
+</html>

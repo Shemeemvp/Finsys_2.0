@@ -905,10 +905,10 @@
                                 </div>
         
                                 <div class="col-md-3 mt-3 vl">
-                                    <h6 class="mb-0">HSN</h6>
+                                    <h6 class="mb-0">{% if i.item.item_type == 'Goods' %} HSN {% else %} SAC {% endif %}</h6>
                                 </div>
                                 <div class="col-md-3 mt-3">
-                                    <p class="mb-0 text-center">{{ i.item.hsn }}</p>
+                                    <p class="mb-0 text-center">{% if i.item.item_type == 'Goods' %} {{ i.item.hsn }} {% else %} {{ i.item.sac }} {% endif %}</p>
                                 </div>
                             </div>
                             <div class="row mb-4 d-flex justify-content-between align-items-center">
@@ -978,10 +978,6 @@
                         <h5 class="">Sub Total</h5>
                         <h6>{{ pbill.subtotal }}</h6>
                     </div>
-                    <div class="d-flex justify-content-between mb-4">
-                        <h5 class="">Tax Amount</h5>
-                        <h6>{{pbill.taxamount }}</h6>
-                    </div>
                     {% if pbill.igst != '0' %}
                     <div class="d-flex justify-content-between mb-4">
                         <h5 class="">IGST</h5>
@@ -997,6 +993,10 @@
                         <h6>{{ pbill.sgst }}</h6>
                     </div>
                     {% endif %}
+                    <div class="d-flex justify-content-between mb-4">
+                        <h5 class="">Tax Amount</h5>
+                        <h6>{{pbill.taxamount }}</h6>
+                    </div>
                     {% if pbill.ship_charge != '0' %}
                     <div class="d-flex justify-content-between mb-4">
                         <h5 class="">Shipping Charge</h5>
@@ -1833,5 +1833,6 @@
         });
     });
 </script>
+
 
 {% endblock %}

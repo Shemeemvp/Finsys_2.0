@@ -23,16 +23,30 @@
         border-radius: 0.5rem;
         position: relative
     }
-
+    .radius-15{
+        border-radius: 15px;
+    }
 </style>
 
-<div class="page-content">
+<div class="page-content mt-0 pt-0">
+    <div class="d-flex justify-content-end mb-1">
+        <a href="{% url 'Fin_items' %}"><i class="fa fa-times-circle text-white mx-4 p-1" style="font-size: 1.2rem;margin-right: -0rem !important;"></i></a>
+      </div>
+    <div class="card radius-15 h-20">
+        <div class="row">
+          <div class="col-md-12">
+            <center><h2 class="mt-3">ADD ITEM</h2></center>
+            <hr/>
+          </div>
+        </div>
+      </div>
+
     <div class="card radius-15">
         <div class="card-body">
             <div class="row">
                 <div class="col-12 col-lg-12 col-xl-12">
                     <!-- <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="javascript:window.history.back()"><i class="fa fa-times text-white" style="font-size: 1.2rem;"></i></span> -->
-                    <div class="card" style="background-color: #2a4964;">
+                    <!-- <div class="card" style="background-color: #2a4964;">
                         <div class="row no-gutters">
                             <div class="col-md-2"></div>
                             <div class="col-md-8 mt-4 mb-4">
@@ -42,7 +56,7 @@
                             </div>
                             <div class="col-md-2"></div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
             <form action="{% url 'Fin_createNewItem' %}" method="post" class="needs-validation"  validate>
@@ -78,10 +92,15 @@
                                     </a>
                                 </div>
                             </div>
-                            <div class="col-md-6 mt-3">
+                            <div class="col-md-6 mt-3" id="hsnDiv">
                                 <label for="hsnField" style="color: white;">HSN Code</label>
                                 <input type="number" name="hsn" class="form-control" style="background-color: #2a4964; color: white;" placeholder="Enter a valid HSN code" required id="hsnField" oninput="validateHSN()">
                                 <div id="hsnError" style="color: red;"></div>
+                            </div>
+                            <div class="col-md-6 mt-3" id="sacDiv" style="display: none;">
+                                <label for="sacField" style="color: white;">SAC Code</label>
+                                <input type="number" name="sac" class="form-control" style="background-color: #2a4964; color: white;" placeholder="Enter a valid SAC code" required id="sacField" oninput="validateSAC()">
+                                <div id="sacError" style="color: red;"></div>
                             </div>
                         </div>
                         <div class="row mt-3">
@@ -755,5 +774,47 @@ $(document).on("click","#saveNewAccount",function(){
 });
 </script>
 
+
+<script>
+    function validateSAC() {
+        var sacField = document.getElementById("sacField");
+        var errorText = document.getElementById("sacError");
+        var sacValue = sacField.value;
+
+        if (sacValue.length < 6) {
+            errorText.innerText = "SAC must contain at least 6 digits";
+            sacField.setCustomValidity("SAC must contain at least 6 digits");
+            sacField.style.borderColor = "red";
+        } else {
+            errorText.innerText = "";
+            sacField.setCustomValidity(""); 
+            sacField.style.borderColor = ""; 
+        }
+    }
+    $(document).ready(function(){
+        $('#itemType').on('input',function(){
+            if($(this).val()=== 'Goods' )
+            {
+                $('#sacField').val('');
+                $('#hsnField').prop('required',true);
+                $('#sacField').prop('required',false);
+                $('#hsnDiv').show();
+                $('#sacDiv').hide();
+                $('#sacError').text('');
+                $('#sacField').css({'border-color':'white'});
+            }
+            else
+            {
+                $('#hsnField').val('')
+                $('#hsnField').prop('required',false);
+                $('#sacField').prop('required',true);
+                $('#sacDiv').show();
+                $('#hsnDiv').hide();
+                $('#hsnError').text('');
+                $('#hsnField').css({'border-color':'white'});
+            }
+        })
+    })
+</script>
 
 {% endblock %}
