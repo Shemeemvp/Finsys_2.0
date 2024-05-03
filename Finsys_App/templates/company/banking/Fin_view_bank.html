@@ -553,8 +553,14 @@
                         <hr style="width: 95%">
                     </div>
 
+                    <div class="" style="float: left; ">
+                        <a class="trasactionBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh; background-color: rgba(22,37,50,255);" onclick="Transaction()" id="transactionBtn" > Transactions</a>
+                        <a class="overviewBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="Overview()" id="overviewBtn" >Overview</a>
+                        <a class="statementBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="Statment()" id="statementBtn" >Statement</a>
+                    </div> 
 
-                    <div class="btn-group" style="float: left; ">
+
+                    <!-- <div class="btn-group" style="float: left; ">
 
                         <a class="btn btn-outline-info text-grey mt-3 " style=" cursor: pointer; "
                             onclick="Transaction()"> Transaction</a>
@@ -563,14 +569,15 @@
 
                         <a class="btn btn-outline-info text-grey mt-3 " style=" cursor: pointer;" onclick="Statment()">
                             Statement</a>
-                    </div>
+                    </div> -->
+
                     <div class="btn-group mx-1" style="float: right;">
-                        <a class=" btn btn-outline-info  text-grey mt-3 " style=" cursor: pointer;"
+                        <a class=" btn btn-outline-secondary  text-grey mt-3 " style=" cursor: pointer;"
                             onclick="ExportToExcel('xlsx')">Export To Excel</a>
                     </div>
                     <div class="btn-group mx-1" style="float: right;">
                         <div class="dropdown">
-                            <button type="button" class="dropdown-toggle btn btn-outline-info  text-grey mt-3 "
+                            <button type="button" class="dropdown-toggle btn btn-outline-secondary  text-grey mt-3 "
                                 style=" cursor: pointer;" data-toggle="dropdown"> Transaction
                             </button>
                             <div class="dropdown-menu" style="background-color: black;">
@@ -779,7 +786,7 @@
 
                     </center>
                     <hr>
-                    <div class="btn-group" style="float: left; ">
+                    <!-- <div class="btn-group" style="float: left; ">
 
                         <a class="btn btn-outline-info  text-grey mt-3 "
                             style=" cursor: pointer; " onclick="Transaction()"> Transaction</a>
@@ -788,7 +795,14 @@
 
                         <a class="btn btn-outline-info  text-grey mt-3 "
                             style=" cursor: pointer;" onclick="Statment()"> Statement</a>
-                    </div>
+                    </div> -->
+
+                    <div class="" style="float: left; ">
+                        <a class="trasactionBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="Transaction()" id="transactionBtn" > Transactions</a>
+                        <a class="overviewBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh; background-color: rgba(22,37,50,255);" onclick="Overview()" id="overviewBtn" >Overview</a>
+                        <a class="statementBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="Statment()" id="statementBtn" >Statement</a>
+                    </div> 
+
                     <div class="btn-group" style="float: right; ">
 
 
@@ -796,24 +810,24 @@
                         <div>
                             <center>
 
-                                <a href="{% url 'Fin_edit_bank' bank.id %}" class=" fa fa-pencil  btn btn-outline-info  text-grey mt-3 "
-                                    style=" cursor: pointer;" role="button">
-                                    Edit
-                                </a>&nbsp;
                                 {% if bank.bank_status == "Active" %}
-                                <a href="{% url 'Fin_change_bank_status' bank.id %}" class=" fa fa-check  btn btn-outline-info  text-grey mt-3 " id="set-inactive"
+                                <a href="{% url 'Fin_change_bank_status' bank.id %}" class=" fa fa-check  btn btn-outline-secondary text-grey mt-3 " id="set-inactive"
                                     style=" cursor: pointer;" role="button" data-bank-id="{{ bank.id }}">Active</a> &nbsp;
                                 {% else %}
-                                <a href="{% url 'Fin_change_bank_status' bank.id %}" class="set-active fa fa-exclamation-triangle  btn btn-outline-info  text-grey mt-3 " id="set-active"
+                                <a href="{% url 'Fin_change_bank_status' bank.id %}" class="set-active fa fa-exclamation-triangle  btn btn-outline-secondary text-grey mt-3 " id="set-active"
                                     style=" cursor: pointer;" role="button" data-bank-id="{{ bank.id }}">in-Active</a>
                                 &nbsp;
                                 {% endif %}
+                                <a href="{% url 'Fin_edit_bank' bank.id %}" class=" fa fa-pencil  btn btn-outline-secondary  text-grey mt-3 "
+                                    style=" cursor: pointer;" role="button">
+                                    Edit
+                                </a>&nbsp;
 
 
-                                <a href="" class=" fa fa-trash  btn btn-outline-info  text-grey mt-3 mr-2 "
+                                <a href="" class=" fa fa-trash  btn btn-outline-secondary  text-grey mt-3 mr-2 "
                                     style=" cursor: pointer; " role="button"> Delete</a>
 
-                                <button type="button" class=" fa fa-paperclip  btn btn-outline-info  text-grey mt-3 "
+                                <button type="button" class=" fa fa-paperclip  btn btn-outline-secondary  text-grey mt-3 "
                                     style=" cursor: pointer;" style="cursor: pointer;" data-toggle="modal"
                                     data-target="#exampleModal">
 
@@ -978,7 +992,7 @@
 
                     </center>
                     <hr>
-                    <div class="btn-group" style="float: left; ">
+                    <!-- <div class="btn-group" style="float: left; ">
 
                         <a class="btn btn-outline-info   text-grey mt-3 "
                             style=" cursor: pointer; " onclick="Transaction()"> Transaction</a>
@@ -987,17 +1001,22 @@
 
                         <a class="btn btn-outline-info   text-grey mt-3 "
                             style=" cursor: pointer;" onclick="Statment()"> Statement</a>
-                    </div>
+                    </div> -->
+                    <div class="" style="float: left; ">
+                        <a class="trasactionBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="Transaction()" id="transactionBtn" > Transactions</a>
+                        <a class="overviewBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="Overview()" id="overviewBtn" >Overview</a>
+                        <a class="statementBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh; background-color: rgba(22,37,50,255);" onclick="Statment()" id="statementBtn" >Statement</a>
+                    </div> 
                     <div class="btn-group" style="float: right; ">
 
 
                         <div>
                             <center>
                               
-                                <a class="btn btn-outline-info  text-grey mt-3" style=" cursor: pointer; "
+                                <a class="btn btn-outline-secondary text-grey mt-3" style=" cursor: pointer; "
                                     role="button" href="" id="downloadButton">PDF</a>
 
-                                <button class="btn btn-outline-info  text-grey mt-3 "
+                                <button class="btn btn-outline-secondary  text-grey mt-3 "
                                     style=" cursor: pointer; " onclick="printStatement()">Print
                                     Statement</button>
 
@@ -1005,7 +1024,7 @@
                                 class=" fa fa-download btn btn-outline-info rounded-pill text-grey mt-3 mb-3"
                                 data-target="#commentModal"> Download</a> -->
 
-                                <li class=" btn btn-outline-info text-grey  mt-3  "
+                                <li class=" btn btn-outline-secondary text-grey  mt-3  "
                                     style=" cursor: pointer; " onclick="uplodfile()"
                                     data-toggle="dropdown"> &nbsp;Share&nbsp;</li>
                                 <ul class="dropdown-menu" style="background-color: black;">
@@ -1246,7 +1265,9 @@
         document.getElementById('statment').style.display = 'none';
         document.getElementById('Transaction').style.display = 'block';
 
-
+        document.querySelectorAll('.transactionBtn').style.backgroundColor='rgba(22,37,50,255)'
+        document.querySelectorAll('.overviewBtn').style.backgroundColor='transparent'
+        document.querySelectorAll('.statementBtn').style.backgroundColor='transparent'
 
 
     }
@@ -1257,7 +1278,9 @@
         document.getElementById('statment').style.display = 'none';
         document.getElementById('Transaction').style.display = 'none';
 
-
+        document.querySelectorAll('.overviewBtn').style.backgroundColor='rgba(22,37,50,255)'
+        document.querySelectorAll('.transactionBtn').style.backgroundColor='transparent'
+        document.querySelectorAll('.statementBtn').style.backgroundColor='transparent'
 
 
     }
@@ -1267,7 +1290,9 @@
         document.getElementById('statment').style.display = 'block';
         document.getElementById('Transaction').style.display = 'none';
 
-
+        document.querySelectorAll('.statementBtn').style.backgroundColor='rgba(22,37,50,255)'
+        document.querySelectorAll('.overviewBtn').style.backgroundColor='transparent'
+        document.querySelectorAll('.transactionBtn').style.backgroundColor='transparent'
     }
 
 </script>

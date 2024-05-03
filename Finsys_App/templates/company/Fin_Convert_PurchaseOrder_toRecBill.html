@@ -65,52 +65,52 @@
         $('#buttonClicked').val($(this).val()); // Set the value of the clicked button in the hidden input field
     });
     
-    $('#rBillForm').submit(function(event) {
-        // Prevent the default form submission
-        event.preventDefault();
+    // $('#rBillForm').submit(function(event) {
+    //     // Prevent the default form submission
+    //     event.preventDefault();
 
-        var isDuplicate = checkUniqueHSN();
-        var quan = checkQuantity();
-        if (isDuplicate) {
-            // alert("Duplicate Items found!");
-            alert("Item HSN / SAC should not be empty !")
-        }else if(quan){
-            alert("quantity cannot be zero or empty !");
-        }else{
+    //     var isDuplicate = checkUniqueHSN();
+    //     var quan = checkQuantity();
+    //     if (isDuplicate) {
+    //         // alert("Duplicate Items found!");
+    //         alert("Item HSN / SAC should not be empty !")
+    //     }else if(quan){
+    //         alert("quantity cannot be zero or empty !");
+    //     }else{
 
-            // Get the form data
-        var formData = $(this).serialize();
+    //         // Get the form data
+    //         // var formData = $(this).serialize();
+            
+
+    //         // Make the AJAX request
+    //         // $.ajax({
+    //         //     url: "", // The URL to which the request is sent
+    //         //     type: 'POST', // Example: POST method
+    //         //     data: formData, // Send form data
+    //         //     dataType: 'json', // Expected data type from the server
+    //         //     success: function(response) {
+    //         //         // Function to be called if the request succeeds
+    //         //         console.log(response);
+    //         //         alert(response.messages)
+    //         //         if (response.relo){
+    //         //             window.location.href = "";
+    //         //         }
+                    
+    //         //     },
+    //         //     error: function(xhr, status, error) {
+    //         //         // Function to be called if the request fails
+    //         //         console.error('Error:', error);
+    //         //         alert(error)
+    //         //     },
+    //         //     complete: function(xhr, status) {
+    //         //         // Function to be called regardless of success or failure
+    //         //     }
+    //         // });
+    //             $(this).submit();
+    //     }
+
         
-
-        // Make the AJAX request
-        $.ajax({
-            url: "", // The URL to which the request is sent
-            type: 'POST', // Example: POST method
-            data: formData, // Send form data
-            dataType: 'json', // Expected data type from the server
-            success: function(response) {
-                // Function to be called if the request succeeds
-                console.log(response);
-                alert(response.messages)
-                if (response.relo){
-                    window.location.href = "";
-                }
-                
-            },
-            error: function(xhr, status, error) {
-                // Function to be called if the request fails
-                console.error('Error:', error);
-                alert(error)
-            },
-            complete: function(xhr, status) {
-                // Function to be called regardless of success or failure
-            }
-        });
-
-        }
-
-        
-    });
+    // });
 });
 
 
@@ -167,14 +167,14 @@ function goBack() {
                 </tr>
             </tbody>
         </table>  
-        <span class="d-flex justify-content-end p-2" style="cursor: pointer;"  onclick="goBack()"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
-        <form action="#" id="rBillForm" enctype="multipart/form-data" method="post">
+        <span class="d-flex justify-content-end p-2" style="cursor: pointer;"  onclick="window.location.href=`{% url 'Fin_purchaseOrder' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+        <form action="{% url 'Fin_purchaseOrderConvertRecBill' purchase.id %}" id="rBillForm" enctype="multipart/form-data" method="post">
             {% csrf_token %}
         <!-- overview -->
         <div id="overview123">
             <div class="card radius-15" id="col33">
                 <!-- <div class="ml-auto"><a style="cursor: pointer;" title="Close" onclick="goBack()" ><i class="fa-solid fa-circle-xmark fa-2xl"></i></a></div> -->
-               <center><h2 style="padding: 50px;">EDIT RECURRING BILL</h2></center>
+               <center><h2 style="padding: 50px;">CONVERT PURCHASE ORDER TO RECURRING BILL</h2></center>
             </div>
                         
                         
@@ -182,7 +182,7 @@ function goBack() {
                                 <div class="card-body p-0">
 
                                     <!-- company place -->
-                                    <input type="text" name="companyPlace" value="{{companyDetails.State}}" id="companyPlace" style="display: none;" >
+                                    <input type="text" name="companyPlace" value="{{cmp.State}}" id="companyPlace" style="display: none;" >
 
                                 <div class="ml-4 mr-4">
 
@@ -211,8 +211,8 @@ function goBack() {
                                                                 </div> -->
 
                                                                 <div class="input-group">
-                                                                    <input type="text" style="display: none;" value="{{recur.vendor.id}}" class="form-control dropdown-toggle" name="select_vendor" id="select_vendor" data-toggle="dropdown" placeholder="Search" aria-haspopup="true" aria-expanded="false">
-                                                                    <input required name="vendorName" type="text" autocomplete="off" style="text-transform: capitalize;" value="{{recur.vendor_name}}" class="form-control dropdown-toggle" id="select_vendor2" data-toggle="dropdown" placeholder="Search Vendors" aria-haspopup="true" aria-expanded="false">
+                                                                    <input type="text" style="display: none;" value="{{purchase.Vendor.id}}" class="form-control dropdown-toggle" name="select_vendor" id="select_vendor" data-toggle="dropdown" placeholder="Search" aria-haspopup="true" aria-expanded="false">
+                                                                    <input required name="vendorName" type="text" autocomplete="off" style="text-transform: capitalize;" value="{{purchase.Vendor.first_name}} {{purchase.Vendor.last_name}}" class="form-control dropdown-toggle" id="select_vendor2" data-toggle="dropdown" placeholder="Search Vendors" aria-haspopup="true" aria-expanded="false">
                                                                     <div class="input-group-append">
                                                                         <div class="dropdown-menu vendorDropdown" style="width:280px;">
                                                                             {% for i in vendors %}
@@ -311,17 +311,17 @@ function goBack() {
                                                             </script>
                                                             <div class="form-group col-md">
                                                                 <label class="" >Vendor Email</label>
-                                                                <input readonly name="vendorEmail" required value="{{recur.vendor_email}}" type="vendorEmail" placeholder="Vendor Email" id="vendorEmail" class="form-control">
+                                                                <input readonly name="vendorEmail" required value="{{purchase.vendor_email}}" type="vendorEmail" placeholder="Vendor Email" id="vendorEmail" class="form-control">
                                                             </div>
                                                         </div>
                                                         <div class="row">
                                                             <div class="form-group col-md-6">
                                                                 <label class="">GST Type </label>
-                                                                <input readonly name="vendorGstType" type="text" value="{{recur.vendor_gst_type}}" placeholder="Vendor GST Type" id="vendorGST" class="form-control">
+                                                                <input readonly name="vendorGstType" type="text" value="{{purchase.vendor_gst_type}}" placeholder="Vendor GST Type" id="vendorGST" class="form-control">
                                                             </div>
-                                                            <div id="vendorGstinDiv" {% if recur.vendor.gstin %} {% else %} style="display: none;" {% endif %}  class="form-group col-md">
+                                                            <div id="vendorGstinDiv" {% if purchase.Vendor.gstin %} {% else %} style="display: none;" {% endif %}  class="form-group col-md">
                                                                 <label class="">GST Number</label>
-                                                                <input readonly name="vendorGstNumber" type="text" value="{{recur.vendor_gst_number}}" placeholder="Vendor GST Number" id="vendorGSTIN"  class="form-control">
+                                                                <input readonly name="vendorGstNumber" type="text" value="{{purchase.vendor_gstin}}" placeholder="Vendor GST Number" id="vendorGSTIN"  class="form-control">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -332,51 +332,51 @@ function goBack() {
                                                     <div class="col-md-3">
                                                         <label class=" ">Place Of Supply</label>
                                                         <select aria-placeholder="Select Place of Supply" required class="form-control source_of_supply_vendor" name="sourceOfSupply" id="sourceOFSupply" >
-                                                            <option {% if recur.vendor_place_of_supply == '' %}selected{% endif %} value="" class="text-grey">Select Place of Supply</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Andaman and Nicobar Islands' %}selected{% endif %} value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Andhra Pradesh' %}selected{% endif %} value="Andhra Pradesh">Andhra Pradesh</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Arunachal Pradesh' %}selected{% endif %} value="Arunachal Pradesh">Arunachal Pradesh</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Assam' %}selected{% endif %} value="Assam">Assam</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Bihar' %}selected{% endif %} value="Bihar">Bihar</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Chandigarh' %}selected{% endif %} value="Chandigarh">Chandigarh</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Chhattisgarh' %}selected{% endif %} value="Chhattisgarh">Chhattisgarh</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Dadra and Nagar Haveli' %}selected{% endif %} value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Daman and Diu' %}selected{% endif %} value="Daman and Diu">Daman and Diu</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Delhi' %}selected{% endif %} value="Delhi">Delhi</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Goa' %}selected{% endif %} value="Goa">Goa</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Gujarat' %}selected{% endif %} value="Gujarat">Gujarat</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Haryana' %}selected{% endif %} value="Haryana">Haryana</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Himachal Pradesh' %}selected{% endif %} value="Himachal Pradesh">Himachal Pradesh</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Jammu and Kashmir' %}selected{% endif %} value="Jammu and Kashmir">Jammu and Kashmir</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Jharkhand' %}selected{% endif %} value="Jharkhand">Jharkhand</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Karnataka' %}selected{% endif %} value="Karnataka">Karnataka</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Kerala' %}selected{% endif %} value="Kerala">Kerala</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Ladakh' %}selected{% endif %} value="Ladakh">Ladakh</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Lakshadweep' %}selected{% endif %} value="Lakshadweep">Lakshadweep</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Madhya Pradesh' %}selected{% endif %} value="Madhya Pradesh">Madhya Pradesh</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Maharashtra' %}selected{% endif %} value="Maharashtra">Maharashtra</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Manipur' %}selected{% endif %} value="Manipur">Manipur</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Meghalaya' %}selected{% endif %} value="Meghalaya">Meghalaya</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Mizoram' %}selected{% endif %} value="Mizoram">Mizoram</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Nagaland' %}selected{% endif %} value="Nagaland">Nagaland</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Odisha' %}selected{% endif %} value="Odisha">Odisha</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Puducherry' %}selected{% endif %} value="Puducherry">Puducherry</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Punjab' %}selected{% endif %} value="Punjab">Punjab</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Rajasthan' %}selected{% endif %} value="Rajasthan">Rajasthan</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Sikkim' %}selected{% endif %} value="Sikkim">Sikkim</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Tamil Nadu' %}selected{% endif %} value="Tamil Nadu">Tamil Nadu</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Telangana' %}selected{% endif %} value="Telangana">Telangana</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Tripura' %}selected{% endif %} value="Tripura">Tripura</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Uttar Predesh' %}selected{% endif %} value="Uttar Pradesh">Uttar Pradesh</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Uttarakhand' %}selected{% endif %} value="Uttarakhand">Uttarakhand</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'West Bengal' %}selected{% endif %} value="West Bengal">West Bengal</option>
-                                                            <option {% if recur.vendor_place_of_supply == 'Other Territory' %}selected{% endif %} value="Other Territory">Other Territory</option>
+                                                            <option {% if purchase.vendor_source_of_supply == '' %}selected{% endif %} value="" class="text-grey">Select Place of Supply</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Andaman and Nicobar Islands' %}selected{% endif %} value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Andhra Pradesh' %}selected{% endif %} value="Andhra Pradesh">Andhra Pradesh</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Arunachal Pradesh' %}selected{% endif %} value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Assam' %}selected{% endif %} value="Assam">Assam</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Bihar' %}selected{% endif %} value="Bihar">Bihar</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Chandigarh' %}selected{% endif %} value="Chandigarh">Chandigarh</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Chhattisgarh' %}selected{% endif %} value="Chhattisgarh">Chhattisgarh</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Dadra and Nagar Haveli' %}selected{% endif %} value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Daman and Diu' %}selected{% endif %} value="Daman and Diu">Daman and Diu</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Delhi' %}selected{% endif %} value="Delhi">Delhi</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Goa' %}selected{% endif %} value="Goa">Goa</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Gujarat' %}selected{% endif %} value="Gujarat">Gujarat</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Haryana' %}selected{% endif %} value="Haryana">Haryana</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Himachal Pradesh' %}selected{% endif %} value="Himachal Pradesh">Himachal Pradesh</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Jammu and Kashmir' %}selected{% endif %} value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Jharkhand' %}selected{% endif %} value="Jharkhand">Jharkhand</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Karnataka' %}selected{% endif %} value="Karnataka">Karnataka</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Kerala' %}selected{% endif %} value="Kerala">Kerala</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Ladakh' %}selected{% endif %} value="Ladakh">Ladakh</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Lakshadweep' %}selected{% endif %} value="Lakshadweep">Lakshadweep</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Madhya Pradesh' %}selected{% endif %} value="Madhya Pradesh">Madhya Pradesh</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Maharashtra' %}selected{% endif %} value="Maharashtra">Maharashtra</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Manipur' %}selected{% endif %} value="Manipur">Manipur</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Meghalaya' %}selected{% endif %} value="Meghalaya">Meghalaya</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Mizoram' %}selected{% endif %} value="Mizoram">Mizoram</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Nagaland' %}selected{% endif %} value="Nagaland">Nagaland</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Odisha' %}selected{% endif %} value="Odisha">Odisha</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Puducherry' %}selected{% endif %} value="Puducherry">Puducherry</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Punjab' %}selected{% endif %} value="Punjab">Punjab</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Rajasthan' %}selected{% endif %} value="Rajasthan">Rajasthan</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Sikkim' %}selected{% endif %} value="Sikkim">Sikkim</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Tamil Nadu' %}selected{% endif %} value="Tamil Nadu">Tamil Nadu</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Telangana' %}selected{% endif %} value="Telangana">Telangana</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Tripura' %}selected{% endif %} value="Tripura">Tripura</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Uttar Predesh' %}selected{% endif %} value="Uttar Pradesh">Uttar Pradesh</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Uttarakhand' %}selected{% endif %} value="Uttarakhand">Uttarakhand</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'West Bengal' %}selected{% endif %} value="West Bengal">West Bengal</option>
+                                                            <option {% if purchase.vendor_source_of_supply == 'Other Territory' %}selected{% endif %} value="Other Territory">Other Territory</option>
                                                             
                                                         </select>
                                                     </div>
                                                     <div class="form-group col-md mb-3">
                                                         <label class="">Address</label>
-                                                        <textarea readonly required name="venaddress" id="vendorAddress" placeholder="Vendor Address" cols="10" rows="5" class="form-control">{{recur.vendor_billing_address}}</textarea>
+                                                        <textarea readonly required name="venaddress" id="vendorAddress" placeholder="Vendor Address" cols="10" rows="5" class="form-control">{{purchase.vendor_address}}</textarea>
                                                     </div>
                                                 </div>
 
@@ -436,7 +436,7 @@ function goBack() {
                                                 <div class="row m-md-2">
                                                     <div class="col-md mb-3">
                                                         <label for="">Recurring Bill No.</label> <small style="color: orangered;" id="recuringErr"></small>
-                                                        <input style="text-transform: uppercase;"  type="text" value="{{recur.recurring_bill_number}}" required class="form-control" placeholder="{{nxtRB}}" name="RecurringBillNo" id="RecurringBillNo" pattern="[A-Za-z]{2}\d*">
+                                                        <input style="text-transform: uppercase;"  type="text" value="{{nxtRB}}" required class="form-control" placeholder="{{nxtRB}}" name="RecurringBillNo" id="RecurringBillNo" pattern="[A-Za-z]{2}\d*">
                                                         <script>
                                                             $(document).on('change','#RecurringBillNo', function() {
                                                             $('#recuringErr').text('');
@@ -455,9 +455,9 @@ function goBack() {
                                                             if(rb_num != ""){
                                                                 $.ajax({
                                                                     type: "GET",
-                                                                    url: "",
+                                                                    url: "{% url 'Fin_check_recurring_bill_number' %}",
                                                                     data: {
-                                                                        'RbNum' : rb_num,
+                                                                        'invNum' : rb_num,
                                                                     },
                                                                     success: function (response) {
                                                                         if (response.status){
@@ -475,17 +475,17 @@ function goBack() {
                                                     </div>
                                                     <div class="col-md mb-3">
                                                         <label for="">Reference Number</label>
-                                                        <input required type="text" class="form-control" value="{{recur.reference_number}}" disabled >
-                                                        <input required type="text" class="form-control" name="ReferenceNo" id="ReferenceNo" value="{{refData.referenceID}}" hidden >
+                                                        <!-- <input required type="text" class="form-control" value="" disabled > -->
+                                                        <input readonly type="text" class="form-control" name="ReferenceNo" id="ReferenceNo" value="{{refData}}">
                                                         
                                                     </div>
                                                     <div class="col-md mb-3">
                                                         <label for="">Profile Name</label>
-                                                        <input type="text" value="{{recur.profile_name}}" class="form-control" name="ProfileName" id="ProfileName">
+                                                        <input type="text" value="" class="form-control" name="ProfileName" id="ProfileName">
                                                     </div>
                                                     <div class="col-md mb-3">
                                                         <label for="">Purchase Order No.</label>
-                                                        <input readonly type="text" value="{{recur.purchase_order_number}}" class="form-control" name="PurchaseOrderNo" id="PurchaseOrderNo">
+                                                        <input readonly type="text" value="{{purchase.purchase_order_no}}" class="form-control" name="PurchaseOrderNo" id="PurchaseOrderNo">
                                                     </div>
                                                 </div>
 
@@ -495,11 +495,7 @@ function goBack() {
                                                         <div style="display: flex;">
                                                             <select class="form-control" name="RepeatEvery" id="RepeatEvery" >
                                                                 {% for r in RepeatEvery %}
-                                                                {% if recur.repeat_every_id == r.id %}
-                                                                <option selected value="{{r.id}}">{{r.repeat_every}}</option>
-                                                                {% else %}
                                                                 <option value="{{r.id}}">{{r.repeat_every}}</option>
-                                                                {% endif %}
                                                                 {% endfor %}
                                                             </select>
                                                             <button class="btn btn-outline-secondary text-grey ml-1" data-toggle="modal" data-target="#RepeatEveryN">+</button>
@@ -507,7 +503,7 @@ function goBack() {
                                                     </div>
                                                     <div class="col-md-3 mb-3 mt-2">
                                                         <label for="">Recurring Bill Date</label>
-                                                        <input required type="date" value="{{recur.date | date:'Y-m-d'}}" class="form-control" onchange="calculateEndDate()" name="startDate" id="startDate">
+                                                        <input required type="date" value="{{purchase.purchase_order_date | date:'Y-m-d'}}" class="form-control" onchange="calculateEndDate()" name="startDate" id="startDate">
                                                     </div>
                                                     <div class="col-md-3 mb-3 mt-2">
                                                         <label for="">Expiry Date</label>
@@ -519,7 +515,7 @@ function goBack() {
                                                             <select required class="custom-select" name="payment_terms" id="termadd2" onchange="calculateEndDate()">
                                                                 <option selected id="trmopt2"></option>
                                                                 {% for pd in pTerms %}
-                                                                {% if recur.company_payment_terms_id == pd.id %}
+                                                                {% if purchase.payment_terms.id == pd.id %}
                                                                     <option selected value="{{ pd.id }}">{{ pd.term_name }}</option>
                                                                     {% else %}
                                                                     <option value="{{ pd.id }}">{{ pd.term_name }}</option>
@@ -542,8 +538,8 @@ function goBack() {
                                                             <div class="col-md mb-3">
                                                                 <label for="">Customer</label>
                                                                 <div class="input-group">
-                                                                    <input type="text" style="display: none;" value="{{recur.customer.id}}" class="form-control dropdown-toggle" name="Customer" id="SelectCustomer" data-toggle="dropdown" placeholder="Search" aria-haspopup="true" aria-expanded="false">
-                                                                    <input type="text" name="customerName" style="text-transform: capitalize;" autocomplete="off" value="{{recur.customer_name}}" class="form-control dropdown-toggle" id="SelectCustomer2" data-toggle="dropdown" placeholder="Search Customer" aria-haspopup="true" aria-expanded="false">
+                                                                    <input type="text" style="display: none;" value="{{purchase.Customer.id}}" class="form-control dropdown-toggle" name="Customer" id="SelectCustomer" data-toggle="dropdown" placeholder="Search" aria-haspopup="true" aria-expanded="false">
+                                                                    <input type="text" name="customerName" style="text-transform: capitalize;" autocomplete="off" value="{{purchase.Customer.first_name}} {{purchase.Customer.last_name}}" class="form-control dropdown-toggle" id="SelectCustomer2" data-toggle="dropdown" placeholder="Search Customer" aria-haspopup="true" aria-expanded="false">
                                                                     <div class="input-group-append">
                                                                         <div class="dropdown-menu customerDropdown" style="width:380px;">
                                                                             {% for i in customers %}
@@ -619,24 +615,24 @@ function goBack() {
                                                             </div>
                                                             <div class="col-md mb-3">
                                                                 <label for="">Email</label>
-                                                                <input readonly type="email" value="{{recur.customer_email}}" placeholder="customer email" required class="form-control" name="customerEmail" id="customerEmail">
+                                                                <input readonly type="email" value="{{purchase.customer_email}}" placeholder="customer email" required class="form-control" name="customerEmail" id="customerEmail">
                                                             </div>
                                                         </div>
                                                         <div class="row">
                                                             <div class="col-md-6 mb-3 mt-2">
                                                                 <label for="">GST Type</label>
-                                                                <input readonly type="text" value="{{recur.customer_gst_type}}" placeholder="customer gst type" name="GSTType" id="customerGST" class="form-control">                                                        
+                                                                <input readonly type="text" value="{{purchase.customer_gst_type}}" placeholder="customer gst type" name="GSTType" id="customerGST" class="form-control">                                                        
                                                             </div>
                                                             <div class="col-md-6 mb-3 mt-2" id="customerGstinDiv" style="display: none;">
                                                                 <label class="">GST Number</label>
-                                                                <input readonly name="customerGstNumber" type="text" value="{{recur.customer_gst_number}}" placeholder="customer gst number" id="customerGSTIN"  class="form-control">
+                                                                <input readonly name="customerGstNumber" type="text" value="{{purchase.customer_gstin}}" placeholder="customer gst number" id="customerGSTIN"  class="form-control">
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="col">
                                                         <div class="col-md">
                                                             <label for="">Address </label>
-                                                            <textarea readonly name="cusaddress" id="customerAddress" placeholder="Customer Address " cols="10" rows="5" class="form-control">{{recur.customer_billing_address}}</textarea>
+                                                            <textarea readonly name="cusaddress" id="customerAddress" placeholder="Customer Address " cols="10" rows="5" class="form-control">{{purchase.customer_address}}</textarea>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -644,71 +640,71 @@ function goBack() {
                                                     <div class="col-md-4 mb-3">
                                                         <label for="">Place Of Supply</label>
                                                         <select name="placeOfSupply" id="PlaceOfSupplyCustomer" class="form-control place_of_supply_customer">
-                                                            <option {% if recur.customer_place_of_supply == '' %}selected{% endif %} value="" class="text-grey">Select Place of Supply</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Andaman and Nicobar Islands' %}selected{% endif %} value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Andhra Pradesh' %}selected{% endif %} value="Andhra Pradesh">Andhra Pradesh</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Arunachal Pradesh' %}selected{% endif %} value="Arunachal Pradesh">Arunachal Pradesh</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Assam' %}selected{% endif %} value="Assam">Assam</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Bihar' %}selected{% endif %} value="Bihar">Bihar</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Chandigarh' %}selected{% endif %} value="Chandigarh">Chandigarh</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Chhattisgarh' %}selected{% endif %} value="Chhattisgarh">Chhattisgarh</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Dadra and Nagar Haveli' %}selected{% endif %} value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Daman and Diu' %}selected{% endif %} value="Daman and Diu">Daman and Diu</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Delhi' %}selected{% endif %} value="Delhi">Delhi</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Goa' %}selected{% endif %} value="Goa">Goa</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Gujarat' %}selected{% endif %} value="Gujarat">Gujarat</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Haryana' %}selected{% endif %} value="Haryana">Haryana</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Himachal Pradesh' %}selected{% endif %} value="Himachal Pradesh">Himachal Pradesh</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Jammu and Kashmir' %}selected{% endif %} value="Jammu and Kashmir">Jammu and Kashmir</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Jharkhand' %}selected{% endif %} value="Jharkhand">Jharkhand</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Karnataka' %}selected{% endif %} value="Karnataka">Karnataka</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Kerala' %}selected{% endif %} value="Kerala">Kerala</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Ladakh' %}selected{% endif %} value="Ladakh">Ladakh</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Lakshadweep' %}selected{% endif %} value="Lakshadweep">Lakshadweep</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Madhya Pradesh' %}selected{% endif %} value="Madhya Pradesh">Madhya Pradesh</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Maharashtra' %}selected{% endif %} value="Maharashtra">Maharashtra</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Manipur' %}selected{% endif %} value="Manipur">Manipur</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Meghalaya' %}selected{% endif %} value="Meghalaya">Meghalaya</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Mizoram' %}selected{% endif %} value="Mizoram">Mizoram</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Nagaland' %}selected{% endif %} value="Nagaland">Nagaland</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Odisha' %}selected{% endif %} value="Odisha">Odisha</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Puducherry' %}selected{% endif %} value="Puducherry">Puducherry</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Punjab' %}selected{% endif %} value="Punjab">Punjab</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Rajasthan' %}selected{% endif %} value="Rajasthan">Rajasthan</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Sikkim' %}selected{% endif %} value="Sikkim">Sikkim</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Tamil Nadu' %}selected{% endif %} value="Tamil Nadu">Tamil Nadu</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Telangana' %}selected{% endif %} value="Telangana">Telangana</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Tripura' %}selected{% endif %} value="Tripura">Tripura</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Uttar Predesh' %}selected{% endif %} value="Uttar Pradesh">Uttar Pradesh</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Uttarakhand' %}selected{% endif %} value="Uttarakhand">Uttarakhand</option>
-                                                            <option {% if recur.customer_place_of_supply == 'West Bengal' %}selected{% endif %} value="West Bengal">West Bengal</option>
-                                                            <option {% if recur.customer_place_of_supply == 'Other Territory' %}selected{% endif %} value="Other Territory">Other Territory</option>
+                                                            <option {% if purchase.customer_place_of_supply == '' %}selected{% endif %} value="" class="text-grey">Select Place of Supply</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Andaman and Nicobar Islands' %}selected{% endif %} value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Andhra Pradesh' %}selected{% endif %} value="Andhra Pradesh">Andhra Pradesh</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Arunachal Pradesh' %}selected{% endif %} value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Assam' %}selected{% endif %} value="Assam">Assam</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Bihar' %}selected{% endif %} value="Bihar">Bihar</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Chandigarh' %}selected{% endif %} value="Chandigarh">Chandigarh</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Chhattisgarh' %}selected{% endif %} value="Chhattisgarh">Chhattisgarh</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Dadra and Nagar Haveli' %}selected{% endif %} value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Daman and Diu' %}selected{% endif %} value="Daman and Diu">Daman and Diu</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Delhi' %}selected{% endif %} value="Delhi">Delhi</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Goa' %}selected{% endif %} value="Goa">Goa</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Gujarat' %}selected{% endif %} value="Gujarat">Gujarat</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Haryana' %}selected{% endif %} value="Haryana">Haryana</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Himachal Pradesh' %}selected{% endif %} value="Himachal Pradesh">Himachal Pradesh</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Jammu and Kashmir' %}selected{% endif %} value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Jharkhand' %}selected{% endif %} value="Jharkhand">Jharkhand</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Karnataka' %}selected{% endif %} value="Karnataka">Karnataka</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Kerala' %}selected{% endif %} value="Kerala">Kerala</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Ladakh' %}selected{% endif %} value="Ladakh">Ladakh</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Lakshadweep' %}selected{% endif %} value="Lakshadweep">Lakshadweep</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Madhya Pradesh' %}selected{% endif %} value="Madhya Pradesh">Madhya Pradesh</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Maharashtra' %}selected{% endif %} value="Maharashtra">Maharashtra</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Manipur' %}selected{% endif %} value="Manipur">Manipur</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Meghalaya' %}selected{% endif %} value="Meghalaya">Meghalaya</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Mizoram' %}selected{% endif %} value="Mizoram">Mizoram</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Nagaland' %}selected{% endif %} value="Nagaland">Nagaland</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Odisha' %}selected{% endif %} value="Odisha">Odisha</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Puducherry' %}selected{% endif %} value="Puducherry">Puducherry</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Punjab' %}selected{% endif %} value="Punjab">Punjab</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Rajasthan' %}selected{% endif %} value="Rajasthan">Rajasthan</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Sikkim' %}selected{% endif %} value="Sikkim">Sikkim</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Tamil Nadu' %}selected{% endif %} value="Tamil Nadu">Tamil Nadu</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Telangana' %}selected{% endif %} value="Telangana">Telangana</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Tripura' %}selected{% endif %} value="Tripura">Tripura</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Uttar Predesh' %}selected{% endif %} value="Uttar Pradesh">Uttar Pradesh</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Uttarakhand' %}selected{% endif %} value="Uttarakhand">Uttarakhand</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'West Bengal' %}selected{% endif %} value="West Bengal">West Bengal</option>
+                                                            <option {% if purchase.customer_place_of_supply == 'Other Territory' %}selected{% endif %} value="Other Territory">Other Territory</option>
                                                         </select> 
                                                     </div>     
 
                                                     <div class="col-md-4 mb-3 ">
                                                         <label for="">Payment Type</label>
                                                         <select required name="paymentType" id="paymentType" class="form-control">
-                                                            <option {% if recur.payment_method == '' %} selected {% endif %} value="">Select Payment Method</option>
-                                                            <option {% if recur.payment_method == 'Cash' %} selected {% endif %} value="Cash">Cash</option>
-                                                            <option {% if recur.payment_method == 'Cheque' %} selected {% endif %} value="Cheque">Cheque</option>
-                                                            <option {% if recur.payment_method == 'UPI' %} selected {% endif %} value="UPI">UPI</option>
+                                                            <option {% if purchase.payment_method == '' %} selected {% endif %} value="">Select Payment Method</option>
+                                                            <option {% if purchase.payment_method == 'Cash' %} selected {% endif %} value="Cash">Cash</option>
+                                                            <option {% if purchase.payment_method == 'Cheque' %} selected {% endif %} value="Cheque">Cheque</option>
+                                                            <option {% if purchase.payment_method == 'UPI' %} selected {% endif %} value="UPI">UPI</option>
                                                             {% for b in bank %}
-                                                            <option {% if recur.payment_method == b.account_number %} selected {% endif %} value="{{b.account_number}}">{{b.bank_name}} ({{b.account_number}})</option>
+                                                            <option {% if purchase.payment_method == b.bank_name %} selected {% endif %} value="{{b.account_number}}">{{b.bank_name}} ({{b.account_number}})</option>
                                                             {% endfor %}
                                                         </select>
                                                     </div>
                                                     <div class="col-md-4 mb-3 " id="bankAccount" style="display: none;">
                                                         <label for="">Bank Account</label>
-                                                        <input value="{{recur.bank_account}}" id="bankInput" type="text" class="form-control" name="bankAccount" >
+                                                        <input value="{{purchase.bank_acc_no}}" id="bankInput" type="text" class="form-control" name="bankAccount" >
                                                     </div>
                                                     <div class="col-md-4 mb-3 " id="Cheque" style="display: none;">
                                                         <label for="">Cheque</label>
-                                                        <input value="{{recur.cheque_number}}" id="chequeInput" type="text" class="form-control" name="Cheque">
+                                                        <input value="{{purchase.cheque_no}}" id="chequeInput" type="text" class="form-control" name="Cheque">
                                                     </div>
                                                     <div class="col-md-4 mb-3 " id="UPI" style="display: none;">
                                                         <label for="">UPI</label>
-                                                        <input value="{{recur.upi_id}}" id="upiInput" type="text" class="form-control" name="UPI">
+                                                        <input value="{{purchase.upi_no}}" id="upiInput" type="text" class="form-control" name="UPI">
                                                     </div>
                                                      
                                                 </div>
@@ -886,19 +882,15 @@ function goBack() {
                                                 </script>
 
                                                 <div class="row m-md-2">
-                                                    <input class="ml-3" id="priceListCheckbox" name="priceListCheckbox" {% if recur.pricelist_id != Null %} checked {% endif %} type="checkbox">&nbsp; Price List
+                                                    <input class="ml-3" id="priceListCheckbox" name="priceListCheckbox" type="checkbox">&nbsp; Price List
                                                 </div>
                                                 <div class="row m-md-2">
-                                                    <div class="col-md-3 mb-3" id="priceListDiv" {% if recur.pricelist_id == Null %} style="display: none;" {% endif %} >
+                                                    <div class="col-md-3 mb-3" id="priceListDiv" >
                                                         <!-- <label for="">Price List</label> -->
-                                                        <select {% if recur.pricelist_id != Null %} required {% endif %} name="priceListRB" id="priceListRB" class="form-control">
+                                                        <select name="priceListRB" id="priceListRB" class="form-control">
                                                             <option value="" selected>Choose</option>
                                                             {% for l in list %}
-                                                            {% if recur.pricelist_id == l.id %}
-                                                            <option value="{{l.id}}" selected>{{l.name}}</option>
-                                                            {% else %}
                                                             <option value="{{l.id}}">{{l.name}}</option>
-                                                            {% endif %}
                                                             {% endfor %}
                                                         </select>
                                                     </div>
@@ -953,7 +945,7 @@ function goBack() {
                                                                 <tr class="border">
                                                                     <th class="border">#</th>
                                                                     <th class="border">ITEM</th>
-                                                                    <th class="border">HSN</th>
+                                                                    <th class="border">HSN/SAC</th>
                                                                     <th class="border">QTY</th>
                                                                     <th class="border">PRICE</th>
                                                                     <th class="border">TAX(%)</th>
@@ -963,34 +955,34 @@ function goBack() {
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {% for itm in itemTable %}
+                                                                {% for itm in purchaseItems %}
                                                                 <tr class="item-row">
                                                                     <td></td>
-                                                                    <td class="border w-25" style="min-width: 150px;"><div style="display: flex;"><select style="text-transform: capitalize;" name="Item[]" id="selectItems" class="form-control item-select"><option value="">Select Item</option>{% for i in items %}{% if itm.items_id == i.id %}<option selected value="{{i.id}}">{{i.name}}</option>{% else %}<option value="{{i.id}}">{{i.name}}</option>{% endif %}{% endfor %}</select><button type="button" class="btn btn-outline-secondary text-grey ml-1" data-toggle="modal" data-target="#itemsModal">+</button></div></td>
+                                                                    <td class="border w-25" style="min-width: 150px;"><div style="display: flex;"><select style="text-transform: capitalize;" name="Item[]" id="selectItems" class="form-control item-select"><option value="">Select Item</option>{% for i in items %}{% if itm.Item.id == i.id %}<option selected value="{{i.id}}">{{i.name}}</option>{% else %}<option value="{{i.id}}">{{i.name}}</option>{% endif %}{% endfor %}</select><button type="button" class="btn btn-outline-secondary text-grey ml-1" data-toggle="modal" data-target="#itemsModal">+</button></div></td>
                                                                     <td class="border" style="min-width: 150px;">
-                                                                        <input name="hsn[]" type="text" class="form-control item-hsn" placeholder="Enter HSN" value="{{itm.hsn}}" id="itemHSN" style="{% if not itm.hsn %}display:none;{% endif %}">
-                                                                        <input name="sac[]" type="text" class="form-control item-sac" placeholder="Enter SAC" value="{{itm.sac}}" id="itemSAC" readonly style="{% if not itm.sac %}display:none;{% endif %}">
+                                                                        <input name="hsn[]" type="text" class="form-control item-hsn" placeholder="Enter HSN" value="{{itm.hsn}}" id="itemHSN" readonly {% if not itm.hsn %} style="display:none;"{% endif %}>
+                                                                        <input name="sac[]" type="text" class="form-control item-sac" placeholder="Enter SAC" value="{{itm.sac}}" id="itemSAC" readonly {% if not itm.sac %} style="display:none;"{% endif %}>
                                                                     </td>
-                                                                    <td class="border" style="min-width: 150px;"><input name="qty[]" type="number" class="form-control item-qty mt-4" value="{{itm.quantity}}"><small class="item-stockinlabel">Available Quantity : </small><small class="item-stockin">0</small></td>
+                                                                    <td class="border" style="min-width: 150px;"><input name="qty[]" type="number" class="form-control item-qty mt-4" value="{{itm.quantity}}"><small class="item-stockinlabel">Available Quantity : </small><small class="item-stockin">{{itm.Item.current_stock}}</small></td>
                                                                     <td class="border" style="min-width: 150px;"><input name="price[]" type="text" class="form-control item-price" value="{{itm.price}}" placeholder="Enter price" id="itemPrice"></td>
                                                                     <td class="border gst" style="min-width: 150px;display: none;" id="gst">
                                                                         <select name="gsttaxrate[]" id="GSTcolumn" onchange="initializeCalculations()" class="form-control item-gst_tax" placeholder="Tax Rate">
-                                                                            <option {% if itm.tax_rate == 0 %} selected {% endif %}value="0">GST 0 (0%)</option>
-                                                                            <option {% if itm.tax_rate == 3 %} selected {% endif %}value="3">GST 3 (3%)</option>
-                                                                            <option {% if itm.tax_rate == 5 %} selected {% endif %}value="5">GST 5 (5%)</option>
-                                                                            <option {% if itm.tax_rate == 12 %} selected {% endif %}value="12">GST 12 (12%)</option>
-                                                                            <option {% if itm.tax_rate == 18 %} selected {% endif %}value="18">GST 18 (18%)</option>
-                                                                            <option {% if itm.tax_rate == 28 %} selected {% endif %}value="28">GST 28 (28%)</option>
+                                                                            <option {% if itm.tax == "0" %} selected {% endif %} value="0">GST 0 (0%)</option>
+                                                                            <option {% if itm.tax == "3" %} selected {% endif %} value="3">GST 3 (3%)</option>
+                                                                            <option {% if itm.tax == "5" %} selected {% endif %} value="5">GST 5 (5%)</option>
+                                                                            <option {% if itm.tax == "12" %} selected {% endif %} value="12">GST 12 (12%)</option>
+                                                                            <option {% if itm.tax == "18" %} selected {% endif %} value="18">GST 18 (18%)</option>
+                                                                            <option {% if itm.tax == "28" %} selected {% endif %} value="28">GST 28 (28%)</option>
                                                                         </select>
                                                                     </td>
                                                                     <td class="border igst" style="min-width: 150px;display: none;" id="igst">
                                                                         <select name="igsttaxrate[]" id="IGSTcolumn" onchange="initializeCalculations()" class="form-control item-igst_tax" placeholder="Tax Rate">
-                                                                            <option {% if itm.tax_rate == 0 %} selected {% endif %}value="0">IGST 0 (0%)</option>
-                                                                            <option {% if itm.tax_rate == 3 %} selected {% endif %}value="3">IGST 3 (3%)</option>
-                                                                            <option {% if itm.tax_rate == 5 %} selected {% endif %}value="5">IGST 5 (5%)</option>
-                                                                            <option {% if itm.tax_rate == 12 %} selected {% endif %}value="12">IGST 12 (12%)</option>
-                                                                            <option {% if itm.tax_rate == 18 %} selected {% endif %}value="18">IGST 18 (18%)</option>
-                                                                            <option {% if itm.tax_rate == 28 %} selected {% endif %}value="28">IGST 28 (28%)</option>
+                                                                            <option {% if itm.tax == "0" %} selected {% endif %} value="0">IGST 0 (0%)</option>
+                                                                            <option {% if itm.tax == "3" %} selected {% endif %} value="3">IGST 3 (3%)</option>
+                                                                            <option {% if itm.tax == "5" %} selected {% endif %} value="5">IGST 5 (5%)</option>
+                                                                            <option {% if itm.tax == "12" %} selected {% endif %} value="12">IGST 12 (12%)</option>
+                                                                            <option {% if itm.tax == "18" %} selected {% endif %} value="18">IGST 18 (18%)</option>
+                                                                            <option {% if itm.tax == "28" %} selected {% endif %} value="28">IGST 28 (28%)</option>
                                                                         </select> 
                                                                     </td>
                                                                     <td class="border GSTtext" style="min-width: 150px;" id="GSTtext">
@@ -1002,7 +994,7 @@ function goBack() {
                                                                     </td>
                                                                     <td class="border" style="min-width: 150px;"><input name="discount[]" type="text" class="form-control item-discount" value="{{itm.discount}}"></td>
                                                                     <td class="border" style="min-width: 150px;"><input name="total[]" type="text" class="form-control item-total" value="{{itm.total}}" ></td>
-                                                                    <td class="border" style="min-width: 150px;" hidden><input type="text" class="form-control item-totaltax" id="taxTotal" value="0" ></td>
+                                                                    <td class="border" style="min-width: 150px;" hidden><input type="hidden" class="form-control item-totaltax" id="taxTotal" value="0" ></td>
                                                                     <td class="border" ><br> <p class="btn btn-danger remove_row px-2 py-1 mx-1 fa fa-close w-80" onclick="removeRow(this)" id="minus"></p></td>
                                                                 </tr>
                                                                 {% endfor %}
@@ -1350,7 +1342,7 @@ $("#priceListRB").on("click", function() {
                                                         // Send data to the Django view using AJAX
                                                         $.ajax({
                                                             url: '/your_save_items_view_url/',
-                                                            type: 'PlaceOfSupplyCustomerT',
+                                                            type: 'GET',
                                                             data: { 'items': itemsData },
                                                             success: function(response) {
                                                                 console.log(response);
@@ -1371,7 +1363,7 @@ $("#priceListRB").on("click", function() {
                                                 <div class="row ">
                                                     <div class="col-md-6 mt-4">
                                                         <label for="">Note</label>
-                                                        <textarea name="Note" id="" class="form-control" cols="30" rows="5">{{recur.description}}</textarea><br>
+                                                        <textarea name="Note" id="" class="form-control" cols="30" rows="5">{{purchase.note}}</textarea><br>
                                                         <input type="file" class="form-control" name="Document" id="">
                                                     </div>
 
@@ -1387,7 +1379,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start">
-                                                                    <input type="text" value="{{recur.sub_total}}" name="subTotal" id="subTotal" class="form-control">
+                                                                    <input type="text" value="{{purchase.subtotal}}" name="subTotal" id="subTotal" class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div class="row mb-3" id="GST1">
@@ -1398,7 +1390,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start">
-                                                                    <input type="text" value="{{recur.cgst}}" name="cgst" id="cgst" class="form-control">
+                                                                    <input type="text" value="{{purchase.cgst}}" name="cgst" id="cgst" class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div class="row mb-3" id="GST2">
@@ -1409,7 +1401,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start">
-                                                                    <input type="text" value="{{recur.sgst}}" name="sgst" id="sgst" class="form-control">
+                                                                    <input type="text" value="{{purchase.sgst}}" name="sgst" id="sgst" class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div id="ifIGST" class="row mb-3" >
@@ -1420,7 +1412,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start">
-                                                                    <input type="text" value="{{recur.taxAmount_igst}}" name="igstAmount" id="igstAmount" class="form-control">
+                                                                    <input type="text" value="{{purchase.igst}}" name="igstAmount" id="igstAmount" class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div class="row mb-3" >
@@ -1431,7 +1423,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start">
-                                                                    <input type="text" value="{{recur.taxAmount_igst}}" name="taxAmount" id="taxAmount" class="form-control">
+                                                                    <input type="text" value="{{purchase.tax_amount}}" name="taxAmount" id="taxAmount" class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div class="row mb-3">
@@ -1442,7 +1434,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start">
-                                                                    <input type="text" value="{{recur.shipping_charge}}" oninput="updateSubTotal()" name="shippingCharge" id="shippingCharge" class="form-control">
+                                                                    <input type="text" value="{{purchase.shipping_charge}}" oninput="updateSubTotal()" name="shippingCharge" id="shippingCharge" class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div class="row mb-3">
@@ -1453,7 +1445,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start">
-                                                                    <input type="text" value="{{recur.adjustment}}" oninput="updateSubTotal()" name="adjustment" id="adjustment" class="form-control">
+                                                                    <input type="text" value="{{purchase.adjustment}}" oninput="updateSubTotal()" name="adjustment" id="adjustment" class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div class="row mb-3">
@@ -1464,7 +1456,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start">
-                                                                    <input type="text" value="{{recur.grand_total}}" name="grandTotal" id="grandTotal" class="form-control">
+                                                                    <input type="text" value="{{purchase.grandtotal}}" name="grandTotal" id="grandTotal" class="form-control">
                                                                 </div>
                                                             </div>
                                                             
@@ -1485,7 +1477,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start">
-                                                                    <input type="text" value="{{recur.advanceAmount_paid}}" oninput="updateSubTotal()" name="paidAmount" id="paidAmount" class="form-control">
+                                                                    <input type="text" value="{{purchase.paid_off}}" oninput="updateSubTotal()" name="paidAmount" id="paidAmount" class="form-control">
                                                                 </div>
                                                             </div>
                                                             <div class="row mb-3">
@@ -1496,7 +1488,7 @@ $("#priceListRB").on("click", function() {
                                                                     <p>:</p>
                                                                 </div>
                                                                 <div class="col-md-6 d-flex justify-content-start"> 
-                                                                    <input type="text" value="{{recur.balance}}" name="balanceDue" id="balanceDue" class="form-control">
+                                                                    <input type="text" value="{{purchase.balance}}" name="balanceDue" id="balanceDue" class="form-control">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1760,12 +1752,11 @@ $("#priceListRB").on("click", function() {
 
                                                 <div class="row">
                                                     <input type="hidden" id="buttonClicked" name="button" value="">
-                                                    
-                                                    <div class="col-md-7 m-4"><input type="checkbox" required> Agree To Terms & Conditions.</div>
-                                                    <div class="col-md-4 mb-3 ">
+                                                    <div class="col-md-7 mb-4"><input type="checkbox" required> Agree To Terms & Conditions.</div>
+                                                    <div class="col-md-5 mb-4 ">
                                                         <div class="row">
-                                                            <div class="col-md mb-3"><button type="submit" class="ml-2 btn btn-outline-secondary text-grey form-control " id="button1" value="Save">Save</button></div>
-                                                            <!-- <div class="col-md mb-3"><button type="submit" class="ml-2 btn btn-outline-secondary text-grey form-control " id="button2" value="Draft">Draft</button></div> -->
+                                                            <div class="col-md mb-3"><button type="submit" class="ml-2 btn btn-outline-secondary text-grey form-control " id="button1">CONVERT</button></div>
+                                                            <div class="col-md mb-3"><button type="reset" class="ml-2 btn btn-outline-secondary text-grey form-control " id="button2" onclick="window.location.href=`{% url 'Fin_purchaseOrder' %}`">CANCEL</button></div>
                                                         </div>                                                        
                                                     </div>
                                                 </div><br><br>

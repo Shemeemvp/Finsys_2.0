@@ -906,6 +906,8 @@ urlpatterns = [
 
     #---Updates ----shemeem--------------------------------------------------------
     path('Fin_convert_purchase_order_to_rec_bill/<int:id>',views.Fin_convertPurchaseOrderToRecBill, name='Fin_convertPurchaseOrderToRecBill'),
+    path('Fin_purchase_order_convert_rec_bill/<int:id>',views.Fin_purchaseOrderConvertRecBill, name='Fin_purchaseOrderConvertRecBill'),
+
 
 
     

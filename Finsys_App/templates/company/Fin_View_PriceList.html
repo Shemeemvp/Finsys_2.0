@@ -61,19 +61,21 @@
         <div class="card-body" style="width:100%;">
             <div class="card-title">
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <a style="padding: 10px; cursor: pointer; border-radius: 1vh; background-color: rgba(22,37,50,255);" id="overviewBtn" >Overview</a>
                         <!-- <a style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="transaction()" id="transactionBtn" > Transactions</a> -->
                     </div> 
 
-                    <div class="col-md-8 d-flex justify-content-end">
+                    <div class="col-md-9 d-flex justify-content-end">
                         {% if list.status == 'Inactive' %}
                         <a href="{% url 'Fin_changePriceListStatus' list.id 'Active' %}" class="ml-2 fa fa-ban btn btn-outline-secondary text-grey " role="button" >&nbsp;Inactive</a> 
                         {% else %}
                         <a href="{% url 'Fin_changePriceListStatus' list.id 'Inactive' %}" class="ml-2 fa fa-check-circle btn btn-outline-secondary text-grey" role="button" >&nbsp;Active</a> 
                         {% endif %}
-                        <a href="{% url 'Fin_priceListViewPdf' list.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn"> &nbsp;PDF</a> 
+                        <a href="{% url 'Fin_editPriceList' list.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
+                        <a href="{% url 'Fin_deletePriceList' list.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete price list `{{list.name}}`.?')">&nbsp;Delete</a>
                         <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" onclick="printSection('printContent')">&nbsp;Print</a>
+                        <a href="{% url 'Fin_priceListViewPdf' list.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn"> &nbsp;PDF</a> 
                         <div class="dropdown p-0 nav-item"  id="shareBtn">
                             <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-share-alt" data-toggle="dropdown">&nbsp;Share</li>
                             <ul class="dropdown-menu" style="background-color: black;" id="listdiv">
@@ -81,8 +83,6 @@
                                 <li style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</li>
                             </ul>
                         </div>
-                        <a href="{% url 'Fin_editPriceList' list.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
-                        <a href="{% url 'Fin_deletePriceList' list.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete price list `{{list.name}}`.?')">&nbsp;Delete</a>
                         <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
                         <a href="{% url 'Fin_priceListHistory' list.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                     </div>

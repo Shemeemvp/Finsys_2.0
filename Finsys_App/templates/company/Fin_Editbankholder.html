@@ -136,20 +136,19 @@ fetchAllBanks();
     <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_Bankholderview' account_holder.id %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
     <div class="card radius-15">
         <div class="card-body">
-            <div class="row">
-                <div class="col-12 col-lg-12 col-xl-12">
-                    <div class="card" style="background-color: #2a4964;">
-                        <div class="row no-gutters">
-                            <div class="col-md-2"></div>
-                            <div class="col-md-8 mt-4 mb-4">
-                                <center>
-                                    <h5 class="card-title"><h3> EDIT BANK HOLDER </h3></h5>
-                                </center>
-                            </div><br>
-                        </div>
-                    </div>
+            <div class="row no-gutters">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <center>
+                        <h5 class="card-title"><h3> EDIT BANK HOLDER </h3></h5>
+                    </center>
                 </div>
+                <div class="col-md-2"></div>
             </div>
+        </div>
+    </div>
+    <div class="card radius-15">
+        <div class="card-body">
             <div class="container">
                     <form method="post" action="{% url 'Fin_Editholder'  account_holder.id %}"  enctype="multipart/form-data">
                         {% csrf_token %}
@@ -379,7 +378,7 @@ fetchAllBanks();
                             <div class="col-md-4"></div>
                             <div class="col-md-4 text-center">
                                 <div class="d-flex justify-content-between">
-                                    <button class="btn btn-outline-secondary text-light" type="submit" style="margin-right: 10px; width: 60%;">UPDATE</button>
+                                    <button class="btn btn-outline-secondary text-light" type="submit" style="margin-right: 10px; width: 60%;">SAVE</button>
                                     <a href="{% url 'Fin_bankholder' %}" class="btn btn-outline-secondary text-light" style="margin-left: 10px; width: 40%;">CANCEL</a>
                                 </div>
                             </div>

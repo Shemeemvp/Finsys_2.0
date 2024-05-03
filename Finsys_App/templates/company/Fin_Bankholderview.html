@@ -127,57 +127,56 @@
         <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_bankholder' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
         <div class="card radius-15">
             <div class="card-body">
-                    <center><h2 class="text-center my-4">Bank Holder Details</h2>
-                        {% if account_holder.is_active %}
-                            <h6 style="width:140px;color: green;font-weight: bold;">ACTIVE</h6>
-                        {% else %}
-                            <h6 class="blinking-text" style="color:red;width:140px;font-weight: bold;">INACTIVE</h6>
-                        {% endif %}
-                    </center>
-                    <hr>
-                    <div class="btn-group" style="float: left; ">
-                        <div>
-                            <center>
-                                <a class="btn btn-outline-info text-grey mt-3" style="border: 1px solid rgb(1, 100, 139);padding: 10px;" onclick="overview()" id="overviewBtn">Overview</a>
-                            </center>
-                        </div>
+                <center>
+                    <h2 class="text-center my-2">Bank Holder Details</h2>
+                    {% if account_holder.is_active %}
+                        <h6 style="width:140px;color: green;font-weight: bold;">ACTIVE</h6>
+                    {% else %}
+                        <h6 class="blinking-text" style="color:red;width:140px;font-weight: bold;">INACTIVE</h6>
+                    {% endif %}
+                </center>
+                <hr>
+                <div class="row d-flex justify-content-between align-items-center px-3">
+                    <div class="">
+                        <a class="overviewBtn" style="padding: 10px; cursor: pointer; border-radius: 1vh; background-color: rgba(22,37,50,255);" onclick="overview()" id="overviewBtn" >Overview</a>
                     </div>
-                    <div class="btn-group" style="float: right; ">   
-                        <div>
-                            <center>
-                                <a href="{% url 'Fin_Editbankholder' account_holder.id %}" class="btn btn-outline-info text-grey mt-3" style="border: 1px solid rgb(1, 100, 139);padding: 10px;">
-                                    <i class="fa fa-pencil"></i>&nbsp;Edit
-                                </a>
-                                <a href="{% url 'Fin_Bankhistory' account_holder.id %}" class="btn btn-outline-info text-grey mt-3" style="border: 1px solid rgb(1, 100, 139);padding: 10px;">
-                                    <i class="fa fa-history"></i>&nbsp;History
-                                </a>
-                                <a href="#" class="btn btn-outline-info text-grey mt-3" data-toggle="modal" data-target="#commentModal" style="border: 1px solid rgb(1, 100, 139);padding: 10px;">
-                                    <i class="fa fa-comments"></i>&nbsp;Comment
-                                </a>
-                                <button class="btn btn-outline-info text-grey mt-3" style="border: 1px solid rgb(1, 100, 139);padding: 10px;" onclick="printContent()">
-                                    <i class="fa fa-print"></i>&nbsp;Print 
-                                </button>
-                                {% if account_holder.is_active %}
-                                    <a href="{% url 'Fin_inactivatebankaccount' account_holder.id %}" class="btn btn-outline-info text-grey mt-3" style="border: 1px solid rgb(1, 100, 139);padding: 10px;">
-                                        <i class="fa fa-check"></i>&nbsp;Active
-                                    </a>
-                                {% else %}
-                                    <a href="{% url 'Fin_activebankholder' account_holder.id %}" class="btn btn-outline-info text-grey mt-3" style="border: 1px solid rgb(1, 100, 139);padding: 10px;">
-                                        <i class="fa fa-times"></i>&nbsp;Inactive
-                                    </a>
-                                {% endif %}
+                    <div class="">
+                        {% if account_holder.is_active %}
+                            <a href="{% url 'Fin_inactivatebankaccount' account_holder.id %}" class="btn btn-outline-secondary text-grey" >
+                                <i class="fa fa-check"></i>&nbsp;Active
+                            </a>
+                        {% else %}
+                            <a href="{% url 'Fin_activebankholder' account_holder.id %}" class="btn btn-outline-secondary text-grey" >
+                                <i class="fa fa-times"></i>&nbsp;Inactive
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'Fin_Editbankholder' account_holder.id %}" class="btn btn-outline-secondary text-grey" >
+                            <i class="fa fa-pencil"></i>&nbsp;Edit
+                        </a>
+                        <a href="{% url 'Fin_deleteholder' account_holder.id %}" class="btn btn-outline-secondary text-grey"  onclick="return confirm('Are you sure you want to delete this account?')">
+                            <i class="fa fa-trash"></i>&nbsp;Delete
+                        </a>
+                        <button class="btn btn-outline-secondary text-grey"  onclick="printContent()">
+                            <i class="fa fa-print"></i>&nbsp;Print 
+                        </button> 
+                        <a href="#" class="btn btn-outline-secondary text-grey" data-toggle="modal" data-target="#commentModal" >
+                            <i class="fa fa-comments"></i>&nbsp;Comment
+                        </a>
+                        <a href="{% url 'Fin_Bankhistory' account_holder.id %}" class="btn btn-outline-secondary text-grey" >
+                            <i class="fa fa-history"></i>&nbsp;History
+                        </a>
+                            
 
-                                <a href="{% url 'Fin_deleteholder' account_holder.id %}" class="btn btn-outline-info text-grey mt-3" style="border: 1px solid rgb(1, 100, 139);padding: 10px;" onclick="return confirm('Are you sure you want to delete this account?')">
-                                    <i class="fa fa-trash"></i>&nbsp;Delete
-                                </a> 
-                            </center>
-                        </div> 
-                    </div> 
+                            
+                    </div>
                 </div>
+
             </div>
         </div>
+
+    <!-- </div> -->
         <div class="card card-registration card-registration-2" style="border-radius: 15px;"  >   
-                <div class="row">    
+                <div class="row mx-0">    
                     <div class="col-md-6">
                         <div class="p-5">
                                 <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Account Information</h5>
@@ -542,6 +541,7 @@
 
                 </div>
             </div>
+        </div>
 
             <div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">

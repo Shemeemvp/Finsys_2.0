@@ -2202,50 +2202,55 @@ def Fin_updateItem(request,id):
             if item.name != name and Fin_Items.objects.filter(Company=com, name__iexact=name).exists():
                 res = f'<script>alert("{name} already exists, try another!");window.history.back();</script>'
                 return HttpResponse(res)
-            elif item.hsn != hsn and Fin_Items.objects.filter(Company = com, hsn__iexact = hsn).exists():
-                res = f'<script>alert("HSN - {hsn} already exists, try another.!");window.history.back();</script>'
-                return HttpResponse(res)
-            else:
-                item.Company = com
-                item.LoginDetails = data
-                item.name = name
-                item.item_type = type
-                item.unit = unit
-                item.hsn = hsn
-                item.sac = sac
-                item.tax_reference = tax
-                item.intra_state_tax = gstTax
-                item.inter_state_tax = igstTax
-                item.sales_account = saleAccount
-                item.selling_price = salePrice
-                item.sales_description = saleDesc
-                item.purchase_account = purAccount
-                item.purchase_price = purPrice
-                item.purchase_description = purDesc
-                item.item_created = createdDate
-                item.min_stock = minStock
-                item.inventory_account = inventory
-                
-                if item.opening_stock != int(stock) and oldOpen > newOpen:
-                    item.current_stock -= diff
-                elif item.opening_stock != int(stock) and oldOpen < newOpen:
-                    item.current_stock += diff
-                
-                item.opening_stock = stock
-                item.stock_unit_rate = stockUnitRate
+            if item.hsn and hsn != None:
+                if int(item.hsn) != int(hsn) and Fin_Items.objects.filter(Company = com, hsn__iexact=hsn).exists():
+                    res = f'<script>alert("HSN - {hsn} already exists, try another.!");window.history.back();</script>'
+                    return HttpResponse(res)
+            if item.sac and sac != None:
+                if int(item.sac) != int(sac) and Fin_Items.objects.filter(Company = com, sac__iexact=sac).exists():
+                    res = f'<script>alert("SAC - {sac} already exists, try another.!");window.history.back();</script>'
+                    return HttpResponse(res)
+            # else:
+            item.Company = com
+            item.LoginDetails = data
+            item.name = name
+            item.item_type = type
+            item.unit = unit
+            item.hsn = hsn
+            item.sac = sac
+            item.tax_reference = tax
+            item.intra_state_tax = gstTax
+            item.inter_state_tax = igstTax
+            item.sales_account = saleAccount
+            item.selling_price = salePrice
+            item.sales_description = saleDesc
+            item.purchase_account = purAccount
+            item.purchase_price = purPrice
+            item.purchase_description = purDesc
+            item.item_created = createdDate
+            item.min_stock = minStock
+            item.inventory_account = inventory
+            
+            if item.opening_stock != int(stock) and oldOpen > newOpen:
+                item.current_stock -= diff
+            elif item.opening_stock != int(stock) and oldOpen < newOpen:
+                item.current_stock += diff
+            
+            item.opening_stock = stock
+            item.stock_unit_rate = stockUnitRate
 
-                item.save()
+            item.save()
 
-                #save transaction
+            #save transaction
 
-                Fin_Items_Transaction_History.objects.create(
-                    Company = com,
-                    LoginDetails = data,
-                    item = item,
-                    action = 'Edited'
-                )
-                
-                return redirect(Fin_viewItem, item.id)
+            Fin_Items_Transaction_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                item = item,
+                action = 'Edited'
+            )
+            
+            return redirect(Fin_viewItem, item.id)
 
         return redirect(Fin_editItem, item.id)
     else:
@@ -34183,6 +34188,8 @@ def Fin_purchaseOrderDetailsReport(request):
                 totalPurchase += float(p.grandtotal)
                 if p.converted_to_bill != None:
                     st = 'Converted to Bill'
+                elif p.converted_to_rec_bill != None:
+                    st = 'Converted to Rec. Bill'
                 else:
                     st = p.status
 
@@ -34234,20 +34241,24 @@ def Fin_purchaseOrderDetailsCustomized(request):
 
             if startDate is None or endDate is None:
                 if status == 'bill':
-                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = False)
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = False, converted_to_rec_bill__isnull = True)
+                elif status == 'recurring_bill':
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_rec_bill__isnull = False, converted_to_bill__isnull = True)
                 elif status == 'saved':
-                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, status = 'Saved')
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, converted_to_rec_bill__isnull = True, status = 'Saved')
                 elif status == 'draft':
-                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, status = 'Draft')
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, converted_to_rec_bill__isnull = True, status = 'Draft')
                 else:
                     pOrder = Fin_Purchase_Order.objects.filter(Company=cmp)
             else:
                 if status == 'bill':
-                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = False)
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = False, converted_to_rec_bill__isnull = True)
+                elif status == 'recurring_bill':
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, converted_to_rec_bill__isnull = False)
                 elif status == 'saved':
-                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, status = 'Saved')
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, converted_to_rec_bill__isnull = True, status = 'Saved')
                 elif status == 'draft':
-                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, status = 'Draft')
+                    pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, converted_to_rec_bill__isnull = True, status = 'Draft')
                 else:
                     pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate])
 
@@ -34261,6 +34272,8 @@ def Fin_purchaseOrderDetailsCustomized(request):
                     totalPurchase += float(p.grandtotal)
                     if p.converted_to_bill != None:
                         st = 'Converted to Bill'
+                    elif p.converted_to_rec_bill != None:
+                        st = 'Converted to Rec. Bill'
                     else:
                         st = p.status
 
@@ -34313,20 +34326,24 @@ def Fin_sharePurchaseOrderDetailsReportToEmail(request):
                 totalPurchase = 0
                 if startDate is None or endDate is None:
                     if status == 'bill':
-                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = False)
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = False, converted_to_rec_bill__isnull = True)
+                    elif status == 'recurring_bill':
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_rec_bill__isnull = False, converted_to_bill__isnull = True)
                     elif status == 'saved':
-                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, status = 'Saved')
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, converted_to_rec_bill__isnull = True, status = 'Saved')
                     elif status == 'draft':
-                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, status = 'Draft')
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, converted_to_bill__isnull = True, converted_to_rec_bill__isnull = True, status = 'Draft')
                     else:
                         pOrder = Fin_Purchase_Order.objects.filter(Company=cmp)
                 else:
                     if status == 'bill':
-                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = False)
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = False, converted_to_rec_bill__isnull = True)
+                    elif status == 'recurring_bill':
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, converted_to_rec_bill__isnull = False)
                     elif status == 'saved':
-                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, status = 'Saved')
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, converted_to_rec_bill__isnull = True, status = 'Saved')
                     elif status == 'draft':
-                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, status = 'Draft')
+                        pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate], converted_to_bill__isnull = True, converted_to_rec_bill__isnull = True, status = 'Draft')
                     else:
                         pOrder = Fin_Purchase_Order.objects.filter(Company=cmp, purchase_order_date__range = [startDate, endDate])
 
@@ -34340,6 +34357,8 @@ def Fin_sharePurchaseOrderDetailsReportToEmail(request):
                         totalPurchase += float(p.grandtotal)
                         if p.converted_to_bill != None:
                             st = 'Converted to Bill'
+                        elif p.converted_to_rec_bill != None:
+                            st = 'Converted to Rec. Bill'
                         else:
                             st = p.status
 
@@ -34671,39 +34690,211 @@ def Fin_convertPurchaseOrderToRecBill(request,id):
 
     allmodules = Fin_Modules_List.objects.get(company_id = cmp, status = 'New')
 
-    ven = Fin_Vendors.objects.filter(Company = cmp, status = 'Active')
-    cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
-    bnk = Fin_Banking.objects.filter(company = cmp, bank_status = 'Active')
-    itm = Fin_Items.objects.filter(Company = cmp, status = 'Active')
-    plist = Fin_Price_List.objects.filter(Company = cmp, type = 'Purchase', status = 'Active')
-    terms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
-    units = Fin_Units.objects.filter(Company = cmp)
-    account = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
-    tod = datetime.now().strftime('%Y-%m-%d')
-    if Fin_Purchase_Bill.objects.filter(company = cmp):
-        try:
-            ref_no = int(Fin_Purchase_Bill_Ref_No.objects.filter(company = cmp).last().ref_no) + 1
-        except:
-            ref_no =  1
-        bill_no = Fin_Purchase_Bill.objects.filter(company = cmp).last().bill_no
-        match = re.search(r'^(\d+)|(\d+)$', bill_no)
-        if match:
-            numeric_part = match.group(0)
-            incremented_numeric = str(int(numeric_part) + 1).zfill(len(numeric_part))
-            bill_no = re.sub(r'\d+', incremented_numeric, bill_no, count=1)
+    vendors = Fin_Vendors.objects.filter(Company_id=cmp,status='Active')
+    payment_terms = Fin_Company_Payment_Terms.objects.filter(Company_id=cmp)
+    customers = Fin_Customers.objects.filter(Company_id=cmp,status='Active')
+    items = Fin_Items.objects.filter(Company_id=cmp)
+    units = Fin_Units.objects.filter(Company_id = cmp)
+    acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company_id=cmp).order_by('account_name')
+    repeat = Fin_CompanyRepeatEvery.objects.filter(company_id=cmp)
+    pricelist_p = Fin_Price_List.objects.filter(Company_id=cmp,type='Purchase')
+    bank = Fin_Banking.objects.filter(company_id=cmp,bank_status = 'Active')
+    pricelist_s = Fin_Price_List.objects.filter(Company_id=cmp,type='Sales')
+
+    nxtRb = ""
+    lastRb = Fin_Recurring_Bills.objects.filter(company_id = cmp).last()
+    if lastRb:
+        rb_no = str(lastRb.recurring_bill_number)
+        prefix = ''.join(filter(str.isalpha, rb_no))  # Extract prefix letters
+        num_part = ''.join(filter(str.isdigit, rb_no))  # Extract numeric part
+        rb_num = int(num_part) + 1 
+        padded_rb_num = str(rb_num).zfill(len(num_part))
+        nxtRb = prefix + padded_rb_num
+        
     else:
-        try:
-            ref_no = int(Fin_Purchase_Bill_Ref_No.objects.filter(company = cmp).last().ref_no) + 1
-        except:
-            ref_no =  1
-        bill_no = 1000
+        nxtRb = 'RB01'
+
+    recurringBill = Fin_Recurring_Bill_Reference.objects.filter(company_id = cmp)
+    if recurringBill:
+        recurringBillLatest = recurringBill.latest('id')
+        ref = recurringBillLatest.reference_number + 1
+    else:
+        ref = 1
 
     pbill = Fin_Purchase_Order.objects.get(id = id)
     pitm = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = pbill)
+    todayDate = date.today().strftime("%Y-%m-%d")
     context = {
-        'allmodules':allmodules, 'data':data, 'com':com, 'ven':ven, 'cust':cust, 'bnk':bnk, 'units':units,
-        'account':account, 'itm':itm, 'tod':tod, 'plist':plist, 'ref_no': ref_no, 'bill_no':bill_no, 'terms':terms,
-        'pbill':pbill, 'pitm':pitm
+        'todayDate':todayDate,'cmp':cmp,'allmodules':allmodules,'vendors':vendors,'pTerms':payment_terms,'items':items,'customers':customers,'refData':ref,'accounts':acc,'units':units,'RepeatEvery':repeat,'list':pricelist_p,'list_s':pricelist_s,'nxtRB':nxtRb,'bank':bank,'com':com,'data':data, 'purchase':pbill, 'purchaseItems':pitm
     }
+    return render(request,'company/Fin_Convert_PurchaseOrder_toRecBill.html',context)
 
-    return render(request, 'company/Fin_Convert_PurchaseOrder_toRecBill.html', context)
+def Fin_purchaseOrderConvertRecBill(request, id):
+    s_id = request.session['s_id']
+    data = Fin_Login_Details.objects.get(id = s_id)
+    if data.User_Type == "Company":
+        com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        cmp = com
+    else:
+        com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+        cmp = com.company_id
+    
+    purchaseOrder = Fin_Purchase_Order.objects.get(id = id)
+    if request.method == 'POST':
+        vendor = request.POST['select_vendor']
+        vendor_name = request.POST['vendorName']
+        vendor_email = request.POST['vendorEmail']
+        vendor_billing_address = request.POST['venaddress']
+        vendor_gst_type = request.POST['vendorGstType']
+        vendor_gst_number = request.POST['vendorGstNumber']
+        vendor_place_of_supply = request.POST['sourceOfSupply']
+        recurring_bill_number = request.POST['RecurringBillNo'].upper()
+        profile_namee = request.POST['ProfileName']
+        reference_number = request.POST['ReferenceNo']
+        startdate = request.POST['startDate']
+        company_payment_terms = request.POST['payment_terms']
+        expected_shipment_date = request.POST['endDate']
+        purchase_order_number = request.POST['PurchaseOrderNo']
+        payment_method = request.POST['paymentType']
+
+        if len(request.POST['Cheque']) > 0:
+            cheque_number = request.POST['Cheque'] 
+        else:
+            cheque_number = ''
+
+        if len(request.POST['UPI']) > 0:
+            upi_id = request.POST['UPI'] 
+        else:
+            upi_id = ''
+
+        if request.POST['bankAccount'] != '':
+            bank_account = request.POST['bankAccount'] 
+        else:
+            bank_account = ''
+
+        if request.POST.get('priceListCheckbox') == 'on':
+            pricelist = Fin_Price_List.objects.get(id = request.POST['priceListRB']) 
+        else:
+            pricelist = None
+        
+        
+        customer = request.POST['Customer'] 
+        customer_name = request.POST['customerName']
+        customer_email = request.POST['customerEmail']
+        customer_billing_address = request.POST['cusaddress']
+        customer_gst_type = request.POST['GSTType']
+        customer_gst_number = request.POST['customerGstNumber']
+        customer_place_of_supply = request.POST['placeOfSupply']
+        description = request.POST['Note']
+        
+        # if request.FILES['Document'] != '':
+        #     RBDocument = request.FILES['recurringBillDocument']
+        # else: 
+        #     RBDocument = ''
+        
+
+        source = request.POST['sourceOfSupply']
+        place = request.POST['companyPlace']  
+        if source == cmp.State:
+            cgst = request.POST['cgst']  
+            sgst = request.POST['sgst']
+            taxAmount_igst = request.POST['taxAmount']
+        else:
+            cgst = 0
+            sgst = 0
+            taxAmount_igst = request.POST['taxAmount']
+
+        
+        sub_total = request.POST['subTotal'] 
+
+        if request.POST['shippingCharge'] :
+            shipping_charge = request.POST['shippingCharge'] 
+        else:
+            shipping_charge = 0
+        
+        if request.POST['adjustment'] :
+            adjustment = request.POST['adjustment'] 
+        else:
+            adjustment = 0
+
+        grand_total = request.POST['grandTotal'] 
+        
+        if request.POST['paidAmount'] :
+            advanceAmount_paid = request.POST['paidAmount'] 
+        else:
+            advanceAmount_paid = 0
+
+        balance = request.POST['balanceDue']
+        status = 'Save'
+        repeat_every = request.POST['RepeatEvery']
+
+        if Fin_Recurring_Bills.objects.filter(company=cmp,recurring_bill_number=recurring_bill_number,purchase_order_number=purchase_order_number).exists():
+            res = f'<script>alert("Rec. Bill exists!");window.history.back();</script>'
+            return HttpResponse(res)
+        
+        if Fin_Recurring_Bills.objects.filter(company=cmp,recurring_bill_number=recurring_bill_number).exists():
+            res = f'<script>alert("Rec. Bill Number `{recurring_bill_number}` already exists, try another!");window.history.back();</script>'
+            return HttpResponse(res)
+
+        newBill = Fin_Recurring_Bills(vendor_id = vendor,recurring_bill_number = recurring_bill_number,reference_number = reference_number,
+            purchase_order_number =purchase_order_number,payment_method = payment_method,
+            description = description,sub_total = sub_total,cgst = cgst,bank_account=bank_account,cheque_number=cheque_number,upi_id=upi_id,
+            sgst = sgst,taxAmount_igst = taxAmount_igst,shipping_charge = shipping_charge,adjustment = adjustment,
+            status = status,grand_total = grand_total,advanceAmount_paid = advanceAmount_paid,balance = balance,customer_id = customer,
+            company=cmp,profile_name=profile_namee,date = startdate,company_payment_terms_id = company_payment_terms,
+            repeat_every_id=repeat_every,pricelist_id=pricelist,vendor_name=vendor_name,vendor_email=vendor_email,vendor_billing_address=vendor_billing_address,
+            vendor_gst_type=vendor_gst_type,vendor_gst_number=vendor_gst_number,vendor_place_of_supply=vendor_place_of_supply,customer_name=customer_name,
+            customer_email=customer_email,customer_billing_address=customer_billing_address,customer_gst_type=customer_gst_type,
+            customer_gst_number=customer_gst_number,customer_place_of_supply=customer_place_of_supply,expected_shipment_date=expected_shipment_date
+        )
+
+               
+        newBill.save()
+        if len(request.FILES) != 0:
+            newBill.attachment = request.FILES['Document']
+            newBill.save()
+
+        # Save rec Bill details to corresponding purchase order
+        purchaseOrder.converted_to_rec_bill = newBill
+        purchaseOrder.save()
+
+        history = Fin_Recurring_Bill_History(date=date.today(),action='Created',company=cmp,login_details = data,recurring_bill =newBill)
+        history.save()
+        ref = Fin_Recurring_Bill_Reference(reference_number = reference_number ,company = cmp,login_details = cmp.Login_Id)
+        ref.save()
+
+        product = tuple(request.POST.getlist("Item[]"))
+        qty = tuple(request.POST.getlist("qty[]"))
+        total_texts = tuple(request.POST.getlist("total[]"))
+        total = [float(value) for value in total_texts]
+        discount = tuple(request.POST.getlist("discount[]"))
+        hsn = request.POST.getlist("hsn[]")
+        sac = request.POST.getlist("sac[]")
+        price = request.POST.getlist("price[]")
+
+        if source == cmp.State:
+            tax = request.POST.getlist("gsttaxrate[]")
+        else:
+            tax = request.POST.getlist("igsttaxrate[]")
+
+        if len(product) == len(qty) == len(discount) == len(total) == len(hsn)== len(sac) == len(tax) == len(price):
+            group = zip(product, qty, discount, total, hsn, tax, price,sac)
+            mapped=list(group)
+            for itemsNew in mapped:
+
+                if itemsNew[4] == '' or itemsNew[4] == 'None' :
+                    hsn = None
+                else:
+                    hsn = int(itemsNew[4])
+                if itemsNew[7] == '' or itemsNew[7] == 'None':
+                    sac = None
+                else:
+                    sac = int(itemsNew[7])
+
+                itemsTable = Fin_Recurring_Bill_Items(items_id = int(itemsNew[0]),quantity=int(itemsNew[1]),discount=float(itemsNew[2]),total=float(itemsNew[3]),hsn=hsn,sac=sac,tax_rate=int(itemsNew[5]),price=float(itemsNew[6]),recurring_bill_id=newBill.id,company=cmp)
+                itemsTable.save()
+
+        
+        return redirect(Fin_purchaseOrder)
+    else:
+        return redirect(Fin_purchaseOrder)
