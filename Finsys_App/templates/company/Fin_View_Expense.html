@@ -327,7 +327,6 @@
                             <a href="{% url 'Fin_editExpense' expense.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
                             <a href="{% url 'Fin_deleteExpense' expense.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Expense - {{expense.expense_no}} ?')">&nbsp;Delete</a>
                             <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
-                            <a href="{% url 'Fin_expenseHistory' expense.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                             <div class="dropdown p-0 nav-item"  id="attachBtn" style="display: block;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-paperclip" data-toggle="dropdown">&nbsp;Attach</li>
                                 <ul class="dropdown-menu" style="background-color: black;">
@@ -337,6 +336,7 @@
                                     {% endif %}
                                 </ul>
                             </div>
+                            <a href="{% url 'Fin_expenseHistory' expense.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                         </div>
                     </div> 
                 </div>
@@ -1024,8 +1024,8 @@
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#deleteBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
         $('#attachBtn').hide();
     }
 

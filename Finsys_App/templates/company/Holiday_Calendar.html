@@ -27,7 +27,12 @@
 <!-- Add html2pdf library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
 
-
+<style>
+    #calendar{
+        height: 437px;
+        margin-bottom: 0px;
+    }
+</style>
 <div class="page-content ">
 
     <div class="row radius-15">
@@ -47,16 +52,16 @@
                 
                 <div class="table-responsive">
 
-                    <center>
-                        <div > 
-                            <a class="btn btn-outline-secondary mb-2 text-grey" href='{% url "holiday_history" month year %}' ><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+                    <!-- <center> -->
+                        <div class="d-flex justify-content-end"> 
                             <!-- <button class="btn btn-outline-secondary mb-2 text-grey" onclick="window.location.href='/holiday_history/{{month}}/{{year}}'" ><i class="fa-solid fa-clock-rotate-left"></i> History</button> -->
-                            <button class="btn btn-outline-secondary mb-2 text-grey" id="exportButton"><i class="fa fa-table"></i> Export To Excel</button>
-                            <button class="btn btn-outline-secondary mb-2 text-grey" onclick="PrintTable()" data-employee-id="{{employ.id}}" title="Print" ><i class="fa fa-print"></i> Print</button>
-                            <button class="btn btn-outline-secondary mb-2 text-grey" onclick="ExportAsPDF()" title="Download PDF"><i class="fa fa-file-pdf"></i> PDF</button>
-                            <button class="btn btn-outline-secondary mb-2 text-grey" type="button" data-toggle="modal" data-target="#commentModal" title="Comment"><i class="fa fa-comment"></i> Comment</button>
+                            <button class="btn btn-outline-secondary mr-2 text-grey" id="exportButton"><i class="fa fa-table"></i> Export To Excel</button>
+                            <button class="btn btn-outline-secondary mr-2 text-grey" onclick="PrintTable()" data-employee-id="{{employ.id}}" title="Print" ><i class="fa fa-print"></i> Print</button>
+                            <button class="btn btn-outline-secondary mr-2 text-grey" onclick="ExportAsPDF()" title="Download PDF"><i class="fa fa-file-pdf"></i> PDF</button>
+                            <button class="btn btn-outline-secondary mr-2 text-grey" type="button" data-toggle="modal" data-target="#commentModal" title="Comment"><i class="fa fa-comment"></i> Comment</button>
+                            <a class="btn btn-outline-secondary text-grey" href='{% url "holiday_history" month year %}' ><i class="fa-solid fa-clock-rotate-left"></i> History</a>
                         </div>
-                    </center>
+                    <!-- </center> -->
                     <!-- modal -->
                     <div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered" role="document">

@@ -218,7 +218,7 @@
 
                              {% if salary_detail.status == 'draft' %}
 
-                            <a href="{% url 'Fin_salarysave' employee.id salary_id %}" class="ml-2 fa fa-rotate-right btn btn-outline-secondary text-grey" id="">&nbsp;Convert</a>
+                            <a href="{% url 'Fin_salarysave' employee.id salary_id %}" class="ml-2 fa fa-rotate-right btn btn-outline-secondary text-grey" id="convertBtn">&nbsp;Convert</a>
 
                             {% endif %}
                             {% endfor %}
@@ -852,6 +852,7 @@
         $('#activeBtn').show();
         $('#inactiveBtn').show();
         $('#commentsBtn').show();
+        $('#convertBtn').show();
     }
     
     function transaction() {
@@ -869,6 +870,7 @@
         $('#commentsBtn').hide();
         $('#activeBtn').hide();
         $('#inactiveBtn').hide();
+        $('#convertBtn').hide();
     }
 
     function printSection(sectionId) {

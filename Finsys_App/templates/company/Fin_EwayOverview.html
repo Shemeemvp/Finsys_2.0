@@ -293,7 +293,7 @@
         <div class="card-body" style="width:100%;">
             <div class="card-title">
                 <div class="container-fluid">
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-md-6">
                             <a style="padding: 10px; cursor: pointer; border-radius: 1vh; background-color: rgba(22,37,50,255);" onclick="overview()" id="overviewBtn" >Overview</a>
                             <a style="padding: 10px; cursor: pointer; border-radius: 1vh;" onclick="template()" id="templateBtn" > Templates</a>
@@ -321,7 +321,6 @@
                             </div>
                             <a href="{% url 'Fin_EditEway' ewaybill.Ewaybill_ID %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
                             <a href="{% url 'Fin_EwayDelete' ewaybill.Ewaybill_ID %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete E-WayBill - {{ewaybill.Ewaybill_No}}.?')">&nbsp;Delete</a>
-                            <a href="{% url 'Fin_EwayHistory' ewaybill.Ewaybill_ID %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                             <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
                             <div class="dropdown p-0 nav-item"  id="attachBtn" style="display: block;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-paperclip" data-toggle="dropdown">&nbsp;Attach</li>
@@ -332,6 +331,7 @@
                                     {% endif %}
                                 </ul>
                             </div>
+                            <a href="{% url 'Fin_EwayHistory' ewaybill.Ewaybill_ID %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                         </div>
                     </div> 
                 </div>
@@ -380,13 +380,13 @@
                                         <h6 class="mb-0">Company</h6>
                                     </div>
                                     <div class="col-md-4 mt-3">
-                                        <p class="mb-0 text-right">{{ com.Company_name}}</p>
+                                        <p class="mb-0 text-right">{{ cmp.Company_name}}</p>
                                     </div>
                                     <div class="col-md-2 mt-3 vl">
                                         <h6 class="mb-0">Email</h6>
                                     </div>
                                     <div class="col-md-4 mt-3">
-                                        <p class="mb-0 text-right">{{ com.Email }}</p>
+                                        <p class="mb-0 text-right">{{ cmp.Email }}</p>
                                     </div>
                                 </div>
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
@@ -394,14 +394,14 @@
                                         <h6 class="mb-0">Mobile</h6>
                                     </div>
                                     <div class="col-md-4 mt-3">
-                                        <p class="mb-0 text-right">{{ com.Contact }}</p>
+                                        <p class="mb-0 text-right">{{ cmp.Contact }}</p>
                                     </div>
                                     <div class="col-md-2 mt-3 vl">
                                         <h6 class="mb-0">Address</h6>
                                     </div>
                                     <div class="col-md-4 mt-3">
-                                        <p class="mb-0 text-right">{{ com.Address }} <br>
-                                            {{com.City}},{{com.State}} - {{com.Pincode}}
+                                        <p class="mb-0 text-right">{{ cmp.Address }} <br>
+                                            {{cmp.City}},{{cmp.State}} - {{cmp.Pincode}}
                                         </p>
                                     </div>
                                 </div>
@@ -410,7 +410,7 @@
 
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
                                     <div class="col-md-4 mt-3">
-                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Billing Details</h5>
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Eway Bill Details</h5>
                                         <br>
                                     </div>
                                     <div class="col-md-4 mt-3"></div>
@@ -465,6 +465,55 @@
                                     </div> 
                                 </div>
                                 
+                                <hr>
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-4 mt-3">
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Customer Details</h5>
+                                    </div>
+                                    <div class="col-md-4 mt-3"></div>
+                                    <div class="col-md-4 mt-3"></div>
+    
+                                    <div class="col-md-3 mt-3 ">
+                                        <h6 class="mb-0">Customer Name</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{ewaybill.Customer.title}}. {{ewaybill.Customer.first_name}} {{ewaybill.Customer.last_name}}</p>
+                                    </div>
+    
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">Customer Email</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{ewaybill.Customer.email}}</p>
+                                    </div>
+                                    
+                                    <div class="col-md-3 mt-3">
+                                        <h6 class="mb-0">GST Type</h6>
+                                        <!-- <h6 class="mb-0">GSTIN No</h6> -->
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <!-- <p class="mb-0 text-right">{{ewaybill.Customer.gstin}}</p> -->
+                                        <p class="mb-0" style="text-align: right;">{{ewaybill.Customer_GstType}}</p>
+                                    </div>
+
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">GSTIN No</h6>
+                                       
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{ewaybill.Customer_GstNumber}}</p>
+                                        <!-- <p class="mb-0" style="text-align: right;">{{ewaybill.Customer.gst_type}}</p> -->
+                                    </div>
+                                </div>
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-3 mt-3"> 
+                                        <h6 class="mb-0">Address</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3 ">
+                                        <p class="mb-0 text-right">{{ewaybill.BillingAddress}}</p>
+                                    </div>
+                                </div>
                                 <hr>
 
 
@@ -648,7 +697,7 @@
                     <div class="col-lg-4 bg-grey">
 
                         <div class="px-3">
-                            <h4 class="fw-bold mb-2 mt-4 pt-1">Bill Details</h4>
+                            <h4 class="fw-bold mb-2 mt-4 pt-1">EWay Bill Tax Details</h4>
                             <hr class="my-4">
                             <div class="d-flex justify-content-between mb-4">
                                 <h6 class="">Bill Status</h6>
@@ -1537,9 +1586,9 @@
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#deleteBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
-        $('#attachBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
+        $('#attachBtn').hide();
     }
 
     function slip() {
@@ -1556,9 +1605,9 @@
         $('#deleteBtn').hide();
         $('#editBtn').hide();
         $('#convertBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
-        $('#attachBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
+        $('#attachBtn').hide();
     }
 
     // function printSection(sectionId) {

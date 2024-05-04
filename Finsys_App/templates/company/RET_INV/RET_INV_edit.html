@@ -85,8 +85,8 @@ textarea::-webkit-scrollbar-thumb:hover {
 <form action="{% url 'Fin_RET_INV_update' retinv.id  %}" method="post" enctype="multipart/form-data" autocomplete="off">
     {% csrf_token %}
   <div class="page-content">
+      <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_RI_Overview' retinv.id %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
     <div class="card radius-15">
-        <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'Fin_RI_Overview' retinv.id %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
       <div class="card-body">
         <div class="card-title">
           <center><h3 class="mb-0">EDIT RETAINER INVOICE</h3></center>
@@ -363,7 +363,7 @@ textarea::-webkit-scrollbar-thumb:hover {
                     </div>
                 </div>
                 <div class="col-md-5 mt-3 d-flex">
-                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="EDIT">
+                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="SAVE">
                     <input type="button" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL" onclick="window.location.href=`{% url 'Fin_RI_Overview' retinv.id %}`">
                 </div>
             </div>

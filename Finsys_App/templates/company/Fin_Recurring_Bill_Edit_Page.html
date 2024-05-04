@@ -10,13 +10,13 @@
 <style>
 
     
-    #button1,#button2{
+    /* #button1,#button2{
         background-color: rgba(22,37,50,255);
     }
     #button1:hover,#button2:hover{
         background-color: #2f516f;
         color: white    ;
-    }
+    } */
 
     input:read-only, select:disabled, textarea:read-only {
         background-color: #43596c !important;
@@ -1762,11 +1762,9 @@ $("#priceListRB").on("click", function() {
                                                     <input type="hidden" id="buttonClicked" name="button" value="">
                                                     
                                                     <div class="col-md-7 m-4"><input type="checkbox" required> Agree To Terms & Conditions.</div>
-                                                    <div class="col-md-4 mb-3 ">
-                                                        <div class="row">
-                                                            <div class="col-md mb-3"><button type="submit" class="ml-2 btn btn-outline-secondary text-grey form-control " id="button1" value="Save">Save</button></div>
-                                                            <!-- <div class="col-md mb-3"><button type="submit" class="ml-2 btn btn-outline-secondary text-grey form-control " id="button2" value="Draft">Draft</button></div> -->
-                                                        </div>                                                        
+                                                    <div class="col-md-4 mb-3 d-flex">
+                                                        <button type="submit" class="ml-2 btn btn-outline-secondary text-light w-50" id="button1" value="Save">Save</button>
+                                                        <button type="reset" class="ml-2 btn btn-outline-secondary text-light w-50" onclick="window.location.href=`{% url 'Fin_recurring_bill_overview' recur.id %}`">Cancel</button>                                                        
                                                     </div>
                                                 </div><br><br>
 

@@ -9,13 +9,13 @@
 
 
 <style>
-    #button1,#button2{
+    /* #button1,#button2{
         background-color: rgba(22,37,50,255);
     }
     #button1:hover,#button2:hover{
         background-color: #2f516f;
         color: white    ;
-    }
+    } */
 
     .sty1{
         text-transform: capitalize;
@@ -1449,10 +1449,10 @@ $("#priceListRB").on("click", function() {
                                                 </div>
 
                                                     <div class="row">
-                                                        <div class="col-md-6 mt-4"></div>
-                                                        <div class="col-md-1 mb-5"></div>
-                                                        <div class="col-md-4 mb-3 m-md-5 p-4" style="background-color: rgba(22,37,50,255);border-radius: 5px;">
-                                                            <div class="row mb-3">
+                                                        <div class="col-md-6"></div>
+                                                        <div class="col-md-1"></div>
+                                                        <div class="col-md-4 m-md-5 p-4 pt-1" style="background-color: rgba(22,37,50,255);border-radius: 5px;">
+                                                            <div class="row mb-1">
                                                                 <div class="col-4 justify-content-start">
                                                                     <!-- <input type="checkbox" name="paid" id="paid" >  -->
                                                                     Paid
@@ -1748,11 +1748,9 @@ $("#priceListRB").on("click", function() {
                                                     <input type="hidden" id="buttonClicked" name="button" value="">
                                                     
                                                     <div class="col-md-7 m-4"><input type="checkbox" required> Agree To Terms & Conditions.</div>
-                                                    <div class="col-md-4 mb-3 ">
-                                                        <div class="row">
-                                                            <div class="col-md mb-3"><button type="submit" class="ml-2 btn btn-outline-secondary text-grey form-control " id="button1" value="Save">Save</button></div>
-                                                            <div class="col-md mb-3"><button type="submit" class="ml-2 btn btn-outline-secondary text-grey form-control " id="button2" value="Draft">Draft</button></div>
-                                                        </div>                                                        
+                                                    <div class="col-md-4 mb-3 d-flex">
+                                                        <button type="submit" class="ml-2 btn btn-outline-secondary text-light w-50" id="button1" value="Save">Save</button>
+                                                        <button type="submit" class="ml-2 btn btn-outline-secondary text-light w-50" id="button2" value="Draft">Draft</button>
                                                     </div>
                                                 </div><br><br>
 

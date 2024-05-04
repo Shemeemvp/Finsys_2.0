@@ -335,7 +335,7 @@
                     </div> 
                 </div>
                 <center>
-                    <h3 class="card-title mt-3">RECURRING INVOICE VIEW</h3>
+                    <h3 class="card-title mt-3">RECURRING INVOICE OVERVIEW</h3>
                 </center>
             </div>
         </div>
@@ -408,7 +408,7 @@
 
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
                                     <div class="col-md-4 mt-3">
-                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Billing Details</h5>
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Recurring Invoice Details</h5>
                                     </div>
                                     <div class="col-md-4 mt-3"></div>
                                     <div class="col-md-4 mt-3"></div>
@@ -497,6 +497,55 @@
                                 <hr>
 
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-4 mt-3">
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Customer Details</h5>
+                                    </div>
+                                    <div class="col-md-4 mt-3"></div>
+                                    <div class="col-md-4 mt-3"></div>
+    
+                                    <div class="col-md-3 mt-3 ">
+                                        <h6 class="mb-0">Customer Name</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{recInvoice.Customer.title}}. {{recInvoice.Customer.first_name}} {{recInvoice.Customer.last_name}}</p>
+                                    </div>
+    
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">Customer Email</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{recInvoice.Customer.email}}</p>
+                                    </div>
+                                    
+                                    <div class="col-md-3 mt-3">
+                                        <h6 class="mb-0">GST Type</h6>
+                                        <!-- <h6 class="mb-0">GSTIN No</h6> -->
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <!-- <p class="mb-0 text-right">{{recInvoice.Customer.gstin}}</p> -->
+                                        <p class="mb-0" style="text-align: right;">{{recInvoice.gst_type}}</p>
+                                    </div>
+
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">GSTIN No</h6>
+                                       
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{recInvoice.gstin}}</p>
+                                        <!-- <p class="mb-0" style="text-align: right;">{{recInvoice.Customer.gst_type}}</p> -->
+                                    </div>
+                                </div>
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-3 mt-3"> 
+                                        <h6 class="mb-0">Address</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3 ">
+                                        <p class="mb-0 text-right">{{recInvoice.billing_address}}</p>
+                                    </div>
+                                </div>
+                                <hr>
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
                                     <div class="col-md-12 mt-3">
                                         <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Items Details</h5>
     
@@ -567,7 +616,7 @@
                     <div class="col-lg-4 bg-grey">
 
                         <div class="px-3">
-                            <h4 class="fw-bold mb-2 mt-4 pt-1">Bill Details</h4>
+                            <h4 class="fw-bold mb-2 mt-4 pt-1">Recurring Invoice Tax Details</h4>
                             <hr class="my-4">
                             <div class="d-flex justify-content-between mb-4">
                                 <h6 class="">Bill Status</h6>
@@ -1426,8 +1475,8 @@
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#deleteBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
     }
 
     function slip() {
@@ -1445,8 +1494,8 @@
         $('#deleteBtn').hide();
         $('#editBtn').hide();
         $('#convertBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
     }
 
     // function printSection(sectionId) {

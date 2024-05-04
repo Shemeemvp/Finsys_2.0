@@ -59,10 +59,10 @@
                         </div>
                       </div>
 
-                    <div class="col-4 ml-auto">
+                    <div class="col-6 ml-auto d-flex justify-content-end">
                         
-                        <button class="btn btn-outline-secondary text-grey" id="exportButton"><i class="fa fa-table"></i> Export To Excel</button>
-                            <button class="btn btn-outline-secondary dropdown-toggle text-grey" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="statusFilterDropdown" >
+                        <button class="btn btn-outline-secondary text-grey ml-1" id="exportButton"><i class="fa fa-table"></i> Export To Excel</button>
+                            <button class="btn btn-outline-secondary dropdown-toggle text-grey ml-1" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="statusFilterDropdown" >
                                 <i class="fa fa-filter"></i> filter by
                             </button>
                           
@@ -72,7 +72,7 @@
                                 <a class="dropdown-item" style="cursor: pointer;" data-status="Draft" onclick="filterTable()">Draft</a>
                             </div>
 
-                            <a class="btn btn-outline-secondary text-grey" href="{% url 'Fin_recurring_bill_create_page' %}"><i class="fa fa-plus font-weight-light"></i> REC. BILL </a>
+                            <a class="btn btn-outline-secondary text-grey ml-1" href="{% url 'Fin_recurring_bill_create_page' %}"><i class="fa fa-plus font-weight-light"></i> REC. BILL </a>
                           
                     </div>
                     

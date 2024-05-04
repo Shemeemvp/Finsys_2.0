@@ -488,16 +488,12 @@
                                     </a>
                                 </li>
 
-                                <li class="dropdown p-0 nav-item mx-1 mt-2" id="share_btn" style="display: none;">
-                                    <a class="btn btn-outline-secondary text-white dropdown-toggle" data-toggle="dropdown" style="margin-top: 2px;">
-                                        <i class="fa fa-share-alt" style="font-size: small;">&nbsp;&nbsp;Share</i>
+                                
+
+                                <li class="nav-item mx-1" id="comment_btn">
+                                    <a class="btn btn-outline-secondary text-white" style="cursor: pointer;" data-toggle="modal" data-target="#comment_modal">
+                                        <i class="fa fa-comment" style="font-size: small;">&nbsp;&nbsp;Comment</i>
                                     </a>
-                                    <ul class="dropdown-menu" style="background-color: black;">
-                                        <li class="ml-3"> {% post_to_whatsapp object_or_url "WhatsApp" %}</li>
-                                        <li class="ml-3 text-white" data-toggle="modal" data-target="#snd_mail">
-                                            Mail
-                                        </li>
-                                    </ul>
                                 </li>
 
                                 <li class="dropdown p-0 nav-item mx-1 mt-2" id="attach_btn">
@@ -524,10 +520,16 @@
                                     </a>
                                 </li>
 
-                                <li class="nav-item mx-1" id="comment_btn">
-                                    <a class="btn btn-outline-secondary text-white" style="cursor: pointer;" data-toggle="modal" data-target="#comment_modal">
-                                        <i class="fa fa-comment" style="font-size: small;">&nbsp;&nbsp;Comment</i>
+                                <li class="dropdown p-0 nav-item mx-1 mt-2" id="share_btn" style="display: none;">
+                                    <a class="btn btn-outline-secondary text-white dropdown-toggle" data-toggle="dropdown" style="margin-top: 2px;">
+                                        <i class="fa fa-share-alt" style="font-size: small;">&nbsp;&nbsp;Share</i>
                                     </a>
+                                    <ul class="dropdown-menu" style="background-color: black;">
+                                        <li class="ml-3"> {% post_to_whatsapp object_or_url "WhatsApp" %}</li>
+                                        <li class="ml-3 text-white" data-toggle="modal" data-target="#snd_mail">
+                                            Mail
+                                        </li>
+                                    </ul>
                                 </li>
         
                                 <li class="nav-item mx-1" id="history_btn">
@@ -1768,13 +1770,15 @@
         document.getElementById('overviewlink').style.backgroundColor='rgba(22,37,50,255)'
         document.getElementById('templatelink').style.backgroundColor='transparent'
         document.getElementById('sliplink').style.backgroundColor='transparent'
-        document.getElementById('active_btn').style.display='block'
         document.getElementById('edit_btn').style.display='block'
         document.getElementById('share_btn').style.display='none'
         document.getElementById('attach_btn').style.display='block'
         document.getElementById('delete_btn').style.display='block'
         document.getElementById('print_btn').style.display='none'
         document.getElementById('pdf_btn').style.display='none'
+        $('#comment_btn').show();
+        $('#history_btn').show();
+        document.getElementById('active_btn').style.display='block'
     }
 
     function showTemplate(){
@@ -1784,13 +1788,15 @@
         document.getElementById('overviewlink').style.backgroundColor='transparent'
         document.getElementById('templatelink').style.backgroundColor='rgba(22,37,50,255)'
         document.getElementById('sliplink').style.backgroundColor='transparent'
-        document.getElementById('active_btn').style.display='none'
         document.getElementById('edit_btn').style.display='none'
         document.getElementById('delete_btn').style.display='none'
         document.getElementById('share_btn').style.display='block'
         document.getElementById('attach_btn').style.display='none'
         document.getElementById('print_btn').style.display='block'
         document.getElementById('pdf_btn').style.display='block'
+        $('#comment_btn').hide();
+        $('#history_btn').hide();
+        document.getElementById('active_btn').style.display='none'
     }
 
     function showSlip(){
@@ -1800,13 +1806,15 @@
         document.getElementById('templatelink').style.backgroundColor='transparent'
         document.getElementById('overviewlink').style.backgroundColor='transparent'
         document.getElementById('sliplink').style.backgroundColor='rgba(22,37,50,255)'
-        document.getElementById('active_btn').style.display='none'
         document.getElementById('edit_btn').style.display='none'
         document.getElementById('delete_btn').style.display='none'
         document.getElementById('share_btn').style.display='none'
         document.getElementById('attach_btn').style.display='none'
         document.getElementById('print_btn').style.display='block'
         document.getElementById('pdf_btn').style.display='block'
+        $('#comment_btn').hide();
+        $('#history_btn').hide();
+        document.getElementById('active_btn').style.display='none'
     }
 </script>
 

@@ -499,7 +499,14 @@
                         </div><br>
                     
                 <!------ statutory end------>
-                <center><button type="submit"class="btn btn-secondary w-50" >Save</button></center><br>
+                <div class="row mt-5 mb-5">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <button class="btn btn-outline-secondary w-50 text-light" type="submit">SAVE</button>
+                        <a href="{% url 'employee_list' %}"class="btn btn-outline-secondary w-25 ml-1 text-light">CANCEL</a>
+                    </div>
+                    <div class="col-md-4"></div>
+                </div>
             </form>
             </div>
             

@@ -39,15 +39,23 @@
 
 
 <div class="page-content ">
+    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'employee_loan_list' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+      <div class="card radius-15">
+        <div class="card-body">
+          <div class="card-title">
+            <center><h3 class="mb-0">EDIT EMPLOYEE LOAN</h3></center>
+          </div>
+          <hr />
+        </div>
+      </div>
     
-    <a href="{% url 'employee_loan_list' %}">
-        <i class="fa fa-times-circle text-white" style="font-size: 1.2rem;margin-left: 100%;"></i></a>
+    <!-- <a href="{% url 'employee_loan_list' %}">
+        <i class="fa fa-times-circle text-white" style="font-size: 1.2rem;margin-left: 100%;"></i></a> -->
     <div class="card radius-15">
      
         <div class=" card-body">
             <form action="{% url 'emploanedit' loan.id %}" method="post" enctype="multipart/form-data" onmouseover="show_fields()">
             {% csrf_token %}
-            <center> <h2>Edit Employee’s Loan </h2></center><br><br><br>
                 <div class="row" style="margin-left: 120px; margin-right: 120px;">
                     <div class="col">
                         <tr>
@@ -441,11 +449,19 @@
                             </tr>
     </div>
                        <br>
-    <div class="col-md-3 mt-3" style="margin-left: 35%; margin-right: 20%;">
+                       <div class="row mt-5 mb-5">
+                        <div class="col-md-4"></div>
+                        <div class="col-md-4 d-flex justify-content-center">
+                            <button class="btn btn-outline-secondary w-50 text-light" type="submit">SAVE</button>
+                            <a href="{% url 'emploanoverview' loan.id %}"class="btn btn-outline-secondary w-25 ml-1 text-light">CANCEL</a>
+                        </div>
+                        <div class="col-md-4"></div>
+                    </div>
+    <!-- <div class="col-md-3 mt-3" style="margin-left: 35%; margin-right: 20%;">
         <center><button type="submit" class="btn btn-outline-info rounded-pill  text-grey " style="width: 60%;">
             Submit
         </button></center>
-    </div>
+    </div> -->
             </form>
         </div>
     </div>

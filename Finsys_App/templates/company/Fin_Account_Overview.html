@@ -129,7 +129,18 @@
             <div id="overview">
                 <div class="row g-0 mx-0">
                     <div class="col-lg-7">
-                        <div class="p-5">
+                        {% if account.create_status == 'added' %}
+                        <div class="history_highlight px-1 pt-4 d-flex">
+                            <div class="col-9 d-flex justify-content-start">
+                                {% if history.action == 'Created' %}<p class="text-success" style="font-size: 1.07rem; font-weight: 500;">Created by :</p>{% else %}<p class="text-warning" style="font-size: 1.07rem; font-weight: 500;">Last Edited by :</p>{% endif %}
+                                <span class="ml-2" style="font-size: 1.15rem; font-weight: 500;">{{history.LoginDetails.First_name}} {{history.LoginDetails.Last_name}}</span>
+                            </div>
+                            <div class="col-3 d-flex justify-content-end">
+                                <span>{{history.date}}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="">
                             <div class="card-body">
                                 <div class="card-title">
                                     <div class="row">
@@ -173,17 +184,7 @@
                     </div>
 
                     <div class="col-lg-5 bg-grey">
-                        {% if account.create_status == 'added' %}
-                        <div class="history_highlight px-1 py-3 d-flex">
-                            <div class="col-9 d-flex justify-content-start">
-                                {% if history.action == 'Created' %}<p class="text-success" style="font-size: 1.07rem; font-weight: 500;">Created by :</p>{% else %}<p class="text-warning" style="font-size: 1.07rem; font-weight: 500;">Last Edited by :</p>{% endif %}
-                                <span class="ml-2" style="font-size: 1.15rem; font-weight: 500;">{{history.LoginDetails.First_name}} {{history.LoginDetails.Last_name}}</span>
-                            </div>
-                            <div class="col-3 d-flex justify-content-end">
-                                <span>{{history.date}}</span>
-                            </div>
-                        </div>
-                        {% endif %}
+                        
                         <div class="px-5">
                             <h3 class="fw-bold mb-2 mt-4 pt-1">Account Details</h3>
                             <hr class="my-4">

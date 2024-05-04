@@ -315,6 +315,8 @@
                                 </ul>
                             </div>
                             {% endif %}
+                            <a href="{% url 'Fin_editInvoice' invoice.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
+                            <a href="{% url 'Fin_deleteInvoice' invoice.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Invoice - {{invoice.invoice_no}}.?')">&nbsp;Delete</a>
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-table" role="button" id="exportBtn" style="display: none;" onclick="ExportToExcel('xlsx')">&nbsp;Export</a>
                             <a href="{% url 'Fin_invoicePdf' invoice.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('whatToPrint')">&nbsp;Print</a>
@@ -325,8 +327,6 @@
                                     <li style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</li>
                                 </ul>
                             </div>
-                            <a href="{% url 'Fin_editInvoice' invoice.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
-                            <a href="{% url 'Fin_deleteInvoice' invoice.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Invoice - {{invoice.invoice_no}}.?')">&nbsp;Delete</a>
                             <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
                             <a href="{% url 'Fin_invoiceHistory' invoice.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                         </div>
@@ -406,7 +406,7 @@
 
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
                                     <div class="col-md-4 mt-3">
-                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Billing Details</h5>
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Invoice Details</h5>
                                     </div>
                                     <div class="col-md-4 mt-3"></div>
                                     <div class="col-md-4 mt-3"></div>
@@ -462,6 +462,55 @@
                                     {% endif %}
                                 </div>
                                 
+                                <hr>
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-4 mt-3">
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Customer Details</h5>
+                                    </div>
+                                    <div class="col-md-4 mt-3"></div>
+                                    <div class="col-md-4 mt-3"></div>
+    
+                                    <div class="col-md-3 mt-3 ">
+                                        <h6 class="mb-0">Customer Name</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{invoice.Customer.title}}. {{invoice.Customer.first_name}} {{invoice.Customer.last_name}}</p>
+                                    </div>
+    
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">Customer Email</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{invoice.Customer.email}}</p>
+                                    </div>
+                                    
+                                    <div class="col-md-3 mt-3">
+                                        <h6 class="mb-0">GST Type</h6>
+                                        <!-- <h6 class="mb-0">GSTIN No</h6> -->
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <!-- <p class="mb-0 text-right">{{invoice.Customer.gstin}}</p> -->
+                                        <p class="mb-0" style="text-align: right;">{{invoice.gst_type}}</p>
+                                    </div>
+
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">GSTIN No</h6>
+                                       
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{invoice.gstin}}</p>
+                                        <!-- <p class="mb-0" style="text-align: right;">{{invoice.Customer.gst_type}}</p> -->
+                                    </div>
+                                </div>
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-3 mt-3"> 
+                                        <h6 class="mb-0">Address</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3 ">
+                                        <p class="mb-0 text-right">{{invoice.billing_address}}</p>
+                                    </div>
+                                </div>
                                 <hr>
 
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
@@ -535,10 +584,10 @@
                     <div class="col-lg-4 bg-grey">
 
                         <div class="px-3">
-                            <h4 class="fw-bold mb-2 mt-4 pt-1">Bill Details</h4>
+                            <h4 class="fw-bold mb-2 mt-4 pt-1">Invoice Tax Details</h4>
                             <hr class="my-4">
                             <div class="d-flex justify-content-between mb-4">
-                                <h6 class="">Bill Status</h6>
+                                <h6 class="">Status</h6>
                                 {% if invoice.status == 'Draft' %} <span class="text-info h5 font-weight-bold">DRAFT</span> {% else %} <span class="text-success h5 font-weight-bold">SAVED</span> {% endif %}
                             </div>
                             <div class="d-flex justify-content-between mb-4">
@@ -1377,8 +1426,8 @@
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#deleteBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
     }
 
     function slip() {
@@ -1395,8 +1444,8 @@
         $('#deleteBtn').hide();
         $('#editBtn').hide();
         $('#convertBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
     }
 
     // function printSection(sectionId) {

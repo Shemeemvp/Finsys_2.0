@@ -308,15 +308,21 @@
                         </div> 
 
                         <div class="col-md-6 d-flex justify-content-end " style="text-align: right;">
-                         
+                            {% if estimate.status == 'Draft' %}
+                            <div class="dropdown p-0 nav-item"  id="convertBtn" style="display: block;">
+                                <li  class="dropdown-toggle btn btn-outline-secondary text-grey fa fa-exchange" data-toggle="dropdown">&nbsp;Convert</li>
+                                <ul class="dropdown-menu" style="background-color: black;" id="">
+                                    <a class="dropdown-item" href="{% url 'Fin_convertdebit' estimate.id %}">Saved</a>
+                                </ul>
+                            </div>
+                            {% endif %}
                             <a onclick="tempPDF()" class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-file" role="button" onclick="slipPDF()" id="slipPdfBtn" style="display: none;"> &nbsp;PDF</a> 
                             <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" style="display: none; " onclick="printSection('whatToPrint')">&nbsp;Print</a>
                            
-                            <a href="{% url 'Fin_editdebitnote' estimate.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="" role="button">&nbsp;Edit</a>
+                            <a href="{% url 'Fin_editdebitnote' estimate.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
                             <a href="{% url 'Fin_deletedebit' estimate.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Debit Note - {{estimate.debit_note_number}}.?')">&nbsp;Delete</a>
                             <a href=""  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
-                            <a href=""  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" data-toggle="modal" data-target="#history" >&nbsp;History</a>
                             <div class="dropdown p-0 nav-item"  id="attachBtn" style="display: block;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-paperclip" data-toggle="dropdown">&nbsp;Attach</li>
                                 <ul class="dropdown-menu" style="background-color: black;">
@@ -326,6 +332,7 @@
                                     {% endif %}
                                 </ul>
                             </div>
+                            <a href=""  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" data-toggle="modal" data-target="#history" >&nbsp;History</a>
                             <div class="dropdown p-0 nav-item"  id="shareBtn" style="display: none;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-share-alt" data-toggle="dropdown">&nbsp;Share</li>
                                 <ul class="dropdown-menu" style="background-color: black;" id="listdiv">
@@ -333,14 +340,7 @@
                                     <li style="text-align: center;color: #e5e9ec; cursor: pointer;" data-toggle="modal" data-target="#shareToEmail">Email</li>
                                 </ul>
                             </div>
-                            {% if estimate.status == 'Draft' %}
-                            <div class="dropdown p-0 nav-item"  id="convertBtn" style="display: block;">
-                                <li  class="dropdown-toggle btn btn-outline-secondary text-grey fa fa-exchange" data-toggle="dropdown">&nbsp;Convert</li>
-                                <ul class="dropdown-menu" style="background-color: black;" id="">
-                                    <a class="dropdown-item" href="{% url 'Fin_convertdebit' estimate.id %}">Saved</a>
-                                </ul>
-                            </div>
-                            {% endif %}
+                            
                         </div>
                     </div> 
                 </div>
@@ -371,7 +371,7 @@
                                 <div class="card-title">
                                     <div class="row">
                                         <div class="col mt-3">
-                                            <h2 class="mb-0"># {{ estimate.estimate_no }}</h2>
+                                            <h2 class="mb-0"># {{ estimate.debit_note_number }}</h2>
                                         </div>
                                     </div>
                                 </div>

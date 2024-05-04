@@ -34,9 +34,18 @@
 </style>
 
 <div class="page-content">
+    <!-- <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'employee_loan_list' %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span> -->
+      <div class="card radius-15">
+        <div class="card-body">
+          <div class="card-title">
+            <center><h3 class="mb-0">EDIT LEAVE</h3></center>
+          </div>
+          <hr />
+        </div>
+      </div>
     <div class="card radius-15">
         <div class="card-body">
-            <div class="row">
+            <!-- <div class="row">
                 <div class="col-12 col-lg-12 col-xl-12">
                     <div class="card" style="background-color: #2a4964;">
                         <div class="row no-gutters">
@@ -52,7 +61,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <form action="{% url 'Fin_editAttendanceVIEW' id=leave.id mn=mn yr=yr pk=pk %}" method="post"
                 class="needs-validation" validate>
                 {% csrf_token %}

@@ -329,7 +329,6 @@
                             <a href="{% url 'Fin_EditPaymentMade' paymentmade.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
                             <a href="{% url 'Fin_deletePaymentMade' paymentmade.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Payment Made- {{paymentmade.payment_number}} ?')">&nbsp;Delete</a>
                             <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
-                            <a href="{% url 'Fin_PaymentMadeHistory' paymentmade.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                             <div class="dropdown p-0 nav-item"  id="attachBtn" style="display: block;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-paperclip" data-toggle="dropdown">&nbsp;Attach</li>
                                 <ul class="dropdown-menu" style="background-color: black;">
@@ -339,6 +338,7 @@
                                     {% endif %}
                                 </ul>
                             </div>
+                            <a href="{% url 'Fin_PaymentMadeHistory' paymentmade.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                         </div>
                     </div> 
                 </div>
@@ -485,6 +485,54 @@
                                         <p class="mb-0 text-right">{{paymentmade.upi_id}}</p>
                                     </div>
                                     {% endif %}
+                                </div>
+                                <hr>
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-4 mt-3">
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Vendor Details</h5>
+                                    </div>
+                                    <div class="col-md-4 mt-3"></div>
+                                    <div class="col-md-4 mt-3"></div>
+    
+                                    <div class="col-md-3 mt-3 ">
+                                        <h6 class="mb-0">Vendor Name</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{paymentmade.vendor.title}}. {{paymentmade.vendor.first_name}} {{paymentmade.vendor.last_name}}</p>
+                                    </div>
+    
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">Vendor Email</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{paymentmade.vendor.email}}</p>
+                                    </div>
+                                    
+                                    <div class="col-md-3 mt-3">
+                                        <h6 class="mb-0">GST Type</h6>
+                                        <!-- <h6 class="mb-0">GSTIN No</h6> -->
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <!-- <p class="mb-0 text-right">{{paymentmade.vendor.gstin}}</p> -->
+                                        <p class="mb-0" style="text-align: right;">{{paymentmade.vendor_gst_type}}</p>
+                                    </div>
+
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">GSTIN No</h6>
+                                       
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{paymentmade.vendor_gstin}}</p>
+                                        <!-- <p class="mb-0" style="text-align: right;">{{paymentmade.vendor.gst_type}}</p> -->
+                                    </div>
+                                </div>
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-3 mt-3"> 
+                                        <h6 class="mb-0">Address</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3 ">
+                                        <p class="mb-0 text-right">{{paymentmade.vendor_address}}</p>
+                                    </div>
                                 </div>
                                 <hr>
                                 <br>
@@ -1061,8 +1109,8 @@
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#deleteBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
         $('#attachBtn').hide();
     }
 
@@ -1081,8 +1129,8 @@
         $('#slipPdfBtn').show();
         $('#editBtn').hide();
         $('#convertBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
         $('#attachBtn').hide();
     }
 

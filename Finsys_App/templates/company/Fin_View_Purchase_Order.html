@@ -329,7 +329,6 @@
                             <a href="{% url 'Fin_editPurchaseOrder' order.id %}" class="ml-2 fa fa-pencil btn btn-outline-secondary text-grey" id="editBtn" role="button">&nbsp;Edit</a>
                             <a href="{% url 'Fin_deletePurchaseOrder' order.id %}" class="ml-2 btn btn-outline-secondary text-grey fa fa-trash" id="deleteBtn" role="button" onclick="return confirm('Are you sure you want to delete Purchase Order - {{order.purchase_order_no}} ?')">&nbsp;Delete</a>
                             <a href="#"  class="ml-2 btn btn-outline-secondary text-grey fa fa-comments" id="commentsBtn" role="button" data-toggle="modal" data-target="#commentModal">&nbsp;Comment</a>
-                            <a href="{% url 'Fin_purchaseOrderHistory' order.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                             <div class="dropdown p-0 nav-item"  id="attachBtn" style="display: block;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-paperclip" data-toggle="dropdown">&nbsp;Attach</li>
                                 <ul class="dropdown-menu" style="background-color: black;">
@@ -339,11 +338,12 @@
                                     {% endif %}
                                 </ul>
                             </div>
+                            <a href="{% url 'Fin_purchaseOrderHistory' order.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                         </div>
                     </div> 
                 </div>
                 <center>
-                    <h3 class="card-title">PURCHASE ORDER VIEW</h3>
+                    <h3 class="card-title">PURCHASE ORDER OVERVIEW</h3>
                 </center>
             </div>
         </div>
@@ -416,7 +416,7 @@
 
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
                                     <div class="col-md-4 mt-3">
-                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Billing Details</h5>
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Purchase Order Details</h5>
                                     </div>
                                     <div class="col-md-4 mt-3"></div>
                                     <div class="col-md-4 mt-3"></div>
@@ -508,6 +508,55 @@
                                 <hr>
 
                                 <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-4 mt-3">
+                                        <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Vendor Details</h5>
+                                    </div>
+                                    <div class="col-md-4 mt-3"></div>
+                                    <div class="col-md-4 mt-3"></div>
+    
+                                    <div class="col-md-3 mt-3 ">
+                                        <h6 class="mb-0">Vendor Name</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{order.Vendor.title}}. {{order.Vendor.first_name}} {{order.Vendor.last_name}}</p>
+                                    </div>
+    
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">Vendor Email</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{order.Vendor.email}}</p>
+                                    </div>
+                                    
+                                    <div class="col-md-3 mt-3">
+                                        <h6 class="mb-0">GST Type</h6>
+                                        <!-- <h6 class="mb-0">GSTIN No</h6> -->
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <!-- <p class="mb-0 text-right">{{order.Vendor.gstin}}</p> -->
+                                        <p class="mb-0" style="text-align: right;">{{order.vendor_gst_type}}</p>
+                                    </div>
+
+                                    <div class="col-md-3 mt-3 vl">
+                                        <h6 class="mb-0">GSTIN No</h6>
+                                       
+                                    </div>
+                                    <div class="col-md-3 mt-3">
+                                        <p class="mb-0 text-right">{{order.vendor_gstin}}</p>
+                                        <!-- <p class="mb-0" style="text-align: right;">{{order.Vendor.gst_type}}</p> -->
+                                    </div>
+                                </div>
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="col-md-3 mt-3"> 
+                                        <h6 class="mb-0">Address</h6>
+                                    </div>
+                                    <div class="col-md-3 mt-3 ">
+                                        <p class="mb-0 text-right">{{order.vendor_address}}</p>
+                                    </div>
+                                </div>
+                                <hr>
+
+                                <div class="row mb-4 d-flex justify-content-between align-items-center">
                                     <div class="col-md-12 mt-3">
                                         <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Items Details</h5>
     
@@ -578,10 +627,10 @@
                     <div class="col-lg-4 bg-grey">
 
                         <div class="px-3">
-                            <h4 class="fw-bold mb-2 mt-4 pt-1">Bill Details</h4>
+                            <h4 class="fw-bold mb-2 mt-4 pt-1">Purchase Order Tax Details</h4>
                             <hr class="my-4">
                             <div class="d-flex justify-content-between mb-4">
-                                <h6 class="">Bill Status</h6>
+                                <h6 class="">Status</h6>
                                 {% if order.status == 'Draft' %} <span class="text-info h5 font-weight-bold">DRAFT</span> {% else %} <span class="text-success h5 font-weight-bold">SAVED</span> {% endif %}
                             </div>
                             <div class="d-flex justify-content-between mb-4">
@@ -1437,8 +1486,8 @@
         $('#editBtn').hide();
         $('#convertBtn').hide();
         $('#deleteBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
         $('#attachBtn').hide();
     }
 
@@ -1457,8 +1506,8 @@
         $('#slipPdfBtn').show();
         $('#editBtn').hide();
         $('#convertBtn').hide();
-        $('#historyBtn').show();
-        $('#commentsBtn').show();
+        $('#historyBtn').hide();
+        $('#commentsBtn').hide();
         $('#attachBtn').hide();
     }
 

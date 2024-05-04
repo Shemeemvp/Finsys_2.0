@@ -424,7 +424,7 @@ footer p {
                 <div class="card-title">
                     <!-- <center><h2 class="mt-1">RECURRING BILL - {{bill1.recurring_bill_number}}</h2> </center> -->
                     <center><h2 class="mt-1">RECURRING BILL</h2> </center>
-                    <center><h5 {%if bill1.status == 'Save'%} style="color: rgb(8, 160, 8);" {% else %} style="color: red;" {% endif %}>{{bill1.status}}</h5></center>
+                    <!-- <center><h5 {%if bill1.status == 'Save'%} style="color: rgb(8, 160, 8);" {% else %} style="color: red;" {% endif %}>{{bill1.status}}</h5></center> -->
                     
                 </div>
                 <hr>
@@ -441,16 +441,26 @@ footer p {
                             </button>
                             <div class="collapse navbar-collapse" id="navbarScroll">
                                 <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+                                    {% if  bill1.status == "Draft" %}
+                                      <div class="dropdown p-0 nav-item mx-1 " id="convertBtn"  style="margin-top: 10px;">
+                                        <li  class=" dropdown-toggle mx-1 btn btn-outline-secondary text-grey" data-toggle="dropdown" >Convert</li>
+                                        <ul class="dropdown-menu" style="background-color: black;">
+                                            <li style="margin-left: 50px;" ><a href="{% url 'Fin_recurring_bill_convert' pk=bill1.id %}">Save</a> </li>
+                                        </ul>
+                                      </div>
+                                      {% else %}
+                                      <td></td>
+                                      {% endif %}
                                     <li class="nav-item mx-1" id="editLi">
-                                        <a href="{% url 'Fin_recurring_bill_edit_page' pk=bill1.id %}" role="button" class=" ml-2 btn btn-outline-secondary text-grey"> &nbsp;<i class="fa fa-edit"></i> &nbsp;Edit&nbsp;&nbsp;</a>
+                                        <a href="{% url 'Fin_recurring_bill_edit_page' pk=bill1.id %}" role="button" class="btn btn-outline-secondary text-grey"> &nbsp;<i class="fa fa-edit"></i> &nbsp;Edit&nbsp;&nbsp;</a>
                                       </li>
                                       <li class="nav-item mx-1" id="deleteLi">
-                                        <a href="{% url 'Fin_recurring_bill_delete' 0 %}" data-bill-id="{{ bill1.id }}" role="button" class="ml-2 btn btn-outline-secondary text-grey deleteButton">
+                                        <a href="{% url 'Fin_recurring_bill_delete' 0 %}" data-bill-id="{{ bill1.id }}" role="button" class="btn btn-outline-secondary text-grey deleteButton">
                                             &nbsp;<i class="fa fa-trash"></i> &nbsp;Delete&nbsp;&nbsp;
                                         </a>
                                       </li>
                                       <li class="nav-item active mx-1" id="printLi" >
-                                        <a class="nav-link text-light  ml-2 btn btn-outline-secondary text-grey" role="button" onclick="window.printfun()" >&nbsp;<i class="fa fa-print"></i>&nbsp;Print&nbsp;&nbsp;<span class="sr-only">(current)</span></a>
+                                        <a class="nav-link text-light  btn btn-outline-secondary text-grey" role="button" onclick="window.printfun()" >&nbsp;<i class="fa fa-print"></i>&nbsp;Print&nbsp;&nbsp;<span class="sr-only">(current)</span></a>
                                         </li>
               
                                         <li class="nav-item mx-1" id="pdfLi">
@@ -481,16 +491,7 @@ footer p {
                                             </script>
                                          
                                          
-                                     {% if  bill1.status == "Draft" %}
-                                      <div class="dropdown p-0 nav-item mx-1 "  style="margin-top: 10px;">
-                                        <li  class=" dropdown-toggle ml-2 btn btn-outline-secondary text-grey" data-toggle="dropdown" >Convert</li>
-                                        <ul class="dropdown-menu" style="background-color: black;">
-                                            <li style="margin-left: 50px;" ><a href="{% url 'Fin_recurring_bill_convert' pk=bill1.id %}">Save</a> </li>
-                                        </ul>
-                                      </div>
-                                      {% else %}
-                                      <td></td>
-                                      {% endif %}
+                                     
         
                                     <div class="dropdown p-0 nav-item mx-1 " id="shareLi" style="margin-top: 10px;">
                                       <li  class=" dropdown-toggle ml-2 btn btn-outline-secondary text-grey"data-toggle="dropdown" > &nbsp;<i class="fa fa-share-alt"></i>&nbsp;Share&nbsp;&nbsp;</li>
@@ -502,6 +503,9 @@ footer p {
                                       </ul>
                                     </div>
           
+                                    <li id="commentLi" >
+                                        <button class="ml-2 btn btn-outline-secondary text-grey " type="button" data-toggle="modal" data-target="#commentModal" title="Comment"><i class="fa-regular fa-comment"></i> Comment</button>
+                                    </li>
                                     <div class="dropdown p-0 nav-item mx-1 " id="attachLi"  style="margin-top: 10px;">
                                         <li  class=" dropdown-toggle btn btn-outline-secondary text-grey"data-toggle="dropdown">&nbsp;&nbsp;Attach file&nbsp;&nbsp;</li>
                                         <ul class="dropdown-menu" style="background-color: black;">
@@ -512,9 +516,6 @@ footer p {
                                             
                                         </ul>
                                     </div>
-                                    <li id="commentLi" >
-                                        <button class="ml-2 btn btn-outline-secondary text-grey " type="button" data-toggle="modal" data-target="#commentModal" title="Comment"><i class="fa-regular fa-comment"></i> Comment</button>
-                                    </li>
 
                                     <div class="dropdown nav-item " style="margin-top: 10px;"  >
                                         <li id="historyLi" class=" dropdown-toggle ml-2 btn btn-outline-secondary text-grey "data-toggle="dropdown">History</li>
@@ -549,6 +550,7 @@ footer p {
                 document.getElementById("commentLi").style.display = "none";
                 document.getElementById("historyLi").style.display = "none";
                 document.getElementById("editLi").style.display = "none";
+                document.getElementById("convertBtn").style.display = "none";
 
             }
 
@@ -561,6 +563,7 @@ footer p {
                 document.getElementById("commentLi").style.display = "none";
                 document.getElementById("historyLi").style.display = "none";
                 document.getElementById("editLi").style.display = "none";
+                document.getElementById("convertBtn").style.display = "none";
             }
             // Function to hide buttons
             function overviewButtons() {
@@ -572,6 +575,7 @@ footer p {
                 document.getElementById("commentLi").style.display = "";
                 document.getElementById("historyLi").style.display = "";
                 document.getElementById("editLi").style.display = "";
+                document.getElementById("convertBtn").style.display = "";
             }
     
             // Call the hideButtons function when the page loads
