@@ -564,7 +564,7 @@ footer p {
                     <center>
 
                         <div class="col-md-9">
-                            <h1>TRANSACTION</h1>
+                            <h3>TRANSACTION</h3>
                             <!-- <h2>{{loan.employee_name}}</h2> -->
                         </div>
                     </center>
@@ -655,9 +655,9 @@ footer p {
 
                         </div>
                         <div class="container-fluid">
-                            <table class="table table-responsive-md table-hover mt-4" id="tabletobe">
-                                <thead>
-                                <tr style="background-color: #1f2b2b;"> 
+                            <table class="table table-responsive-md table-hover table-bordered mt-4" id="tabletobe">
+                                <thead style="background-color: transparent;">
+                                <tr> 
                                    <!-- Inside the <thead> section of your table -->
                                     <th>SL.NO</th>
                                     <th><h6 class="e text-grey" ><b> PARTICULARS </b></h6></th>
@@ -716,20 +716,23 @@ footer p {
                                                     <div class="dropdown-menu">
                                                         {% if i.particulars == 'LOAN ISSUED'%}
                                                             <a class="dropdown-item" href="{% url 'emploanedit' loan.id %}">Edit</a>
-                                                            <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history" data-toggle="tooltip">History</a>
+                                                            <!-- <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history" data-toggle="tooltip">History</a> -->
+                                                            <a class="dropdown-item delete-item" href="{% url 'Fin_employeeLoanHistory' i.employee_loan.id %}">History</a>
                                                           
                                                         {% elif i.particulars == 'EMI PAID' %}
                                                         <a class="dropdown-item" href="{% url 'emploanrepaymentedit' i.repayment.id %}">Edit</a>
-                                                        <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history2" data-repayment-id="{{ i.id }}" data-toggle="tooltip">History</a>
+                                                        <!-- <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history2" data-repayment-id="{{ i.id }}" data-toggle="tooltip">History</a> -->
+                                                        <a class="dropdown-item delete-item" href="{% url 'Fin_employeeLoanTransHistory' i.id %}">History</a>
                                                         <a class="dropdown-item delete-item" href="{% url 'delete_loan_repayment' i.id %}">Delete</a>
                                                         {% else %}
                                                             <a class="dropdown-item" href="{% url 'emploanadditionedit' i.additional.id %}">Edit</a>
-                                                            <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history3" data-additional-id="{{ i.id }}" data-toggle="tooltip">History</a>
+                                                            <!-- <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history3" data-additional-id="{{ i.id }}" data-toggle="tooltip">History</a> -->
+                                                            <a class="dropdown-item delete-item" href="{% url 'Fin_employeeLoanHistory' i.employee_loan.id %}">History</a>
                                                             <a class="dropdown-item delete-item" href="{% url 'delete_loan_additional' i.id %}">Delete</a>
                                                             {% endif %}
             
                                                         {% if a.bank_type == 'PROCESSING FEE' or a.bank_type == 'OPENING BAL' %}
-                                                            <a class="dropdown-item" href="#" onclick="shoAlert('{{ a.bank_type }}')">Deleet</a>
+                                                            <a class="dropdown-item" href="#" onclick="shoAlert('{{ a.bank_type }}')">Delete</a>
                                                         {% else %}
                                                       
                                        
@@ -937,7 +940,7 @@ $('.delete-item').click(function () {
                     <center>
 
                         <div class="col-md-9">
-                            <h1>EMPLOYEE LOAN OVERVIEW</h1>
+                            <h3>EMPLOYEE LOAN OVERVIEW</h3>
                             <!-- <h2>{{loan.employee_name}}</h2> -->
                         </div>
 
@@ -972,7 +975,8 @@ $('.delete-item').click(function () {
                             {% endif %}
                             <button type="button" data-toggle="modal" data-target="#commentModal" data-toggle="tooltip" class=" fa fa-paperclip  btn btn-outline-secondary  mr-2 text-grey" style="padding: 10px; cursor: pointer;" style="cursor: pointer;" data-toggle="modal" data-target="#exampleModal">Comment</button>
                             <button type="button" class=" fa fa-paperclip   btn btn-outline-secondary  mr-2 text-grey " style="padding: 10px; cursor: pointer;" style="cursor: pointer;" data-toggle="modal" data-target="#exampleModal">Attach</button>
-                            <button type="button" data-toggle="modal" data-target="#history" data-toggle="tooltip" class=" fa fa-paperclip  btn btn-outline-secondary  mr-2 text-grey" style="padding: 10px; cursor: pointer;" style="cursor: pointer;" data-toggle="modal" data-target="#history">History</button>
+                            <!-- <button type="button" data-toggle="modal" data-target="#history" data-toggle="tooltip" class=" fa fa-paperclip  btn btn-outline-secondary  mr-2 text-grey" style="padding: 10px; cursor: pointer;" style="cursor: pointer;" data-toggle="modal" data-target="#history">History</button> -->
+                            <button onclick="window.location.href=`{% url 'Fin_employeeLoanHistory' loan.id %}`" type="button" class=" fa fa-paperclip  btn btn-outline-secondary  mr-2 text-grey" style="padding: 10px; cursor: pointer;" style="cursor: pointer;">History</button>
                         </div>
                       </div>
                     
@@ -995,25 +999,32 @@ $('.delete-item').click(function () {
 
                         <div class="col-lg-8">
                             <div class="p-5">
+                                <div class="history_highlight px-2 d-flex">
+                                    <div class="col-12 d-flex justify-content-start align-items-center">
+                                        {% if filtered_data %}{% if filtered_data.action == 'Created' %}<p class="text-success m-0" style="font-size: 1.07rem; font-weight: 500;">Created by :</p>{% else %}<p class="text-warning m-0" style="font-size: 1.07rem; font-weight: 500;">Last Edited by :</p>{% endif %}{% endif %}
+                                        <span class="ml-2" style="font-size: 1.15rem; font-weight: 500;">{{filtered_data.login_details.First_name}} {{history.login_details.Last_name}}</span>
+                                        <span class="ml-5">{{filtered_data.date}}</span>
+                                    </div>
+                                </div>
 
                               
-                                    <h5 class="fw-bold mb-0 text-black">{{filtered_data.login_details.First_name}}&nbsp;{{filtered_data.login_details.Last_name}} &nbsp;{{filtered_data.date|date:'Y-m-d'}}( {{filtered_data.action}} )</h5>
+                                    <!-- <h5 class="fw-bold mb-0 text-black">{{filtered_data.login_details.First_name}}&nbsp;{{filtered_data.login_details.Last_name}} &nbsp;{{filtered_data.date|date:'Y-m-d'}}( {{filtered_data.action}} )</h5> -->
                                                  
 
-                                <hr class="my-4">
+                                <!-- <hr class="my-4"> -->
 
 
                                 <div class="card-body">
                                     <div class="card-title">
                                         <div class="row">
                                             <div class="col mt-3">
-                                                <h2 class="mb-0 text-center">Loan Details</h2>
+                                                <h2 class="mb-0 text-left">Loan Details</h2>
                                             </div>
                                         </div>
 
                                     </div>
                                     <hr>
-                                    <div class="row">
+                                    <!-- <div class="row">
                                         <div class="col-md-4 ml-5 mr-5 mt-3">
                                             <label for="title">
                                                 <h6><b>Loan Status </b></h6>
@@ -1151,7 +1162,106 @@ $('.delete-item').click(function () {
                                             <label for="title"><b>: {{ loan.note }}</b></label>
 
                                         </div>
+                                    </div> -->
+
+                                    <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                        <div class="col-md-4 mt-3">
+                                            <!-- <h5 style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Loan Details</h5> -->
+                                        </div>
+                                        <div class="col-md-4 mt-3"></div>
+                                        <div class="col-md-4 mt-3"></div>
+        
+                                        <div class="col-md-2 mt-3">
+                                            <h6 class="mb-0">Loan Status</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{ loan.status}}</p>
+                                        </div>
+                                        <div class="col-md-2 mt-3 vl">
+                                            <h6 class="mb-0">Loan Amount</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{ loan.loan_amount }}</p>
+                                        </div>
                                     </div>
+                                    <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                        <div class="col-md-2 mt-3">
+                                            <h6 class="mb-0">Loan Date</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{loan.loan_date}}</p>
+                                        </div>
+                                        <div class="col-md-2 mt-3 vl">
+                                            <h6 class="mb-0">Loan Duration</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{ loan.loan_duration.duration}}  {{ loan.loan_duration.term}}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                        <div class="col-md-2 mt-3">
+                                            <h6 class="mb-0">Expiry Date</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{loan.expiry_date}}</p>
+                                        </div>
+                                        <div class="col-md-2 mt-3 vl">
+                                            <h6 class="mb-0">Monthly Cutting</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{ loan.monthly_cutting_amount}}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                        <div class="col-md-2 mt-3">
+                                            <h6 class="mb-0">Payment Method</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{loan.payment_method}}</p>
+                                        </div>
+                                        {% if loan.payment_method != 'Cash' %}
+                                        {% if loan.payment_method == 'UPI' %}
+                                        <div class="col-md-2 mt-3 vl">
+                                            <h6 class="mb-0">UPI ID</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{ loan.upi_id}}</p>
+                                        </div>
+                                        {% elif loan.payment_method == 'Cheque' %}
+                                        <div class="col-md-2 mt-3 vl">
+                                            <h6 class="mb-0">Cheque Number</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{ loan.cheque_number}}</p>
+                                        </div>
+                                        {% else %}
+                                        <div class="col-md-2 mt-3 vl">
+                                            <h6 class="mb-0">Received Type</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{ loan.bank_acc_number}}</p>
+                                        </div>
+                                        {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="row mb-4 d-flex justify-content-between align-items-center">
+                                        <div class="col-md-2 mt-3">
+                                            <h6 class="mb-0">Note</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{loan.note}}</p>
+                                        </div>
+                                        <!-- <div class="col-md-2 mt-3 vl">
+                                            <h6 class="mb-0">Monthly Cutting</h6>
+                                        </div>
+                                        <div class="col-md-4 mt-3">
+                                            <p class="mb-0 text-right">{{ loan.monthly_cutting_amount}}</p>
+                                        </div> -->
+                                    </div>
+
+
                                 </div>
 
 
@@ -1160,9 +1270,43 @@ $('.delete-item').click(function () {
                             </div>
                         </div>
                         <div class="col-lg-4 bg-grey">
+                            <div class="px-3">
+                                <h4 class="fw-bold mb-2 mt-4 pt-1">Employee Details</h4>
+                                <hr class="my-4">
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Employee Name</h6>
+                                    {{ loan.employee.first_name }} {{ loan.employee.last_name }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Employee ID</h6>
+                                    {{ loan.employeeid }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Employee Email</h6>
+                                    {{loan.employee_email }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Designation</h6>
+                                    {{ loan.employee.employee_designation }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Salary</h6>
+                                    {{ loan.salary }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Total Loan Amount</h6>
+                                    {{ loan.total_loan }}
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h6 class="">Phone Number</h6>
+                                    {{ loan.employee.mobile}}
+                                </div>
+                                
+                                
+                            </div>
                             <div class="p-5">
 
-                                <h3 class="fw-bold mb-2 mt-2 pt-1">Employee Details</h3>
+                                <!-- <h3 class="fw-bold mb-2 mt-2 pt-1">Employee Details</h3>
                                 <hr>
                                 <div class="row">
                                     <div class="col-md-4 ml-5 mr-5 mt-3">
@@ -1245,7 +1389,7 @@ $('.delete-item').click(function () {
                                         <label for="title"><b>: {{ employee.mobile }}</b></label>
 
                                     </div>
-                                </div>
+                                </div> -->
                          
                                 <!-- <hr class="my-4">
                                 
@@ -1379,7 +1523,7 @@ $('.delete-item').click(function () {
                     <center>
 
                         <div class="col-md-9">
-                            <h1>STATEMENT</h1>
+                            <h3>STATEMENT</h3>
                         </div>
                     </center>
                     <hr>

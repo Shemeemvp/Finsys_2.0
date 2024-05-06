@@ -313,6 +313,17 @@ def Fin_Anotification(request):
     }
     return render(request,'Admin/Fin_Anotification.html',context) 
 
+def Fin_adminTermExtensionRequests(request):
+    noti = Fin_ANotification.objects.filter(status = 'New').order_by('-id','-Noti_date')
+    req = Fin_ANotification.objects.filter(status = 'New', Title = 'Change Payment Terms').order_by('-id','-Noti_date')
+    n = len(noti)
+    context = {
+        'noti':noti,
+        'req':req,
+        'n':n
+    }
+    return render(request,'Admin/Fin_AdminTermUpdateReq.html',context) 
+
 def  Fin_Anoti_Overview(request,id):
     noti = Fin_ANotification.objects.filter(status = 'New')
     n = len(noti)
@@ -454,7 +465,7 @@ def  Fin_payment_terms_Updation_Accept(request,id):
     message=f'Your new plan is activated and ends on {end}'
     notification=Fin_CNotification.objects.create(Login_Id=com.Login_Id, Company_id=com,Title='New Plan Activated..!',Discription=message)
 
-    return redirect('Fin_Anotification')
+    return redirect('Fin_adminTermExtensionRequests')
 
 def  Fin_payment_terms_Updation_Reject(request,id):
     data = Fin_ANotification.objects.get(id=id)
@@ -464,7 +475,7 @@ def  Fin_payment_terms_Updation_Reject(request,id):
     upt.delete()
     data.delete()
 
-    return redirect('Fin_Anotification')
+    return redirect('Fin_adminTermExtensionRequests')
 
 
 def  Fin_ADpayment_terms_Updation_Accept(request,id):
@@ -1606,6 +1617,97 @@ def Fin_Edit_Modules_Action(request):
         return redirect('Fin_Edit_Modules')
        
     else:
+       return redirect('/')
+
+
+def Fin_TermUpdate_Modules_Action(request): 
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        
+        if request.method == 'POST':
+            data = Fin_Login_Details.objects.get(id = s_id)
+        
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+
+            # -----ITEMS----
+
+            Items = request.POST.get('c1')
+            Price_List = request.POST.get('c2')
+            Stock_Adjustment = request.POST.get('c3')
+
+
+            # --------- CASH & BANK-----
+            Cash_in_hand = request.POST.get('c4')
+            Offline_Banking = request.POST.get('c5')
+            Bank_Reconciliation = request.POST.get('c6')
+            UPI = request.POST.get('c7')
+            Bank_Holders = request.POST.get('c8')
+            Cheque = request.POST.get('c9')
+            Loan_Account = request.POST.get('c10')
+
+            #  ------SALES MODULE -------
+            Customers = request.POST.get('c11')
+            Invoice  = request.POST.get('c12')
+            Estimate = request.POST.get('c13')
+            Sales_Order = request.POST.get('c14')
+            Recurring_Invoice = request.POST.get('c15')
+            Retainer_Invoice = request.POST.get('c16')
+            Credit_Note = request.POST.get('c17')
+            Payment_Received = request.POST.get('c18')
+            Delivery_Challan = request.POST.get('c19')
+
+            #  ---------PURCHASE MODULE--------- 
+            Vendors = request.POST.get('c20') 
+            Bills  = request.POST.get('c21')
+            Recurring_Bills = request.POST.get('c22')
+            Debit_Note = request.POST.get('c23')
+            Purchase_Order = request.POST.get('c24')
+            Expenses = request.POST.get('c25')
+            Recurring_Expenses = request.POST.get('c26')
+            Payment_Made = request.POST.get('c27')
+            EWay_Bill = request.POST.get('c28')
+
+            #  -------ACCOUNTS--------- 
+            Chart_of_Accounts = request.POST.get('c29') 
+            Manual_Journal = request.POST.get('c30')
+            Reconcile  = request.POST.get('c36')
+
+
+            # -------PAYROLL------- 
+            Employees = request.POST.get('c31')
+            Employees_Loan = request.POST.get('c32')
+            Holiday = request.POST.get('c33') 
+            Attendance = request.POST.get('c34')
+            Salary_Details = request.POST.get('c35')
+
+            modules = Fin_Modules_List(Items = Items,Price_List = Price_List,Stock_Adjustment = Stock_Adjustment,
+                Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,Bank_Reconciliation = Bank_Reconciliation ,
+                UPI = UPI,Bank_Holders = Bank_Holders,Cheque = Cheque,Loan_Account = Loan_Account,
+                Customers = Customers,Invoice = Invoice,Estimate = Estimate,Sales_Order = Sales_Order,
+                Recurring_Invoice = Recurring_Invoice,Retainer_Invoice = Retainer_Invoice,Credit_Note = Credit_Note,
+                Payment_Received = Payment_Received,Delivery_Challan = Delivery_Challan,
+                Vendors = Vendors,Bills = Bills,Recurring_Bills = Recurring_Bills,Debit_Note = Debit_Note,
+                Purchase_Order = Purchase_Order,Expenses = Expenses,Recurring_Expenses = Recurring_Expenses,
+                Payment_Made = Payment_Made,EWay_Bill = EWay_Bill,
+                Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,Reconcile = Reconcile ,
+                Employees = Employees,Employees_Loan = Employees_Loan,Holiday = Holiday,
+                Attendance = Attendance,Salary_Details = Salary_Details,
+                Login_Id = data,company_id = com,status = 'pending')
+            
+            modules.save()
+            data1=Fin_Modules_List.objects.filter(company_id = com).update(update_action=1)
+
+            if com.Registration_Type == 'self':
+                noti = Fin_ANotification(Login_Id = data,Modules_List = modules,Title = "Module Updation",Discription = com.Company_name + " wants to update current Modules")
+                noti.save()
+            else:
+                noti = Fin_DNotification(Distributor_id = com.Distributor_id,Login_Id = data,Modules_List = modules,Title = "Module Updation",Discription = com.Company_name + " wants to update current Modules")
+                noti.save()   
+
+            return redirect('Fin_CompanyReg')
+        return redirect('Fin_Edit_Modules')
+       
+    else:
        return redirect('/')   
     
 
@@ -1741,9 +1843,14 @@ def Fin_Wrong_Action(request):
                     noti = Fin_DNotification(Distributor_id = com.Distributor_id,Login_Id = data,PaymentTerms_updation = data1,Title = "Change Payment Terms",Discription = com.Company_name + " is change Payment Terms")
                     noti.save()    
 
+                module_request=Fin_Modules_List.objects.filter(company_id=com, status = 'pending')
+                if module_request:
+                    module_request.delete()
 
-            
-                return redirect('Fin_CompanyReg')
+                allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+                    
+                return render(request,'company/Fin_TermUpdate_Modules.html',{'allmodules':allmodules,'com':com})
+                # return redirect('Fin_CompanyReg')
             else:
                 com = Fin_Distributors_Details.objects.get(Login_Id = s_id)
                 pt = request.POST['payment_term']
@@ -24179,7 +24286,7 @@ def Fin_recurring_bill_overview(request,pk):
     bill1 = Fin_Recurring_Bills.objects.get(id=pk)
     if loginn.User_Type == 'Company':
         com = Fin_Company_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.id, status = 'New')
         items = Fin_Recurring_Bill_Items.objects.filter(recurring_bill_id = pk,company_id = com.id)
         lastHistory = Fin_Recurring_Bill_History.objects.filter(recurring_bill_id = pk,company_id = com.id).latest('id')
         comments = Fin_Recurring_Bill_Comments.objects.filter(company_id=com.id,recurring_bill_id=pk)
@@ -24199,7 +24306,7 @@ def Fin_recurring_bill_overview(request,pk):
         }
     elif loginn.User_Type == 'Staff' :
         com = Fin_Staff_Details.objects.get(Login_Id = sid)
-        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id)
+        allmodules = Fin_Modules_List.objects.get(company_id = com.company_id_id, status = 'New')
         items = Fin_Recurring_Bill_Items.objects.filter(recurring_bill_id = pk,company_id = com.company_id_id)
         lastHistory = Fin_Recurring_Bill_History.objects.filter(recurring_bill_id = pk,company_id = com.company_id_id).latest('id')
         comments = Fin_Recurring_Bill_Comments.objects.filter(company_id=com.company_id_id,recurring_bill_id=pk)
@@ -34898,3 +35005,91 @@ def Fin_purchaseOrderConvertRecBill(request, id):
         return redirect(Fin_purchaseOrder)
     else:
         return redirect(Fin_purchaseOrder)
+
+def Fin_deliveryChallanTransactionHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        chl = Fin_Delivery_Challan.objects.get(id = id)
+        his = Fin_Delivery_Challan_History.objects.filter(delivery_challan = chl)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/Fin_Delivery_Challan_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'challan':chl})
+    else:
+       return redirect('/')
+
+def Fin_debitNoteTransactionHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        dbNote = Fin_Debit_Note.objects.get(id = id)
+        his = Fin_Debite_Note_History.objects.filter(debit_note = dbNote)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/Fin_Debit_Note_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'debit':dbNote})
+    else:
+       return redirect('/')
+
+def Fin_employeeLoanHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        loan = Fin_Loan.objects.get(id=id)
+
+        his = Fin_Employee_Loan_History.objects.filter(employee_loan=loan)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/Fin_Employee_Loan_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'loan':loan})
+    else:
+       return redirect('/')
+
+def Fin_LoanAccountTransactionHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        trans = loan_transaction.objects.get(id = id)
+
+        his = Fin_LoanTransactionHistory.objects.filter(transaction = trans)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/loan_account/loan_account_trans_history.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'loan':trans.loan})
+    else:
+       return redirect('/')
+
+def Fin_employeeLoanTransHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        trans = Fin_Employee_Loan_Transactions.objects.get(id = id)
+
+        his = Fin_Employee_Loan_Transactions_History.objects.filter(transaction = trans)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
+        
+        return render(request,'company/Fin_Employee_Loan_Trans_history.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'loan':trans.employee_loan})
+    else:
+       return redirect('/')

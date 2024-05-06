@@ -283,7 +283,7 @@
                 <div class="menu-title">Dashboard</div>
               </a>
             </li>
-            <li>
+            <!-- <li>
               <a href="{% url 'Fin_PaymentTerm' %}" class="has-arrow">
                 <div class="parent-icon"><i class='bx bxs-package'></i>
                 </div>
@@ -291,6 +291,17 @@
               </a>
              
 
+            </li> -->
+            <li>
+              <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class="bx bxs-package"></i>
+                </div>
+                <div class="menu-title" style="margin-right: 20px;">Payment Terms</div>
+              </a>
+              <ul class="submenu">
+                <li id="newTerms"><a href="{% url 'Fin_PaymentTerm' %}"><i class="bx bx-right-arrow-alt"></i>New Term</a></li>
+                <li id="termExtension"><a href="{% url 'Fin_adminTermExtensionRequests' %}"><i class="bx bx-right-arrow-alt"></i>Extension Requests</a></li>
+              </ul>
             </li>
             <li>
               <a href="{% url 'Fin_Admin_trial_period_section' %}" class="has-arrow">

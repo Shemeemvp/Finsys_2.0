@@ -612,15 +612,18 @@ footer p {
                                                     <div class="dropdown-menu">
                                                         {% if a.bank_type == 'PROCESSING FEE' or a.bank_type == 'OPENING BAL' %}
                                                             <a class="dropdown-item" href="#" onclick="showAlert('{{ a.bank_type }}')">Edit</a>
-                                                            <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history" data-toggle="tooltip">History</a>
+                                                            <!-- <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history" data-toggle="tooltip">History</a> -->
+                                                            <a class="dropdown-item delete-item" href="{% url 'Fin_LoanAccountHistory' a.loan.id %}">History</a>
+
                                                         {% elif a.bank_type == 'ADDITIONAL LOAN ISSUED' %}
                                                         <a class="dropdown-item" href="{% url 'edit_additional_Loan' a.id %}">Edit</a>
-                                                        <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history3" data-additional-id="{{ a.id }}" data-toggle="tooltip">History</a>
-
+                                                        <!-- <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history3" data-additional-id="{{ a.id }}" data-toggle="tooltip">History</a> -->
+                                                        <a class="dropdown-item delete-item" href="{% url 'Fin_LoanAccountTransactionHistory' a.id %}">History</a>
 
                                                         {% else %}
                                                             <a class="dropdown-item" href="{% url 'edit_loan_ac_repayment' a.id %}">Edit</a>
-                                                            <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history2" data-repayment-id="{{ a.id }}" data-toggle="tooltip">History</a>
+                                                            <!-- <a class="dropdown-item delete-item" data-toggle="modal" data-target="#history2" data-repayment-id="{{ a.id }}" data-toggle="tooltip">History</a> -->
+                                                            <a class="dropdown-item delete-item" href="{% url 'Fin_LoanAccountTransactionHistory' a.id %}">History</a>
                                                         {% endif %}
             
                                                         {% if a.bank_type == 'PROCESSING FEE' or a.bank_type == 'OPENING BAL' %}

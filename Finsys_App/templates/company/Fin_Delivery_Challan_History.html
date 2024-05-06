@@ -1,9 +1,6 @@
+<!-- Created --shemeem  -->
 {% extends 'company/Fin_base.html' %}
 {% block body %}
-{% load static %}
-
-<!-- harikrishnan -->
-
 <style>
     @keyframes blink {
         0% {
@@ -22,16 +19,16 @@
     }
 </style>
 <div class="page-content " >
-    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'employee_overview' employ.id %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
+    <span class="d-flex justify-content-end p-2" style="cursor: pointer;" onclick="window.location.href=`{% url 'challan_overview' challan.id %}`"><i class="fa fa-times-circle text-white" style="font-size: 1.2rem;"></i></span>
     <div class="card radius-15">
         <div class="card-body" style="width:100%;">
             <div class="card-title">
                 <center>
-                    <h3 class="card-title" style="text-transform:Uppercase;">EMPLOYEE HISTORY</h3>
-                    {% if employ.employee_status != 'Active' %}
-                    <h6 class="blinking-text" style="color:red;width:140px;font-weight: bold;">Inactive</h6>
+                    <h3 class="card-title" style="text-transform:Uppercase;">DELIVERY CHALLAN TRANSACTIONS</h3>
+                    {% if order.status == 'Draft' %}
+                    <h6 class="blinking-text" style="color:red;width:140px;font-weight: bold;">DRAFT</h6>
                     {% else%}
-                    <h6 style="width:140px;color: green;font-weight: bold;">Active</h6>
+                    <h6 style="width:140px;color: green;font-weight: bold;">SAVED</h6>
                     {% endif %}
                 </center>
             </div>
@@ -41,7 +38,7 @@
     <div class="card card-registration card-registration-2" style="border-radius: 15px;">
         <div class="card-body p-0">
             <div id="history">
-                <center><h3 class="mt-3 text-uppercase">{{ employ.first_name}} {{employ.last_name }} - TRANSACTIONS HISTORY</h3></center>
+                <center><h3 class="mt-3 text-uppercase"># {{ challan.challan_no }} - TRANSACTIONS HISTORY</h3></center>
                 <div class="table-responsive px-2">
                     <table class="table table-bordered">
                         <thead>
@@ -58,7 +55,7 @@
                                 <td style="text-align: center;">{{forloop.counter}}</td>
                                 <td style="text-align: center;">{{h.date}}</td>
                                 {% if h.action == 'Created' %}<td class="text-success text-center">{{h.action}}</td>{% else %}<td class="text-warning text-center">{{h.action}}</td>{% endif %}
-                                <td style="text-align: center;">{{h.login.First_name}} {{h.login.Last_name}}</td>
+                                <td style="text-align: center;">{{h.LoginDetails.First_name}} {{h.LoginDetails.Last_name}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -68,6 +65,4 @@
         </div>
     </div>
 </div>
-  
-
 {% endblock %}

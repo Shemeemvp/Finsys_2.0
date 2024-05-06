@@ -332,7 +332,7 @@
                                     {% endif %}
                                 </ul>
                             </div>
-                            <a href=""  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" data-toggle="modal" data-target="#history" >&nbsp;History</a>
+                            <a href="{% url 'Fin_debitNoteTransactionHistory' estimate.id %}"  class="ml-2 btn btn-outline-secondary text-grey fa fa-history" id="historyBtn" role="button" >&nbsp;History</a>
                             <div class="dropdown p-0 nav-item"  id="shareBtn" style="display: none;">
                                 <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-share-alt" data-toggle="dropdown">&nbsp;Share</li>
                                 <ul class="dropdown-menu" style="background-color: black;" id="listdiv">

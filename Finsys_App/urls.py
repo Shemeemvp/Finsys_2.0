@@ -908,6 +908,14 @@ urlpatterns = [
     path('Fin_convert_purchase_order_to_rec_bill/<int:id>',views.Fin_convertPurchaseOrderToRecBill, name='Fin_convertPurchaseOrderToRecBill'),
     path('Fin_purchase_order_convert_rec_bill/<int:id>',views.Fin_purchaseOrderConvertRecBill, name='Fin_purchaseOrderConvertRecBill'),
 
+    path('Fin_TermUpdate_Modules_Action',views.Fin_TermUpdate_Modules_Action,name='Fin_TermUpdate_Modules_Action'),
+    path('ATerm_extension_requests', views.Fin_adminTermExtensionRequests, name='Fin_adminTermExtensionRequests'),
+    path('Fin_delivery_Challan_Transaction_History/<int:id>',views.Fin_deliveryChallanTransactionHistory, name='Fin_deliveryChallanTransactionHistory'),
+    path('Fin_debit_Note_Transaction_History/<int:id>',views.Fin_debitNoteTransactionHistory, name='Fin_debitNoteTransactionHistory'),
+    path('Fin_LoanAccountTransactionHistory/<int:id>', views.Fin_LoanAccountTransactionHistory, name='Fin_LoanAccountTransactionHistory'),
+    path('Fin_employee_Loan_History/<int:id>',views.Fin_employeeLoanHistory, name='Fin_employeeLoanHistory'),
+    path('Fin_employee_Loan_TransHistory/<int:id>',views.Fin_employeeLoanTransHistory, name='Fin_employeeLoanTransHistory'),
+    
 
 
     
