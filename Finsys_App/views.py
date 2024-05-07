@@ -23266,7 +23266,8 @@ def Fin_newdebitnote(request):
                 place_of_supply = request.POST['place_of_supply'],
                 reference_number = request.POST['reference_number'],
                 debit_note_number = CHNo,
-                bill_number= request.POST['billSelect'],
+                bill_type =  None if request.POST['bill_type'] == "" else request.POST['bill_type'],
+                bill_number= None if request.POST['bill_number'] == "" else Fin_Purchase_Bill.objects.get(id = request.POST['bill_number']).bill_no if request.POST['bill_type'] == 'Bill' else Fin_Recurring_Bills.objects.get(id = request.POST['bill_number']).recurring_bill_number,
                 
                 debit_note_date = request.POST['debit_date'],
                 payment_type = None if request.POST['payment_method'] == "" else request.POST['payment_method'],
@@ -23608,6 +23609,8 @@ def editdebit(request,id):
             est.place_of_supply = request.POST['place_of_supply']
 
             est.debit_note_number = ESTNo
+            est.bill_type =  None if request.POST['bill_type'] == "" else request.POST['bill_type']
+            est.bill_number= None if request.POST['bill_number'] == "" else Fin_Purchase_Bill.objects.get(id = request.POST['bill_number']).bill_no if request.POST['bill_type'] == 'Bill' else Fin_Recurring_Bills.objects.get(id = request.POST['bill_number']).recurring_bill_number
            
             est.debit_note_date = request.POST['debit_date']
             est.payment_type = request.POST['payment_type']
@@ -35093,3 +35096,151 @@ def Fin_employeeLoanTransHistory(request,id):
         return render(request,'company/Fin_Employee_Loan_Trans_history.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'loan':trans.employee_loan})
     else:
        return redirect('/')
+
+
+# Credit Note updations ----- Shemeem ------
+
+def Fin_getBillNumbers(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        vend = request.GET['vendId']
+        billType = request.GET['billType']
+
+        bills = {}
+        vendor = Fin_Vendors.objects.get(id = vend)
+        if not vendor:
+            return JsonResponse({'message':'Vendor Not Found, Try again..'})
+
+        if billType == 'Bill':
+            bls = Fin_Purchase_Bill.objects.filter(company = com, vendor = vendor)
+
+            for option in bls:
+                if not Fin_Debit_Note.objects.filter(Company = com, bill_number__iexact = option.bill_no).exists():
+                    bills[option.id] = [option.id, option.bill_no]
+                else:
+                    continue
+        
+        if billType == 'Recurring Bill':
+            bls = Fin_Recurring_Bills.objects.filter(company = com, vendor = vendor)
+
+            for option in bls:
+                if not Fin_Debit_Note.objects.filter(Company = com, bill_number__iexact = option.recurring_bill_number).exists():
+                    bills[option.id] = [option.id, option.recurring_bill_number]
+                else:
+                    continue
+
+        return JsonResponse(bills)
+    else:
+        return redirect('/')
+
+def Fin_getBillNumbersEdit(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        vend = request.GET['vendId']
+        billType = request.GET['billType']
+        billNo = request.GET['billNum']
+
+        bills = {}
+        vendor = Fin_Vendors.objects.get(id = vend)
+        if not vendor:
+            return JsonResponse({'message':'Vendor Not Found, Try again..'})
+
+        if billType == 'Bill':
+            bls = Fin_Purchase_Bill.objects.filter(company = com, vendor = vendor)
+
+            for option in bls:
+                if option.bill_no == billNo:
+                    bills[option.id] = [option.id, option.bill_no]
+
+                if not Fin_Debit_Note.objects.filter(Company = com, bill_number__iexact = option.bill_no).exists():
+                    bills[option.id] = [option.id, option.bill_no]
+                else:
+                    continue
+        
+        if billType == 'Recurring Bill':
+            bls = Fin_Recurring_Bills.objects.filter(company = com, vendor = vendor)
+
+            for option in bls:
+                if option.recurring_bill_number == billNo:
+                    bills[option.id] = [option.id, option.recurring_bill_number]
+                if not Fin_CreditNote.objects.filter(Company = com, bill_number__iexact = option.recurring_bill_number).exists():
+                    bills[option.id] = [option.id, option.recurring_bill_number]
+                else:
+                    continue
+
+        return JsonResponse(bills)
+    else:
+        return redirect('/')
+
+def Fin_getBillDet(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        billId = request.GET['id']
+        billType = request.GET['type']
+
+        items = {}
+        if billType == 'Bill':
+            bill = Fin_Purchase_Bill.objects.get(id = billId)
+            itms = Fin_Purchase_Bill_Item.objects.filter(pbill = bill)
+            
+            if not itms:
+                return JsonResponse({'message':'Items Not Found for the selected number,\nAdd Items or Try again..'})
+
+            for item in itms:
+                items[item.id] = [item.id, item.item.name, item.item.id, item.item.hsn, item.item.sac, item.qty, item.item.current_stock, item.price, item.item.purchase_price, item.tax, item.discount, item.total]
+
+        if billType == 'Recurring Bill':
+            bill = Fin_Recurring_Bills.objects.get(id = billId)
+            itms = Fin_Recurring_Bill_Items.objects.filter(recurring_bill = bill)
+            if not itms:
+                return JsonResponse({'message':'Items Not Found for the selected number,\nAdd Items or Try again..'})
+
+            for item in itms:
+                items[item.id] = [item.id, item.items.name, item.items.id, item.hsn, item.sac, item.quantity, item.items.current_stock, item.price, item.items.purchase_price, item.tax_rate, item.discount, item.total]
+
+        return JsonResponse(items)
+    else:
+        return redirect('/')
+
+def Fin_getBillPaidAmount(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        billId = request.GET['id']
+        billType = request.GET['billType']
+
+        paid = 0
+        if billType == 'Bill':
+            bill = Fin_Purchase_Bill.objects.get(id = billId)
+            paid = bill.paid
+
+        if billType == 'Recurring Bill':
+            bill = Fin_Recurring_Bills.objects.get(id = billId)
+            paid = bill.advanceAmount_paid
+
+        return JsonResponse({'status':True, 'paid':paid})
+    else:
+        return redirect('/')
