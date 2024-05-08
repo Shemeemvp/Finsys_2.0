@@ -876,6 +876,8 @@ class Fin_Sales_Order(models.Model):
     payment_terms = models.ForeignKey(Fin_Company_Payment_Terms, on_delete = models.SET_NULL,null=True)
     sales_order_date = models.DateField(null=True, blank=True)
     exp_ship_date = models.DateField(null=True,blank=True)
+    price_list_applied = models.BooleanField(null=True, default=False)
+    price_list = models.ForeignKey(Fin_Price_List, on_delete = models.SET_NULL,null=True)
 
     payment_method = models.CharField(max_length=100, null=True, blank=True)
     cheque_no = models.CharField(max_length=100, null=True, blank=True)
@@ -1519,6 +1521,8 @@ class Fin_Delivery_Challan(models.Model):
     description = models.CharField(max_length=100, blank=True)
     document = models.FileField(upload_to='file/',blank=True) 
     
+    price_list_applied = models.BooleanField(null=True, default=False)
+    price_list = models.ForeignKey(Fin_Price_List, on_delete = models.SET_NULL,null=True)
     
     
 
@@ -1813,6 +1817,9 @@ class Fin_Purchase_Order(models.Model):
     customer_gst_type = models.CharField(max_length=100, null=True, blank=True)
     customer_gstin = models.CharField(max_length=100, null=True, blank=True)
     customer_place_of_supply = models.CharField(max_length=100, null=True, blank=True)
+
+    price_list_applied = models.BooleanField(null=True, default=False)
+    price_list = models.ForeignKey(Fin_Price_List, on_delete = models.SET_NULL,null=True)
 
     subtotal = models.IntegerField(default=0, null=True)
     igst = models.FloatField(default=0.0, null=True, blank=True)

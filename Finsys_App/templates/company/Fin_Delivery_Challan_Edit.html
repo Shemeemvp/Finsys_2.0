@@ -51,10 +51,10 @@
                                
                                 <select  class="form-control" name="customer" id="customer3" style="width: 93%;">
                                     <!-- <option value="">Select Customer</option> -->
-                    {% for cust in customers %}
-                    <option value="{{ cust.id }}" {% if estimate.Customer.id == cust.id %}Selected{% endif %}> {{ cust.title }} {{ cust.first_name }} {{ cust.last_name }}</option>
-                    {% endfor %}
-                </select>
+                                {% for cust in customers %}
+                                <option value="{{ cust.id }}" {% if estimate.Customer.id == cust.id %}Selected{% endif %}> {{ cust.title }} {{ cust.first_name }} {{ cust.last_name }}</option>
+                                {% endfor %}
+                            </select>
                                 <!-- <input required type="text" id="customer" value="{{estimate.Customer.title}} {{estimate.Customer.first_name}} {{estimate.Customer.last_name}}" name="customer" class="dropdown-toggle form-control customers-display" onkeyup="filterCustomers()" data-toggle="dropdown" aria-expanded="false" placeholder="Select Customer.." autocomplete="off">
                                 <ul class="dropdown-menu w-100 customers-available position-absolute" id="cust_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                     <li class="dropdown-item customers-options" onclick="getCustomerDetails('','')">Select Customer</li>
@@ -110,6 +110,9 @@
                             gstin = response.gstin;
                             place_of_supply = response.place_of_supply;
                            console.log(dataemail)
+                           if(`{{estimate.price_list_applied}}` != "True"){
+                                $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
+                            }
                           
                             if (dataemail !== 'null' && dataemail.trim() !== '') 
                                     {
@@ -262,6 +265,35 @@
                 </div> -->
             </div>
 
+            <div class="row" id="applyPriceListSection" style="display: block;">
+                <div class="col-md-3 mt-3">
+                    <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" name="priceList" id="applyPriceList" value="applyPriceList">
+                        <input type="hidden" name="priceListId" value="" id="customerPriceListId">
+                        <label class="form-check-label" for="applyPriceList">Apply Price List</label>
+                        <span class="text-success" id="custPriceListName" style="display: none; margin-left: 5px;"></span>
+                    </div>
+                    <div id="priceListDropdown" style="display: none;">
+                        <label class="">Price List</label>
+                        <span class="text-danger" id="custPriceListAlert" style="display: none; margin-left: 5px;"></span>
+                        <select class="form-control" id="priceListIds" onchange="applyPriceList()" name="price_list_id" style="background-color: #43596c;">
+                            <option value="">Choose Price List</option>
+                            {% for p in priceListItems %}
+                            {% if estimate.price_list.id == p.id %}
+                                <option value="{{p.id}}" selected>{{p.name}}</option>
+                                {% else %}
+                                <option value="{{p.id}}">{{p.name}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mt-3">
+                    
+                </div>
+            </div>
+
             <div class="row clearfix ">
                 <div class="col-md-12 table-responsive-md mt-3">
                     <table class="table table-bordered table-hover mt-3" id="estimateItemsTable">
@@ -285,7 +317,7 @@
                                     <div class="d-flex">
                                         <div class="w-100">
                                             <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                                <input required type="text" id="item{{forloop.counter}}" value="{{itm.items.name}}" name="item_name[]" class="dropdown-toggle form-control item-display" onmouseover="onchangeitem(this)" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
+                                                <input required type="text" id="item{{forloop.counter}}" value="{{itm.items.name}}" name="item_name[]" class="dropdown-toggle form-control item-display"  onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
                                                 <ul class="dropdown-menu w-100 items-available position-absolute" id="menu{{forloop.counter}}"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                                     {% for i in items %}
                                                     <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.name}}`)">{{i.name}}</li>
@@ -302,85 +334,18 @@
                                 <td>
                                     <input type="hidden" name="id[]" value="{{itm.id}}">
                                     <input type="hidden" name="item_id[]" value="{{itm.items.id}}" id="itemId{{forloop.counter}}">
-                                    <input type="text" name='hsn[]' id="hsn{{forloop.counter}}" value="{{itm.hsn}}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
+                                    <input type="text" name='hsn[]' id="hsn{{forloop.counter}}" value="{{itm.hsn}}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;{% if not itm.hsn or itm.hsn == 'null' %}display:none;{% endif %}" readonly />
+                                    <input type="text" name='sac[]' id="sac{{forloop.counter}}" value="{{itm.sac}}" placeholder='SAC Code' class="form-control SACCODE" style="background-color: #43596c; color: white;{% if not itm.sac or itm.sac == 'null' %}display:none;{% endif %}" readonly />
                                 </td>
                                 <td >
                                     <input type="number" name='qty[]' id="qty{{forloop.counter}}"  class="form-control qty" step=0 min=1 style="background-color: #43596c; color: white;" value={{itm.quantity}}  required/>
-                                    <input type="text" id="avl1" style="display: none;">
+                                    <input type="text" id="avl{{forloop.counter}}" style="display: none;">
                                     <!-- <div  id="hids" style="display: none;"><span id="dd" style="display: none;">Available Qty :</span><span id="qtyspan1"  class=''></span></div> -->
-                                    <input type="text" id="qtyspan1" value={{itm.items.current_stock}}>
+                                    <!-- <input type="text" id="qtyspan1" value={{itm.items.current_stock}}> -->
                                
                                 </td>
-                                <td>
-                                    <script>
-                                        // $(document).ready(function() {
-                                        //   // Initialize select2
-                                        //   $('#customer3').select2();
-                                      
-                                          // Handle change event for the 'selected' element
-                                        //   $(document).ready(function() {
-                          // Initialize select2
-                                        //    $('#item1').select2();
-                                        //    $('#placeOfSupply').select2();
-                                         
-                                          function onchangeitem (selectElement) {
-                                            console.log('h')
-                                            // var cc = document.getElementById("item1");
-                                            console.log(selectElement.id);
-    
-    
-                                            var customer = selectElement.value;
-                                            console.log(customer)
-                                            var n = selectElement.id.slice(4);
-                                            // id(customer==)
-                                            console.log(n+"h")
-                                        
-                                            $.ajax({
-                                              type: "GET",
-                                              url: "{% url 'Fin_getInvItemDetails2' %}",
-                                              data: {
-                                                item: customer
-                                                
-                                              },
-                                              
-                                              success: function (response) {
-    
-                                                console.log("hii")
-                                                // $("#itemId"+n).val(response.id);
-                                                // $("#hsn"+n).val(response.hsn);
-                                                // $("#price"+n).val(response.sales_rate);
-                                                // $("#taxGST"+n).val(response.gst);
-                                                // $("#taxIGST"+n).val(response.igst);
-                                                // $("#qty"+n).val(response.avl);
-                                                $("#avl"+n).val(response.avl);
-                         
-                            
-                            abl = response.avl;
-                        console.log(abl);
-    
-                        if (abl !== 0 ) {
-                            $("#qtyspan"+n).show()
-                            console.log("#qtyspan"+n)
-                            $("#qtyspan"+n).val("Available qty :"+ abl);
-    
-                            
-                        
-                        }
-                        else
-                        {
-                            $("#qtyspan"+n).hide()
-                        }
-                                              
-                    }
-                                                    
-                                             
-                                            });
-                                            
-  
-                                          }
-
-                                      </script>            
-                           
+                                <td>           
+                                    <input type="number" name='priceListPrice[]' id="priceListPrice{{forloop.counter}}" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value={{itm.price}} readonly />
                                     <input type="number" name='price[]' id="price{{forloop.counter}}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white; display: block;" value={{itm.items.selling_price}} readonly />
                                 </td>
                                 
@@ -521,6 +486,203 @@
     </div>
   </div>
 </form>
+
+<script>
+    $(document).ready(function(){
+        if (`{{estimate.price_list_applied}}` == 'True'){
+            $('#applyPriceList').prop('checked', true);
+            $('#priceListDropdown').css('display','block');
+            $('#custPriceListName').text('Applied: '+$("#priceListIds option:selected").text())
+            $('#custPriceListName').css('display','inline-flex');
+            checkPriceList();
+        }
+    })
+    function getItemDetails(inpId, value) {
+        var itm = value;
+        console.log(itm)
+        var n = inpId.slice(4);
+        console.log(n+"h")
+        var plc = $('#placeOfSupply').val();
+        var PLId = $('#priceListIds').val();
+        var exists = false;
+        var previousValues = [];
+        // var itemName = customer;
+
+        // var html = $(this).html();
+        $('.item-display').each(function() {
+            var itemName = $(this).val();
+            console.log(itemName + " prev");
+            if (itemName == itm && $(this).attr('id') !== selectElement.id) {
+                exists = true;
+                console.log('exists', exists);
+            }
+        });
+            
+    
+            
+        
+        if(!exists){
+            if(plc != ""){
+                if($('#applyPriceList').prop('checked') && PLId ==""){
+                    alert('Select a Price List from the dropdown..!')
+                }else{
+
+                }
+                $.ajax({
+                    url: "{% url 'Fin_getInvItemDetails' %}",
+                    type : 'GET',
+                    data:{
+                        item : itm,
+                        listId : PLId,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                        },
+                    
+                    success: function(response) {
+                        if (response.status){
+                            $('#'+inpId).val(itm)
+                            document.getElementById('itemId'+n).value = response.id;
+                            if( response.item_type ==='Goods')
+                            {
+                                $('#hsn'+n).show();
+                                $('#sac'+n).hide();
+                                $('#hsn'+n).val(response.hsn);
+                                $('#sac'+n).val("None");
+                            }
+                            else
+                            {
+                                $('#sac'+n).show();
+                                $('#hsn'+n).hide();
+                                $('#sac'+n).val(response.sac);
+                                $('#hsn'+n).val("None");
+
+                            }
+                            // document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                            // document.getElementById('avl'+n).value = response.avl;
+                            document.getElementById('price'+n).value = response.sales_rate;
+                            document.getElementById('priceListPrice'+n).value = response.PLPrice;
+                            document.getElementById('taxGST'+n).value = response.gst;
+                            document.getElementById('taxIGST'+n).value = response.igst;
+                            checkPriceList();
+                            refreshTax();
+                            calc();
+                        }
+                    },
+                });
+            }else{
+                alert('Select Place of Supply.!')
+            }
+        }else{
+            alert('Item already exists in the Challan, choose another or change quantity.!')
+        }
+    }
+
+
+    function checkPriceList(){
+        if($('#applyPriceList').prop('checked')){
+            if($('#priceListIds').val() != ""){
+                $('.price').css('display','none');
+                $('.priceListPrice').css('display','block');
+                $('#custPriceListName').css('display','inline-flex');
+            }
+            else{
+                $('.priceListPrice').css('display','none');
+                $('.price').css('display','block');
+                $('#custPriceListName').css('display','none');
+            }
+        }else{
+            $('.priceListPrice').css('display','none');
+            $('.price').css('display','block');
+            $('#custPriceListName').css('display','none');
+        }
+        calc();
+    }
+
+
+    function applyPriceList(){
+        $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', true) : $('#applyPriceList').prop('checked', true);
+        $('#items-table-body tr').each(function () {
+            var html = $(this).html();
+            if (html != '') {
+                var itemId = $(this).find('.item-display').attr('id');
+                var itemName = $('#'+itemId).val();
+                console.log(itemId,itemName);
+
+                var plc = $('#placeOfSupply').val();
+                var PLId = $('#priceListIds').val();
+
+                if(PLId != ""){
+                    if(plc != ""){
+                        $('#custPriceListAlert').hide();
+                        $('#custPriceListName').text('Applied: '+$("#priceListIds option:selected").text())
+                        var n = itemId.slice(4);
+                        $.ajax({
+                        url: "{% url 'Fin_getInvItemDetails' %}",
+                        type : 'GET',
+                        data:{
+                            item : itemName,
+                            listId : PLId,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
+                            },
+                        
+                        success: function(response) {
+                            if (response.status){
+                                $('#'+itemId).val(itemName);
+                                document.getElementById('itemId'+n).value = response.id;
+                                // document.getElementById('hsn'+n).value = response.hsn;
+                                // document.getElementById('sac'+n).value = response.sac;
+                                if( response.item_type ==='Goods')
+                                {
+                                    $('#hsn'+n).show();
+                                    $('#sac'+n).hide();
+                                    $('#hsn'+n).val(response.hsn);
+                                }
+                                else
+                                {
+                                    $('#sac'+n).show();
+                                    $('#hsn'+n).hide();
+                                    $('#sac'+n).val(response.sac);
+                                }
+                                // document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                                // document.getElementById('avl'+n).innerHTML = response.avl;
+                                document.getElementById('price'+n).value = response.sales_rate;
+                                document.getElementById('priceListPrice'+n).value = response.PLPrice;
+                                document.getElementById('taxGST'+n).value = response.gst;
+                                document.getElementById('taxIGST'+n).value = response.igst;
+                                refreshTax();
+                                calc();
+                            }
+                        },
+                        });
+                    }else{
+                        alert('Select Place of Supply.!')
+                    }
+                }else{
+                    // alert('Choose a Price List.!')
+                    $('#custPriceListAlert').text('Select a Price List..').show()
+                    $('#applyPriceList').prop('checked',false);
+                }
+            }
+            checkPriceList();
+        });
+    }
+
+    $(document).on('change','#priceListIds', function() {
+        console.log('changed PL')
+        applyPriceList();
+    });
+
+    $(document).on('change','#applyPriceList', function() {
+        checkPriceList();
+        if($('#applyPriceList').prop('checked')){
+            $('#priceListDropdown').css('display','block');
+            $('#custPriceListName').text('Select Price List..').show();
+        }else{
+            $('#priceListIds').val('');
+            $('#priceListDropdown').css('display','none');
+            $('#custPriceListName').text('').hide();
+        }
+    });
+</script>
 
 
 <!-- New Payment Term Modal -->
@@ -1628,77 +1790,77 @@
         })
     }
     
-    function getItemDetails(inpId, value){
-        var itm = value;
-        var exists = false;
-        var plc = $('#placeOfSupply').val();
-        console.log('clicked',value);
+    // function getItemDetails(inpId, value){
+    //     var itm = value;
+    //     var exists = false;
+    //     var plc = $('#placeOfSupply').val();
+    //     console.log('clicked',value);
 
-        $('#items-table-body tr').each(function () {
-            var html = $(this).html();
-            if (html != '') {
-                var itemName = $(this).find('.item-display').val();
-                console.log(itm,itemName);
-                if(itemName == itm){
-                    exists = true;
-                    console.log('exists',exists);
-                }
-            }
-        });
-        console.log('status',exists);
+    //     $('#items-table-body tr').each(function () {
+    //         var html = $(this).html();
+    //         if (html != '') {
+    //             var itemName = $(this).find('.item-display').val();
+    //             console.log(itm,itemName);
+    //             if(itemName == itm){
+    //                 exists = true;
+    //                 console.log('exists',exists);
+    //             }
+    //         }
+    //     });
+    //     console.log('status',exists);
 
-        if(!exists){
-            if(plc != ""){
-                var n = inpId.slice(4);
-                $.ajax({
-                url: "{% url 'Fin_getInvItemDetails' %}",
-                type : 'GET',
-                data:{
-                    item : value,
-                    listId : "",
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                    },
+    //     if(!exists){
+    //         if(plc != ""){
+    //             var n = inpId.slice(4);
+    //             $.ajax({
+    //             url: "{% url 'Fin_getInvItemDetails' %}",
+    //             type : 'GET',
+    //             data:{
+    //                 item : value,
+    //                 listId : "",
+    //                 csrfmiddlewaretoken: '{{ csrf_token }}'
+    //                 },
                 
-                success: function(response) {
-                    if (response.status){
-                        $('#'+inpId).val(value);
-                        document.getElementById('itemId'+n).value = response.id;
-                        document.getElementById('hsn'+n).value = response.hsn;
-                        document.getElementById('price'+n).value = response.sales_rate;
-                        document.getElementById('taxGST'+n).value = response.gst;
-                        document.getElementById('taxIGST'+n).value = response.igst;
-                        document.getElementById('taxIGST'+n).value = response.igst;
+    //             success: function(response) {
+    //                 if (response.status){
+    //                     $('#'+inpId).val(value);
+    //                     document.getElementById('itemId'+n).value = response.id;
+    //                     document.getElementById('hsn'+n).value = response.hsn;
+    //                     document.getElementById('price'+n).value = response.sales_rate;
+    //                     document.getElementById('taxGST'+n).value = response.gst;
+    //                     document.getElementById('taxIGST'+n).value = response.igst;
+    //                     document.getElementById('taxIGST'+n).value = response.igst;
                         
-                        // document.getElementById(''+n).value = response.avl;
-                        abl = response.avl;
-                    console.log(abl);
+    //                     // document.getElementById(''+n).value = response.avl;
+    //                     abl = response.avl;
+    //                 console.log(abl);
 
-                    if (abl !== 0 ) {
-                        $("#qtyspan"+n).show()
-                        $("#qtyspan"+n).val("Available qty :"+ abl);
+    //                 if (abl !== 0 ) {
+    //                     $("#qtyspan"+n).show()
+    //                     $("#qtyspan"+n).val("Available qty :"+ abl);
 
                         
                     
-                    }
-                    else
-                    {
-                        $("#qtyspan"+n).hide()
-                    }
+    //                 }
+    //                 else
+    //                 {
+    //                     $("#qtyspan"+n).hide()
+    //                 }
                                           
                 
-                        refreshTax();
-                        calc();
-                    }
-                },
-                });
-            }else{
-                alert('Select Place of Supply.!')
-            }
-        }else{
-            alert('Item already exists in the SALES ORDER, choose another or change quantity.!')
-        }
+    //                     refreshTax();
+    //                     calc();
+    //                 }
+    //             },
+    //             });
+    //         }else{
+    //             alert('Select Place of Supply.!')
+    //         }
+    //     }else{
+    //         alert('Item already exists in the SALES ORDER, choose another or change quantity.!')
+    //     }
 
-    }
+    // }
 
 
     $(document).ready(function(){
@@ -1890,7 +2052,7 @@ $(document).ready(function(){
                             <input required type="text" id="item${roinc}"  name="item_name[]" class="dropdown-toggle form-control item-display" onmouseover="onchangeitem(this)" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
                             <ul class="dropdown-menu w-100 items-available position-absolute" id="menu${roinc}"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
                                 {% for i in items %}
-                                <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'),$(this).html())">{{i.name}}</li>
+                                <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'),'{{i.name}}')">{{i.name}}</li>
                                 {% endfor %}
                             </ul>
                             
@@ -1903,18 +2065,18 @@ $(document).ready(function(){
             
             </td>
             <td>
-                <input type="hidden" name="id[]" value=0>
+                <input type="hidden" name="id[]" value='0' >
                 <input type="hidden" name="item_id[]" id="itemId${roinc}">
                 <input type="text" name='hsn[]' id="hsn${roinc}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
+                <input type="text" name='sac[]' id="sac${roinc}" placeholder='SAC Code' class="form-control SACCODE" style="background-color: #43596c; color: white; display:none;" readonly />
             </td>
             <td >
                 <input type="number" name='qty[]' id="qty${roinc}"  class="form-control qty" step=0 min=1 style="background-color: #43596c; color: white;" value=0 required/>
                 <input type="text" id="avl1" style="display: none;">
-                                  
-                <input type="text" id="qtyspan${roinc}" style="display: none;">
                 </td>
             <td>
                 <input type="number" name='price[]' id="price${roinc}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white;" value=0 readonly />
+                <input type="number" name='priceListPrice[]' id="priceListPrice${roinc}" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value=0 readonly />
             </td>
             
             <td style="width: 13%;">

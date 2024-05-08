@@ -209,6 +209,31 @@
                 </div>
             </div>
 
+            <div class="row" id="applyPriceListSection" style="display: block;">
+                <div class="col-md-3 mt-3">
+                    <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" name="priceList" id="applyPriceList" value="applyPriceList">
+                        <input type="hidden" name="priceListId" value="" id="customerPriceListId">
+                        <label class="form-check-label" for="applyPriceList">Apply Price List</label>
+                        <span class="text-success" id="custPriceListName" style="display: none; margin-left: 5px;"></span>
+                    </div>
+                    <div id="priceListDropdown" style="display: none;">
+                        <label class="">Price List</label>
+                        <span class="text-danger" id="custPriceListAlert" style="display: none; margin-left: 5px;"></span>
+                        <select class="form-control" id="priceListIds" name="price_list_id" style="background-color: #43596c;">
+                            <option value="">Choose Price List</option>
+                            {% for p in priceListItems %}
+                            <option value="{{p.id}}">{{p.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mt-3">
+                    
+                </div>
+            </div>
+
             <div class="row clearfix ">
                 <div class="col-md-12 table-responsive-md mt-3">
                     <table class="table table-bordered table-hover mt-3" id="salesOrderItemsTable">
@@ -255,6 +280,7 @@
                                 </td>
                                 <td>
                                     <input type="number" name='price[]' id="price1" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white; display: block;" value=0 readonly />
+                                    <input type="number" name='priceListPrice[]' id="priceListPrice1" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value=0 readonly />
                                 </td>
                                 
                                 <td style="width: 13%;">
@@ -1268,6 +1294,106 @@
         }
     }
 
+    function checkPriceList(){
+        if($('#applyPriceList').prop('checked')){
+            if($('#priceListIds').val() != ""){
+                $('.price').css('display','none');
+                $('.priceListPrice').css('display','block');
+                $('#custPriceListName').css('display','inline-flex');
+            }
+            else{
+                $('.priceListPrice').css('display','none');
+                $('.price').css('display','block');
+                $('#custPriceListName').css('display','none');
+            }
+        }else{
+            $('.priceListPrice').css('display','none');
+            $('.price').css('display','block');
+            $('#custPriceListName').css('display','none');
+        }
+        calc();
+    }
+
+    function applyPriceList(){
+        $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', true) : $('#applyPriceList').prop('checked', true);
+        $('#items-table-body tr').each(function () {
+            var html = $(this).html();
+            if (html != '') {
+                var itemId = $(this).find('.item-display').attr('id');
+                var itemName = $('#'+itemId).val();
+                console.log(itemId,itemName);
+
+                var plc = $('#placeOfSupply').val();
+                var PLId = $('#priceListIds').val();
+
+                if(PLId != ""){
+                    if(plc != ""){
+                        $('#custPriceListAlert').hide();
+                        $('#custPriceListName').text('Applied: '+$("#priceListIds option:selected").text())
+                        var n = itemId.slice(4);
+                        $.ajax({
+                        url: "{% url 'Fin_getInvItemDetails' %}",
+                        type : 'GET',
+                        data:{
+                            item : itemName,
+                            listId : PLId,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
+                            },
+                        
+                        success: function(response) {
+                            if (response.status){
+                                $('#'+itemId).val(itemName);
+                                document.getElementById('itemId'+n).value = response.id;
+                                // document.getElementById('hsn'+n).value = response.hsn;
+                                if( response.item_type ==='Goods'){
+                                    $('#hsn'+n).show();
+                                    $('#sac'+n).hide();
+                                    $('#hsn'+n).val(response.hsn);
+                                }else{
+                                    $('#sac'+n).show();
+                                    $('#hsn'+n).hide();
+                                    $('#sac'+n).val(response.sac);
+                                }
+                                // document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                                // document.getElementById('avl'+n).innerHTML = response.avl;
+                                document.getElementById('price'+n).value = response.sales_rate;
+                                document.getElementById('priceListPrice'+n).value = response.PLPrice;
+                                document.getElementById('taxGST'+n).value = response.gst;
+                                document.getElementById('taxIGST'+n).value = response.igst;
+                                refreshTax();
+                                calc();
+                            }
+                        },
+                        });
+                    }else{
+                        alert('Select Place of Supply.!')
+                    }
+                }else{
+                    // alert('Choose a Price List.!')
+                    $('#custPriceListAlert').text('Select a Price List..').show()
+                    $('#applyPriceList').prop('checked',false);
+                }
+            }
+            checkPriceList();
+        });
+    }
+
+    $(document).on('change','#priceListIds', function() {
+        applyPriceList();
+    });
+
+    $(document).on('change','#applyPriceList', function() {
+        checkPriceList();
+        if($('#applyPriceList').prop('checked')){
+            $('#priceListDropdown').css('display','block');
+            $('#custPriceListName').text('Select Price List..').show();
+        }else{
+            $('#priceListIds').val('');
+            $('#priceListDropdown').css('display','none');
+            $('#custPriceListName').text('').hide();
+        }
+    });
+
     // $(document).ready(function () {
     //     $('#customer').on('change', function() {
     //         refreshCustomerDetails();
@@ -1459,63 +1585,68 @@
         var itm = value;
         var exists = false;
         var plc = $('#placeOfSupply').val();
-        console.log('clicked',value);
+        var PLId = $('#priceListIds').val();
 
         $('#items-table-body tr').each(function () {
             var html = $(this).html();
             if (html != '') {
                 var itemName = $(this).find('.item-display').val();
-                console.log(itm,itemName);
                 if(itemName == itm){
                     exists = true;
-                    console.log('exists',exists);
                 }
             }
         });
-        console.log('status',exists);
 
         if(!exists){
             if(plc != ""){
-                var n = inpId.slice(4);
-                $.ajax({
-                url: "{% url 'Fin_getInvItemDetails' %}",
-                type : 'GET',
-                data:{
-                    item : value,
-                    listId : "",
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                    },
+                if($('#applyPriceList').prop('checked') && PLId ==""){
+                    alert('Select a Price List from the dropdown..!')
+                }else{
+                    var n = inpId.slice(4);
+                    $.ajax({
+                        url: "{% url 'Fin_getInvItemDetails' %}",
+                        type : 'GET',
+                        data:{
+                            item : value,
+                            listId : PLId,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
+                            },
+                        
+                        success: function(response) {
+                            if (response.status){
+                                $('#'+inpId).val(value);
+                                document.getElementById('itemId'+n).value = response.id;
+                                if( response.item_type ==='Goods')
+                                {
+                                    $('#hsn'+n).show();
+                                    $('#sac'+n).hide();
+                                    $('#hsn'+n).val(response.hsn);
+                                }
+                                else
+                                {
+                                    $('#sac'+n).show();
+                                    $('#hsn'+n).hide();
+                                    $('#sac'+n).val(response.sac);
+                                }
+                                // document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                                // document.getElementById('avl'+n).value = response.avl;
+                                document.getElementById('price'+n).value = response.sales_rate;
+                                document.getElementById('priceListPrice'+n).value = response.PLPrice;
+                                document.getElementById('taxGST'+n).value = response.gst;
+                                document.getElementById('taxIGST'+n).value = response.igst;
+                                checkPriceList();
+                                refreshTax();
+                                calc();
+                            }
+                        },
+                    });
+                }
                 
-                success: function(response) {
-                    if (response.status){
-                        $('#'+inpId).val(value);
-                        document.getElementById('itemId'+n).value = response.id;
-                        document.getElementById('itemId'+n).value = response.id;
-                        if( response.item_type ==='Goods')
-                        {
-                            $('#hsn'+n).show();
-                            $('#sac'+n).hide();
-                            $('#hsn'+n).val(response.hsn);
-                        }
-                        else
-                        {
-                            $('#sac'+n).show();
-                            $('#hsn'+n).hide();
-                            $('#sac'+n).val(response.sac);
-                        }
-                        document.getElementById('price'+n).value = response.sales_rate;
-                        document.getElementById('taxGST'+n).value = response.gst;
-                        document.getElementById('taxIGST'+n).value = response.igst;
-                        refreshTax();
-                        calc();
-                    }
-                },
-                });
             }else{
                 alert('Select Place of Supply.!')
             }
         }else{
-            alert('Item already exists in the SALES ORDER, choose another or change quantity.!')
+            alert('Item already exists in the Sales Order, choose another or change quantity.!')
         }
 
     }
@@ -1732,6 +1863,7 @@ $(document).ready(function(){
             </td>
             <td>
                 <input type="number" name='price[]' id="price${roinc}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white;" value=0 readonly />
+                <input type="number" name='priceListPrice[]' id="priceListPrice${roinc}" class="form-control priceListPrice" step="0.00" min="0" style="background-color: #43596c; color: white;display: none;" value=0 readonly />
             </td>
             
             <td style="width: 13%;">

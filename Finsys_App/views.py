@@ -8526,6 +8526,7 @@ def Fin_addSalesOrder(request):
         # Also check for if any bill is deleted and ref no is continuos w r t the deleted sales order
         latest_so = Fin_Sales_Order.objects.filter(Company = cmp).order_by('-id').first()
 
+        lists = Fin_Price_List.objects.filter(Company = cmp, type__iexact='sales', status = 'Active')
         new_number = int(latest_so.reference_no) + 1 if latest_so else 1
 
         if Fin_Sales_Order_Reference.objects.filter(Company = cmp).exists():
@@ -8567,7 +8568,7 @@ def Fin_addSalesOrder(request):
                 nxtSO = st+ str(s_order_num)
 
         context = {
-            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst, 'priceListItems':lists,
             'ref_no':new_number,'banks':bnk,'SONo':nxtSO,'units':units, 'accounts':acc
         }
         return render(request,'company/Fin_Add_Sales_Order.html',context)
@@ -8602,6 +8603,8 @@ def Fin_createSalesOrder(request):
                 payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term']),
                 sales_order_date = request.POST['sales_order_date'],
                 exp_ship_date = datetime.strptime(request.POST['shipment_date'], '%d-%m-%Y').date(),
+                price_list_applied = True if 'priceList' in request.POST else False,
+                price_list = None if request.POST['price_list_id'] == "" else Fin_Price_List.objects.get(id = request.POST['price_list_id']),
                 payment_method = None if request.POST['payment_method'] == "" else request.POST['payment_method'],
                 cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id'],
                 upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id'],
@@ -8638,7 +8641,7 @@ def Fin_createSalesOrder(request):
             hsn  = request.POST.getlist("hsn[]")
             sac  = request.POST.getlist("sac[]")
             qty = request.POST.getlist("qty[]")
-            price = request.POST.getlist("price[]")
+            price = request.POST.getlist("priceListPrice[]") if 'priceList' in request.POST else request.POST.getlist("price[]")
             tax = request.POST.getlist("taxGST[]") if request.POST['place_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
             discount = request.POST.getlist("discount[]")
             total = request.POST.getlist("total[]")
@@ -8850,10 +8853,10 @@ def Fin_editSalesOrder(request,id):
         lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
         units = Fin_Units.objects.filter(Company = cmp)
         acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
-
+        lists = Fin_Price_List.objects.filter(Company = cmp, type__iexact='sales', status = 'Active')
         context = {
             'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'order':salesOrder, 'orderItems':SOItms, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
-            'banks':bnk,'units':units, 'accounts':acc
+            'banks':bnk,'units':units, 'accounts':acc, 'priceListItems':lists,
         }
         return render(request,'company/Fin_Edit_Sales_Order.html',context)
     else:
@@ -8890,6 +8893,9 @@ def Fin_updateSalesOrder(request, id):
             salesOrder.cheque_no = None if request.POST['cheque_id'] == "" else request.POST['cheque_id']
             salesOrder.upi_no = None if request.POST['upi_id'] == "" else request.POST['upi_id']
             salesOrder.bank_acc_no = None if request.POST['bnk_id'] == "" else request.POST['bnk_id']
+
+            salesOrder.price_list_applied = True if 'priceList' in request.POST else False
+            salesOrder.price_list = None if request.POST['price_list_id'] == "" else Fin_Price_List.objects.get(id = request.POST['price_list_id'])
 
             salesOrder.subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal'])
             salesOrder.igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst'])
@@ -8950,10 +8956,10 @@ def Fin_updateSalesOrder(request, id):
                             Fin_Sales_Order_Items.objects.create(SalesOrder = salesOrder, Item = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = float(ele[5]), tax = ele[6], discount = float(ele[7]), total = float(ele[8]))
                         else:
                             itm = Fin_Items.objects.get(id = int(ele[0]))
-                            Fin_Sales_Order_Items.objects.filter( id = int(ele[8])).update(SalesOrder = salesOrder, Item = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = float(ele[5]), tax = ele[6], discount = float(ele[7]), total = float(ele[8]))
+                            Fin_Sales_Order_Items.objects.filter( id = int(ele[9])).update(SalesOrder = salesOrder, Item = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = float(ele[5]), tax = ele[6], discount = float(ele[7]), total = float(ele[8]))
                     else:
                         itm = Fin_Items.objects.get(id = int(ele[0]))
-                        Fin_Sales_Order_Items.objects.filter( id = int(ele[8])).update(SalesOrder = salesOrder, Item = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = float(ele[5]), tax = ele[6], discount = float(ele[7]), total = float(ele[8]))
+                        Fin_Sales_Order_Items.objects.filter( id = int(ele[9])).update(SalesOrder = salesOrder, Item = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = float(ele[5]), tax = ele[6], discount = float(ele[7]), total = float(ele[8]))
             
             # Save transaction
                     
@@ -17421,6 +17427,7 @@ def Fin_addPurchaseOrder(request):
         units = Fin_Units.objects.filter(Company = cmp)
         acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
 
+        lists = Fin_Price_List.objects.filter(Company = cmp, type__iexact='sales', status = 'Active')
         # Fetching last pur. order and assigning upcoming ref no as current + 1
         # Also check for if any bill is deleted and ref no is continuos w r t the deleted pur. order
         latest_po = Fin_Purchase_Order.objects.filter(Company = cmp).order_by('-id').first()
@@ -17468,7 +17475,7 @@ def Fin_addPurchaseOrder(request):
             nxtPO = 'PO01'
 
         context = {
-            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend, 'items':itms, 'pTerms':trms,'list':lst,
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend, 'items':itms, 'pTerms':trms,'list':lst,'priceListItems':lists,
             'ref_no':new_number,'banks':bnk,'PONo':nxtPO,'units':units, 'accounts':acc
         }
         return render(request,'company/Fin_Add_Purchase_Order.html',context)
@@ -17605,6 +17612,8 @@ def Fin_createPurchaseOrder(request):
                 customer_gst_type = request.POST['gst_type'],
                 customer_gstin = request.POST['gstin'],
                 customer_place_of_supply = request.POST['place_of_supply'],
+                price_list_applied = True if 'priceList' in request.POST else False,
+                price_list = None if request.POST['price_list_id'] == "" else Fin_Price_List.objects.get(id = request.POST['price_list_id']),
 
                 reference_no = request.POST['reference_number'],
                 purchase_order_no = PONum,
@@ -17647,7 +17656,7 @@ def Fin_createPurchaseOrder(request):
             hsn  = request.POST.getlist("hsn[]")
             sac  = request.POST.getlist("sac[]")
             qty = request.POST.getlist("qty[]")
-            price = request.POST.getlist("price[]")
+            price = request.POST.getlist("priceListPrice[]") if 'priceList' in request.POST else request.POST.getlist("price[]")
             tax = request.POST.getlist("taxGST[]") if request.POST['source_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
             discount = request.POST.getlist("discount[]")
             total = request.POST.getlist("total[]")
@@ -17999,9 +18008,10 @@ def Fin_editPurchaseOrder(request,id):
         lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
         units = Fin_Units.objects.filter(Company = cmp)
         acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
+        lists = Fin_Price_List.objects.filter(Company = cmp, type__iexact='sales', status = 'Active')
 
         context = {
-            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'order':pOrder, 'orderItems':POItms, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'order':pOrder, 'orderItems':POItms, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst, 'priceListItems':lists,
             'banks':bnk,'units':units, 'accounts':acc, 'vendors':vend
         }
         return render(request,'company/Fin_Edit_Purchase_Order.html',context)
@@ -18037,6 +18047,9 @@ def Fin_updatePurchaseOrder(request, id):
             pOrder.customer_gst_type = request.POST['gst_type']
             pOrder.customer_gstin = request.POST['gstin']
             pOrder.customer_place_of_supply = request.POST['place_of_supply']
+
+            pOrder.price_list_applied = True if 'priceList' in request.POST else False
+            pOrder.price_list = None if request.POST['price_list_id'] == "" else Fin_Price_List.objects.get(id = request.POST['price_list_id'])
 
             pOrder.reference_no = request.POST['reference_number']
             pOrder.purchase_order_no = PONum
@@ -18074,7 +18087,7 @@ def Fin_updatePurchaseOrder(request, id):
             hsn  = request.POST.getlist("hsn[]")
             sac  = request.POST.getlist("sac[]")
             qty = request.POST.getlist("qty[]")
-            price = request.POST.getlist("price[]")
+            price = request.POST.getlist("priceListPrice[]") if 'priceList' in request.POST else request.POST.getlist("price[]")
             tax = request.POST.getlist("taxGST[]") if request.POST['source_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
             discount = request.POST.getlist("discount[]")
             total = request.POST.getlist("total[]")
@@ -18976,7 +18989,7 @@ def newdeliverychallan(request):
                 
                 trms = Fin_Company_Payment_Terms.objects.filter(Company = com.id)
 
-
+            lists = Fin_Price_List.objects.filter(Company = cmp, type__iexact='sales', status = 'Active')
             latest_eway = Fin_Delivery_Challan.objects.filter(Company=com).order_by('-reference_no').first()
 
             new_number = int(latest_eway.reference_no) + 1 if latest_eway else 1
@@ -19046,7 +19059,8 @@ def newdeliverychallan(request):
                 'pTerms':trms,
                 'accounts':acc,
                 'units':units,
-                'ref_no':new_number
+                'ref_no':new_number,
+                'priceListItems':lists,
             }
             return render(request, 'company/Fin_add_delivery_challan.html', context)
         except Fin_Login_Details.DoesNotExist:
@@ -19226,7 +19240,9 @@ def createdeliverychallan(request):
                 
                 challan_date = request.POST['challan_date'],
                 # document= request.POST['file'],
-                
+                price_list_applied = True if 'priceList' in request.POST else False,
+                price_list = None if request.POST['price_list_id'] == "" else Fin_Price_List.objects.get(id = request.POST['price_list_id']),
+
                 subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal']),
                 igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst']),
                 cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst']),
@@ -19268,7 +19284,7 @@ def createdeliverychallan(request):
             hsn  = request.POST.getlist("hsn[]")
             sac  = request.POST.getlist("sac[]")
             qty = request.POST.getlist("qty[]")
-            price = request.POST.getlist("price[]")
+            price = request.POST.getlist("priceListPrice[]") if 'priceList' in request.POST else request.POST.getlist("price[]")
             tax = request.POST.getlist("taxGST[]") if request.POST['place_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
             discount = request.POST.getlist("discount[]")
             total = request.POST.getlist("total[]")
@@ -19286,7 +19302,7 @@ def createdeliverychallan(request):
                     else:
                         sac = ele[3]
                     itm = Fin_Items.objects.get(id = int(ele[0]))
-                    created_instance = Fin_Delivery_Challan_Items.objects.create(delivery_challan = challan, items = itm, hsn = hsn,sac=sac, quantity = int(ele[4]),  tax_rate = ele[6], discount = float(ele[7]), total = float(ele[8]))
+                    created_instance = Fin_Delivery_Challan_Items.objects.create(delivery_challan = challan, items = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price=ele[5], tax_rate = ele[6], discount = float(ele[7]), total = float(ele[8]))
                     itm.current_stock -= int(ele[4])
                     created_instance.save()
                     itm.save()
@@ -19382,6 +19398,9 @@ def editchallan(request,id):
            
             est.challan_date = request.POST['challan_date']
             est.challan_type = request.POST['challan_type']
+
+            est.price_list_applied = True if 'priceList' in request.POST else False
+            est.price_list = None if request.POST['price_list_id'] == "" else Fin_Price_List.objects.get(id = request.POST['price_list_id'])
            
 
             est.subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal'])
@@ -19408,7 +19427,7 @@ def editchallan(request,id):
             hsn  = request.POST.getlist("hsn[]")
             sac  = request.POST.getlist("sac[]")
             qty = request.POST.getlist("qty[]")
-            price = request.POST.getlist("price[]")
+            price = request.POST.getlist("priceListPrice[]") if 'priceList' in request.POST else request.POST.getlist("price[]")
             plc=request.POST['place_of_supply']
 
             cgst=request.POST.getlist("taxGST[]")
@@ -19447,39 +19466,54 @@ def editchallan(request,id):
             
             count = Fin_Delivery_Challan_Items.objects.filter(delivery_challan = est).count()
 
+            print(itemId,itemName,hsn,sac,qty,price,tax,discount,total,EstItem_ids)
             if len(itemId)==len(itemName)==len(hsn)==len(sac)==len(qty)==len(price)==len(tax)==len(discount)==len(total)==len(EstItem_ids) and EstItem_ids and itemId and itemName and qty and price and tax and discount and total:
                 mapped = zip(itemId,itemName,hsn,sac,qty,price,tax,discount,total,EstItem_ids)
                 mapped = list(mapped)
                 for ele in mapped:
 
-                    if ele[2] == '' or ele[2] == 'None'  :
+                    if ele[2] == '' or ele[2] == 'None':
                         hsn = None
                     else:
                         hsn = ele[2]
+
                     if ele[3] == '' or ele[3] == 'None':
                         sac = None
                     else:
                         sac = ele[3]
 
-                    if int(len(itemId))>int(count):
-                        if ele[9] == 0:
-                            itm = Fin_Items.objects.get(id = int(ele[0]))
-                            Fin_Delivery_Challan_Items.objects.create(delivery_challan = est, items = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = ele[5],  tax_rate = ele[6], discount = float(ele[7]), total = float(ele[8]))
-                            itm.current_stock -= int(ele[4])
-                            # created_instance.save()
-                            itm.save()
-                        else:
-                            itm = Fin_Items.objects.get(id = int(ele[0]))
-                            Fin_Delivery_Challan_Items.objects.filter( id = int(ele[9])).update(delivery_challan = est, items = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = ele[5],  tax_rate = ele[6], discount = float(ele[7]), total = float(ele[8]))
-                            itm.current_stock -= int(ele[4])
-                            # created_instance.save()
-                            itm.save()
+                    if ele[9] == 0:
+                        itm = Fin_Items.objects.get(id = int(ele[0]))
+                        Fin_Delivery_Challan_Items.objects.create(delivery_challan = est, items = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = ele[5],  tax_rate = ele[6], discount = float(ele[7]), total = float(ele[8]))
+                        itm.current_stock -= int(ele[4])
+                        # created_instance.save()
+                        itm.save()
                     else:
                         itm = Fin_Items.objects.get(id = int(ele[0]))
                         Fin_Delivery_Challan_Items.objects.filter( id = int(ele[9])).update(delivery_challan = est, items = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = ele[5],  tax_rate = ele[6], discount = float(ele[7]), total = float(ele[8]))
                         itm.current_stock -= int(ele[4])
-                            # created_instance.save()
+                        # created_instance.save()
                         itm.save()
+
+                    # if int(len(itemId))>int(count):
+                    #     if ele[9] == 0:
+                    #         itm = Fin_Items.objects.get(id = int(ele[0]))
+                    #         Fin_Delivery_Challan_Items.objects.create(delivery_challan = est, items = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = ele[5],  tax_rate = ele[6], discount = float(ele[7]), total = float(ele[8]))
+                    #         itm.current_stock -= int(ele[4])
+                    #         # created_instance.save()
+                    #         itm.save()
+                    #     else:
+                    #         itm = Fin_Items.objects.get(id = int(ele[0]))
+                    #         Fin_Delivery_Challan_Items.objects.filter( id = int(ele[9])).update(delivery_challan = est, items = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = ele[5],  tax_rate = ele[6], discount = float(ele[7]), total = float(ele[8]))
+                    #         itm.current_stock -= int(ele[4])
+                    #         # created_instance.save()
+                    #         itm.save()
+                    # else:
+                    #     itm = Fin_Items.objects.get(id = int(ele[0]))
+                    #     Fin_Delivery_Challan_Items.objects.filter( id = int(ele[9])).update(delivery_challan = est, items = itm, hsn = hsn,sac=sac, quantity = int(ele[4]), price = ele[5],  tax_rate = ele[6], discount = float(ele[7]), total = float(ele[8]))
+                    #     itm.current_stock -= int(ele[4])
+                    #         # created_instance.save()
+                    #     itm.save()
             # Save transaction
                     
             Fin_Delivery_Challan_History.objects.create(
@@ -19516,10 +19550,11 @@ def Fin_editchallanto(request,id):
         units = Fin_Units.objects.filter(Company = cmp)
         acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
 
+        lists = Fin_Price_List.objects.filter(Company = cmp, type__iexact='sales', status = 'Active')
        
         context = {
             'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'estimate':est, 'estItems':estItms, 'customers':cust, 'items':itms,'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
-            'banks':bnk,'units':units, 'accounts':acc
+            'banks':bnk,'units':units, 'accounts':acc, 'priceListItems':lists,
            
         }
         return render(request,'company/Fin_Delivery_Challan_Edit.html',context)
