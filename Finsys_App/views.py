@@ -313,17 +313,6 @@ def Fin_Anotification(request):
     }
     return render(request,'Admin/Fin_Anotification.html',context) 
 
-def Fin_adminTermExtensionRequests(request):
-    noti = Fin_ANotification.objects.filter(status = 'New').order_by('-id','-Noti_date')
-    req = Fin_ANotification.objects.filter(status = 'New', Title = 'Change Payment Terms').order_by('-id','-Noti_date')
-    n = len(noti)
-    context = {
-        'noti':noti,
-        'req':req,
-        'n':n
-    }
-    return render(request,'Admin/Fin_AdminTermUpdateReq.html',context) 
-
 def  Fin_Anoti_Overview(request,id):
     noti = Fin_ANotification.objects.filter(status = 'New')
     n = len(noti)
@@ -1618,98 +1607,6 @@ def Fin_Edit_Modules_Action(request):
        
     else:
        return redirect('/')
-
-
-def Fin_TermUpdate_Modules_Action(request): 
-    if 's_id' in request.session:
-        s_id = request.session['s_id']
-        
-        if request.method == 'POST':
-            data = Fin_Login_Details.objects.get(id = s_id)
-        
-            com = Fin_Company_Details.objects.get(Login_Id = s_id)
-
-            # -----ITEMS----
-
-            Items = request.POST.get('c1')
-            Price_List = request.POST.get('c2')
-            Stock_Adjustment = request.POST.get('c3')
-
-
-            # --------- CASH & BANK-----
-            Cash_in_hand = request.POST.get('c4')
-            Offline_Banking = request.POST.get('c5')
-            Bank_Reconciliation = request.POST.get('c6')
-            UPI = request.POST.get('c7')
-            Bank_Holders = request.POST.get('c8')
-            Cheque = request.POST.get('c9')
-            Loan_Account = request.POST.get('c10')
-
-            #  ------SALES MODULE -------
-            Customers = request.POST.get('c11')
-            Invoice  = request.POST.get('c12')
-            Estimate = request.POST.get('c13')
-            Sales_Order = request.POST.get('c14')
-            Recurring_Invoice = request.POST.get('c15')
-            Retainer_Invoice = request.POST.get('c16')
-            Credit_Note = request.POST.get('c17')
-            Payment_Received = request.POST.get('c18')
-            Delivery_Challan = request.POST.get('c19')
-
-            #  ---------PURCHASE MODULE--------- 
-            Vendors = request.POST.get('c20') 
-            Bills  = request.POST.get('c21')
-            Recurring_Bills = request.POST.get('c22')
-            Debit_Note = request.POST.get('c23')
-            Purchase_Order = request.POST.get('c24')
-            Expenses = request.POST.get('c25')
-            Recurring_Expenses = request.POST.get('c26')
-            Payment_Made = request.POST.get('c27')
-            EWay_Bill = request.POST.get('c28')
-
-            #  -------ACCOUNTS--------- 
-            Chart_of_Accounts = request.POST.get('c29') 
-            Manual_Journal = request.POST.get('c30')
-            Reconcile  = request.POST.get('c36')
-
-
-            # -------PAYROLL------- 
-            Employees = request.POST.get('c31')
-            Employees_Loan = request.POST.get('c32')
-            Holiday = request.POST.get('c33') 
-            Attendance = request.POST.get('c34')
-            Salary_Details = request.POST.get('c35')
-
-            modules = Fin_Modules_List(Items = Items,Price_List = Price_List,Stock_Adjustment = Stock_Adjustment,
-                Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,Bank_Reconciliation = Bank_Reconciliation ,
-                UPI = UPI,Bank_Holders = Bank_Holders,Cheque = Cheque,Loan_Account = Loan_Account,
-                Customers = Customers,Invoice = Invoice,Estimate = Estimate,Sales_Order = Sales_Order,
-                Recurring_Invoice = Recurring_Invoice,Retainer_Invoice = Retainer_Invoice,Credit_Note = Credit_Note,
-                Payment_Received = Payment_Received,Delivery_Challan = Delivery_Challan,
-                Vendors = Vendors,Bills = Bills,Recurring_Bills = Recurring_Bills,Debit_Note = Debit_Note,
-                Purchase_Order = Purchase_Order,Expenses = Expenses,Recurring_Expenses = Recurring_Expenses,
-                Payment_Made = Payment_Made,EWay_Bill = EWay_Bill,
-                Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,Reconcile = Reconcile ,
-                Employees = Employees,Employees_Loan = Employees_Loan,Holiday = Holiday,
-                Attendance = Attendance,Salary_Details = Salary_Details,
-                Login_Id = data,company_id = com,status = 'pending')
-            
-            modules.save()
-            data1=Fin_Modules_List.objects.filter(company_id = com).update(update_action=1)
-
-            if com.Registration_Type == 'self':
-                noti = Fin_ANotification(Login_Id = data,Modules_List = modules,Title = "Module Updation",Discription = com.Company_name + " wants to update current Modules")
-                noti.save()
-            else:
-                noti = Fin_DNotification(Distributor_id = com.Distributor_id,Login_Id = data,Modules_List = modules,Title = "Module Updation",Discription = com.Company_name + " wants to update current Modules")
-                noti.save()   
-
-            return redirect('Fin_CompanyReg')
-        return redirect('Fin_Edit_Modules')
-       
-    else:
-       return redirect('/')   
-    
 
 
 def Fin_Company_Profile(request):
@@ -23655,13 +23552,15 @@ def editdebit(request,id):
            
 
             est.subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal'])
-            # est.igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst'])
-            # est.cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst'])
-            # est.sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst'])
+            est.igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst'])
+            est.cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst'])
+            est.sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst'])
             est.tax_amount = 0.0 if request.POST['taxamount'] == "" else float(request.POST['taxamount'])
             est.adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj'])
             est.shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship'])
             est.grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal'])
+            est.paid= 0.0 if request.POST['advance'] == "" else float(request.POST['advance'])
+            est.balance= 0.0 if request.POST['balance'] == "" else float(request.POST['balance'])
 
             est.note = request.POST['note']
 
@@ -26217,6 +26116,10 @@ def Fin_Update_Payment_Received(request,id):
                 payment.bank_no = 'NULL'
             else:
                 payment.bank_no = request.POST['bank_acc']
+
+            payment.total_amount=request.POST['tamount']
+            payment.total_balance=request.POST['tbalance']
+            payment.total_payment=request.POST['tpayment']
             Fin_Payment_Invoice.objects.filter(payment=payment,company=com).delete()
 
             payment.save()
@@ -35210,7 +35113,7 @@ def Fin_getBillNumbersEdit(request):
             for option in bls:
                 if option.recurring_bill_number == billNo:
                     bills[option.id] = [option.id, option.recurring_bill_number]
-                if not Fin_CreditNote.objects.filter(Company = com, bill_number__iexact = option.recurring_bill_number).exists():
+                if not Fin_Debit_Note.objects.filter(Company = com, bill_number__iexact = option.recurring_bill_number).exists():
                     bills[option.id] = [option.id, option.recurring_bill_number]
                 else:
                     continue
@@ -35279,3 +35182,106 @@ def Fin_getBillPaidAmount(request):
         return JsonResponse({'status':True, 'paid':paid})
     else:
         return redirect('/')
+
+
+def Fin_adminTermExtensionRequests(request):
+    noti = Fin_ANotification.objects.filter(status = 'New').order_by('-id','-Noti_date')
+    req = Fin_ANotification.objects.filter(status = 'New', Title = 'Change Payment Terms').order_by('-id','-Noti_date')
+    n = len(noti)
+    context = {
+        'noti':noti,
+        'req':req,
+        'n':n
+    }
+    return render(request,'Admin/Fin_AdminTermUpdateReq.html',context) 
+
+
+def Fin_TermUpdate_Modules_Action(request): 
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        
+        if request.method == 'POST':
+            data = Fin_Login_Details.objects.get(id = s_id)
+        
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+
+            # -----ITEMS----
+
+            Items = request.POST.get('c1')
+            Price_List = request.POST.get('c2')
+            Stock_Adjustment = request.POST.get('c3')
+
+
+            # --------- CASH & BANK-----
+            Cash_in_hand = request.POST.get('c4')
+            Offline_Banking = request.POST.get('c5')
+            Bank_Reconciliation = request.POST.get('c6')
+            UPI = request.POST.get('c7')
+            Bank_Holders = request.POST.get('c8')
+            Cheque = request.POST.get('c9')
+            Loan_Account = request.POST.get('c10')
+
+            #  ------SALES MODULE -------
+            Customers = request.POST.get('c11')
+            Invoice  = request.POST.get('c12')
+            Estimate = request.POST.get('c13')
+            Sales_Order = request.POST.get('c14')
+            Recurring_Invoice = request.POST.get('c15')
+            Retainer_Invoice = request.POST.get('c16')
+            Credit_Note = request.POST.get('c17')
+            Payment_Received = request.POST.get('c18')
+            Delivery_Challan = request.POST.get('c19')
+
+            #  ---------PURCHASE MODULE--------- 
+            Vendors = request.POST.get('c20') 
+            Bills  = request.POST.get('c21')
+            Recurring_Bills = request.POST.get('c22')
+            Debit_Note = request.POST.get('c23')
+            Purchase_Order = request.POST.get('c24')
+            Expenses = request.POST.get('c25')
+            Recurring_Expenses = request.POST.get('c26')
+            Payment_Made = request.POST.get('c27')
+            EWay_Bill = request.POST.get('c28')
+
+            #  -------ACCOUNTS--------- 
+            Chart_of_Accounts = request.POST.get('c29') 
+            Manual_Journal = request.POST.get('c30')
+            Reconcile  = request.POST.get('c36')
+
+
+            # -------PAYROLL------- 
+            Employees = request.POST.get('c31')
+            Employees_Loan = request.POST.get('c32')
+            Holiday = request.POST.get('c33') 
+            Attendance = request.POST.get('c34')
+            Salary_Details = request.POST.get('c35')
+
+            modules = Fin_Modules_List(Items = Items,Price_List = Price_List,Stock_Adjustment = Stock_Adjustment,
+                Cash_in_hand = Cash_in_hand,Offline_Banking = Offline_Banking,Bank_Reconciliation = Bank_Reconciliation ,
+                UPI = UPI,Bank_Holders = Bank_Holders,Cheque = Cheque,Loan_Account = Loan_Account,
+                Customers = Customers,Invoice = Invoice,Estimate = Estimate,Sales_Order = Sales_Order,
+                Recurring_Invoice = Recurring_Invoice,Retainer_Invoice = Retainer_Invoice,Credit_Note = Credit_Note,
+                Payment_Received = Payment_Received,Delivery_Challan = Delivery_Challan,
+                Vendors = Vendors,Bills = Bills,Recurring_Bills = Recurring_Bills,Debit_Note = Debit_Note,
+                Purchase_Order = Purchase_Order,Expenses = Expenses,Recurring_Expenses = Recurring_Expenses,
+                Payment_Made = Payment_Made,EWay_Bill = EWay_Bill,
+                Chart_of_Accounts = Chart_of_Accounts,Manual_Journal = Manual_Journal,Reconcile = Reconcile ,
+                Employees = Employees,Employees_Loan = Employees_Loan,Holiday = Holiday,
+                Attendance = Attendance,Salary_Details = Salary_Details,
+                Login_Id = data,company_id = com,status = 'pending')
+            
+            modules.save()
+            data1=Fin_Modules_List.objects.filter(company_id = com).update(update_action=1)
+
+            if com.Registration_Type == 'self':
+                noti = Fin_ANotification(Login_Id = data,Modules_List = modules,Title = "Module Updation",Discription = com.Company_name + " wants to update current Modules")
+                noti.save()
+            else:
+                noti = Fin_DNotification(Distributor_id = com.Distributor_id,Login_Id = data,Modules_List = modules,Title = "Module Updation",Discription = com.Company_name + " wants to update current Modules")
+                noti.save()   
+
+            return redirect('Fin_CompanyReg')
+        return redirect('Fin_Edit_Modules')
+       
+    else:
+       return redirect('/')

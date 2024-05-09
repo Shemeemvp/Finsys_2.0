@@ -190,9 +190,9 @@
                                             <td><input type="text" readonly name='duedate[]' id="" value="{{i.pduedate| date:'Y-m-d' }}" class="form-control" style="background-color: #43596c; color: white;" /></td>
                                             <td><input type="text" readonly name='inv_type[]' id="" value="{{i.pinvoice_type}}" class="form-control" style="background-color: #43596c; color: white;" /></td>                                
                                             <td><input type="text" readonly name='trans_no[]' value="{{i.pinvoice_no}}" id="" class="form-control" style="background-color: #43596c; color: white;" /></td>
-                                            <td><input type="number" readonly name='inv_amount[]' id="" value="{{i.pinvoice_amount}}" class="form-control" style="background-color: #43596c; color: white;" /></td>
-                                            <td><input type="number" readonly name='inv_payment[]' id="" value="{{i.pinvoice_payment}}" class="form-control" style="background-color: #43596c; color: white;" /></td>
-                                            <td><input type="number" readonly name='inv_balance[]' id="inv_balance${parseInt(key) + 1}" value="{{i.p_invoice_balance}}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                            <td><input type="number" readonly name='inv_amount[]' id="inv_amount{{forloop.counter}}" value="{{i.pinvoice_amount}}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                            <td><input type="number" required onkeyup="calcBalancePayment(this)" name='inv_payment[]' id="inv_payment{{forloop.counter}}" value="{{i.pinvoice_payment}}" class="form-control payments" style="background-color: #43596c; color: white;" /></td>
+                                            <td><input type="number" readonly name='inv_balance[]' id="inv_balance{{forloop.counter}}" value="{{i.p_invoice_balance}}" class="form-control" style="background-color: #43596c; color: white;" /></td>
                                         </tr>
                                         {% endfor %}
                                        
@@ -1430,7 +1430,7 @@
                                 <td><input type="text" readonly name='inv_type[]' id="" value="${invdata[key]['inv_type']}" class="form-control" style="background-color: #43596c; color: white;" /></td>                                
                                 <td><input type="text" readonly name='trans_no[]' value="${invdata[key]['trans_no']}" id="" class="form-control" style="background-color: #43596c; color: white;" /></td>
                                 <td><input type="number" readonly name='inv_amount[]' id="inv_amount${parseInt(key) + 1}" value="${invdata[key]['inv_amount']}" class="form-control" style="background-color: #43596c; color: white;"/></td>
-                                <td><input type="number" readonly name='inv_payment[]' id="inv_payment${parseInt(key) + 1}" value="${invdata[key]['inv_payment']}" class="form-control" style="background-color: #43596c; color: white;" /></td>
+                                <td><input type="number" required onkeyup="calcBalancePayment(this)" name='inv_payment[]' id="inv_payment${parseInt(key) + 1}" value="${invdata[key]['inv_payment']}" class="form-control payments" style="background-color: #43596c; color: white;" /></td>
                                 <td><input type="number" readonly name='inv_balance[]' id="inv_balance${parseInt(key) + 1}" value="${invdata[key]['inv_balance']}" class="form-control" style="background-color: #43596c; color: white;" /></td>
                             </tr>
                             `
@@ -1442,6 +1442,29 @@
                 }
             });
         }
+    }
+
+    function calcBalancePayment(ele){
+        var id = ele.id.slice(11)
+        var totAmount = parseFloat(ele.value||0)
+        var bal = parseFloat($('#inv_amount'+id).val()||0) - totAmount
+        $('#inv_balance'+id).val(bal)
+        
+        calcTotPayment();
+    }
+    
+    function calcTotPayment(){
+        var tot = 0
+        var bal = 0
+        $('input.payments').each(function(){
+            var amt = parseFloat($(this).val()||0)
+            tot += amt
+        })
+
+        $("#tpayment").val(tot)
+
+        bal = parseFloat($('#tamount').val()||0) - tot
+        $('#tbalance').val(bal)
     }
     
     $(document).ready(function () {

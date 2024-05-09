@@ -914,7 +914,6 @@ urlpatterns = [
     path('Fin_LoanAccountTransactionHistory/<int:id>', views.Fin_LoanAccountTransactionHistory, name='Fin_LoanAccountTransactionHistory'),
     path('Fin_employee_Loan_History/<int:id>',views.Fin_employeeLoanHistory, name='Fin_employeeLoanHistory'),
     path('Fin_employee_Loan_TransHistory/<int:id>',views.Fin_employeeLoanTransHistory, name='Fin_employeeLoanTransHistory'),
-
     path('Fin_get_bill_numbers',views.Fin_getBillNumbers, name='Fin_getBillNumbers'),
     path('Fin_get_bill_numbers_edit',views.Fin_getBillNumbersEdit, name='Fin_getBillNumbersEdit'),
     path('Fin_get_bill_details',views.Fin_getBillDet, name='Fin_getBillDet'),

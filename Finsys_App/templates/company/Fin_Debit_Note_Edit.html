@@ -693,8 +693,8 @@
                     </div>
                 </div>
                 <div class="col-md-5 mt-3 d-flex">
-                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="SAVE" onclick="window.location.href=`{% url 'challan_overview' estimate.id %}`">
-                    <input type="button" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL" onclick="window.location.href=`{% url 'challan_overview' estimate.id %}`">
+                    <input type="submit" class="btn btn-outline-secondary w-50 text-light" value="SAVE">
+                    <input type="button" class="btn btn-outline-secondary w-50 ml-1 text-light" value="CANCEL" onclick="window.location.href=`{% url 'Fin_debit_overview' estimate.id %}`">
                 </div>
             </div>
             <div class="notices mt-3">
@@ -2253,9 +2253,9 @@ $("#qtyspan"+n).hide()
 
         $('#grandtotal').val(gtot.toFixed(2));
         
-        // var adv_val = parseFloat($('#advance').val())
-        // var bal = gtot - adv_val
-        // $('#balance').val(bal.toFixed(2));
+        var adv_val = parseFloat($('#advance').val())
+        var bal = gtot - adv_val
+        $('#balance').val(bal.toFixed(2));
         splitTax();
     }
 

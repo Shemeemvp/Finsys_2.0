@@ -1246,6 +1246,7 @@ $('.delete-item').click(function () {
                                         {% endif %}
                                         {% endif %}
                                     </div>
+                                    {% if loan.note %}
                                     <div class="row mb-4 d-flex justify-content-between align-items-center">
                                         <div class="col-md-2 mt-3">
                                             <h6 class="mb-0">Note</h6>
@@ -1260,6 +1261,7 @@ $('.delete-item').click(function () {
                                             <p class="mb-0 text-right">{{ loan.monthly_cutting_amount}}</p>
                                         </div> -->
                                     </div>
+                                    {% endif %}
 
 
                                 </div>
@@ -1588,8 +1590,8 @@ $('.delete-item').click(function () {
             toggleDateInputs(selectedOption);
         });
 
-        document.getElementById("fdate").addEventListener("change", filterByDate);
-        document.getElementById("ldate").addEventListener("change", filterByDate);
+        // document.getElementById("fdate").addEventListener("change", filterByDate);
+        // document.getElementById("ldate").addEventListener("change", filterByDate);
 
         function toggleDateInputs(selectedOption) {
             if (selectedOption === "Custom") {
@@ -1713,7 +1715,7 @@ $('.delete-item').click(function () {
                                             </div>
                                             <div class="col-3">
                                                 <p style="color: #000000;"> Balance</p>
-                                               <h5 style="color: #000000;">{{loan.balance}}</h5>
+                                               <h5 style="color: #000000;" id="loanStatementBal">{{loan.balance}}</h5>
                                                 
                                             </div>
                                        
@@ -1875,6 +1877,53 @@ $('.delete-item').click(function () {
 
 
 <script>
+
+    document.getElementById("fdate").addEventListener("change", filterTable);
+    document.getElementById("ldate").addEventListener("change", filterTable);
+
+    function filterTable() {
+        var fromDate = new Date(document.getElementById("fdate").value);
+        var toDate = new Date(document.getElementById("ldate").value);
+        var table = document.getElementById("tabletobe1");
+        var rows = table.getElementsByTagName("tr");
+        
+
+        for (var i = 1; i < rows.length; i++) {
+            var dateCell = rows[i].getElementsByTagName("td")[1];
+            if (dateCell) {
+                var dateValue = dateCell.textContent || dateCell.innerText;
+                var dt = new Date(dateValue)
+                if (dt >= fromDate && dt <= toDate) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+        calcBalance();
+    }
+
+    function calcBalance(){
+        var table = document.getElementById("tabletobe1");
+        var rows = table.getElementsByTagName("tr");
+        var bal = 0
+
+        for (var i = 1; i < rows.length; i++) {
+            if(rows[i].style.display != "none"){
+                var typ = rows[i].getElementsByTagName("td")[0].textContent;
+                var amt = parseFloat(rows[i].getElementsByTagName("td")[2].textContent || 0)
+                if (typ.toLowerCase() == 'loan issued' || typ.toLowerCase() == 'additional loan') {
+                    bal += amt
+                }else{
+                    bal -= amt
+                }
+            }
+        }
+        console.log('BLANC',bal)
+        $("#loanStatementBal").text(bal)
+
+    }
+
     function printStatement() {
         var printContent = document.getElementById('whatToPrint').innerHTML;
         var originalContent = document.body.innerHTML;
@@ -2072,113 +2121,113 @@ $.ajax({
         tbl2.style.display = "none";
 
 
-        $(document).on('submit', '#form_post', function (e) {
-            e.preventDefault();
-            $.ajax({
-                type: "POST",
-                url: "",
-                data: {
+        // $(document).on('submit', '#form_post', function (e) {
+        //     e.preventDefault();
+        //     $.ajax({
+        //         type: "POST",
+        //         url: "",
+        //         data: {
 
-                    fd: $('#fdate').val(),
-                    ld: $('#ldate').val(),
-                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
-                },
+        //             fd: $('#fdate').val(),
+        //             ld: $('#ldate').val(),
+        //             'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+        //         },
 
-                success: function (response) {
-                    console.log(response)
-                    data = response.ct
-                    data2 = response.invoiced
-                    data3 = response.re
-                    data4 = response.sum
-                    data5 = response.df
-                    data6 = response.dl
-                    data7 = response.invitem
-                    data8 = response.st
-                    data9 = response.baldue
-                    data10 = response.opening
+        //         success: function (response) {
+        //             console.log(response)
+        //             data = response.ct
+        //             data2 = response.invoiced
+        //             data3 = response.re
+        //             data4 = response.sum
+        //             data5 = response.df
+        //             data6 = response.dl
+        //             data7 = response.invitem
+        //             data8 = response.st
+        //             data9 = response.baldue
+        //             data10 = response.opening
 
-                    data11 = response.fst
-
-
-                    $('#tab_logic tbody').append(
-
-                        `<tr>
-                    <td>${data11}</td>
-                    <td>***Opening Balance***</td>
-                    <td></td>
-                    <td>${data10}</td>
-                    <td></td>
-                    <td>${data10}</td>
-                    </tr> `
+        //             data11 = response.fst
 
 
-                    )
+        //             $('#tab_logic tbody').append(
+
+        //                 `<tr>
+        //             <td>${data11}</td>
+        //             <td>***Opening Balance***</td>
+        //             <td></td>
+        //             <td>${data10}</td>
+        //             <td></td>
+        //             <td>${data10}</td>
+        //             </tr> `
 
 
-                    for (i = 0; i < data8.length; i++) {
+        //             )
 
-                        $('#tab_logic tbody').append(
 
-                            `
+        //             for (i = 0; i < data8.length; i++) {
+
+        //                 $('#tab_logic tbody').append(
+
+        //                     `
                               
-                                <tr>
-                                <td>${data8[i].Date}</td>
-                                <td>${data8[i].Transactions}</td>
+        //                         <tr>
+        //                         <td>${data8[i].Date}</td>
+        //                         <td>${data8[i].Transactions}</td>
                                                                             
-                                <td>
+        //                         <td>
                                     
-                                    ${data8[i].Details2} 
+        //                             ${data8[i].Details2} 
                                     
-                                    </td>
+        //                             </td>
                                                                             
                                                                             
-                                <td>
+        //                         <td>
                                 
-                                ${data8[i].Amount}
-                                </td>
-                                <td>
+        //                         ${data8[i].Amount}
+        //                         </td>
+        //                         <td>
 
-                                    ${data8[i].Payments} 
+        //                             ${data8[i].Payments} 
                                
                                 
-                                </td>
-                                <td>${data8[i].Balance} 
+        //                         </td>
+        //                         <td>${data8[i].Balance} 
                                 
-                                 </td>
-                                </tr>
+        //                          </td>
+        //                         </tr>
                                  
-                                    `
+        //                             `
 
-                        )
-
-
-
-                    }
+        //                 )
 
 
 
+        //             }
 
-                    $('#tab_logic tbody').append(`<tr>
-                        <td colspan="5">Balance Due</td>
-                        <td>${data9} </td>
+
+
+
+        //             $('#tab_logic tbody').append(`<tr>
+        //                 <td colspan="5">Balance Due</td>
+        //                 <td>${data9} </td>
                         
-                        </tr>`)
-                    tbl1.style.display = "none";
-                    tbl2.style.display = "block";
-                    document.getElementById('invamount').value = data2
-                    document.getElementById('received').value = data3
-                    document.getElementById('due').value = data9
-                    document.getElementById('df').value = data5
-                    document.getElementById('dl').value = data6
-                    document.getElementById('open').value = data10
+        //                 </tr>`)
+        //             tbl1.style.display = "none";
+        //             tbl2.style.display = "block";
+        //             document.getElementById('invamount').value = data2
+        //             document.getElementById('received').value = data3
+        //             document.getElementById('due').value = data9
+        //             document.getElementById('df').value = data5
+        //             document.getElementById('dl').value = data6
+        //             document.getElementById('open').value = data10
 
 
 
 
-                }
+        //         }
 
-            });
-        });
+        //     });
+        // });
     </script>
 
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
