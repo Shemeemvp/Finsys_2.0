@@ -91,7 +91,11 @@ def Fin_login(request):
                             if current_day > did.End_date:
                                 print("wrong")
                                    
-                                return redirect('Fin_Wrong')
+                                if not Fin_Payment_Terms_updation.objects.filter(Login_Id = data, status = "New").exists():
+                                    return redirect('Fin_Wrong')
+                                else:
+                                    messages.info(request, 'Term Updation Request is pending..')
+                                    return redirect('Fin_DistributorReg')
                             else:
                                 return redirect('Fin_DHome')
                             
@@ -115,8 +119,11 @@ def Fin_login(request):
                             current_day=date.today() 
                             if current_day > com.End_date:
                                 print("wrong")
-                                   
-                                return redirect('Fin_Wrong')
+                                if not Fin_Payment_Terms_updation.objects.filter(Login_Id = data, status = "New").exists():
+                                    return redirect('Fin_Wrong')
+                                else:
+                                    messages.info(request, 'Term Updation Request is pending..')
+                                    return redirect('Fin_CompanyReg')
                             else:
                                 return redirect('Fin_Com_Home')
                     else:
