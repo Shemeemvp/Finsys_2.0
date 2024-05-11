@@ -28803,7 +28803,7 @@ def Fin_cashInHandGraph(request, period):
 
                 for i in rtInv:
                     if i.Retainer_Invoice_date.year == yr:
-                        cashInflow += float(i.paid_off)
+                        cashInflow += float(i.Paid_amount)
 
                 for i in bill:
                     if i.bill_date.year == yr:
@@ -28883,7 +28883,7 @@ def Fin_cashInHandGraph(request, period):
 
                 for i in rtInv:
                     if i.Retainer_Invoice_date.year == current_year and i.Retainer_Invoice_date.month == month:
-                        cashInflow += float(i.paid_off)
+                        cashInflow += float(i.Paid_amount)
 
                 for i in bill:
                     if i.bill_date.year == current_year and i.bill_date.month == month:
@@ -35292,3 +35292,1430 @@ def Fin_TermUpdate_Modules_Action(request):
        
     else:
        return redirect('/')
+
+
+# < ------------- Shemeem -------- > Reports - Cash FLow < ------------------------------- >
+
+def Fin_cashFlowReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        reportData = []
+        totCashIn = 0
+        totCashOut = 0
+        bal = 0
+
+        cash = Fin_CashInHand.objects.filter(Company = cmp)
+        bnk = Fin_BankTransactions.objects.filter(company=cmp).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+        inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+        crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cash', paid__gt = 0)
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+        sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+        rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cash', Paid_amount__gt = 0)
+
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash', paid__gt = 0.0)
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cash', paid__gt = 0)
+        
+        empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+        empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+        lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cash', principle_amount__gt = 0)
+        slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cash')
+
+        loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'cash', loan_amount__gt = 0)
+        lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+        lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+        
+        if cash:
+            for cs in cash:
+                if cs.adjustment == 'ADD CASH':
+                    partyName = ""
+                    date = cs.adjust_date
+                    ref = ""
+                    type = 'ADD CASH'
+                    mIn = cs.amount
+                    mOut = 0
+                    totCashIn += float(cs.amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+                else:
+                    partyName = ""
+                    date = cs.adjust_date
+                    ref = ""
+                    type = 'REDUCE CASH'
+                    mIn = 0
+                    mOut = cs.amount
+                    totCashOut += float(cs.amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+        if bnk:
+            for bn in bnk:
+                if bn.transaction_type == 'Cash Deposit':
+                    partyName = ""
+                    date = bn.adjustment_date
+                    ref = ""
+                    type = 'CASH DEPOSIT'
+                    mIn = bn.amount
+                    mOut = 0
+                    totCashIn += float(bn.amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+                else:
+                    partyName = ""
+                    date = bn.adjustment_date
+                    ref = ""
+                    type = 'CASH WITHDRAW'
+                    mIn = 0
+                    mOut = bn.amount
+                    totCashOut += float(bn.amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+        if inv:
+            for i in inv:
+                partyName = i.Customer.first_name + i.Customer.last_name
+                date = i.invoice_date
+                ref = i.invoice_no
+                type = 'INVOICE'
+                mIn = i.paid_off
+                mOut = 0
+                totCashIn += float(i.paid_off)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if crdNt:
+            for cr in crdNt:
+                partyName = cr.Customer.first_name + cr.Customer.last_name
+                date = cr.creditnote_date
+                ref = cr.creditnote_number
+                type = 'CREDIT NOTE'
+                mOut = cr.paid
+                mIn = 0
+                totCashOut += float(cr.paid)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if recInv:
+            for rc in recInv:
+                partyName = rc.Customer.first_name + rc.Customer.last_name
+                date = rc.start_date
+                ref = rc.rec_invoice_no
+                type = 'RECURRING INVOICE'
+                mIn = rc.paid_off
+                mOut = 0
+                totCashIn += float(rc.paid_off)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if sordr:
+            for so in sordr:
+                partyName = so.Customer.first_name + so.Customer.last_name
+                date = so.sales_order_date
+                ref = so.sales_order_no
+                type = 'SALES ORDER'
+                mIn = so.paid_off
+                mOut = 0
+                totCashIn += float(so.paid_off)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if rtInv:
+            for rt in rtInv:
+                partyName = rt.Customer.first_name + rt.Customer.last_name
+                date = rt.Retainer_Invoice_date
+                ref = rt.Retainer_Invoice_number
+                type = 'RETAINER INVOICE'
+                mIn = rt.Paid_amount
+                mOut = 0
+                totCashIn += float(rt.Paid_amount)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if bill:
+            for bl in bill:
+                partyName = bl.vendor.first_name + bl.vendor.last_name
+                date = bl.bill_date
+                ref = bl.bill_no
+                type = 'BILL'
+                mOut = bl.paid
+                mIn = 0
+                totCashOut += float(bl.paid)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if rcrbl:
+            for rb in rcrbl:
+                partyName = rb.vendor.first_name + rb.vendor.last_name
+                date = rb.date
+                ref = rb.recurring_bill_number
+                type = 'RECURRING BILL'
+                mOut = rb.advanceAmount_paid
+                mIn = 0
+                totCashOut += float(rb.advanceAmount_paid)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if pordr:
+            for po in pordr:
+                partyName = po.Vendor.first_name + po.Vendor.last_name
+                date = po.purchase_order_date
+                ref = po.purchase_order_no
+                type = 'PURCHASE ORDER'
+                mOut = po.paid_off
+                mIn = 0
+                totCashOut += float(po.paid_off)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if dbtnt:
+            for db in dbtnt:
+                partyName = db.Vendor.first_name + db.Vendor.last_name
+                date = db.debit_note_date
+                ref = db.debit_note_number
+                type = 'DEBIT NOTE'
+                mIn = db.paid
+                mOut = 0
+                totCashIn += float(db.paid)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if empLoan:
+            for ln in empLoan:
+                partyName = ln.employee.first_name + ln.employee.last_name
+                date = ln.loan_date
+                ref = ""
+                type = 'EMPLOYEE LOAN'
+                mOut = ln.loan_amount
+                mIn = 0
+                totCashOut += float(ln.loan_amount)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if empAddLoan:
+            for al in empAddLoan:
+                partyName = al.employee_loan.employee.first_name + al.employee_loan.employee.last_name
+                date = al.new_date
+                ref = ""
+                type = 'EMPLOYEE ADDITIONAL LOAN'
+                mOut = al.new_loan
+                mIn = 0
+                totCashOut += float(al.new_loan)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if lnRpy:
+            for lr in lnRpy:
+                partyName = lr.employee.first_name + lr.employee.last_name
+                date = lr.payment_date
+                ref = ""
+                type = 'EMI PAID'
+                mIn = lr.principle_amount
+                mOut = 0
+                totCashIn += float(lr.principle_amount)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if slry:
+            for sl in slry:
+                partyName = sl.employee.first_name + sl.employee.last_name
+                date = sl.salary_date
+                ref = ""
+                type = 'EMPLOYEE SALARY'
+                mOut = sl.total_salary
+                mIn = 0
+                totCashOut += float(sl.total_salary)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if loanAcc:
+            for la in loanAcc:
+                partyName = la.loan.account_name
+                date = la.loan_date
+                ref = ""
+                type = 'LOAN'
+                mOut = la.loan_amount
+                mIn = 0
+                totCashOut += float(la.loan_amount)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if lonAddAcc:
+            for l in lonAddAcc:
+                partyName = l.loan.account_name
+                date = l.loan_date
+                ref = ""
+                type = 'ADDITIONAL LOAN'
+                mOut = l.loan_amount
+                mIn = 0
+                totCashOut += float(l.loan_amount)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        if lonAccEmi:
+            for le in lonAccEmi:
+                partyName = le.loan.account_name
+                date = le.loan_date
+                ref = ""
+                type = 'EMI PAID'
+                mIn = le.loan_amount
+                mOut = 0
+                totCashIn += float(le.loan_amount)
+
+                details = {
+                    'date': date,
+                    'partyName': partyName,
+                    'ref':ref,
+                    'type':type,
+                    'moneyIn':mIn,
+                    'moneyOut':mOut
+                }
+                reportData.append(details)
+
+        bal = totCashIn - totCashOut
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalCashIn':totCashIn, 'totalCashOut':totCashOut, 'BALANCE':bal,
+            'startDate':None, 'endDate':None
+        }
+        return render(request,'company/reports/Fin_CashFlow.html', context)
+    else:
+        return redirect('/')
+
+def Fin_cashFlowReportCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+
+            if startDate is None or endDate is None:
+                cash = Fin_CashInHand.objects.filter(Company = cmp)
+                bnk = Fin_BankTransactions.objects.filter(company=cmp).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+                inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+                crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cash', paid__gt = 0)
+                recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+                sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+                rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cash', Paid_amount__gt = 0)
+
+                bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash', paid__gt = 0.0)
+                rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+                pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+                dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cash', paid__gt = 0)
+                
+                empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+                empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+                lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cash', principle_amount__gt = 0)
+                slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cash')
+
+                loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'cash', loan_amount__gt = 0)
+                lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+                lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+            else:
+                cash = Fin_CashInHand.objects.filter(Company = cmp, adjust_date__range = [startDate, endDate])
+                bnk = Fin_BankTransactions.objects.filter(company=cmp, adjustment_date__range = [startDate, endDate]).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+                inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'cash', paid_off__gt = 0)
+                crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'cash', paid__gt = 0)
+                recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate], payment_method__iexact = 'cash', paid_off__gt = 0)
+                sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate], payment_method__iexact='cash', paid_off__gt = 0)
+                rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate], Payment_Method__iexact='cash', Paid_amount__gt = 0)
+
+                bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], pay_type__iexact='cash', paid__gt = 0.0)
+                rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+                pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], payment_method__iexact='cash', paid_off__gt = 0)
+                dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], payment_type__iexact='cash', paid__gt = 0)
+                
+                empLoan = Fin_Loan.objects.filter(company = cmp, loan_date__range = [startDate, endDate], payment_method__iexact = 'cash')
+                empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'cash')
+                lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'cash', principle_amount__gt = 0)
+                slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='cash')
+
+                loanAcc = loan_transaction.objects.filter(company=cmp, loan_date__range = [startDate, endDate], bank_type = 'OPENING BAL', to_trans__iexact = 'cash', loan_amount__gt = 0)
+                lonAddAcc = loan_transaction.objects.filter(company=cmp, loan_date__range = [startDate, endDate], bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+                lonAccEmi = loan_transaction.objects.filter(company=cmp, loan_date__range = [startDate, endDate], bank_type = 'EMI PAID', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+
+            reportData = []
+            totCashIn = 0
+            totCashOut = 0
+            bal = 0
+
+            if cash:
+                for cs in cash:
+                    if cs.adjustment == 'ADD CASH':
+                        partyName = ""
+                        date = cs.adjust_date
+                        ref = ""
+                        type = 'ADD CASH'
+                        mIn = cs.amount
+                        mOut = 0
+                        totCashIn += float(cs.amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+                    else:
+                        partyName = ""
+                        date = cs.adjust_date
+                        ref = ""
+                        type = 'REDUCE CASH'
+                        mIn = 0
+                        mOut = cs.amount
+                        totCashOut += float(cs.amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+            if bnk:
+                for bn in bnk:
+                    if bn.transaction_type == 'Cash Deposit':
+                        partyName = ""
+                        date = bn.adjustment_date
+                        ref = ""
+                        type = 'CASH DEPOSIT'
+                        mIn = bn.amount
+                        mOut = 0
+                        totCashIn += float(bn.amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+                    else:
+                        partyName = ""
+                        date = bn.adjustment_date
+                        ref = ""
+                        type = 'CASH WITHDRAW'
+                        mIn = 0
+                        mOut = bn.amount
+                        totCashOut += float(bn.amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+            if inv:
+                for i in inv:
+                    partyName = i.Customer.first_name + i.Customer.last_name
+                    date = i.invoice_date
+                    ref = i.invoice_no
+                    type = 'INVOICE'
+                    mIn = i.paid_off
+                    mOut = 0
+                    totCashIn += float(i.paid_off)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if crdNt:
+                for cr in crdNt:
+                    partyName = cr.Customer.first_name + cr.Customer.last_name
+                    date = cr.creditnote_date
+                    ref = cr.creditnote_number
+                    type = 'CREDIT NOTE'
+                    mOut = cr.paid
+                    mIn = 0
+                    totCashOut += float(cr.paid)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if recInv:
+                for rc in recInv:
+                    partyName = rc.Customer.first_name + rc.Customer.last_name
+                    date = rc.start_date
+                    ref = rc.rec_invoice_no
+                    type = 'RECURRING INVOICE'
+                    mIn = rc.paid_off
+                    mOut = 0
+                    totCashIn += float(rc.paid_off)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if sordr:
+                for so in sordr:
+                    partyName = so.Customer.first_name + so.Customer.last_name
+                    date = so.sales_order_date
+                    ref = so.sales_order_no
+                    type = 'SALES ORDER'
+                    mIn = so.paid_off
+                    mOut = 0
+                    totCashIn += float(so.paid_off)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if rtInv:
+                for rt in rtInv:
+                    partyName = rt.Customer.first_name + rt.Customer.last_name
+                    date = rt.Retainer_Invoice_date
+                    ref = rt.Retainer_Invoice_number
+                    type = 'RETAINER INVOICE'
+                    mIn = rt.Paid_amount
+                    mOut = 0
+                    totCashIn += float(rt.Paid_amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if bill:
+                for bl in bill:
+                    partyName = bl.vendor.first_name + bl.vendor.last_name
+                    date = bl.bill_date
+                    ref = bl.bill_no
+                    type = 'BILL'
+                    mOut = bl.paid
+                    mIn = 0
+                    totCashOut += float(bl.paid)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if rcrbl:
+                for rb in rcrbl:
+                    partyName = rb.vendor.first_name + rb.vendor.last_name
+                    date = rb.date
+                    ref = rb.recurring_bill_number
+                    type = 'RECURRING BILL'
+                    mOut = rb.advanceAmount_paid
+                    mIn = 0
+                    totCashOut += float(rb.advanceAmount_paid)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if pordr:
+                for po in pordr:
+                    partyName = po.Vendor.first_name + po.Vendor.last_name
+                    date = po.purchase_order_date
+                    ref = po.purchase_order_no
+                    type = 'PURCHASE ORDER'
+                    mOut = po.paid_off
+                    mIn = 0
+                    totCashOut += float(po.paid_off)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if dbtnt:
+                for db in dbtnt:
+                    partyName = db.Vendor.first_name + db.Vendor.last_name
+                    date = db.debit_note_date
+                    ref = db.debit_note_number
+                    type = 'DEBIT NOTE'
+                    mIn = db.paid
+                    mOut = 0
+                    totCashIn += float(db.paid)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if empLoan:
+                for ln in empLoan:
+                    partyName = ln.employee.first_name + ln.employee.last_name
+                    date = ln.loan_date
+                    ref = ""
+                    type = 'EMPLOYEE LOAN'
+                    mOut = ln.loan_amount
+                    mIn = 0
+                    totCashOut += float(ln.loan_amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if empAddLoan:
+                for al in empAddLoan:
+                    partyName = al.employee_loan.employee.first_name + al.employee_loan.employee.last_name
+                    date = al.new_date
+                    ref = ""
+                    type = 'EMPLOYEE ADDITIONAL LOAN'
+                    mOut = al.new_loan
+                    mIn = 0
+                    totCashOut += float(al.new_loan)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if lnRpy:
+                for lr in lnRpy:
+                    partyName = lr.employee.first_name + lr.employee.last_name
+                    date = lr.payment_date
+                    ref = ""
+                    type = 'EMI PAID'
+                    mIn = lr.principle_amount
+                    mOut = 0
+                    totCashIn += float(lr.principle_amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if slry:
+                for sl in slry:
+                    partyName = sl.employee.first_name + sl.employee.last_name
+                    date = sl.salary_date
+                    ref = ""
+                    type = 'EMPLOYEE SALARY'
+                    mOut = sl.total_salary
+                    mIn = 0
+                    totCashOut += float(sl.total_salary)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if loanAcc:
+                for la in loanAcc:
+                    partyName = la.loan.account_name
+                    date = la.loan_date
+                    ref = ""
+                    type = 'LOAN'
+                    mOut = la.loan_amount
+                    mIn = 0
+                    totCashOut += float(la.loan_amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if lonAddAcc:
+                for l in lonAddAcc:
+                    partyName = l.loan.account_name
+                    date = l.loan_date
+                    ref = ""
+                    type = 'ADDITIONAL LOAN'
+                    mOut = l.loan_amount
+                    mIn = 0
+                    totCashOut += float(l.loan_amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            if lonAccEmi:
+                for le in lonAccEmi:
+                    partyName = le.loan.account_name
+                    date = le.loan_date
+                    ref = ""
+                    type = 'EMI PAID'
+                    mIn = le.loan_amount
+                    mOut = 0
+                    totCashIn += float(le.loan_amount)
+
+                    details = {
+                        'date': date,
+                        'partyName': partyName,
+                        'ref':ref,
+                        'type':type,
+                        'moneyIn':mIn,
+                        'moneyOut':mOut
+                    }
+                    reportData.append(details)
+
+            bal = totCashIn - totCashOut
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalCashIn':totCashIn, 'totalCashOut':totCashOut, 'BALANCE':bal,
+                'startDate':startDate, 'endDate':endDate
+            }
+            return render(request,'company/reports/Fin_CashFlow.html', context)
+    else:
+        return redirect('/')
+
+def Fin_shareCashFlowReportToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                if startDate is None or endDate is None:
+                    cash = Fin_CashInHand.objects.filter(Company = cmp)
+                    bnk = Fin_BankTransactions.objects.filter(company=cmp).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+                    inv = Fin_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, payment_type__iexact = 'cash', paid__gt = 0)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, payment_method__iexact = 'cash', paid_off__gt = 0)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+                    rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Payment_Method__iexact='cash', Paid_amount__gt = 0)
+
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, pay_type__iexact='cash', paid__gt = 0.0)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, payment_method__iexact='cash', paid_off__gt = 0)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, payment_type__iexact='cash', paid__gt = 0)
+                    
+                    empLoan = Fin_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+                    empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, payment_method__iexact = 'cash')
+                    lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_method__iexact = 'cash', principle_amount__gt = 0)
+                    slry = Fin_SalaryDetails.objects.filter(company=cmp, employee__pay_head__iexact='cash')
+
+                    loanAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'OPENING BAL', to_trans__iexact = 'cash', loan_amount__gt = 0)
+                    lonAddAcc = loan_transaction.objects.filter(company=cmp, bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+                    lonAccEmi = loan_transaction.objects.filter(company=cmp, bank_type = 'EMI PAID', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+                else:
+                    cash = Fin_CashInHand.objects.filter(Company = cmp, adjust_date__range = [startDate, endDate])
+                    bnk = Fin_BankTransactions.objects.filter(company=cmp, adjustment_date__range = [startDate, endDate]).filter(Q(transaction_type__iexact='cash withdraw') | Q(transaction_type__iexact='cash deposit'))
+                    inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate], payment_method__iexact = 'cash', paid_off__gt = 0)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate], payment_type__iexact = 'cash', paid__gt = 0)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate], payment_method__iexact = 'cash', paid_off__gt = 0)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate], payment_method__iexact='cash', paid_off__gt = 0)
+                    rtInv= Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate], Payment_Method__iexact='cash', Paid_amount__gt = 0)
+
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], pay_type__iexact='cash', paid__gt = 0.0)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], payment_method__iexact='cash', advanceAmount_paid__gt = 0)
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], payment_method__iexact='cash', paid_off__gt = 0)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], payment_type__iexact='cash', paid__gt = 0)
+                    
+                    empLoan = Fin_Loan.objects.filter(company = cmp, loan_date__range = [startDate, endDate], payment_method__iexact = 'cash')
+                    empAddLoan = Fin_Employee_Additional_Loan.objects.filter(company = cmp, new_date__range = [startDate, endDate], payment_method__iexact = 'cash')
+                    lnRpy = Fin_Employee_Loan_Repayment.objects.filter(company = cmp, payment_date__range = [startDate, endDate], payment_method__iexact = 'cash', principle_amount__gt = 0)
+                    slry = Fin_SalaryDetails.objects.filter(company=cmp, salary_date__range = [startDate, endDate], employee__pay_head__iexact='cash')
+
+                    loanAcc = loan_transaction.objects.filter(company=cmp, loan_date__range = [startDate, endDate], bank_type = 'OPENING BAL', to_trans__iexact = 'cash', loan_amount__gt = 0)
+                    lonAddAcc = loan_transaction.objects.filter(company=cmp, loan_date__range = [startDate, endDate], bank_type = 'ADDITIONAL LOAN ISSUED', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+                    lonAccEmi = loan_transaction.objects.filter(company=cmp, loan_date__range = [startDate, endDate], bank_type = 'EMI PAID', recieved_bank__iexact = 'cash', loan_amount__gt = 0)
+
+                reportData = []
+                totCashIn = 0
+                totCashOut = 0
+                bal = 0
+
+                if cash:
+                    for cs in cash:
+                        if cs.adjustment == 'ADD CASH':
+                            partyName = ""
+                            date = cs.adjust_date
+                            ref = ""
+                            type = 'ADD CASH'
+                            mIn = cs.amount
+                            mOut = 0
+                            totCashIn += float(cs.amount)
+
+                            details = {
+                                'date': date,
+                                'partyName': partyName,
+                                'ref':ref,
+                                'type':type,
+                                'moneyIn':mIn,
+                                'moneyOut':mOut
+                            }
+                            reportData.append(details)
+                        else:
+                            partyName = ""
+                            date = cs.adjust_date
+                            ref = ""
+                            type = 'REDUCE CASH'
+                            mIn = 0
+                            mOut = cs.amount
+                            totCashOut += float(cs.amount)
+
+                            details = {
+                                'date': date,
+                                'partyName': partyName,
+                                'ref':ref,
+                                'type':type,
+                                'moneyIn':mIn,
+                                'moneyOut':mOut
+                            }
+                            reportData.append(details)
+
+                if bnk:
+                    for bn in bnk:
+                        if bn.transaction_type == 'Cash Deposit':
+                            partyName = ""
+                            date = bn.adjustment_date
+                            ref = ""
+                            type = 'CASH DEPOSIT'
+                            mIn = bn.amount
+                            mOut = 0
+                            totCashIn += float(bn.amount)
+
+                            details = {
+                                'date': date,
+                                'partyName': partyName,
+                                'ref':ref,
+                                'type':type,
+                                'moneyIn':mIn,
+                                'moneyOut':mOut
+                            }
+                            reportData.append(details)
+                        else:
+                            partyName = ""
+                            date = bn.adjustment_date
+                            ref = ""
+                            type = 'CASH WITHDRAW'
+                            mIn = 0
+                            mOut = bn.amount
+                            totCashOut += float(bn.amount)
+
+                            details = {
+                                'date': date,
+                                'partyName': partyName,
+                                'ref':ref,
+                                'type':type,
+                                'moneyIn':mIn,
+                                'moneyOut':mOut
+                            }
+                            reportData.append(details)
+
+                if inv:
+                    for i in inv:
+                        partyName = i.Customer.first_name + i.Customer.last_name
+                        date = i.invoice_date
+                        ref = i.invoice_no
+                        type = 'INVOICE'
+                        mIn = i.paid_off
+                        mOut = 0
+                        totCashIn += float(i.paid_off)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if crdNt:
+                    for cr in crdNt:
+                        partyName = cr.Customer.first_name + cr.Customer.last_name
+                        date = cr.creditnote_date
+                        ref = cr.creditnote_number
+                        type = 'CREDIT NOTE'
+                        mOut = cr.paid
+                        mIn = 0
+                        totCashOut += float(cr.paid)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if recInv:
+                    for rc in recInv:
+                        partyName = rc.Customer.first_name + rc.Customer.last_name
+                        date = rc.start_date
+                        ref = rc.rec_invoice_no
+                        type = 'RECURRING INVOICE'
+                        mIn = rc.paid_off
+                        mOut = 0
+                        totCashIn += float(rc.paid_off)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if sordr:
+                    for so in sordr:
+                        partyName = so.Customer.first_name + so.Customer.last_name
+                        date = so.sales_order_date
+                        ref = so.sales_order_no
+                        type = 'SALES ORDER'
+                        mIn = so.paid_off
+                        mOut = 0
+                        totCashIn += float(so.paid_off)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if rtInv:
+                    for rt in rtInv:
+                        partyName = rt.Customer.first_name + rt.Customer.last_name
+                        date = rt.Retainer_Invoice_date
+                        ref = rt.Retainer_Invoice_number
+                        type = 'RETAINER INVOICE'
+                        mIn = rt.Paid_amount
+                        mOut = 0
+                        totCashIn += float(rt.Paid_amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if bill:
+                    for bl in bill:
+                        partyName = bl.vendor.first_name + bl.vendor.last_name
+                        date = bl.bill_date
+                        ref = bl.bill_no
+                        type = 'BILL'
+                        mOut = bl.paid
+                        mIn = 0
+                        totCashOut += float(bl.paid)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if rcrbl:
+                    for rb in rcrbl:
+                        partyName = rb.vendor.first_name + rb.vendor.last_name
+                        date = rb.date
+                        ref = rb.recurring_bill_number
+                        type = 'RECURRING BILL'
+                        mOut = rb.advanceAmount_paid
+                        mIn = 0
+                        totCashOut += float(rb.advanceAmount_paid)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if pordr:
+                    for po in pordr:
+                        partyName = po.Vendor.first_name + po.Vendor.last_name
+                        date = po.purchase_order_date
+                        ref = po.purchase_order_no
+                        type = 'PURCHASE ORDER'
+                        mOut = po.paid_off
+                        mIn = 0
+                        totCashOut += float(po.paid_off)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if dbtnt:
+                    for db in dbtnt:
+                        partyName = db.Vendor.first_name + db.Vendor.last_name
+                        date = db.debit_note_date
+                        ref = db.debit_note_number
+                        type = 'DEBIT NOTE'
+                        mIn = db.paid
+                        mOut = 0
+                        totCashIn += float(db.paid)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if empLoan:
+                    for ln in empLoan:
+                        partyName = ln.employee.first_name + ln.employee.last_name
+                        date = ln.loan_date
+                        ref = ""
+                        type = 'EMPLOYEE LOAN'
+                        mOut = ln.loan_amount
+                        mIn = 0
+                        totCashOut += float(ln.loan_amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if empAddLoan:
+                    for al in empAddLoan:
+                        partyName = al.employee_loan.employee.first_name + al.employee_loan.employee.last_name
+                        date = al.new_date
+                        ref = ""
+                        type = 'EMPLOYEE ADDITIONAL LOAN'
+                        mOut = al.new_loan
+                        mIn = 0
+                        totCashOut += float(al.new_loan)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if lnRpy:
+                    for lr in lnRpy:
+                        partyName = lr.employee.first_name + lr.employee.last_name
+                        date = lr.payment_date
+                        ref = ""
+                        type = 'EMI PAID'
+                        mIn = lr.principle_amount
+                        mOut = 0
+                        totCashIn += float(lr.principle_amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if slry:
+                    for sl in slry:
+                        partyName = sl.employee.first_name + sl.employee.last_name
+                        date = sl.salary_date
+                        ref = ""
+                        type = 'EMPLOYEE SALARY'
+                        mOut = sl.total_salary
+                        mIn = 0
+                        totCashOut += float(sl.total_salary)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if loanAcc:
+                    for la in loanAcc:
+                        partyName = la.loan.account_name
+                        date = la.loan_date
+                        ref = ""
+                        type = 'LOAN'
+                        mOut = la.loan_amount
+                        mIn = 0
+                        totCashOut += float(la.loan_amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if lonAddAcc:
+                    for l in lonAddAcc:
+                        partyName = l.loan.account_name
+                        date = l.loan_date
+                        ref = ""
+                        type = 'ADDITIONAL LOAN'
+                        mOut = l.loan_amount
+                        mIn = 0
+                        totCashOut += float(l.loan_amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                if lonAccEmi:
+                    for le in lonAccEmi:
+                        partyName = le.loan.account_name
+                        date = le.loan_date
+                        ref = ""
+                        type = 'EMI PAID'
+                        mIn = le.loan_amount
+                        mOut = 0
+                        totCashIn += float(le.loan_amount)
+
+                        details = {
+                            'date': date,
+                            'partyName': partyName,
+                            'ref':ref,
+                            'type':type,
+                            'moneyIn':mIn,
+                            'moneyOut':mOut
+                        }
+                        reportData.append(details)
+
+                bal = totCashIn - totCashOut
+
+                context = {'cmp':cmp, 'reportData':reportData, 'totalCashIn':totCashIn, 'totalCashOut':totCashOut, 'startDate':startDate, 'endDate':endDate, 'BALANCE':bal}
+                template_path = 'company/reports/Fin_CashFlow_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_CashFlow'
+                subject = f"Report_CashFlow"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Cash Flow. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_cashFlowReport)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_cashFlowReport)
+# End

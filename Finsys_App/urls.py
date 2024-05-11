@@ -919,6 +919,11 @@ urlpatterns = [
     path('Fin_get_bill_details',views.Fin_getBillDet, name='Fin_getBillDet'),
     path('Fin_get_bill_paid_amount',views.Fin_getBillPaidAmount, name='Fin_getBillPaidAmount'),
     
+    # < ------------- Shemeem -------- > Reports - Cash Flow < ------------------------------- >
+    path('Fin_report_cash_flow',views.Fin_cashFlowReport, name='Fin_cashFlowReport'),
+    path('Fin_cash_flow_report_customized',views.Fin_cashFlowReportCustomized, name='Fin_cashFlowReportCustomized'),
+    path('Fin_share_cash_flow_report_to_email',views.Fin_shareCashFlowReportToEmail, name='Fin_shareCashFlowReportToEmail'),
+    # End
 
 
     

@@ -1,0 +1,539 @@
+{% extends 'company/Fin_base.html' %}
+{% block body %}
+{% load static %}
+{% load social_share %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.0/html2canvas.min.js"></script>
+
+
+<style>
+    .bar {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+
+
+    }
+
+    /* .bar .left {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+    } */
+
+    /* .bar .left input {
+        height: 5vh;
+    } */
+
+
+    .hidden {
+        display: none;
+    }
+
+    #search-dropdown {
+        position: absolute;
+    }
+
+    @media print {
+        * {
+            background: transparent !important;
+            color: #000 !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+            font-size: 100%;
+
+        }
+
+        .bar,
+        #nav1,
+        header {
+            display: none;
+        }
+
+        #div2 {
+            position: absolute;
+            top: -100px;
+            text-align: center;
+            width: 100%;
+        }
+
+
+    }
+    #customizeMenu{
+        width: fit-content;
+        height: 50vh;
+        overflow-y: auto;
+    }
+
+    :root {
+        --body-bg: rgb(204, 204, 204);
+        --white: #ffffff;
+        --darkWhite: #ccc;
+        --black: #000000;
+        --dark: #615c60;
+        --themeColor: #22b8d1;
+        --pageShadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+    }
+    @media print {
+        body{
+            visibility: hidden !important;
+            /* background-color: white; */
+        }
+
+        .printContainer {
+            visibility: visible !important;
+            position: absolute;
+            z-index: 99999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: large;
+        }
+
+    }
+
+    .page {
+        background: var(--white);
+        display: block;
+        margin: 0 auto;
+        position: relative;
+        box-shadow: var(--pageShadow);
+    }
+
+    .page[size="A4"] {
+        width: 99%;
+        min-height: 29.7cm;
+        height: fit-content;
+        overflow: hidden;
+        overflow-y: auto;
+    }
+    #reportTable {
+    border-collapse: collapse;
+    width: 100%;
+    }
+
+    #reportTable th, #reportTable td {
+    border: 1px solid #dddddd;
+    padding: 5px 2px;
+    color: #000;
+    }
+
+    /* .whatsapp-this{
+      display: flex;
+      justify-content: center;
+      cursor: pointer;
+      padding: 4px 0px;
+    }
+
+    .whatsapp-this:hover{
+      background-color: rgb(255 255 255 / 0.21);
+    } */
+
+    .submitShareEmailBtn {
+        background: #192d3e;
+        border: 1px solid #3a4b5a;
+        border-radius: 4px;
+        color: white;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+    }
+    .submitShareEmailBtn:hover {
+        background: #3a4b5a;
+    }
+
+    .content {
+        display: none;
+        position: absolute;
+        background-color: #2f516f;
+        min-width: 350px;
+        min-height: 250px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        height: fit-content;
+        z-index: 1;
+    }
+
+    .arrow {
+        /* font-size: 0.6em; */
+        cursor: pointer;
+        margin-left: 5px;
+    }
+
+    .arrow.up {
+        transform: rotate(180deg);
+    }
+    /* ::-webkit-scrollbar{
+        display: none;
+    } */
+
+    .page::-webkit-scrollbar {
+    width: 8px;
+    }
+    
+    .page::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page::-webkit-scrollbar-thumb {
+    background-color: darkgrey;
+    outline: 1px solid slategrey;
+    }
+</style>
+<div class="page-content">
+    <div class="card radius-15">
+        <div class="card-body">
+            <div class="card-title" id="div2">
+                <center>
+                    <!-- <h5 style="padding-top: 10px;">{{cmp.Company_name}}</h5> -->
+                    <h2 class="text-uppercase" id="headline">CASH FLOW</h2>
+                </center>
+                <hr>
+            </div>
+
+            <div class="bar">
+
+                <div class=" left d-flex justify-content-start">
+                    <div class="position-relative mr-2">
+                        <button class="btn btn-secondary" onclick="toggleContent()"><i class="fa-solid fa-gear"></i> Customize Report</button>
+                        <div id="contentDiv" class="content">
+                            <h6>Customize Report</h6>
+                            <form action="{% url 'Fin_cashFlowReportCustomized' %}" class="form reportCustomizeForm" method="get">
+                                <div class="px-2">
+                                    <label style="text-align:left ">From</label><br>
+                                    <input name="from_date" class="inputdate form-control" type="date" id="startDate" value="{{startDate}}">
+                                </div>
+                                <div class="px-2">
+                                    <label style="text-align:left ">To</label><br>
+                                    <input name="to_date" type="date" class="inputdate form-control" id="endDate" value="{{endDate}}">
+                                </div>
+                                <div class="d-flex px-2 mt-3 mb-4">
+                                    <button type="submit" class="btn btn-outline-light w-50">Run Report</button>
+                                    <button type="reset" onclick="toggleContent()" class="btn btn-outline-light ml-1 w-50">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- <div class="search">
+                        <input type="text" id="search" class="form-control" placeholder="Search.." autocomplete="off"/>
+                    </div> -->
+
+                </div>
+                <div class="right d-flex">
+
+                    <!-- <button class="btn btn_pdf btn-outline-info" id="btn-pdf">pdf</button>
+                    <button class="btn btn_print btn-outline-info" onclick="window.print()">Print</button>
+                    <button class=" btn btn-outline-info" id="export-button" onclick="exportAsExcel()">Excel</button> -->
+                    <a class="btn btn-outline-secondary text-grey fa fa-file" role="button" id="pdfBtn" onclick="reportPDF()"> &nbsp;PDF</a> 
+                    <a class="ml-2 btn btn-outline-secondary text-grey fa fa-print" role="button" id="printBtn" onclick="printSection('printReport')">&nbsp;Print</a>
+                    <a class="ml-2 btn btn-outline-secondary text-grey fa fa-table" role="button" id="exportBtn" onclick="ExportToExcel()">&nbsp;Export</a>
+                    <div class="dropdown p-0 nav-item"  id="shareBtn">
+                        <li  class="ml-2 dropdown-toggle btn btn-outline-secondary text-grey fa fa-share-alt" data-toggle="dropdown">&nbsp;Share</li>
+                        <ul class="dropdown-menu" style="background-color: black;" id="listdiv">
+                            <li style="text-align: center;" >{% post_to_whatsapp object_or_url "WhatsApp" %}</li>
+                            <li style="text-align: center;color: #e5e9ec; cursor: pointer;" id="toggleEmailModal">Email</li>
+                        </ul>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <div class="card radius-15 print-only" id="pdf-card">
+        <div class="card-body">
+            <div class="container-fluid">
+                <div class="search">
+                    <input type="text" id="search" class="form-control w-25" placeholder="Search.." autocomplete="off"/>
+                </div>
+                <div  id="printReport"  class="printReportTemplate" style="display: block;">
+                    <div class="page mt-3 mb-4" size="A4" >
+                        <div id="printdiv2">
+                            <div class="py-4 bg-secondary" >
+                                <!-- <div id="ember2512" class="col-md-4 d-flex justify-content-start tooltip-container ember-view ribbon text-ellipsis"></div> -->
+                                <div class="col-12">
+                                        <center class="h5 text-white"><b>{{cmp.Company_name}}</b></center>
+                                        <center class="h3 text-white"><b>CASH FLOW</b></center>
+                                        {% if startDate and endDate %}
+                                        <center class="h6 text-white">{{startDate}} TO {{endDate}}</center>
+                                        {% endif %}
+                                </div>  
+                                <!-- <div class="col-md-4 d-flex justify-content-end"></div> -->
+                            </div>
+                            <div class="row px-1 py-1">
+                                <div class="col-12">
+
+                                    <section class="product-area mt-2">
+                                        <table class="table table-responsive-md mt-4 table-hover" id="reportTable">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center">DATE</th>
+                                                    <th class="text-center">TYPE NUMBER</th>
+                                                    <th class="text-center">PARTY NAME</th>
+                                                    <th class="text-center">TYPE</th>
+                                                    <th class="text-center">CASH IN</th>
+                                                    <th class="text-center">CASH OUT</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for i in reportData %}
+                                                <tr>
+                                                    <td class="text-center">{{i.date|date:'Y-m-d'}}</td>
+                                                    <td class="text-center">{{i.ref}}</td>
+                                                    <td class="text-center">{{i.partyName}}</td>
+                                                    <td class="text-center">{{i.type}}</td>
+                                                    <td class="text-center">{{i.moneyIn|floatformat:2 }}</td>
+                                                    <td class="text-center">{{i.moneyOut|floatformat:2 }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                        {% if not reportData %}
+                                        <center><h4 class="text-dark">No Transactions available.!</h4></center>
+                                        {% endif %}
+                                    </section>
+                        
+                                    <section class="balance-info text-dark">
+                                        <div class="row p-4">
+                                            <div class="col-9">
+                                                <div class="row mb-2">
+                                                    <div class="col-4 font-weight-bold">Total Cash In: <p style="font-size: 17px;">₹<span>{{totalCashIn|default:0|floatformat:2 }}</span></p></div>
+                                                </div>
+                                                <div class="row mb-2">
+                                                    <div class="col-4 font-weight-bold">Total Cash Out: <p style="font-size: 17px;">₹<span>{{totalCashOut|default:0|floatformat:2}}</span></p></div>
+                                                </div>
+                            
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="row mb-2">
+                                                    <div class="font-weight-bold">BALANCE: <p style="font-size: 30px;">₹<span>{{BALANCE|default:0|floatformat:2 }}</span></p></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+                                    
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share To Email Modal -->
+<div class="modal fade" id="shareToEmail">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">Share Report</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form action="{% url 'Fin_shareCashFlowReportToEmail' %}" method="post" class="needs-validation" id="share_to_email_form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="emailIds">Email IDs</label>
+                            <textarea class="form-control" name="email_ids" id="emailIds" rows="3" placeholder="Multiple emails can be added by separating with a comma(,)." required></textarea>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label for="item_unitname">Message(optional)</label>
+                            <textarea name="email_message" id="email_message" class="form-control" cols="" rows="4" placeholder="This message will be sent along with Bill details."></textarea>
+                        </div>
+                        <input type="date" name="start" id="startDt" hidden>
+                        <input type="date" name="end" id="endDt" hidden>
+                    </form>
+                </div>
+                <div class="modal-footer d-flex justify-content-center" style="border-top: 1px solid #ffffff;">
+                    <button type="submit" id="share_with_email" class="submitShareEmailBtn w-50 text-uppercase">SEND MAIL</button>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
+
+<script>
+    var $rows = $('#reportTable tbody tr');
+    $('#search').keyup(function() {
+        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+        
+        $rows.show().filter(function() {
+        var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+        return !~text.indexOf(val);
+        }).hide();
+    });
+    $(document).ready(function(){
+        var trans = `{{transaction}}`;
+        // alert(trans)
+        if(trans != "" && trans != 'all'){
+            $('#salesTransactions').val(trans)
+        }
+    })
+    function toggleContent() {
+        var contentDiv = document.getElementById("contentDiv");
+        if (contentDiv.style.display === "block") {
+            contentDiv.style.display = "none";
+        } else {
+            contentDiv.style.display = "block";
+            // Position the div just below the button
+            // var buttonRect = event.target.getBoundingClientRect();
+            // contentDiv.style.top = (buttonRect.bottom + window.scrollY) + "px";
+            // contentDiv.style.left = buttonRect.left + "px";
+        }
+    }
+
+    $('#toggleEmailModal').on('click',function(){
+        var st = $('#startDate').val();
+        var end = $('#endDate').val();
+
+        $('#startDt').val(st)
+        $('#endDt').val(end)
+
+        if((st != "" && end == "") || (st == "" && end != "")){
+        alert('Please select both date inputs or select none')
+        return
+        }
+
+        $('#shareToEmail').modal('toggle');
+    });
+
+    $(document).ready(function(){
+        $('#share_with_email').on('click',function(){
+            var emailsInput = document.getElementById('emailIds');
+            var emailsString = emailsInput.value.trim();
+
+            var emails = emailsString.split(',').map(function(email) {
+                return email.trim();
+            });
+
+            var emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+
+            var invalidEmails = []
+            if(emailsString == ""){
+                alert('Enter valid email addresses..')
+            }
+            else{
+                for (var i = 0; i < emails.length; i++) {
+                    var currentEmail = emails[i];
+
+                    if (currentEmail!="" && !emailRegex.test(currentEmail)) {
+                        console.log(currentEmail + ' is invalid!');
+                        invalidEmails.push(currentEmail)
+                    }
+                }
+                
+                if(invalidEmails.length > 0){
+                    alert('Invalid emails..Please check!\n'+invalidEmails)
+                    // alert(invalidEmails)
+                }else{
+                    $('#share_to_email_form').submit();
+                }
+            }
+        })
+    });
+
+    $(document).ready(function(){
+        var date1 = "";
+        $('#startDate').on('change',function(){
+            date1 = $(this).val()
+            $('#endDate').prop('min',date1)
+            $('#endDate').prop('required',true)
+
+        })
+
+        var date2 = "";
+        $('#endDate').on('change',function(){
+            date2 = $(this).val()
+            $('#startDate').prop('max',date2)
+            $('#startDate').prop('required',true)
+        })
+    })
+
+    function reportPDF(){
+        if(`{{startDate}}` != 'None' && `{{endDate}}` != 'None'){
+            var date = `_{{startDate}}`+"_"+`{{endDate}}`
+        }else{
+            var date = ''
+        }
+        var element = document.getElementById('printReport');
+        var opt =
+        {
+            margin: [0.5, 0.3, 0.3, 0.5],
+            filename: 'Report_CashFlow' + date,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'cm', format: 'letter', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+
+    function printSection(sectionId) {
+        document.body.style.backgroundColor = 'white';
+        var printContents = document.getElementById(sectionId).innerHTML;
+        var originalContents = document.body.innerHTML;
+        var $printerDiv = $('<div class="printContainer"></div>');
+
+        $printerDiv.html(printContents); 
+        $('body').append($printerDiv).addClass("printingContent"); 
+        window.print(); 
+        $printerDiv.remove();
+        $('body').removeClass("printingContent");
+    }
+
+    function ExportToExcel(){
+        if(`{{startDate}}` != 'None' && `{{endDate}}` != 'None'){
+            var date = `_{{startDate}}`+"_"+`{{endDate}}`
+        }else{
+            var date = ''
+        }
+        const Table = document.getElementById("reportTable");
+        const ws = XLSX.utils.table_to_sheet(Table);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        XLSX.writeFile(wb, "Report_CashFlow"+date+".xlsx");
+    }
+
+    let sortOrder = false; // false for ascending, true for descending
+
+    function sortName(colIndex) {
+    const table = document.getElementById('reportTable');
+    const rows = Array.from(table.rows).slice(1);
+    console.log(rows)
+    const isNumeric = !isNaN(parseFloat(rows[0].cells[colIndex].textContent));
+
+    rows.sort((a, b) => {
+        let aValue = a.cells[colIndex].textContent;
+        let bValue = b.cells[colIndex].textContent;
+
+        if (isNumeric) {
+        aValue = parseFloat(aValue);
+        bValue = parseFloat(bValue);
+        }
+
+        if (sortOrder) {
+        return aValue < bValue ? 1 : -1;
+        } else {
+        return aValue > bValue ? 1 : -1;
+        }
+    });
+
+    // Toggle arrow direction
+    const arrow = document.querySelector('.arrow');
+    arrow.classList.toggle('up', sortOrder);
+
+    // Reorder the rows
+    rows.forEach(row => table.appendChild(row));
+
+    // Toggle sort order for the next click
+    sortOrder = !sortOrder;
+    }
+</script>
+
+{% endblock %}
