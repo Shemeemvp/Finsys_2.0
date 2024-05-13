@@ -36718,4 +36718,1242 @@ def Fin_shareCashFlowReportToEmail(request):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_cashFlowReport)
+
+
+# < ------------- Shemeem -------- > Reports - Party Statements < ------------------------------- >
+
+def Fin_partyStatementReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        cust = Fin_Customers.objects.filter(Company = cmp)
+        vend = Fin_Vendors.objects.filter(Company = cmp)
+
+        reportData = []
+        totMoneyIn = 0
+        totMoneyOut = 0
+        totSales = 0
+        totPurchase = 0
+        totExpense = 0
+        BAL = 0
+
+        
+        est = Fin_Estimate.objects.filter(Company = cmp)
+        sordr= Fin_Sales_Order.objects.filter(Company = cmp)
+        inv = Fin_Invoice.objects.filter(Company = cmp)
+        crdNt = Fin_CreditNote.objects.filter(Company = cmp)
+        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp)
+        chl = Fin_Delivery_Challan.objects.filter(Company = cmp)
+        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp)
+
+        pordr= Fin_Purchase_Order.objects.filter(Company = cmp)
+        bill= Fin_Purchase_Bill.objects.filter(company = cmp)
+        exp = Fin_Expense.objects.filter(Company = cmp)
+        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp)
+        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp)
+
+        journal = Fin_Manual_Journal.objects.filter(Company = cmp)
+
+
+        if est:
+            for e in est:
+                date = e.estimate_date
+                ref = e.estimate_no
+                type = 'ESTIMATE'
+                payment = ""
+                total = e.grandtotal
+                bal = e.balance
+                totMoneyIn += float(e.grandtotal)
+                totSales += float(e.grandtotal)
+
+                details = {
+                    'date': date,
+                    'ref':ref,
+                    'type':type,
+                    'payment':payment,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if inv:
+            for i in inv:
+                date = i.invoice_date
+                ref = i.invoice_no
+                type = 'INVOICE'
+                total = i.grandtotal
+                payment = i.payment_method
+                bal = i.balance
+                totMoneyIn += float(i.grandtotal)
+                totSales += float(i.grandtotal)
+                BAL += float(i.balance)
+
+                details = {
+                    'date': date,
+                    'ref':ref,
+                    'type':type,
+                    'payment':payment,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if crdNt:
+            for cr in crdNt:
+                date = cr.creditnote_date
+                ref = cr.creditnote_number
+                payment = cr.payment_type
+                type = 'CREDIT NOTE'
+                total = cr.grandtotal
+                bal = cr.balance
+                totMoneyOut += float(cr.grandtotal)
+                totSales -= float(cr.grandtotal)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if recInv:
+            for rc in recInv:
+                date = rc.start_date
+                ref = rc.rec_invoice_no
+                payment = rc.payment_method
+                type = 'RECURRING INVOICE'
+                total = rc.grandtotal
+                bal = rc.balance
+                totMoneyIn += float(rc.grandtotal)
+                totSales += float(rc.grandtotal)
+                BAL += float(rc.balance)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if sordr:
+            for so in sordr:
+                date = so.sales_order_date
+                ref = so.sales_order_no
+                payment = so.payment_method
+                type = 'SALES ORDER'
+                total = so.grandtotal
+                bal = so.balance
+                totMoneyIn += float(so.grandtotal)
+                totSales += float(so.grandtotal)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if chl:
+            for ch in chl:
+                date = ch.challan_date
+                ref = ch.challan_no
+                type = 'DELIVERY CHALLAN'
+                payment = ""
+                total = ch.grandtotal
+                bal = ch.balance
+                totMoneyIn += float(ch.grandtotal)
+                totSales += float(ch.grandtotal)
+
+                details = {
+                    'date': date,
+                    'ref':ref,
+                    'type':type,
+                    'payment':payment,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if rtInv:
+            for rt in rtInv:
+                date = rt.Retainer_Invoice_date
+                ref = rt.Retainer_Invoice_number
+                type = 'RETAINER INVOICE'
+                payment = rt.Payment_Method
+                total = rt.Grand_total
+                bal = rt.Balance
+                totMoneyIn += float(rt.Grand_total)
+                totSales += float(rt.Grand_total)
+                BAL += float(rt.Balance)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if bill:
+            for bl in bill:
+                date = bl.bill_date
+                ref = bl.bill_no
+                payment = bl.pay_type
+                type = 'BILL'
+                total = bl.grandtotal
+                bal = bl.balance
+                totMoneyOut += float(bl.grandtotal)
+                totPurchase += float(bl.grandtotal)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if exp:
+            for ex in exp:
+                payment = ex.payment_method
+                date = ex.expense_date
+                ref = ex.expense_no
+                type = 'EXPENSE'
+                total = ex.amount
+                bal = 0
+                # totMoneyOut += float(ex.amount)
+                totExpense += float(ex.amount)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+
+        if journal:
+            for j in journal:
+                payment = ""
+                date = j.journal_date
+                ref = j.journal_no
+                type = 'MANUAL JOURNAL'
+                total = j.total_debit
+                bal = j.balance_debit
+                totExpense += float(j.total_debit)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+
+        if rcrbl:
+            for rb in rcrbl:
+                payment = rb.payment_method
+                date = rb.date
+                ref = rb.recurring_bill_number
+                type = 'RECURRING BILL'
+                total = rb.grand_total
+                bal = rb.balance
+                totMoneyOut += float(rb.grand_total)
+                totPurchase += float(rb.grand_total)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if pordr:
+            for po in pordr:
+                payment = po.payment_method
+                date = po.purchase_order_date
+                ref = po.purchase_order_no
+                type = 'PURCHASE ORDER'
+                total = po.grandtotal
+                bal = po.balance
+                totMoneyOut += float(po.grandtotal)
+                totPurchase += float(po.grandtotal)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        if dbtnt:
+            for db in dbtnt:
+                payment = db.payment_type
+                date = db.debit_note_date
+                ref = db.debit_note_number
+                type = 'DEBIT NOTE'
+                total = db.grandtotal
+                bal = db.balance
+                totMoneyIn += float(db.grandtotal)
+                totPurchase -= float(db.grandtotal)
+
+                details = {
+                    'date': date,
+                    'payment': payment,
+                    'ref':ref,
+                    'type':type,
+                    'total':total,
+                    'balance':bal
+                }
+                reportData.append(details)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend, 'reportData':reportData, 'totalMoneyIn':totMoneyIn, 'totalMoneyOut':totMoneyOut, 'totalSales':totSales, 'totalPurchase':totPurchase, 'totalExpense': totExpense,'BALANCE':BAL,
+            'startDate':None, 'endDate':None, 'partyName':None
+        }
+        return render(request,'company/reports/Fin_Party_Statement.html', context)
+    else:
+        return redirect('/')
+
+def Fin_partyStatementReportCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            prty = request.GET['party_details']
+
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+            if prty != "":
+                prt = prty.split(':')
+                partyId = prt[0]
+                partyType = prt[1]
+            else:
+                partyId = None
+                partyType = None
+
+            if partyId and partyType and partyId != "" and partyType != "":
+                if partyType == 'customer':
+                    party = Fin_Customers.objects.get(id = partyId)
+                    pName = party.title+" "+party.first_name+" "+party.last_name
+                    pDetails = str(party.id) +":"+'customer'
+                elif partyType == 'vendor':
+                    party = Fin_Vendors.objects.get(id = partyId)
+                    pName = party.title+" "+party.first_name+" "+party.last_name
+                    pDetails = str(party.id) +":"+'vendor'
+                else:
+                    party = None
+                    pName = None
+                    pDetails = ""
+
+            else:
+                party = None
+                pName = None
+                pDetails = ""
+
+            cust = Fin_Customers.objects.filter(Company = cmp)
+            vend = Fin_Vendors.objects.filter(Company = cmp)
+
+            if startDate is None or endDate is None:
+                if party:
+                    if partyType == 'customer':
+                        est = Fin_Estimate.objects.filter(Company = cmp, Customer = party)
+                        sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = party)
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = party)
+                        crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = party)
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = party)
+                        chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = party)
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = party)
+
+                        pordr= None
+                        bill= None
+                        exp = None
+                        dbtnt= None
+                        rcrbl= None
+
+                        journal = None
+                    
+                    if partyType == 'vendor':
+                        est = None
+                        sordr= None
+                        inv = None
+                        crdNt = None
+                        rtInv = None
+                        chl = None
+                        recInv = None
+
+                        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, Vendor = party)
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = party)
+                        exp = Fin_Expense.objects.filter(Company = cmp, Vendor = party)
+                        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, Vendor = party)
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = party)
+
+                        journal = None
+                else:
+                    est = Fin_Estimate.objects.filter(Company = cmp)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp)
+                    inv = Fin_Invoice.objects.filter(Company = cmp)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp)
+                    rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp)
+                    chl = Fin_Delivery_Challan.objects.filter(Company = cmp)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp)
+
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp)
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp)
+                    exp = Fin_Expense.objects.filter(Company = cmp)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp)
+
+                    journal = Fin_Manual_Journal.objects.filter(Company = cmp)
+            else:
+                if party:
+                    if partyType == 'customer':
+                        est = Fin_Estimate.objects.filter(Company = cmp, Customer = party, estimate_date__range = [startDate, endDate])
+                        sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = party, sales_order_date__range = [startDate, endDate])
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = party, invoice_date__range = [startDate, endDate])
+                        crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = party, creditnote_date__range = [startDate, endDate])
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = party, Retainer_Invoice_date__range = [startDate, endDate])
+                        chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = party, challan_date__range = [startDate, endDate])
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = party, start_date__range = [startDate, endDate])
+
+                        pordr= None
+                        bill= None
+                        exp = None
+                        dbtnt= None
+                        rcrbl= None
+
+                        journal = None
+                    
+                    if partyType == 'vendor':
+
+                        est = None
+                        sordr= None
+                        inv = None
+                        crdNt = None
+                        rtInv = None
+                        chl = None
+                        recInv = None
+
+                        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], Vendor = party)
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], vendor = party)
+                        exp = Fin_Expense.objects.filter(Company = cmp, expense_date__range = [startDate, endDate], Vendor = party)
+                        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], Vendor = party)
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], vendor = party)
+
+                        journal = None
+                else:
+                    est = Fin_Estimate.objects.filter(Company = cmp, estimate_date__range = [startDate, endDate])
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate])
+                    inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate])
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate])
+                    rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate])
+                    chl = Fin_Delivery_Challan.objects.filter(Company = cmp, challan_date__range = [startDate, endDate])
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate])
+
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate])
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate])
+                    exp = Fin_Expense.objects.filter(Company = cmp, expense_date__range = [startDate, endDate])
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate])
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate])
+
+                    journal = Fin_Manual_Journal.objects.filter(Company = cmp, journal_date__range = [startDate, endDate])
+
+            reportData = []
+            totMoneyIn = 0
+            totMoneyOut = 0
+            totSales = 0
+            totPurchase = 0
+            totExpense = 0
+            BAL = 0
+
+            if est:
+                for e in est:
+                    date = e.estimate_date
+                    ref = e.estimate_no
+                    type = 'ESTIMATE'
+                    payment = ""
+                    total = e.grandtotal
+                    bal = e.balance
+                    totMoneyIn += float(e.grandtotal)
+                    totSales += float(e.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'ref':ref,
+                        'type':type,
+                        'payment':payment,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if inv:
+                for i in inv:
+                    date = i.invoice_date
+                    ref = i.invoice_no
+                    type = 'INVOICE'
+                    total = i.grandtotal
+                    payment = i.payment_method
+                    bal = i.balance
+                    totMoneyIn += float(i.grandtotal)
+                    totSales += float(i.grandtotal)
+                    BAL += float(i.balance)
+
+                    details = {
+                        'date': date,
+                        'ref':ref,
+                        'type':type,
+                        'payment':payment,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if crdNt:
+                for cr in crdNt:
+                    date = cr.creditnote_date
+                    ref = cr.creditnote_number
+                    payment = cr.payment_type
+                    type = 'CREDIT NOTE'
+                    total = cr.grandtotal
+                    bal = cr.balance
+                    totMoneyOut += float(cr.grandtotal)
+                    totSales -= float(cr.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if recInv:
+                for rc in recInv:
+                    date = rc.start_date
+                    ref = rc.rec_invoice_no
+                    payment = rc.payment_method
+                    type = 'RECURRING INVOICE'
+                    total = rc.grandtotal
+                    bal = rc.balance
+                    totMoneyIn += float(rc.grandtotal)
+                    totSales += float(rc.grandtotal)
+                    BAL += float(rc.balance)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if sordr:
+                for so in sordr:
+                    date = so.sales_order_date
+                    ref = so.sales_order_no
+                    payment = so.payment_method
+                    type = 'SALES ORDER'
+                    total = so.grandtotal
+                    bal = so.balance
+                    totMoneyIn += float(so.grandtotal)
+                    totSales += float(so.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if chl:
+                for ch in chl:
+                    date = ch.challan_date
+                    ref = ch.challan_no
+                    type = 'DELIVERY CHALLAN'
+                    payment = ""
+                    total = ch.grandtotal
+                    bal = ch.balance
+                    totMoneyIn += float(ch.grandtotal)
+                    totSales += float(ch.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'ref':ref,
+                        'type':type,
+                        'payment':payment,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if rtInv:
+                for rt in rtInv:
+                    date = rt.Retainer_Invoice_date
+                    ref = rt.Retainer_Invoice_number
+                    type = 'RETAINER INVOICE'
+                    payment = rt.Payment_Method
+                    total = rt.Grand_total
+                    bal = rt.Balance
+                    totMoneyIn += float(rt.Grand_total)
+                    totSales += float(rt.Grand_total)
+                    BAL += float(rt.Balance)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if bill:
+                for bl in bill:
+                    date = bl.bill_date
+                    ref = bl.bill_no
+                    payment = bl.pay_type
+                    type = 'BILL'
+                    total = bl.grandtotal
+                    bal = bl.balance
+                    totMoneyOut += float(bl.grandtotal)
+                    totPurchase += float(bl.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if exp:
+                for ex in exp:
+                    payment = ex.payment_method
+                    date = ex.expense_date
+                    ref = ex.expense_no
+                    type = 'EXPENSE'
+                    total = ex.amount
+                    bal = 0
+                    # totMoneyOut += float(ex.amount)
+                    totExpense += float(ex.amount)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+
+            if journal:
+                for j in journal:
+                    payment = ""
+                    date = j.journal_date
+                    ref = j.journal_no
+                    type = 'MANUAL JOURNAL'
+                    total = j.total_debit
+                    bal = j.balance_debit
+                    totExpense += float(j.total_debit)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+
+            if rcrbl:
+                for rb in rcrbl:
+                    payment = rb.payment_method
+                    date = rb.date
+                    ref = rb.recurring_bill_number
+                    type = 'RECURRING BILL'
+                    total = rb.grand_total
+                    bal = rb.balance
+                    totMoneyOut += float(rb.grand_total)
+                    totPurchase += float(rb.grand_total)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if pordr:
+                for po in pordr:
+                    payment = po.payment_method
+                    date = po.purchase_order_date
+                    ref = po.purchase_order_no
+                    type = 'PURCHASE ORDER'
+                    total = po.grandtotal
+                    bal = po.balance
+                    totMoneyOut += float(po.grandtotal)
+                    totPurchase += float(po.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            if dbtnt:
+                for db in dbtnt:
+                    payment = db.payment_type
+                    date = db.debit_note_date
+                    ref = db.debit_note_number
+                    type = 'DEBIT NOTE'
+                    total = db.grandtotal
+                    bal = db.balance
+                    totMoneyIn += float(db.grandtotal)
+                    totPurchase -= float(db.grandtotal)
+
+                    details = {
+                        'date': date,
+                        'payment': payment,
+                        'ref':ref,
+                        'type':type,
+                        'total':total,
+                        'balance':bal
+                    }
+                    reportData.append(details)
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend, 'reportData':reportData, 'totalMoneyIn':totMoneyIn, 'totalMoneyOut':totMoneyOut, 'totalSales':totSales, 'totalPurchase':totPurchase, 'totalExpense': totExpense,'BALANCE':BAL,
+                'startDate':startDate, 'endDate':endDate, 'partyName': pName, 'partyDetails':pDetails
+            }
+            return render(request,'company/reports/Fin_Party_Statement.html', context)
+    else:
+        return redirect('/')
+
+def Fin_sharePartyStatementReportToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                prty = request.POST['party_details']
+
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+                if prty != "":
+                    prt = prty.split(':')
+                    partyId = prt[0]
+                    partyType = prt[1]
+                else:
+                    partyId = None
+                    partyType = None
+
+                if partyId and partyType and partyId != "" and partyType != "":
+                    if partyType == 'customer':
+                        party = Fin_Customers.objects.get(id = partyId)
+                        pName = party.title+" "+party.first_name+" "+party.last_name
+                    elif partyType == 'vendor':
+                        party = Fin_Vendors.objects.get(id = partyId)
+                        pName = party.title+" "+party.first_name+" "+party.last_name
+                    else:
+                        party = None
+                        pName = None
+
+                else:
+                    party = None
+                    pName = None
+
+                if startDate is None or endDate is None:
+                    if party:
+                        if partyType == 'customer':
+                            est = Fin_Estimate.objects.filter(Company = cmp, Customer = party)
+                            sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = party)
+                            inv = Fin_Invoice.objects.filter(Company = cmp, Customer = party)
+                            crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = party)
+                            rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = party)
+                            chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = party)
+                            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = party)
+
+                            pordr= None
+                            bill= None
+                            exp = None
+                            dbtnt= None
+                            rcrbl= None
+
+                            journal = None
+                        
+                        if partyType == 'vendor':
+                            est = None
+                            sordr= None
+                            inv = None
+                            crdNt = None
+                            rtInv = None
+                            chl = None
+                            recInv = None
+
+                            pordr= Fin_Purchase_Order.objects.filter(Company = cmp, Vendor = party)
+                            bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = party)
+                            exp = Fin_Expense.objects.filter(Company = cmp, Vendor = party)
+                            dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, Vendor = party)
+                            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = party)
+
+                            journal = None
+                    else:
+                        est = Fin_Estimate.objects.filter(Company = cmp)
+                        sordr= Fin_Sales_Order.objects.filter(Company = cmp)
+                        inv = Fin_Invoice.objects.filter(Company = cmp)
+                        crdNt = Fin_CreditNote.objects.filter(Company = cmp)
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp)
+                        chl = Fin_Delivery_Challan.objects.filter(Company = cmp)
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp)
+
+                        pordr= Fin_Purchase_Order.objects.filter(Company = cmp)
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp)
+                        exp = Fin_Expense.objects.filter(Company = cmp)
+                        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp)
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp)
+
+                        journal = Fin_Manual_Journal.objects.filter(Company = cmp)
+                else:
+                    if party:
+                        if partyType == 'customer':
+                            est = Fin_Estimate.objects.filter(Company = cmp, Customer = party, estimate_date__range = [startDate, endDate])
+                            sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = party, sales_order_date__range = [startDate, endDate])
+                            inv = Fin_Invoice.objects.filter(Company = cmp, Customer = party, invoice_date__range = [startDate, endDate])
+                            crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = party, creditnote_date__range = [startDate, endDate])
+                            rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = party, Retainer_Invoice_date__range = [startDate, endDate])
+                            chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = party, challan_date__range = [startDate, endDate])
+                            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = party, start_date__range = [startDate, endDate])
+
+                            pordr= None
+                            bill= None
+                            exp = None
+                            dbtnt= None
+                            rcrbl= None
+
+                            journal = None
+                        
+                        if partyType == 'vendor':
+
+                            est = None
+                            sordr= None
+                            inv = None
+                            crdNt = None
+                            rtInv = None
+                            chl = None
+                            recInv = None
+
+                            pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], Vendor = party)
+                            bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], vendor = party)
+                            exp = Fin_Expense.objects.filter(Company = cmp, expense_date__range = [startDate, endDate], Vendor = party)
+                            dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], Vendor = party)
+                            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], vendor = party)
+
+                            journal = None
+                    else:
+                        est = Fin_Estimate.objects.filter(Company = cmp, estimate_date__range = [startDate, endDate])
+                        sordr= Fin_Sales_Order.objects.filter(Company = cmp, sales_order_date__range = [startDate, endDate])
+                        inv = Fin_Invoice.objects.filter(Company = cmp, invoice_date__range = [startDate, endDate])
+                        crdNt = Fin_CreditNote.objects.filter(Company = cmp, creditnote_date__range = [startDate, endDate])
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Retainer_Invoice_date__range = [startDate, endDate])
+                        chl = Fin_Delivery_Challan.objects.filter(Company = cmp, challan_date__range = [startDate, endDate])
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, start_date__range = [startDate, endDate])
+
+                        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate])
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate])
+                        exp = Fin_Expense.objects.filter(Company = cmp, expense_date__range = [startDate, endDate])
+                        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate])
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate])
+
+                        journal = Fin_Manual_Journal.objects.filter(Company = cmp, journal_date__range = [startDate, endDate])
+
+                reportData = []
+                totMoneyIn = 0
+                totMoneyOut = 0
+                totSales = 0
+                totPurchase = 0
+                totExpense = 0
+                BAL = 0
+
+                if est:
+                    for e in est:
+                        date = e.estimate_date
+                        ref = e.estimate_no
+                        type = 'ESTIMATE'
+                        payment = ""
+                        total = e.grandtotal
+                        bal = e.balance
+                        totMoneyIn += float(e.grandtotal)
+                        totSales += float(e.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'ref':ref,
+                            'type':type,
+                            'payment':payment,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if inv:
+                    for i in inv:
+                        date = i.invoice_date
+                        ref = i.invoice_no
+                        type = 'INVOICE'
+                        total = i.grandtotal
+                        payment = i.payment_method
+                        bal = i.balance
+                        totMoneyIn += float(i.grandtotal)
+                        totSales += float(i.grandtotal)
+                        BAL += float(i.balance)
+
+                        details = {
+                            'date': date,
+                            'ref':ref,
+                            'type':type,
+                            'payment':payment,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if crdNt:
+                    for cr in crdNt:
+                        date = cr.creditnote_date
+                        ref = cr.creditnote_number
+                        payment = cr.payment_type
+                        type = 'CREDIT NOTE'
+                        total = cr.grandtotal
+                        bal = cr.balance
+                        totMoneyOut += float(cr.grandtotal)
+                        totSales -= float(cr.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if recInv:
+                    for rc in recInv:
+                        date = rc.start_date
+                        ref = rc.rec_invoice_no
+                        payment = rc.payment_method
+                        type = 'RECURRING INVOICE'
+                        total = rc.grandtotal
+                        bal = rc.balance
+                        totMoneyIn += float(rc.grandtotal)
+                        totSales += float(rc.grandtotal)
+                        BAL += float(rc.balance)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if sordr:
+                    for so in sordr:
+                        date = so.sales_order_date
+                        ref = so.sales_order_no
+                        payment = so.payment_method
+                        type = 'SALES ORDER'
+                        total = so.grandtotal
+                        bal = so.balance
+                        totMoneyIn += float(so.grandtotal)
+                        totSales += float(so.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if chl:
+                    for ch in chl:
+                        date = ch.challan_date
+                        ref = ch.challan_no
+                        type = 'DELIVERY CHALLAN'
+                        payment = ""
+                        total = ch.grandtotal
+                        bal = ch.balance
+                        totMoneyIn += float(ch.grandtotal)
+                        totSales += float(ch.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'ref':ref,
+                            'type':type,
+                            'payment':payment,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if rtInv:
+                    for rt in rtInv:
+                        date = rt.Retainer_Invoice_date
+                        ref = rt.Retainer_Invoice_number
+                        type = 'RETAINER INVOICE'
+                        payment = rt.Payment_Method
+                        total = rt.Grand_total
+                        bal = rt.Balance
+                        totMoneyIn += float(rt.Grand_total)
+                        totSales += float(rt.Grand_total)
+                        BAL += float(rt.Balance)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if bill:
+                    for bl in bill:
+                        date = bl.bill_date
+                        ref = bl.bill_no
+                        payment = bl.pay_type
+                        type = 'BILL'
+                        total = bl.grandtotal
+                        bal = bl.balance
+                        totMoneyOut += float(bl.grandtotal)
+                        totPurchase += float(bl.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if exp:
+                    for ex in exp:
+                        payment = ex.payment_method
+                        date = ex.expense_date
+                        ref = ex.expense_no
+                        type = 'EXPENSE'
+                        total = ex.amount
+                        bal = 0
+                        # totMoneyOut += float(ex.amount)
+                        totExpense += float(ex.amount)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+
+                if journal:
+                    for j in journal:
+                        payment = ""
+                        date = j.journal_date
+                        ref = j.journal_no
+                        type = 'MANUAL JOURNAL'
+                        total = j.total_debit
+                        bal = j.balance_debit
+                        totExpense += float(j.total_debit)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+
+                if rcrbl:
+                    for rb in rcrbl:
+                        payment = rb.payment_method
+                        date = rb.date
+                        ref = rb.recurring_bill_number
+                        type = 'RECURRING BILL'
+                        total = rb.grand_total
+                        bal = rb.balance
+                        totMoneyOut += float(rb.grand_total)
+                        totPurchase += float(rb.grand_total)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if pordr:
+                    for po in pordr:
+                        payment = po.payment_method
+                        date = po.purchase_order_date
+                        ref = po.purchase_order_no
+                        type = 'PURCHASE ORDER'
+                        total = po.grandtotal
+                        bal = po.balance
+                        totMoneyOut += float(po.grandtotal)
+                        totPurchase += float(po.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                if dbtnt:
+                    for db in dbtnt:
+                        payment = db.payment_type
+                        date = db.debit_note_date
+                        ref = db.debit_note_number
+                        type = 'DEBIT NOTE'
+                        total = db.grandtotal
+                        bal = db.balance
+                        totMoneyIn += float(db.grandtotal)
+                        totPurchase -= float(db.grandtotal)
+
+                        details = {
+                            'date': date,
+                            'payment': payment,
+                            'ref':ref,
+                            'type':type,
+                            'total':total,
+                            'balance':bal
+                        }
+                        reportData.append(details)
+
+                context = {'cmp':cmp, 'reportData':reportData, 'totalMoneyIn':totMoneyIn, 'totalMoneyOut':totMoneyOut, 'startDate':startDate, 'endDate':endDate,'totalSales':totSales, 'totalPurchase':totPurchase, 'totExpense':totExpense, 'BALANCE':BAL, 'partyName':pName}
+                template_path = 'company/reports/Fin_Party_Statement_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_Party_Statement'
+                subject = f"Report_Party_Statement"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Party Statement. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_partyStatementReport)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_partyStatementReport)
 # End

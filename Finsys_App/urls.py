@@ -923,6 +923,11 @@ urlpatterns = [
     path('Fin_report_cash_flow',views.Fin_cashFlowReport, name='Fin_cashFlowReport'),
     path('Fin_cash_flow_report_customized',views.Fin_cashFlowReportCustomized, name='Fin_cashFlowReportCustomized'),
     path('Fin_share_cash_flow_report_to_email',views.Fin_shareCashFlowReportToEmail, name='Fin_shareCashFlowReportToEmail'),
+
+    # < ------------- Shemeem -------- > Reports - Party Statements < ------------------------------- >
+    path('Fin_report_party_statement',views.Fin_partyStatementReport, name='Fin_partyStatementReport'),
+    path('Fin_party_statement_report_customized',views.Fin_partyStatementReportCustomized, name='Fin_partyStatementReportCustomized'),
+    path('Fin_share_party_statement_report_to_email',views.Fin_sharePartyStatementReportToEmail, name='Fin_sharePartyStatementReportToEmail'),
     # End
 
 
