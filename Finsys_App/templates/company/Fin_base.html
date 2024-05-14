@@ -756,11 +756,19 @@
                   <li><a href="{% url 'Fin_dayBookReport' %}"><i class="bx bx-right-arrow-alt"></i>Day Book</a></li>
                 </ul>
               </li>
+              <li id="stock">
+                <a><i class="bx bx-right-arrow-alt"></i>Stock Reports </a>
+                <ul class="px-4">
+                  <li><a href="{% url 'Fin_stockDetailsReport' %}"><i class="bx bx-right-arrow-alt"></i>Stock Details</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Summary </a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Valuation</a></li>
+                </ul>
+              </li>
               <li id="party">
                 <a><i class="bx bx-right-arrow-alt"></i>Party </a>
                 <ul class="px-4">
                   <li><a href="{% url 'Fin_partyStatementReport' %}">Party Statements</a></li>
-                  <li><a href="">All Parties</a></li>
+                  <li><a href="{% url 'Fin_allPartiesReport' %}">All Parties</a></li>
                 </ul>
               </li>
               <li id="gstreports">
@@ -796,8 +804,8 @@
                 </ul>
               </li>
 
-              <li id="stocksummary"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Summary </a></li>
-              <li id="stockvaluation"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Valuation</a></li>
+              <!-- <li id="stocksummary"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Summary </a></li> -->
+              <!-- <li id="stockvaluation"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Valuation</a></li> -->
               <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i>Sales Summary Report</a></li>
               <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i>Purchase Order Details</a></li>
               <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i>Purchase Order By Vendor</a></li>

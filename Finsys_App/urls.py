@@ -928,6 +928,15 @@ urlpatterns = [
     path('Fin_report_party_statement',views.Fin_partyStatementReport, name='Fin_partyStatementReport'),
     path('Fin_party_statement_report_customized',views.Fin_partyStatementReportCustomized, name='Fin_partyStatementReportCustomized'),
     path('Fin_share_party_statement_report_to_email',views.Fin_sharePartyStatementReportToEmail, name='Fin_sharePartyStatementReportToEmail'),
+
+    # < ------------- Shemeem -------- > Reports - All Parties < ------------------------------- >
+    path('Fin_report_all_parties',views.Fin_allPartiesReport, name='Fin_allPartiesReport'),
+    path('Fin_all_parties_report_customized',views.Fin_allPartiesReportCustomized, name='Fin_allPartiesReportCustomized'),
+    path('Fin_share_all_parties_report_to_email',views.Fin_shareAllPartiesReportToEmail, name='Fin_shareAllPartiesReportToEmail'),
+
+    # < ------------- Shemeem -------- > Reports - Stock Details < ------------------------------- >
+    path('Fin_report_stock_details',views.Fin_stockDetailsReport, name='Fin_stockDetailsReport'),
+    path('Fin_share_stock_details_report_to_email',views.Fin_shareStockDetailsReportToEmail, name='Fin_shareStockDetailsReportToEmail'),
     # End
 
 

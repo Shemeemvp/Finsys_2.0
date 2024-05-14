@@ -37956,4 +37956,890 @@ def Fin_sharePartyStatementReportToEmail(request):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_partyStatementReport)
+
+
+# < ------------- Shemeem -------- > Reports - Stock Details < ------------------------------- >
+
+def Fin_stockDetailsReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        items = Fin_Items.objects.filter(Company = cmp)
+
+        reportData = []
+
+        for i in items:
+            qIn = 0
+            qOut = 0
+            name = i.name
+            bQty = int(i.opening_stock)
+            pAmt = i.purchase_price
+            sAmt = i.selling_price
+
+            invItems = Fin_Invoice_Items.objects.filter(Item = i)
+            recInvItems = Fin_Recurring_Invoice_Items.objects.filter(Item = i)
+            retInvItems = Fin_Retainer_Invoice_Items.objects.filter(Item = i)
+
+            if invItems:
+                for itm in invItems:
+                    qOut += int(itm.quantity)
+
+            if recInvItems:
+                for itm in recInvItems:
+                    qOut += int(itm.quantity)
+
+            if retInvItems:
+                for itm in retInvItems:
+                    qOut += int(itm.Quantity)
+
+            billItems = Fin_Purchase_Bill_Item.objects.filter(item = i)
+            recBillItems = Fin_Recurring_Bill_Items.objects.filter(items = i)
+
+            if billItems:
+                for itm in billItems:
+                    qIn += int(itm.qty)
+
+            if recBillItems:
+                for itm in recBillItems:
+                    qIn += int(itm.quantity)
+
+            closingQty = bQty - qOut + qIn
+
+            det = {
+                'name':name,
+                'pAmount': pAmt,
+                'sAmount':sAmt,
+                'bQty':bQty,
+                'qtyIn':qIn,
+                'qtyOut':qOut,
+                'cQty':closingQty
+            }
+            reportData.append(det)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData,
+            'startDate':None, 'endDate':None
+        }
+        return render(request,'company/reports/Fin_Stock_Details.html', context)
+    else:
+        return redirect('/')
+
+
+def Fin_shareStockDetailsReportToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                items = Fin_Items.objects.filter(Company = cmp)
+                reportData = []
+
+                for i in items:
+                    qIn = 0
+                    qOut = 0
+                    name = i.name
+                    bQty = int(i.opening_stock)
+                    pAmt = i.purchase_price
+                    sAmt = i.selling_price
+
+                    invItems = Fin_Invoice_Items.objects.filter(Item = i)
+                    recInvItems = Fin_Recurring_Invoice_Items.objects.filter(Item = i)
+                    retInvItems = Fin_Retainer_Invoice_Items.objects.filter(Item = i)
+
+                    if invItems:
+                        for itm in invItems:
+                            qOut += int(itm.quantity)
+
+                    if recInvItems:
+                        for itm in recInvItems:
+                            qOut += int(itm.quantity)
+
+                    if retInvItems:
+                        for itm in retInvItems:
+                            qOut += int(itm.Quantity)
+
+                    billItems = Fin_Purchase_Bill_Item.objects.filter(item = i)
+                    recBillItems = Fin_Recurring_Bill_Items.objects.filter(items = i)
+
+                    if billItems:
+                        for itm in billItems:
+                            qIn += int(itm.qty)
+
+                    if recBillItems:
+                        for itm in recBillItems:
+                            qIn += int(itm.quantity)
+
+                    closingQty = bQty - qOut + qIn
+
+                    det = {
+                        'name':name,
+                        'pAmount': pAmt,
+                        'sAmount':sAmt,
+                        'bQty':bQty,
+                        'qtyIn':qIn,
+                        'qtyOut':qOut,
+                        'cQty':closingQty
+                    }
+                    reportData.append(det)
+
+                context = {'cmp':cmp, 'reportData':reportData}
+                template_path = 'company/reports/Fin_Stock_Details_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_Stock_Details'
+                subject = f"Report_Stock_Details"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Stock Details. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_stockDetailsReport)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_stockDetailsReport)
+
+
+# < ------------- Shemeem -------- > Reports - All Parties < ------------------------------- >
+
+def Fin_allPartiesReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        cust = Fin_Customers.objects.filter(Company = cmp)
+        vend = Fin_Vendors.objects.filter(Company = cmp)
+
+        reportData = []
+
+        totReceivable = 0
+        for c in cust:
+            receivable = 0
+            partyName = c.title+" "+c.first_name+" "+c.last_name
+            email = c.email
+            mob = c.mobile
+            credit = c.credit_limit
+
+            inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c)
+            rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c)
+            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c)
+
+            if inv:
+                for i in inv:
+                    receivable += float(i.balance)
+                    totReceivable += float(i.balance)
+
+            if recInv:
+                for rc in recInv:
+                    receivable += float(rc.balance)
+                    totReceivable += float(rc.balance)
+
+            if rtInv:
+                for rt in rtInv:
+                    receivable += float(rt.Balance)
+                    totReceivable += float(rt.Balance)
+
+            details = {
+                'name': partyName,
+                'email': email,
+                'credit':credit,
+                'mobile':mob,
+                'rec':receivable,
+                'pay':0
+            }
+            reportData.append(details)
+
+        totPayable = 0
+        for v in vend:
+            payable = 0
+            partyName = v.title+" "+v.first_name+" "+v.last_name
+            email = v.email
+            mob = v.mobile
+            credit = v.credit_limit
+
+            bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v)
+            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v)
+
+
+            if bill:
+                for bl in bill:
+                    payable += float(bl.balance)
+                    totPayable += float(bl.balance)
+
+            if rcrbl:
+                for rb in rcrbl:
+                    payable += float(rb.balance)
+                    totPayable += float(rb.balance)
+
+            details = {
+                'name': partyName,
+                'email': email,
+                'credit':credit,
+                'mobile':mob,
+                'rec': 0,
+                'pay':payable
+            }
+            reportData.append(details)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend, 'reportData':reportData, 'totalReceivable':totReceivable, 'totalPayable':totPayable,
+            'startDate':None, 'endDate':None
+        }
+        return render(request,'company/reports/Fin_All_Parties.html', context)
+    else:
+        return redirect('/')
+
+def Fin_allPartiesReportCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            prty = request.GET['parties']
+
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+            
+            reportData = []
+            totPayable = 0
+            totReceivable = 0
+            cust = Fin_Customers.objects.filter(Company = cmp)
+            vend = Fin_Vendors.objects.filter(Company = cmp)
+
+            if startDate is None or endDate is None:
+                if prty == 'payable':
+                    for v in vend:
+                        payable = 0
+                        partyName = v.title+" "+v.first_name+" "+v.last_name
+                        email = v.email
+                        mob = v.mobile
+                        credit = v.credit_limit
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v)
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v)
+                        if bill:
+                            for bl in bill:
+                                payable += float(bl.balance)
+                                totPayable += float(bl.balance)
+
+                        if rcrbl:
+                            for rb in rcrbl:
+                                payable += float(rb.balance)
+                                totPayable += float(rb.balance)
+
+                        details = {
+                            'name': partyName,
+                            'email': email,
+                            'credit':credit,
+                            'mobile':mob,
+                            'rec': 0,
+                            'pay':payable
+                        }
+                        reportData.append(details)
+                elif prty == 'receivable':
+                    for c in cust:
+                        receivable = 0
+                        partyName = c.title+" "+c.first_name+" "+c.last_name
+                        email = c.email
+                        mob = c.mobile
+                        credit = c.credit_limit
+
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c)
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c)
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c)
+
+                        if inv:
+                            for i in inv:
+                                receivable += float(i.balance)
+                                totReceivable += float(i.balance)
+
+                        if recInv:
+                            for rc in recInv:
+                                receivable += float(rc.balance)
+                                totReceivable += float(rc.balance)
+
+                        if rtInv:
+                            for rt in rtInv:
+                                receivable += float(rt.Balance)
+                                totReceivable += float(rt.Balance)
+
+                        details = {
+                            'name': partyName,
+                            'email': email,
+                            'credit':credit,
+                            'mobile':mob,
+                            'rec':receivable,
+                            'pay':0
+                        }
+                        reportData.append(details)
+                else:
+                    for c in cust:
+                        receivable = 0
+                        partyName = c.title+" "+c.first_name+" "+c.last_name
+                        email = c.email
+                        mob = c.mobile
+                        credit = c.credit_limit
+
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c)
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c)
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c)
+
+                        if inv:
+                            for i in inv:
+                                receivable += float(i.balance)
+                                totReceivable += float(i.balance)
+
+                        if recInv:
+                            for rc in recInv:
+                                receivable += float(rc.balance)
+                                totReceivable += float(rc.balance)
+
+                        if rtInv:
+                            for rt in rtInv:
+                                receivable += float(rt.Balance)
+                                totReceivable += float(rt.Balance)
+
+                        details = {
+                            'name': partyName,
+                            'email': email,
+                            'credit':credit,
+                            'mobile':mob,
+                            'rec':receivable,
+                            'pay':0
+                        }
+                        reportData.append(details)
+
+                    for v in vend:
+                        payable = 0
+                        partyName = v.title+" "+v.first_name+" "+v.last_name
+                        email = v.email
+                        mob = v.mobile
+                        credit = v.credit_limit
+
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v)
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v)
+
+
+                        if bill:
+                            for bl in bill:
+                                payable += float(bl.balance)
+                                totPayable += float(bl.balance)
+
+                        if rcrbl:
+                            for rb in rcrbl:
+                                payable += float(rb.balance)
+                                totPayable += float(rb.balance)
+
+                        details = {
+                            'name': partyName,
+                            'email': email,
+                            'credit':credit,
+                            'mobile':mob,
+                            'rec': 0,
+                            'pay':payable
+                        }
+                        reportData.append(details)
+            else:
+                if prty == 'payable':
+                    for v in vend:
+                        payable = 0
+                        partyName = v.title+" "+v.first_name+" "+v.last_name
+                        email = v.email
+                        mob = v.mobile
+                        credit = v.credit_limit
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v, bill_date__range = [startDate, endDate])
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v, date__range = [startDate, endDate])
+                        if bill:
+                            for bl in bill:
+                                payable += float(bl.balance)
+                                totPayable += float(bl.balance)
+
+                        if rcrbl:
+                            for rb in rcrbl:
+                                payable += float(rb.balance)
+                                totPayable += float(rb.balance)
+
+                        details = {
+                            'name': partyName,
+                            'email': email,
+                            'credit':credit,
+                            'mobile':mob,
+                            'rec': 0,
+                            'pay':payable
+                        }
+                        reportData.append(details)
+                elif prty == 'receivable':
+                    for c in cust:
+                        receivable = 0
+                        partyName = c.title+" "+c.first_name+" "+c.last_name
+                        email = c.email
+                        mob = c.mobile
+                        credit = c.credit_limit
+
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c, invoice_date__range = [startDate, endDate])
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c, Retainer_Invoice_date__range = [startDate, endDate])
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c, start_date__range = [startDate, endDate])
+
+                        if inv:
+                            for i in inv:
+                                receivable += float(i.balance)
+                                totReceivable += float(i.balance)
+
+                        if recInv:
+                            for rc in recInv:
+                                receivable += float(rc.balance)
+                                totReceivable += float(rc.balance)
+
+                        if rtInv:
+                            for rt in rtInv:
+                                receivable += float(rt.Balance)
+                                totReceivable += float(rt.Balance)
+
+                        details = {
+                            'name': partyName,
+                            'email': email,
+                            'credit':credit,
+                            'mobile':mob,
+                            'rec':receivable,
+                            'pay':0
+                        }
+                        reportData.append(details)
+                else:
+                    for c in cust:
+                        receivable = 0
+                        partyName = c.title+" "+c.first_name+" "+c.last_name
+                        email = c.email
+                        mob = c.mobile
+                        credit = c.credit_limit
+
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c, invoice_date__range = [startDate, endDate])
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c, Retainer_Invoice_date__range = [startDate, endDate])
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c, start_date__range = [startDate, endDate])
+
+                        if inv:
+                            for i in inv:
+                                receivable += float(i.balance)
+                                totReceivable += float(i.balance)
+
+                        if recInv:
+                            for rc in recInv:
+                                receivable += float(rc.balance)
+                                totReceivable += float(rc.balance)
+
+                        if rtInv:
+                            for rt in rtInv:
+                                receivable += float(rt.Balance)
+                                totReceivable += float(rt.Balance)
+
+                        details = {
+                            'name': partyName,
+                            'email': email,
+                            'credit':credit,
+                            'mobile':mob,
+                            'rec':receivable,
+                            'pay':0
+                        }
+                        reportData.append(details)
+
+                    for v in vend:
+                        payable = 0
+                        partyName = v.title+" "+v.first_name+" "+v.last_name
+                        email = v.email
+                        mob = v.mobile
+                        credit = v.credit_limit
+
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v, bill_date__range = [startDate, endDate])
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v, date__range = [startDate, endDate])
+
+
+                        if bill:
+                            for bl in bill:
+                                payable += float(bl.balance)
+                                totPayable += float(bl.balance)
+
+                        if rcrbl:
+                            for rb in rcrbl:
+                                payable += float(rb.balance)
+                                totPayable += float(rb.balance)
+
+                        details = {
+                            'name': partyName,
+                            'email': email,
+                            'credit':credit,
+                            'mobile':mob,
+                            'rec': 0,
+                            'pay':payable
+                        }
+                        reportData.append(details)
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend, 'reportData':reportData, 'totalReceivable':totReceivable, 'totalPayable':totPayable,
+                'startDate':startDate, 'endDate':endDate, 'parties':prty
+            }
+            return render(request,'company/reports/Fin_All_Parties.html', context)
+    else:
+        return redirect('/')
+
+def Fin_shareAllPartiesReportToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                prty = request.POST['parties']
+
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                reportData = []
+                totPayable = 0
+                totReceivable = 0
+                cust = Fin_Customers.objects.filter(Company = cmp)
+                vend = Fin_Vendors.objects.filter(Company = cmp)
+
+                if startDate is None or endDate is None:
+                    if prty == 'payable':
+                        for v in vend:
+                            payable = 0
+                            partyName = v.title+" "+v.first_name+" "+v.last_name
+                            email = v.email
+                            mob = v.mobile
+                            credit = v.credit_limit
+                            bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v)
+                            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v)
+                            if bill:
+                                for bl in bill:
+                                    payable += float(bl.balance)
+                                    totPayable += float(bl.balance)
+
+                            if rcrbl:
+                                for rb in rcrbl:
+                                    payable += float(rb.balance)
+                                    totPayable += float(rb.balance)
+
+                            details = {
+                                'name': partyName,
+                                'email': email,
+                                'credit':credit,
+                                'mobile':mob,
+                                'rec': 0,
+                                'pay':payable
+                            }
+                            reportData.append(details)
+                    elif prty == 'receivable':
+                        for c in cust:
+                            receivable = 0
+                            partyName = c.title+" "+c.first_name+" "+c.last_name
+                            email = c.email
+                            mob = c.mobile
+                            credit = c.credit_limit
+
+                            inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c)
+                            rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c)
+                            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c)
+
+                            if inv:
+                                for i in inv:
+                                    receivable += float(i.balance)
+                                    totReceivable += float(i.balance)
+
+                            if recInv:
+                                for rc in recInv:
+                                    receivable += float(rc.balance)
+                                    totReceivable += float(rc.balance)
+
+                            if rtInv:
+                                for rt in rtInv:
+                                    receivable += float(rt.Balance)
+                                    totReceivable += float(rt.Balance)
+
+                            details = {
+                                'name': partyName,
+                                'email': email,
+                                'credit':credit,
+                                'mobile':mob,
+                                'rec':receivable,
+                                'pay':0
+                            }
+                            reportData.append(details)
+                    else:
+                        for c in cust:
+                            receivable = 0
+                            partyName = c.title+" "+c.first_name+" "+c.last_name
+                            email = c.email
+                            mob = c.mobile
+                            credit = c.credit_limit
+
+                            inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c)
+                            rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c)
+                            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c)
+
+                            if inv:
+                                for i in inv:
+                                    receivable += float(i.balance)
+                                    totReceivable += float(i.balance)
+
+                            if recInv:
+                                for rc in recInv:
+                                    receivable += float(rc.balance)
+                                    totReceivable += float(rc.balance)
+
+                            if rtInv:
+                                for rt in rtInv:
+                                    receivable += float(rt.Balance)
+                                    totReceivable += float(rt.Balance)
+
+                            details = {
+                                'name': partyName,
+                                'email': email,
+                                'credit':credit,
+                                'mobile':mob,
+                                'rec':receivable,
+                                'pay':0
+                            }
+                            reportData.append(details)
+
+                        for v in vend:
+                            payable = 0
+                            partyName = v.title+" "+v.first_name+" "+v.last_name
+                            email = v.email
+                            mob = v.mobile
+                            credit = v.credit_limit
+
+                            bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v)
+                            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v)
+
+
+                            if bill:
+                                for bl in bill:
+                                    payable += float(bl.balance)
+                                    totPayable += float(bl.balance)
+
+                            if rcrbl:
+                                for rb in rcrbl:
+                                    payable += float(rb.balance)
+                                    totPayable += float(rb.balance)
+
+                            details = {
+                                'name': partyName,
+                                'email': email,
+                                'credit':credit,
+                                'mobile':mob,
+                                'rec': 0,
+                                'pay':payable
+                            }
+                            reportData.append(details)
+                else:
+                    if prty == 'payable':
+                        for v in vend:
+                            payable = 0
+                            partyName = v.title+" "+v.first_name+" "+v.last_name
+                            email = v.email
+                            mob = v.mobile
+                            credit = v.credit_limit
+                            bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v, bill_date__range = [startDate, endDate])
+                            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v, date__range = [startDate, endDate])
+                            if bill:
+                                for bl in bill:
+                                    payable += float(bl.balance)
+                                    totPayable += float(bl.balance)
+
+                            if rcrbl:
+                                for rb in rcrbl:
+                                    payable += float(rb.balance)
+                                    totPayable += float(rb.balance)
+
+                            details = {
+                                'name': partyName,
+                                'email': email,
+                                'credit':credit,
+                                'mobile':mob,
+                                'rec': 0,
+                                'pay':payable
+                            }
+                            reportData.append(details)
+                    elif prty == 'receivable':
+                        for c in cust:
+                            receivable = 0
+                            partyName = c.title+" "+c.first_name+" "+c.last_name
+                            email = c.email
+                            mob = c.mobile
+                            credit = c.credit_limit
+
+                            inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c, invoice_date__range = [startDate, endDate])
+                            rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c, Retainer_Invoice_date__range = [startDate, endDate])
+                            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c, start_date__range = [startDate, endDate])
+
+                            if inv:
+                                for i in inv:
+                                    receivable += float(i.balance)
+                                    totReceivable += float(i.balance)
+
+                            if recInv:
+                                for rc in recInv:
+                                    receivable += float(rc.balance)
+                                    totReceivable += float(rc.balance)
+
+                            if rtInv:
+                                for rt in rtInv:
+                                    receivable += float(rt.Balance)
+                                    totReceivable += float(rt.Balance)
+
+                            details = {
+                                'name': partyName,
+                                'email': email,
+                                'credit':credit,
+                                'mobile':mob,
+                                'rec':receivable,
+                                'pay':0
+                            }
+                            reportData.append(details)
+                    else:
+                        for c in cust:
+                            receivable = 0
+                            partyName = c.title+" "+c.first_name+" "+c.last_name
+                            email = c.email
+                            mob = c.mobile
+                            credit = c.credit_limit
+
+                            inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c, invoice_date__range = [startDate, endDate])
+                            rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c, Retainer_Invoice_date__range = [startDate, endDate])
+                            recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c, start_date__range = [startDate, endDate])
+
+                            if inv:
+                                for i in inv:
+                                    receivable += float(i.balance)
+                                    totReceivable += float(i.balance)
+
+                            if recInv:
+                                for rc in recInv:
+                                    receivable += float(rc.balance)
+                                    totReceivable += float(rc.balance)
+
+                            if rtInv:
+                                for rt in rtInv:
+                                    receivable += float(rt.Balance)
+                                    totReceivable += float(rt.Balance)
+
+                            details = {
+                                'name': partyName,
+                                'email': email,
+                                'credit':credit,
+                                'mobile':mob,
+                                'rec':receivable,
+                                'pay':0
+                            }
+                            reportData.append(details)
+
+                        for v in vend:
+                            payable = 0
+                            partyName = v.title+" "+v.first_name+" "+v.last_name
+                            email = v.email
+                            mob = v.mobile
+                            credit = v.credit_limit
+
+                            bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v, bill_date__range = [startDate, endDate])
+                            rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v, date__range = [startDate, endDate])
+
+
+                            if bill:
+                                for bl in bill:
+                                    payable += float(bl.balance)
+                                    totPayable += float(bl.balance)
+
+                            if rcrbl:
+                                for rb in rcrbl:
+                                    payable += float(rb.balance)
+                                    totPayable += float(rb.balance)
+
+                            details = {
+                                'name': partyName,
+                                'email': email,
+                                'credit':credit,
+                                'mobile':mob,
+                                'rec': 0,
+                                'pay':payable
+                            }
+                            reportData.append(details)
+
+                context = {'cmp':cmp, 'reportData':reportData, 'totalReceivable':totReceivable, 'totalPayable':totPayable, 'startDate':startDate, 'endDate':endDate}
+                template_path = 'company/reports/Fin_All_Parties_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_All_Parties'
+                subject = f"Report_All_Parties"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - All Parties. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_allPartiesReport)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_allPartiesReport)
 # End
