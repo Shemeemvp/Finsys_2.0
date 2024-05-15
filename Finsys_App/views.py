@@ -2012,22 +2012,122 @@ def Fin_viewItem(request,id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
+        item = Fin_Items.objects.get(id = id)
         if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            item = Fin_Items.objects.get(id = id)
-            hist = Fin_Items_Transaction_History.objects.filter(Company = com, item = item).last()
-            cmt = Fin_Items_Comments.objects.filter(item = item)
-            context = {'allmodules':allmodules,'com':com,'data':data,'item':item, 'history': hist,'comments':cmt}
-            return render(request,'company/Fin_View_Item.html',context)
+            cmp = com
         else:
             com = Fin_Staff_Details.objects.get(Login_Id = s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id = com.company_id,status = 'New')
-            item = Fin_Items.objects.get(id = id)
-            hist = Fin_Items_Transaction_History.objects.filter(Company = com.company_id, item = item).last()
-            cmt = Fin_Items_Comments.objects.filter(item = item)
-            context = {'allmodules':allmodules,'com':com,'data':data,'item':item, 'history': hist,'comments':cmt}
-            return render(request,'company/Fin_View_Item.html',context)
+            cmp = com.company_id
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        hist = Fin_Items_Transaction_History.objects.filter(Company = cmp, item = item).last()
+        cmt = Fin_Items_Comments.objects.filter(item = item)
+        
+        transactions = []
+        if item.opening_stock != 0:
+            det = {
+                'type':'Opening Stock',
+                'name':'',
+                'date':item.item_created,
+                'qty': item.opening_stock,
+                'price':item.selling_price,
+                'status': item.status
+            }
+            transactions.append(det)
+        estItems = Fin_Estimate_Items.objects.filter(Item = item)
+        if estItems:
+            for es in estItems:
+                det = {
+                    'type':'Estimate',
+                    'name':es.Estimate.Customer.first_name+" "+es.Estimate.Customer.last_name,
+                    'date':es.Estimate.estimate_date,
+                    'qty': es.quantity,
+                    'price':es.price,
+                    'status':es.Estimate.status
+                }
+                transactions.append(det)
+
+        soItems = Fin_Sales_Order_Items.objects.filter(Item = item)
+        if soItems:
+            for so in soItems:
+                det = {
+                    'type':'Sales Order',
+                    'name':so.SalesOrder.Customer.first_name+" "+so.SalesOrder.Customer.last_name,
+                    'date':so.SalesOrder.sales_order_date,
+                    'qty': so.quantity,
+                    'price':so.price,
+                    'status':so.SalesOrder.status
+                }
+                transactions.append(det)
+
+        invItems = Fin_Invoice_Items.objects.filter(Item = item)
+        if invItems:
+            for iv in invItems:
+                det = {
+                    'type':'Invoice',
+                    'name':iv.Invoice.Customer.first_name+" "+iv.Invoice.Customer.last_name,
+                    'date':iv.Invoice.invoice_date,
+                    'qty': iv.quantity,
+                    'price':iv.price,
+                    'status':iv.Invoice.status
+                }
+                transactions.append(det)
+
+        crdItems = Fin_CreditNote_Items.objects.filter(items = item)
+        if crdItems:
+            for cr in crdItems:
+                det = {
+                    'type':'Credit Note',
+                    'name':cr.creditnote.Customer.first_name+" "+cr.creditnote.Customer.last_name,
+                    'date':cr.creditnote.creditnote_date,
+                    'qty': cr.quantity,
+                    'price':cr.price,
+                    'status':cr.creditnote.status
+                }
+                transactions.append(det)
+
+        rtInvItems = Fin_Retainer_Invoice_Items.objects.filter(Item = item)
+        if rtInvItems:
+            for rt in rtInvItems:
+                det = {
+                    'type':'Retainer Invoice',
+                    'name':rt.Ret_Inv.Customer.first_name+" "+rt.Ret_Inv.Customer.last_name,
+                    'date':rt.Ret_Inv.Retainer_Invoice_date,
+                    'qty': rt.Quantity,
+                    'price':rt.Price,
+                    'status':rt.Ret_Inv.status
+                }
+                transactions.append(det)
+
+        chlItems = Fin_Delivery_Challan_Items.objects.filter(items = item)
+        if chlItems:
+            for ch in chlItems:
+                det = {
+                    'type':'Delivery Challan',
+                    'name':ch.delivery_challan.Customer.first_name+" "+ch.delivery_challan.Customer.last_name,
+                    'date':ch.delivery_challan.challan_date,
+                    'qty': ch.quantity,
+                    'price':ch.price,
+                    'status':ch.delivery_challan.status
+                }
+                transactions.append(det)
+
+        recItems = Fin_Recurring_Invoice_Items.objects.filter(Item = item)
+        if recItems:
+            for rec in recItems:
+                det = {
+                    'type':'Recurring Invoice',
+                    'name':rec.RecInvoice.Customer.first_name+" "+rec.RecInvoice.Customer.last_name,
+                    'date':rec.RecInvoice.start_date,
+                    'qty': rec.quantity,
+                    'price':rec.price,
+                    'status':rec.RecInvoice.status
+                }
+                transactions.append(det)
+        
+        
+        context = {'allmodules':allmodules,'com':com,'data':data,'item':item, 'history': hist,'comments':cmt, 'transactions':transactions}
+        return render(request,'company/Fin_View_Item.html',context)
     else:
        return redirect('/')
     
@@ -38842,4 +38942,1084 @@ def Fin_shareAllPartiesReportToEmail(request):
             print(e)
             messages.error(request, f'{e}')
             return redirect(Fin_allPartiesReport)
+
+
+# < ------------- Shemeem -------- > Reports - Item Report By Party < ------------------------------- >
+
+def Fin_itemReportByParty(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        cust = Fin_Customers.objects.filter(Company = cmp)
+        vend = Fin_Vendors.objects.filter(Company = cmp)
+
+        reportData = []
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend, 'reportData':reportData,
+            'startDate':None, 'endDate':None
+        }
+        return render(request,'company/reports/Fin_ItemReportByParty.html', context)
+    else:
+        return redirect('/')
+
+def Fin_itemReportByPartyCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            prty = request.GET['party_details']
+
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+            if prty != "0":
+                prt = prty.split(':')
+                partyId = prt[0]
+                partyType = prt[1]
+            else:
+                partyId = None
+                partyType = None
+
+            if partyId and partyType and partyId != "" and partyType != "":
+                if partyType == 'customer':
+                    party = Fin_Customers.objects.get(id = partyId)
+                    pName = party.title+" "+party.first_name+" "+party.last_name
+                    pDetails = str(party.id) +":"+'customer'
+                elif partyType == 'vendor':
+                    party = Fin_Vendors.objects.get(id = partyId)
+                    pName = party.title+" "+party.first_name+" "+party.last_name
+                    pDetails = str(party.id) +":"+'vendor'
+                else:
+                    party = None
+                    pName = None
+                    pDetails = ""
+
+            else:
+                party = None
+                pName = None
+                pDetails = ""
+
+            items = Fin_Items.objects.filter(Company = cmp)
+            cust = Fin_Customers.objects.filter(Company = cmp)
+            vend = Fin_Vendors.objects.filter(Company = cmp)
+
+            if startDate is None or endDate is None:
+                if partyType == 'customer':
+                    est = Fin_Estimate.objects.filter(Company = cmp, Customer = party)
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = party)
+                    inv = Fin_Invoice.objects.filter(Company = cmp, Customer = party)
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = party)
+                    rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = party)
+                    chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = party)
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = party)
+
+                    pordr= None
+                    bill= None
+                    dbtnt= None
+                    rcrbl= None
+                
+                if partyType == 'vendor':
+                    est = None
+                    sordr= None
+                    inv = None
+                    crdNt = None
+                    rtInv = None
+                    chl = None
+                    recInv = None
+
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, Vendor = party)
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = party)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, Vendor = party)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = party)
+            else:
+                if partyType == 'customer':
+                    est = Fin_Estimate.objects.filter(Company = cmp, Customer = party, estimate_date__range = [startDate, endDate])
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = party, sales_order_date__range = [startDate, endDate])
+                    inv = Fin_Invoice.objects.filter(Company = cmp, Customer = party, invoice_date__range = [startDate, endDate])
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = party, creditnote_date__range = [startDate, endDate])
+                    rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = party, Retainer_Invoice_date__range = [startDate, endDate])
+                    chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = party, challan_date__range = [startDate, endDate])
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = party, start_date__range = [startDate, endDate])
+
+                    pordr= None
+                    bill= None
+                    dbtnt= None
+                    rcrbl= None
+                
+                if partyType == 'vendor':
+
+                    est = None
+                    sordr= None
+                    inv = None
+                    crdNt = None
+                    rtInv = None
+                    chl = None
+                    recInv = None
+
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], Vendor = party)
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], vendor = party)
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], Vendor = party)
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], vendor = party)
+
+            reportData = []
+            
+            totSales = 0
+            totPurchase = 0
+            if partyType == 'customer':
+                for i in items:
+                    sales = 0
+                    item = i.name
+                    sAmt = i.selling_price
+                    pAmt = i.purchase_price
+
+                    for e in est:
+                        estItems = Fin_Estimate_Items.objects.filter(Estimate = e, Item = i)
+                        for it in estItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+                    
+                    for s in sordr:
+                        soItems = Fin_Sales_Order_Items.objects.filter(SalesOrder = s, Item = i)
+                        for it in soItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+                    
+                    for iv in inv:
+                        invItems = Fin_Invoice_Items.objects.filter(Invoice = iv, Item = i)
+                        for it in invItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    for cr in crdNt:
+                        crItems = Fin_CreditNote_Items.objects.filter(creditnote = cr, items = i)
+                        for it in crItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    for rt in rtInv:
+                        rtItems = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = rt, Item = i)
+                        for it in rtItems:
+                            sales += int(it.Quantity)
+                            totSales += int(it.Quantity)
+
+                    for ch in chl:
+                        chlItems = Fin_Delivery_Challan_Items.objects.filter(delivery_challan = ch, items = i)
+                        for it in chlItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    for rec in recInv:
+                        recItems = Fin_Recurring_Invoice_Items.objects.filter(RecInvoice= rec, Item = i)
+                        for it in recItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    det = {
+                        'name': item,
+                        'salesQty':sales,
+                        'sAmount':sAmt,
+                        'pAmount':pAmt,
+                        'purchaseQty': 0
+                    }
+
+                    reportData.append(det)
+
+            if partyType == 'vendor':
+                for i in items:
+                    purchase = 0
+                    item = i.name
+                    sAmt = i.selling_price
+                    pAmt = i.purchase_price
+
+                    for p in pordr:
+                        poItems = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = p, Item = i)
+                        for it in poItems:
+                            purchase += int(it.quantity)
+                            totPurchase += int(it.quantity)
+                    
+                    for b in bill:
+                        billItems = Fin_Purchase_Bill_Item.objects.filter(pbill = b, item = i)
+                        for it in billItems:
+                            purchase += int(it.qty)
+                            totPurchase += int(it.qty)
+                    
+                    for db in dbtnt:
+                        dbItems = Fin_Debit_Note_Items.objects.filter(debit_note = db, items = i)
+                        for it in dbItems:
+                            purchase += int(it.quantity)
+                            totPurchase += int(it.quantity)
+
+                    for rc in rcrbl:
+                        rcItems = Fin_Recurring_Bill_Items.objects.filter(recurring_bill = rc, items = i)
+                        for it in rcItems:
+                            purchase += int(it.quantity)
+                            totPurchase += int(it.quantity)
+
+                    det = {
+                        'name': item,
+                        'salesQty': 0,
+                        'sAmount':sAmt,
+                        'pAmount':pAmt,
+                        'purchaseQty': purchase
+                    }
+
+                    reportData.append(det)
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'vendors':vend, 'reportData':reportData, 'totalSales':totSales, 'totalPurchase':totPurchase,
+                'startDate':startDate, 'endDate':endDate, 'partyName': pName, 'partyDetails':pDetails
+            }
+            return render(request,'company/reports/Fin_ItemReportByParty.html', context)
+    else:
+        return redirect('/')
+
+def Fin_shareItemReportByPartyToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                prty = request.POST['party_details']
+
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+                if prty != "0":
+                    prt = prty.split(':')
+                    partyId = prt[0]
+                    partyType = prt[1]
+                else:
+                    partyId = None
+                    partyType = None
+                    messages.warning(request, 'Select a party and share report.!')
+                    return redirect(Fin_itemReportByParty)
+
+                if partyId and partyType and partyId != "" and partyType != "":
+                    if partyType == 'customer':
+                        party = Fin_Customers.objects.get(id = partyId)
+                        pName = party.title+" "+party.first_name+" "+party.last_name
+                    elif partyType == 'vendor':
+                        party = Fin_Vendors.objects.get(id = partyId)
+                        pName = party.title+" "+party.first_name+" "+party.last_name
+                    else:
+                        party = None
+                        pName = None
+
+                else:
+                    party = None
+                    pName = None
+
+                items = Fin_Items.objects.filter(Company = cmp)
+
+                if startDate is None or endDate is None:
+                    if partyType == 'customer':
+                        est = Fin_Estimate.objects.filter(Company = cmp, Customer = party)
+                        sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = party)
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = party)
+                        crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = party)
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = party)
+                        chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = party)
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = party)
+
+                        pordr= None
+                        bill= None
+                        dbtnt= None
+                        rcrbl= None
+                    
+                    if partyType == 'vendor':
+                        est = None
+                        sordr= None
+                        inv = None
+                        crdNt = None
+                        rtInv = None
+                        chl = None
+                        recInv = None
+
+                        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, Vendor = party)
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = party)
+                        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, Vendor = party)
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = party)
+                else:
+                    if partyType == 'customer':
+                        est = Fin_Estimate.objects.filter(Company = cmp, Customer = party, estimate_date__range = [startDate, endDate])
+                        sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = party, sales_order_date__range = [startDate, endDate])
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = party, invoice_date__range = [startDate, endDate])
+                        crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = party, creditnote_date__range = [startDate, endDate])
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = party, Retainer_Invoice_date__range = [startDate, endDate])
+                        chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = party, challan_date__range = [startDate, endDate])
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = party, start_date__range = [startDate, endDate])
+
+                        pordr= None
+                        bill= None
+                        dbtnt= None
+                        rcrbl= None
+                    
+                    if partyType == 'vendor':
+
+                        est = None
+                        sordr= None
+                        inv = None
+                        crdNt = None
+                        rtInv = None
+                        chl = None
+                        recInv = None
+
+                        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, purchase_order_date__range = [startDate, endDate], Vendor = party)
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, bill_date__range = [startDate, endDate], vendor = party)
+                        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, debit_note_date__range = [startDate, endDate], Vendor = party)
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, date__range = [startDate, endDate], vendor = party)
+
+                reportData = []
+                
+                totSales = 0
+                totPurchase = 0
+                if partyType == 'customer':
+                    for i in items:
+                        sales = 0
+                        item = i.name
+                        sAmt = i.selling_price
+                        pAmt = i.purchase_price
+
+                        for e in est:
+                            estItems = Fin_Estimate_Items.objects.filter(Estimate = e, Item = i)
+                            for it in estItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+                        
+                        for s in sordr:
+                            soItems = Fin_Sales_Order_Items.objects.filter(SalesOrder = s, Item = i)
+                            for it in soItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+                        
+                        for iv in inv:
+                            invItems = Fin_Invoice_Items.objects.filter(Invoice = iv, Item = i)
+                            for it in invItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        for cr in crdNt:
+                            crItems = Fin_CreditNote_Items.objects.filter(creditnote = cr, items = i)
+                            for it in crItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        for rt in rtInv:
+                            rtItems = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = rt, Item = i)
+                            for it in rtItems:
+                                sales += int(it.Quantity)
+                                totSales += int(it.Quantity)
+
+                        for ch in chl:
+                            chlItems = Fin_Delivery_Challan_Items.objects.filter(delivery_challan = ch, items = i)
+                            for it in chlItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        for rec in recInv:
+                            recItems = Fin_Recurring_Invoice_Items.objects.filter(RecInvoice= rec, Item = i)
+                            for it in recItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        det = {
+                            'name': item,
+                            'salesQty':sales,
+                            'sAmount':sAmt,
+                            'pAmount':pAmt,
+                            'purchaseQty': 0
+                        }
+
+                        reportData.append(det)
+
+                if partyType == 'vendor':
+                    for i in items:
+                        purchase = 0
+                        item = i.name
+                        sAmt = i.selling_price
+                        pAmt = i.purchase_price
+
+                        for p in pordr:
+                            poItems = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = p, Item = i)
+                            for it in poItems:
+                                purchase += int(it.quantity)
+                                totPurchase += int(it.quantity)
+                        
+                        for b in bill:
+                            billItems = Fin_Purchase_Bill_Item.objects.filter(pbill = b, item = i)
+                            for it in billItems:
+                                purchase += int(it.qty)
+                                totPurchase += int(it.qty)
+                        
+                        for db in dbtnt:
+                            dbItems = Fin_Debit_Note_Items.objects.filter(debit_note = db, items = i)
+                            for it in dbItems:
+                                purchase += int(it.quantity)
+                                totPurchase += int(it.quantity)
+
+                        for rc in rcrbl:
+                            rcItems = Fin_Recurring_Bill_Items.objects.filter(recurring_bill = rc, items = i)
+                            for it in rcItems:
+                                purchase += int(it.quantity)
+                                totPurchase += int(it.quantity)
+
+                        det = {
+                            'name': item,
+                            'salesQty': 0,
+                            'sAmount':sAmt,
+                            'pAmount':pAmt,
+                            'purchaseQty': purchase
+                        }
+
+                        reportData.append(det)
+
+                context = {'cmp':cmp, 'reportData':reportData, 'totalSales':totSales, 'totalPurchase':totPurchase, 'startDate':startDate, 'endDate':endDate, 'partyName': pName}
+                template_path = 'company/reports/Fin_ItemReportByPartyPdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_ItemReportByParty'
+                subject = f"Report_ItemReportByParty"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Item Report By Party. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_itemReportByParty)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_itemReportByParty)
+
+
+# < ------------- Shemeem -------- > Reports - Party Report By Item < ------------------------------- >
+
+def Fin_partyReportByItem(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        items = Fin_Items.objects.filter(Company = cmp)
+
+        reportData = []
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'items':items, 'reportData':reportData,
+            'startDate':None, 'endDate':None
+        }
+        return render(request,'company/reports/Fin_PartyReportByItem.html', context)
+    else:
+        return redirect('/')
+
+def Fin_partyReportByItemCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            itm = request.GET['item_details']
+
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+            if itm != "0":
+                item = Fin_Items.objects.get(id = itm)
+            else:
+                messages.warning(request, 'Select an item.!')
+                return redirect(Fin_partyReportByItem)
+
+            if item:
+                itemId = item.id
+                itemName = item.name
+            else:
+                itemName = None
+                itemId = None
+
+            items = Fin_Items.objects.filter(Company = cmp)
+            cust = Fin_Customers.objects.filter(Company = cmp)
+            vend = Fin_Vendors.objects.filter(Company = cmp)
+
+            if startDate is None or endDate is None:
+                reportData = []
+                totSales = 0
+                totPurchase = 0
+
+                for c in cust:
+                    sales = 0
+                    name = c.title+' '+c.first_name+' '+c.last_name
+                    sAmt = item.selling_price
+                    pAmt = item.purchase_price
+
+                    est = Fin_Estimate.objects.filter(Company = cmp, Customer = c)
+                    for e in est:
+                        estItems = Fin_Estimate_Items.objects.filter(Estimate = e, Item = item)
+                        for it in estItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = c)
+                    for s in sordr:
+                        soItems = Fin_Sales_Order_Items.objects.filter(SalesOrder = s, Item = item)
+                        for it in soItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+                    
+                    inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c)
+                    for iv in inv:
+                        invItems = Fin_Invoice_Items.objects.filter(Invoice = iv, Item = item)
+                        for it in invItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = c)
+                    for cr in crdNt:
+                        crItems = Fin_CreditNote_Items.objects.filter(creditnote = cr, items = item)
+                        for it in crItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c)
+                    for rt in rtInv:
+                        rtItems = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = rt, Item = item)
+                        for it in rtItems:
+                            sales += int(it.Quantity)
+                            totSales += int(it.Quantity)
+
+                    chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = c)
+                    for ch in chl:
+                        chlItems = Fin_Delivery_Challan_Items.objects.filter(delivery_challan = ch, items = item)
+                        for it in chlItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c)
+                    for rec in recInv:
+                        recItems = Fin_Recurring_Invoice_Items.objects.filter(RecInvoice= rec, Item = item)
+                        for it in recItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    det = {
+                        'name': name,
+                        'salesQty':sales,
+                        'sAmount':sAmt,
+                        'pAmount':pAmt,
+                        'purchaseQty': 0
+                    }
+
+                    reportData.append(det)
+
+                for v in vend:
+                    purchase = 0
+                    name = v.title+' '+v.first_name+' '+v.last_name
+                    sAmt = item.selling_price
+                    pAmt = item.purchase_price
+
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, Vendor = v)
+                    for p in pordr:
+                        poItems = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = p, Item = item)
+                        for it in poItems:
+                            purchase += int(it.quantity)
+                            totPurchase += int(it.quantity)
+                    
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v)
+                    for b in bill:
+                        billItems = Fin_Purchase_Bill_Item.objects.filter(pbill = b, item = item)
+                        for it in billItems:
+                            purchase += int(it.qty)
+                            totPurchase += int(it.qty)
+                    
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, Vendor = v)
+                    for db in dbtnt:
+                        dbItems = Fin_Debit_Note_Items.objects.filter(debit_note = db, items = item)
+                        for it in dbItems:
+                            purchase += int(it.quantity)
+                            totPurchase += int(it.quantity)
+
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v)
+                    for rc in rcrbl:
+                        rcItems = Fin_Recurring_Bill_Items.objects.filter(recurring_bill = rc, items = item)
+                        for it in rcItems:
+                            purchase += int(it.quantity)
+                            totPurchase += int(it.quantity)
+
+                    det = {
+                        'name': name,
+                        'salesQty': 0,
+                        'sAmount':sAmt,
+                        'pAmount':pAmt,
+                        'purchaseQty': purchase
+                    }
+
+                    reportData.append(det)
+            else:
+                reportData = []
+                totSales = 0
+                totPurchase = 0
+
+                for c in cust:
+                    sales = 0
+                    name = c.title+' '+c.first_name+' '+c.last_name
+                    sAmt = item.selling_price
+                    pAmt = item.purchase_price
+
+                    est = Fin_Estimate.objects.filter(Company = cmp, Customer = c, estimate_date__range = [startDate, endDate])
+                    for e in est:
+                        estItems = Fin_Estimate_Items.objects.filter(Estimate = e, Item = item)
+                        for it in estItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+                    
+                    sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = c, sales_order_date__range = [startDate, endDate])
+                    for s in sordr:
+                        soItems = Fin_Sales_Order_Items.objects.filter(SalesOrder = s, Item = item)
+                        for it in soItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+                    
+                    inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c, invoice_date__range = [startDate, endDate])
+                    for iv in inv:
+                        invItems = Fin_Invoice_Items.objects.filter(Invoice = iv, Item = item)
+                        for it in invItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = c, creditnote_date__range = [startDate, endDate])
+                    for cr in crdNt:
+                        crItems = Fin_CreditNote_Items.objects.filter(creditnote = cr, items = item)
+                        for it in crItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c, Retainer_Invoice_date__range = [startDate, endDate])
+                    for rt in rtInv:
+                        rtItems = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = rt, Item = item)
+                        for it in rtItems:
+                            sales += int(it.Quantity)
+                            totSales += int(it.Quantity)
+
+                    chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = c, challan_date__range = [startDate, endDate])
+                    for ch in chl:
+                        chlItems = Fin_Delivery_Challan_Items.objects.filter(delivery_challan = ch, items = item)
+                        for it in chlItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c, start_date__range = [startDate, endDate])
+                    for rec in recInv:
+                        recItems = Fin_Recurring_Invoice_Items.objects.filter(RecInvoice= rec, Item = item)
+                        for it in recItems:
+                            sales += int(it.quantity)
+                            totSales += int(it.quantity)
+
+                    det = {
+                        'name': name,
+                        'salesQty':sales,
+                        'sAmount':sAmt,
+                        'pAmount':pAmt,
+                        'purchaseQty': 0
+                    }
+
+                    reportData.append(det)
+
+                for v in vend:
+                    purchase = 0
+                    name = v.title+' '+v.first_name+' '+v.last_name
+                    sAmt = item.selling_price
+                    pAmt = item.purchase_price
+
+                    pordr= Fin_Purchase_Order.objects.filter(Company = cmp, Vendor = v, purchase_order_date__range = [startDate, endDate])
+                    for p in pordr:
+                        poItems = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = p, Item = item)
+                        for it in poItems:
+                            purchase += int(it.quantity)
+                            totPurchase += int(it.quantity)
+                    
+                    bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v, bill_date__range = [startDate, endDate])
+                    for b in bill:
+                        billItems = Fin_Purchase_Bill_Item.objects.filter(pbill = b, item = item)
+                        for it in billItems:
+                            purchase += int(it.qty)
+                            totPurchase += int(it.qty)
+                    
+                    dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, Vendor = v, debit_note_date__range = [startDate, endDate])
+                    for db in dbtnt:
+                        dbItems = Fin_Debit_Note_Items.objects.filter(debit_note = db, items = item)
+                        for it in dbItems:
+                            purchase += int(it.quantity)
+                            totPurchase += int(it.quantity)
+
+                    rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v, date__range = [startDate, endDate])
+                    for rc in rcrbl:
+                        rcItems = Fin_Recurring_Bill_Items.objects.filter(recurring_bill = rc, items = item)
+                        for it in rcItems:
+                            purchase += int(it.quantity)
+                            totPurchase += int(it.quantity)
+
+                    det = {
+                        'name': name,
+                        'salesQty': 0,
+                        'sAmount':sAmt,
+                        'pAmount':pAmt,
+                        'purchaseQty': purchase
+                    }
+
+                    reportData.append(det)
+
+
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'items':items, 'reportData':reportData, 'totalSales':totSales, 'totalPurchase':totPurchase,
+                'startDate':startDate, 'endDate':endDate, 'itemName': itemName, 'itemDetails':itemId
+            }
+            return render(request,'company/reports/Fin_PartyReportByItem.html', context)
+    else:
+        return redirect('/')
+
+def Fin_sharePartyReportByItemToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                itm = request.POST['item_details']
+
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+                if itm != "0":
+                    item = Fin_Items.objects.get(id = itm)
+                else:
+                    messages.warning(request, 'Select an item and share report.!')
+                    return redirect(Fin_partyReportByItem)
+
+                if item:
+                    itemName = item.name
+                else:
+                    itemName = None
+
+                cust = Fin_Customers.objects.filter(Company = cmp)
+                vend = Fin_Vendors.objects.filter(Company = cmp)
+
+                if startDate is None or endDate is None:
+                    reportData = []
+                    totSales = 0
+                    totPurchase = 0
+
+                    for c in cust:
+                        sales = 0
+                        name = c.title+' '+c.first_name+' '+c.last_name
+                        sAmt = item.selling_price
+                        pAmt = item.purchase_price
+
+                        est = Fin_Estimate.objects.filter(Company = cmp, Customer = c)
+                        for e in est:
+                            estItems = Fin_Estimate_Items.objects.filter(Estimate = e, Item = item)
+                            for it in estItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = c)
+                        for s in sordr:
+                            soItems = Fin_Sales_Order_Items.objects.filter(SalesOrder = s, Item = item)
+                            for it in soItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+                        
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c)
+                        for iv in inv:
+                            invItems = Fin_Invoice_Items.objects.filter(Invoice = iv, Item = item)
+                            for it in invItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = c)
+                        for cr in crdNt:
+                            crItems = Fin_CreditNote_Items.objects.filter(creditnote = cr, items = item)
+                            for it in crItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c)
+                        for rt in rtInv:
+                            rtItems = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = rt, Item = item)
+                            for it in rtItems:
+                                sales += int(it.Quantity)
+                                totSales += int(it.Quantity)
+
+                        chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = c)
+                        for ch in chl:
+                            chlItems = Fin_Delivery_Challan_Items.objects.filter(delivery_challan = ch, items = item)
+                            for it in chlItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c)
+                        for rec in recInv:
+                            recItems = Fin_Recurring_Invoice_Items.objects.filter(RecInvoice= rec, Item = item)
+                            for it in recItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        det = {
+                            'name': name,
+                            'salesQty':sales,
+                            'sAmount':sAmt,
+                            'pAmount':pAmt,
+                            'purchaseQty': 0
+                        }
+
+                        reportData.append(det)
+
+                    for v in vend:
+                        purchase = 0
+                        name = v.title+' '+v.first_name+' '+v.last_name
+                        sAmt = item.selling_price
+                        pAmt = item.purchase_price
+
+                        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, Vendor = v)
+                        for p in pordr:
+                            poItems = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = p, Item = item)
+                            for it in poItems:
+                                purchase += int(it.quantity)
+                                totPurchase += int(it.quantity)
+                        
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v)
+                        for b in bill:
+                            billItems = Fin_Purchase_Bill_Item.objects.filter(pbill = b, item = item)
+                            for it in billItems:
+                                purchase += int(it.qty)
+                                totPurchase += int(it.qty)
+                        
+                        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, Vendor = v)
+                        for db in dbtnt:
+                            dbItems = Fin_Debit_Note_Items.objects.filter(debit_note = db, items = item)
+                            for it in dbItems:
+                                purchase += int(it.quantity)
+                                totPurchase += int(it.quantity)
+
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v)
+                        for rc in rcrbl:
+                            rcItems = Fin_Recurring_Bill_Items.objects.filter(recurring_bill = rc, items = item)
+                            for it in rcItems:
+                                purchase += int(it.quantity)
+                                totPurchase += int(it.quantity)
+
+                        det = {
+                            'name': name,
+                            'salesQty': 0,
+                            'sAmount':sAmt,
+                            'pAmount':pAmt,
+                            'purchaseQty': purchase
+                        }
+
+                        reportData.append(det)
+                else:
+                    reportData = []
+                    totSales = 0
+                    totPurchase = 0
+
+                    for c in cust:
+                        sales = 0
+                        name = c.title+' '+c.first_name+' '+c.last_name
+                        sAmt = item.selling_price
+                        pAmt = item.purchase_price
+
+                        est = Fin_Estimate.objects.filter(Company = cmp, Customer = c, estimate_date__range = [startDate, endDate])
+                        for e in est:
+                            estItems = Fin_Estimate_Items.objects.filter(Estimate = e, Item = item)
+                            for it in estItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+                        
+                        sordr= Fin_Sales_Order.objects.filter(Company = cmp, Customer = c, sales_order_date__range = [startDate, endDate])
+                        for s in sordr:
+                            soItems = Fin_Sales_Order_Items.objects.filter(SalesOrder = s, Item = item)
+                            for it in soItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+                        
+                        inv = Fin_Invoice.objects.filter(Company = cmp, Customer = c, invoice_date__range = [startDate, endDate])
+                        for iv in inv:
+                            invItems = Fin_Invoice_Items.objects.filter(Invoice = iv, Item = item)
+                            for it in invItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        crdNt = Fin_CreditNote.objects.filter(Company = cmp, Customer = c, creditnote_date__range = [startDate, endDate])
+                        for cr in crdNt:
+                            crItems = Fin_CreditNote_Items.objects.filter(creditnote = cr, items = item)
+                            for it in crItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        rtInv = Fin_Retainer_Invoice.objects.filter(Company = cmp, Customer = c, Retainer_Invoice_date__range = [startDate, endDate])
+                        for rt in rtInv:
+                            rtItems = Fin_Retainer_Invoice_Items.objects.filter(Ret_Inv = rt, Item = item)
+                            for it in rtItems:
+                                sales += int(it.Quantity)
+                                totSales += int(it.Quantity)
+
+                        chl = Fin_Delivery_Challan.objects.filter(Company = cmp, Customer = c, challan_date__range = [startDate, endDate])
+                        for ch in chl:
+                            chlItems = Fin_Delivery_Challan_Items.objects.filter(delivery_challan = ch, items = item)
+                            for it in chlItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        recInv = Fin_Recurring_Invoice.objects.filter(Company = cmp, Customer = c, start_date__range = [startDate, endDate])
+                        for rec in recInv:
+                            recItems = Fin_Recurring_Invoice_Items.objects.filter(RecInvoice= rec, Item = item)
+                            for it in recItems:
+                                sales += int(it.quantity)
+                                totSales += int(it.quantity)
+
+                        det = {
+                            'name': name,
+                            'salesQty':sales,
+                            'sAmount':sAmt,
+                            'pAmount':pAmt,
+                            'purchaseQty': 0
+                        }
+
+                        reportData.append(det)
+
+                    for v in vend:
+                        purchase = 0
+                        name = v.title+' '+v.first_name+' '+v.last_name
+                        sAmt = item.selling_price
+                        pAmt = item.purchase_price
+
+                        pordr= Fin_Purchase_Order.objects.filter(Company = cmp, Vendor = v, purchase_order_date__range = [startDate, endDate])
+                        for p in pordr:
+                            poItems = Fin_Purchase_Order_Items.objects.filter(PurchaseOrder = p, Item = item)
+                            for it in poItems:
+                                purchase += int(it.quantity)
+                                totPurchase += int(it.quantity)
+                        
+                        bill= Fin_Purchase_Bill.objects.filter(company = cmp, vendor = v, bill_date__range = [startDate, endDate])
+                        for b in bill:
+                            billItems = Fin_Purchase_Bill_Item.objects.filter(pbill = b, item = item)
+                            for it in billItems:
+                                purchase += int(it.qty)
+                                totPurchase += int(it.qty)
+                        
+                        dbtnt= Fin_Debit_Note.objects.filter(Company = cmp, Vendor = v, debit_note_date__range = [startDate, endDate])
+                        for db in dbtnt:
+                            dbItems = Fin_Debit_Note_Items.objects.filter(debit_note = db, items = item)
+                            for it in dbItems:
+                                purchase += int(it.quantity)
+                                totPurchase += int(it.quantity)
+
+                        rcrbl= Fin_Recurring_Bills.objects.filter(company = cmp, vendor = v, date__range = [startDate, endDate])
+                        for rc in rcrbl:
+                            rcItems = Fin_Recurring_Bill_Items.objects.filter(recurring_bill = rc, items = item)
+                            for it in rcItems:
+                                purchase += int(it.quantity)
+                                totPurchase += int(it.quantity)
+
+                        det = {
+                            'name': name,
+                            'salesQty': 0,
+                            'sAmount':sAmt,
+                            'pAmount':pAmt,
+                            'purchaseQty': purchase
+                        }
+
+                        reportData.append(det)
+
+                context = {'cmp':cmp, 'reportData':reportData, 'totalSales':totSales, 'totalPurchase':totPurchase, 'startDate':startDate, 'endDate':endDate, 'itemName': itemName}
+                template_path = 'company/reports/Fin_PartyReportByItemPdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_PartyReportByItem'
+                subject = f"Report_PartyReportByItem"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Party Report By Item. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_partyReportByItem)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_partyReportByItem)
 # End

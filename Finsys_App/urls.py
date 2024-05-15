@@ -937,6 +937,16 @@ urlpatterns = [
     # < ------------- Shemeem -------- > Reports - Stock Details < ------------------------------- >
     path('Fin_report_stock_details',views.Fin_stockDetailsReport, name='Fin_stockDetailsReport'),
     path('Fin_share_stock_details_report_to_email',views.Fin_shareStockDetailsReportToEmail, name='Fin_shareStockDetailsReportToEmail'),
+
+    # < ------------- Shemeem -------- > Reports - Item Report By Party < ------------------------------- >
+    path('Fin_report_item_report_by_party',views.Fin_itemReportByParty, name='Fin_itemReportByParty'),
+    path('Fin_item_report_by_party_customized',views.Fin_itemReportByPartyCustomized, name='Fin_itemReportByPartyCustomized'),
+    path('Fin_share_item_report_by_party_to_email',views.Fin_shareItemReportByPartyToEmail, name='Fin_shareItemReportByPartyToEmail'),
+
+    # < ------------- Shemeem -------- > Reports - Party Report By Item < ------------------------------- >
+    path('Fin_report_party_report_by_item',views.Fin_partyReportByItem, name='Fin_partyReportByItem'),
+    path('Fin_party_report_by_item_customized',views.Fin_partyReportByItemCustomized, name='Fin_partyReportByItemCustomized'),
+    path('Fin_share_party_report_by_item_to_email',views.Fin_sharePartyReportByItemToEmail, name='Fin_sharePartyReportByItemToEmail'),
     # End
 
 
