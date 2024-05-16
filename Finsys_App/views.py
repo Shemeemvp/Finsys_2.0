@@ -2124,6 +2124,71 @@ def Fin_viewItem(request,id):
                     'status':rec.RecInvoice.status
                 }
                 transactions.append(det)
+
+        poItems = Fin_Purchase_Order_Items.objects.filter(Item = item)
+        if poItems:
+            for po in poItems:
+                det = {
+                    'type':'Purchase Order',
+                    'name':po.PurchaseOrder.Vendor.first_name+" "+po.PurchaseOrder.Vendor.last_name,
+                    'date':po.PurchaseOrder.purchase_order_date,
+                    'qty': po.quantity,
+                    'price':po.price,
+                    'status':po.PurchaseOrder.status
+                }
+                transactions.append(det)
+
+        blItems = Fin_Purchase_Bill_Item.objects.filter(item = item)
+        if blItems:
+            for bl in blItems:
+                det = {
+                    'type':'Bill',
+                    'name':bl.pbill.vendor.first_name+" "+bl.pbill.vendor.last_name,
+                    'date':bl.pbill.bill_date,
+                    'qty': bl.qty,
+                    'price':bl.price,
+                    'status':bl.pbill.status
+                }
+                transactions.append(det)
+
+        dbtItems = Fin_Debit_Note_Items.objects.filter(items = item)
+        if dbtItems:
+            for dbt in dbtItems:
+                det = {
+                    'type':'Debit Note',
+                    'name':dbt.debit_note.Vendor.first_name+" "+dbt.debit_note.Vendor.last_name,
+                    'date':dbt.debit_note.debit_note_date,
+                    'qty': dbt.quantity,
+                    'price':dbt.price,
+                    'status':dbt.debit_note.status
+                }
+                transactions.append(det)
+
+        rbItems = Fin_Recurring_Bill_Items.objects.filter(items = item)
+        if rbItems:
+            for rb in rbItems:
+                det = {
+                    'type':'Recurring Bill',
+                    'name':rb.recurring_bill.vendor.first_name+" "+rb.recurring_bill.vendor.last_name,
+                    'date':rb.recurring_bill.date,
+                    'qty': rb.quantity,
+                    'price':rb.price,
+                    'status':rb.recurring_bill.status
+                }
+                transactions.append(det)
+
+        ewItems = Fin_Eway_Items.objects.filter(Item = item)
+        if ewItems:
+            for ew in ewItems:
+                det = {
+                    'type':'EWay Bill',
+                    'name':ew.Ewaybills.Customer.first_name+" "+ew.Ewaybills.Customer.last_name,
+                    'date':ew.Ewaybills.BillDate,
+                    'qty': ew.quantity,
+                    'price':ew.price,
+                    'status':ew.Ewaybills.Status
+                }
+                transactions.append(det)
         
         
         context = {'allmodules':allmodules,'com':com,'data':data,'item':item, 'history': hist,'comments':cmt, 'transactions':transactions}
@@ -2406,8 +2471,175 @@ def Fin_itemTransactionPdf(request,id):
         stock = int(item.current_stock)
         rate = float(item.stock_unit_rate)
         stockValue = float(stock * rate)
+
+        transactions = []
+        if item.opening_stock != 0:
+            det = {
+                'type':'Opening Stock',
+                'name':'',
+                'date':item.item_created,
+                'qty': item.opening_stock,
+                'price':item.selling_price,
+                'status': item.status
+            }
+            transactions.append(det)
+        estItems = Fin_Estimate_Items.objects.filter(Item = item)
+        if estItems:
+            for es in estItems:
+                det = {
+                    'type':'Estimate',
+                    'name':es.Estimate.Customer.first_name+" "+es.Estimate.Customer.last_name,
+                    'date':es.Estimate.estimate_date,
+                    'qty': es.quantity,
+                    'price':es.price,
+                    'status':es.Estimate.status
+                }
+                transactions.append(det)
+
+        soItems = Fin_Sales_Order_Items.objects.filter(Item = item)
+        if soItems:
+            for so in soItems:
+                det = {
+                    'type':'Sales Order',
+                    'name':so.SalesOrder.Customer.first_name+" "+so.SalesOrder.Customer.last_name,
+                    'date':so.SalesOrder.sales_order_date,
+                    'qty': so.quantity,
+                    'price':so.price,
+                    'status':so.SalesOrder.status
+                }
+                transactions.append(det)
+
+        invItems = Fin_Invoice_Items.objects.filter(Item = item)
+        if invItems:
+            for iv in invItems:
+                det = {
+                    'type':'Invoice',
+                    'name':iv.Invoice.Customer.first_name+" "+iv.Invoice.Customer.last_name,
+                    'date':iv.Invoice.invoice_date,
+                    'qty': iv.quantity,
+                    'price':iv.price,
+                    'status':iv.Invoice.status
+                }
+                transactions.append(det)
+
+        crdItems = Fin_CreditNote_Items.objects.filter(items = item)
+        if crdItems:
+            for cr in crdItems:
+                det = {
+                    'type':'Credit Note',
+                    'name':cr.creditnote.Customer.first_name+" "+cr.creditnote.Customer.last_name,
+                    'date':cr.creditnote.creditnote_date,
+                    'qty': cr.quantity,
+                    'price':cr.price,
+                    'status':cr.creditnote.status
+                }
+                transactions.append(det)
+
+        rtInvItems = Fin_Retainer_Invoice_Items.objects.filter(Item = item)
+        if rtInvItems:
+            for rt in rtInvItems:
+                det = {
+                    'type':'Retainer Invoice',
+                    'name':rt.Ret_Inv.Customer.first_name+" "+rt.Ret_Inv.Customer.last_name,
+                    'date':rt.Ret_Inv.Retainer_Invoice_date,
+                    'qty': rt.Quantity,
+                    'price':rt.Price,
+                    'status':rt.Ret_Inv.status
+                }
+                transactions.append(det)
+
+        chlItems = Fin_Delivery_Challan_Items.objects.filter(items = item)
+        if chlItems:
+            for ch in chlItems:
+                det = {
+                    'type':'Delivery Challan',
+                    'name':ch.delivery_challan.Customer.first_name+" "+ch.delivery_challan.Customer.last_name,
+                    'date':ch.delivery_challan.challan_date,
+                    'qty': ch.quantity,
+                    'price':ch.price,
+                    'status':ch.delivery_challan.status
+                }
+                transactions.append(det)
+
+        recItems = Fin_Recurring_Invoice_Items.objects.filter(Item = item)
+        if recItems:
+            for rec in recItems:
+                det = {
+                    'type':'Recurring Invoice',
+                    'name':rec.RecInvoice.Customer.first_name+" "+rec.RecInvoice.Customer.last_name,
+                    'date':rec.RecInvoice.start_date,
+                    'qty': rec.quantity,
+                    'price':rec.price,
+                    'status':rec.RecInvoice.status
+                }
+                transactions.append(det)
+
+        poItems = Fin_Purchase_Order_Items.objects.filter(Item = item)
+        if poItems:
+            for po in poItems:
+                det = {
+                    'type':'Purchase Order',
+                    'name':po.PurchaseOrder.Vendor.first_name+" "+po.PurchaseOrder.Vendor.last_name,
+                    'date':po.PurchaseOrder.purchase_order_date,
+                    'qty': po.quantity,
+                    'price':po.price,
+                    'status':po.PurchaseOrder.status
+                }
+                transactions.append(det)
+
+        blItems = Fin_Purchase_Bill_Item.objects.filter(item = item)
+        if blItems:
+            for bl in blItems:
+                det = {
+                    'type':'Bill',
+                    'name':bl.pbill.vendor.first_name+" "+bl.pbill.vendor.last_name,
+                    'date':bl.pbill.bill_date,
+                    'qty': bl.qty,
+                    'price':bl.price,
+                    'status':bl.pbill.status
+                }
+                transactions.append(det)
+
+        dbtItems = Fin_Debit_Note_Items.objects.filter(items = item)
+        if dbtItems:
+            for dbt in dbtItems:
+                det = {
+                    'type':'Debit Note',
+                    'name':dbt.debit_note.Vendor.first_name+" "+dbt.debit_note.Vendor.last_name,
+                    'date':dbt.debit_note.debit_note_date,
+                    'qty': dbt.quantity,
+                    'price':dbt.price,
+                    'status':dbt.debit_note.status
+                }
+                transactions.append(det)
+
+        rbItems = Fin_Recurring_Bill_Items.objects.filter(items = item)
+        if rbItems:
+            for rb in rbItems:
+                det = {
+                    'type':'Recurring Bill',
+                    'name':rb.recurring_bill.vendor.first_name+" "+rb.recurring_bill.vendor.last_name,
+                    'date':rb.recurring_bill.date,
+                    'qty': rb.quantity,
+                    'price':rb.price,
+                    'status':rb.recurring_bill.status
+                }
+                transactions.append(det)
+
+        ewItems = Fin_Eway_Items.objects.filter(Item = item)
+        if ewItems:
+            for ew in ewItems:
+                det = {
+                    'type':'EWay Bill',
+                    'name':ew.Ewaybills.Customer.first_name+" "+ew.Ewaybills.Customer.last_name,
+                    'date':ew.Ewaybills.BillDate,
+                    'qty': ew.quantity,
+                    'price':ew.price,
+                    'status':ew.Ewaybills.Status
+                }
+                transactions.append(det)
     
-        context = {'item': item, 'stockValue':stockValue}
+        context = {'item': item, 'stockValue':stockValue, 'transactions':transactions}
         
         template_path = 'company/Fin_Item_Transaction_Pdf.html'
         fname = 'Item_transactions_'+item.name
@@ -2451,8 +2683,175 @@ def Fin_shareItemTransactionsToEmail(request,id):
                 stock = int(item.current_stock)
                 rate = float(item.stock_unit_rate)
                 stockValue = float(stock * rate)
+
+                transactions = []
+                if item.opening_stock != 0:
+                    det = {
+                        'type':'Opening Stock',
+                        'name':'',
+                        'date':item.item_created,
+                        'qty': item.opening_stock,
+                        'price':item.selling_price,
+                        'status': item.status
+                    }
+                    transactions.append(det)
+                estItems = Fin_Estimate_Items.objects.filter(Item = item)
+                if estItems:
+                    for es in estItems:
+                        det = {
+                            'type':'Estimate',
+                            'name':es.Estimate.Customer.first_name+" "+es.Estimate.Customer.last_name,
+                            'date':es.Estimate.estimate_date,
+                            'qty': es.quantity,
+                            'price':es.price,
+                            'status':es.Estimate.status
+                        }
+                        transactions.append(det)
+
+                soItems = Fin_Sales_Order_Items.objects.filter(Item = item)
+                if soItems:
+                    for so in soItems:
+                        det = {
+                            'type':'Sales Order',
+                            'name':so.SalesOrder.Customer.first_name+" "+so.SalesOrder.Customer.last_name,
+                            'date':so.SalesOrder.sales_order_date,
+                            'qty': so.quantity,
+                            'price':so.price,
+                            'status':so.SalesOrder.status
+                        }
+                        transactions.append(det)
+
+                invItems = Fin_Invoice_Items.objects.filter(Item = item)
+                if invItems:
+                    for iv in invItems:
+                        det = {
+                            'type':'Invoice',
+                            'name':iv.Invoice.Customer.first_name+" "+iv.Invoice.Customer.last_name,
+                            'date':iv.Invoice.invoice_date,
+                            'qty': iv.quantity,
+                            'price':iv.price,
+                            'status':iv.Invoice.status
+                        }
+                        transactions.append(det)
+
+                crdItems = Fin_CreditNote_Items.objects.filter(items = item)
+                if crdItems:
+                    for cr in crdItems:
+                        det = {
+                            'type':'Credit Note',
+                            'name':cr.creditnote.Customer.first_name+" "+cr.creditnote.Customer.last_name,
+                            'date':cr.creditnote.creditnote_date,
+                            'qty': cr.quantity,
+                            'price':cr.price,
+                            'status':cr.creditnote.status
+                        }
+                        transactions.append(det)
+
+                rtInvItems = Fin_Retainer_Invoice_Items.objects.filter(Item = item)
+                if rtInvItems:
+                    for rt in rtInvItems:
+                        det = {
+                            'type':'Retainer Invoice',
+                            'name':rt.Ret_Inv.Customer.first_name+" "+rt.Ret_Inv.Customer.last_name,
+                            'date':rt.Ret_Inv.Retainer_Invoice_date,
+                            'qty': rt.Quantity,
+                            'price':rt.Price,
+                            'status':rt.Ret_Inv.status
+                        }
+                        transactions.append(det)
+
+                chlItems = Fin_Delivery_Challan_Items.objects.filter(items = item)
+                if chlItems:
+                    for ch in chlItems:
+                        det = {
+                            'type':'Delivery Challan',
+                            'name':ch.delivery_challan.Customer.first_name+" "+ch.delivery_challan.Customer.last_name,
+                            'date':ch.delivery_challan.challan_date,
+                            'qty': ch.quantity,
+                            'price':ch.price,
+                            'status':ch.delivery_challan.status
+                        }
+                        transactions.append(det)
+
+                recItems = Fin_Recurring_Invoice_Items.objects.filter(Item = item)
+                if recItems:
+                    for rec in recItems:
+                        det = {
+                            'type':'Recurring Invoice',
+                            'name':rec.RecInvoice.Customer.first_name+" "+rec.RecInvoice.Customer.last_name,
+                            'date':rec.RecInvoice.start_date,
+                            'qty': rec.quantity,
+                            'price':rec.price,
+                            'status':rec.RecInvoice.status
+                        }
+                        transactions.append(det)
+
+                poItems = Fin_Purchase_Order_Items.objects.filter(Item = item)
+                if poItems:
+                    for po in poItems:
+                        det = {
+                            'type':'Purchase Order',
+                            'name':po.PurchaseOrder.Vendor.first_name+" "+po.PurchaseOrder.Vendor.last_name,
+                            'date':po.PurchaseOrder.purchase_order_date,
+                            'qty': po.quantity,
+                            'price':po.price,
+                            'status':po.PurchaseOrder.status
+                        }
+                        transactions.append(det)
+
+                blItems = Fin_Purchase_Bill_Item.objects.filter(item = item)
+                if blItems:
+                    for bl in blItems:
+                        det = {
+                            'type':'Bill',
+                            'name':bl.pbill.vendor.first_name+" "+bl.pbill.vendor.last_name,
+                            'date':bl.pbill.bill_date,
+                            'qty': bl.qty,
+                            'price':bl.price,
+                            'status':bl.pbill.status
+                        }
+                        transactions.append(det)
+
+                dbtItems = Fin_Debit_Note_Items.objects.filter(items = item)
+                if dbtItems:
+                    for dbt in dbtItems:
+                        det = {
+                            'type':'Debit Note',
+                            'name':dbt.debit_note.Vendor.first_name+" "+dbt.debit_note.Vendor.last_name,
+                            'date':dbt.debit_note.debit_note_date,
+                            'qty': dbt.quantity,
+                            'price':dbt.price,
+                            'status':dbt.debit_note.status
+                        }
+                        transactions.append(det)
+
+                rbItems = Fin_Recurring_Bill_Items.objects.filter(items = item)
+                if rbItems:
+                    for rb in rbItems:
+                        det = {
+                            'type':'Recurring Bill',
+                            'name':rb.recurring_bill.vendor.first_name+" "+rb.recurring_bill.vendor.last_name,
+                            'date':rb.recurring_bill.date,
+                            'qty': rb.quantity,
+                            'price':rb.price,
+                            'status':rb.recurring_bill.status
+                        }
+                        transactions.append(det)
+
+                ewItems = Fin_Eway_Items.objects.filter(Item = item)
+                if ewItems:
+                    for ew in ewItems:
+                        det = {
+                            'type':'EWay Bill',
+                            'name':ew.Ewaybills.Customer.first_name+" "+ew.Ewaybills.Customer.last_name,
+                            'date':ew.Ewaybills.BillDate,
+                            'qty': ew.quantity,
+                            'price':ew.price,
+                            'status':ew.Ewaybills.Status
+                        }
+                        transactions.append(det)
             
-                context = {'item': item, 'stockValue':stockValue}
+                context = {'item': item, 'stockValue':stockValue, 'transactions':transactions}
                 template_path = 'company/Fin_Item_Transaction_Pdf.html'
                 template = get_template(template_path)
 
@@ -2466,7 +2865,7 @@ def Fin_shareItemTransactionsToEmail(request,id):
                 email.attach(filename, pdf, "application/pdf")
                 email.send(fail_silently=False)
 
-                messages.success(request, 'Bill has been shared via email successfully..!')
+                messages.success(request, 'Item Transactions has been shared via email successfully..!')
                 return redirect(Fin_viewItem,id)
         except Exception as e:
             print(e)
