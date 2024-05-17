@@ -40422,3 +40422,365 @@ def Fin_sharePartyReportByItemToEmail(request):
             messages.error(request, f'{e}')
             return redirect(Fin_partyReportByItem)
 # End
+
+
+# < ------------- Shemeem -------- > Reports - EWay Bills Reports < ------------------------------- >
+
+def Fin_ewayBillReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        reportData = []
+        totalAmount = 0
+
+        eway = Fin_Ewaybills.objects.filter(Company=cmp)
+        if eway:
+            for e in eway:
+                totalAmount += float(e.GrandTotal)
+
+                details = {
+                    'date': e.BillDate,
+                    'name':e.Customer.first_name+" "+e.Customer.last_name,
+                    'number':e.Ewaybill_No,
+                    'amount':e.GrandTotal,
+                    'status':e.Status
+                }
+                reportData.append(details)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalAmount':totalAmount,
+            'startDate':None, 'endDate':None
+        }
+        return render(request,'company/reports/Fin_EwayBill_Report.html', context)
+    else:
+        return redirect('/')
+
+def Fin_ewayBillReportCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            status = request.GET['status']
+
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+
+
+            reportData = []
+            totalAmount = 0
+
+            if startDate is None or endDate is None:
+                if status != 'all':
+                    eway = Fin_Ewaybills.objects.filter(Company=cmp, Status__iexact = status)
+                else:
+                    eway = Fin_Ewaybills.objects.filter(Company=cmp)
+            else:
+                if status != 'all':
+                    eway = Fin_Ewaybills.objects.filter(Company=cmp, BillDate__range = [startDate, endDate], Status__iexact = status)
+                else:
+                    eway = Fin_Ewaybills.objects.filter(Company=cmp, BillDate__range = [startDate, endDate])
+
+
+            if eway:
+                for e in eway:
+                    totalAmount += float(e.GrandTotal)
+
+                    details = {
+                        'date': e.BillDate,
+                        'name':e.Customer.first_name+" "+e.Customer.last_name,
+                        'number':e.Ewaybill_No,
+                        'amount':e.GrandTotal,
+                        'status':e.Status
+                    }
+                    reportData.append(details)
+
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalAmount':totalAmount,
+                'startDate':startDate, 'endDate':endDate, 'status':status
+            }
+            return render(request,'company/reports/Fin_EwayBill_Report.html', context)
+    else:
+        return redirect('/')
+
+def Fin_shareEwayBillReportToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                status = request.POST['status']
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                reportData = []
+                totalAmount = 0
+
+                if startDate is None or endDate is None:
+                    if status != 'all':
+                        eway = Fin_Ewaybills.objects.filter(Company=cmp, Status__iexact = status)
+                    else:
+                        eway = Fin_Ewaybills.objects.filter(Company=cmp)
+                else:
+                    if status != 'all':
+                        eway = Fin_Ewaybills.objects.filter(Company=cmp, BillDate__range = [startDate, endDate], Status__iexact = status)
+                    else:
+                        eway = Fin_Ewaybills.objects.filter(Company=cmp, BillDate__range = [startDate, endDate])
+
+
+                if eway:
+                    for e in eway:
+                        totalAmount += float(e.GrandTotal)
+
+                        details = {
+                            'date': e.BillDate,
+                            'name':e.Customer.first_name+" "+e.Customer.last_name,
+                            'number':e.Ewaybill_No,
+                            'amount':e.GrandTotal,
+                            'status':e.Status
+                        }
+                        reportData.append(details)
+                
+                context = {'cmp':cmp, 'reportData':reportData, 'totalAmount':totalAmount, 'startDate':startDate, 'endDate':endDate}
+                template_path = 'company/reports/Fin_EwayBill_Report_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_EWayBillReport'
+                subject = f"Report_EWayBillReport"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Eway Bill Reports. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_ewayBillReport)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_ewayBillReport)
+
+
+# < ------------- Shemeem -------- > Reports - Expense Reports < ------------------------------- >
+
+def Fin_expenseReport(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        reportData = []
+        totalExpense = 0
+
+        exp = Fin_Expense.objects.filter(Company=cmp)
+        if exp:
+            for ex in exp:
+                totalExpense += float(ex.amount)
+
+                details = {
+                    'date': ex.expense_date,
+                    'number':ex.expense_no,
+                    'account':ex.Account.account_name,
+                    'type':ex.expense_type,
+                    'amount':ex.amount,
+                    'status':ex.status,
+                    'payment':ex.payment_method
+                }
+                reportData.append(details)
+
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalExpense':totalExpense,
+            'startDate':None, 'endDate':None
+        }
+        return render(request,'company/reports/Fin_Expense_Report.html', context)
+    else:
+        return redirect('/')
+
+def Fin_expenseReportCustomized(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+
+        if request.method == 'GET':
+            startDate = request.GET['from_date']
+            endDate = request.GET['to_date']
+            status = request.GET['status']
+
+            if startDate == "":
+                startDate = None
+            if endDate == "":
+                endDate = None
+
+
+            reportData = []
+            totalExpense = 0
+
+            if startDate is None or endDate is None:
+                if status != 'all':
+                    exp = Fin_Expense.objects.filter(Company=cmp, status__iexact = status)
+                else:
+                    exp = Fin_Expense.objects.filter(Company=cmp)
+            else:
+                if status != 'all':
+                    exp = Fin_Expense.objects.filter(Company=cmp, expense_date__range = [startDate, endDate], status__iexact = status)
+                else:
+                    exp = Fin_Expense.objects.filter(Company=cmp, expense_date__range = [startDate, endDate])
+
+
+            if exp:
+                for ex in exp:
+                    totalExpense += float(ex.amount)
+
+                    details = {
+                        'date': ex.expense_date,
+                        'number':ex.expense_no,
+                        'account':ex.Account.account_name,
+                        'type':ex.expense_type,
+                        'amount':ex.amount,
+                        'status':ex.status,
+                        'payment':ex.payment_method
+                    }
+                    reportData.append(details)
+
+
+            context = {
+                'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'reportData':reportData, 'totalExpense':totalExpense,
+                'startDate':startDate, 'endDate':endDate, 'status':status
+            }
+            return render(request,'company/reports/Fin_Expense_Report.html', context)
+    else:
+        return redirect('/')
+
+def Fin_shareExpenseReportToEmail(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            cmp = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            cmp = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                startDate = request.POST['start']
+                endDate = request.POST['end']
+                status = request.POST['status']
+                if startDate == "":
+                    startDate = None
+                if endDate == "":
+                    endDate = None
+
+                reportData = []
+                totalExpense = 0
+
+                if startDate is None or endDate is None:
+                    if status != 'all':
+                        exp = Fin_Expense.objects.filter(Company=cmp, status__iexact = status)
+                    else:
+                        exp = Fin_Expense.objects.filter(Company=cmp)
+                else:
+                    if status != 'all':
+                        exp = Fin_Expense.objects.filter(Company=cmp, expense_date__range = [startDate, endDate], status__iexact = status)
+                    else:
+                        exp = Fin_Expense.objects.filter(Company=cmp, expense_date__range = [startDate, endDate])
+
+
+                if exp:
+                    for ex in exp:
+                        totalExpense += float(ex.amount)
+
+                        details = {
+                            'date': ex.expense_date,
+                            'number':ex.expense_no,
+                            'account':ex.Account.account_name,
+                            'type':ex.expense_type,
+                            'amount':ex.amount,
+                            'status':ex.status,
+                            'payment':ex.payment_method
+                        }
+                        reportData.append(details)
+                
+                context = {'cmp':cmp, 'reportData':reportData, 'totalExpense':totalExpense, 'startDate':startDate, 'endDate':endDate}
+                template_path = 'company/reports/Fin_Expense_Report_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'Report_ExpenseReport'
+                subject = f"Report_ExpenseReport"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Report for - Expense Reports. \n{email_message}\n\n--\nRegards,\n{cmp.Company_name}\n{cmp.Address}\n{cmp.State} - {cmp.Country}\n{cmp.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'Report has been shared via email successfully..!')
+                return redirect(Fin_expenseReport)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_expenseReport)
+            
+#End

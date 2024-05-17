@@ -949,6 +949,18 @@ urlpatterns = [
     path('Fin_share_party_report_by_item_to_email',views.Fin_sharePartyReportByItemToEmail, name='Fin_sharePartyReportByItemToEmail'),
     # End
 
+    # < ------------- Shemeem -------- > Reports - Expense Reports < ------------------------------- >
+    path('Fin_expense_report',views.Fin_expenseReport, name='Fin_expenseReport'),
+    path('Fin_expense_report_customized',views.Fin_expenseReportCustomized, name='Fin_expenseReportCustomized'),
+    path('Fin_share_expense_report_to_email',views.Fin_shareExpenseReportToEmail, name='Fin_shareExpenseReportToEmail'),
+    # End
+
+    # < ------------- Shemeem -------- > Reports - EWay Bills Reports < ------------------------------- >
+    path('Fin_eway_bill_report',views.Fin_ewayBillReport, name='Fin_ewayBillReport'),
+    path('Fin_eway_bill_report_customized',views.Fin_ewayBillReportCustomized, name='Fin_ewayBillReportCustomized'),
+    path('Fin_share_eway_bill_report_to_email',views.Fin_shareEwayBillReportToEmail, name='Fin_shareEwayBillReportToEmail'),
+    # End
+
 
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

@@ -177,6 +177,7 @@
                   <li><a href="{% url 'Fin_recurring_bill_list' %}">Recurring Bill</li>
                   
                   <li><a href="">Transaction Reports</li>
+                    <li><a href="">Bill Details</li>
                     <li><a href="">Sales</a></li>
                       <li><a href="">Sales by Customer</li>
                       <li><a href="">Sales by Items</li>
@@ -201,6 +202,8 @@
                   <li><a href="">Balance Sheet</li>
                   <li><a href="">Trial Balance</li>
                   <li><a href="">Accounts Receivables</li>
+                    <li><a href="">Aging Summary</li>
+                    <li><a href="">Aging Details</li>
                   <li><a href="">Credit Note Details</li>
                   <li><a href="">Debit Note Report</li>
                   <li><a href="">Accounts Payables</li>
@@ -736,7 +739,6 @@
                 <a><i class="bx bx-right-arrow-alt"></i>Transaction Reports</a>
                 <ul class="px-4">
                   <li><a href=""><i class="bx bx-right-arrow-alt"></i>Sales</a></li>
-
                     <ul class="px-4">
                       <li><a href="{% url 'Fin_salesByCustomerReport' %}"><i class="bx bx-right-arrow-alt"></i>Sales by Customer</a></li>
                       <li><a href="{% url 'Fin_salesByItemReport' %}"><i class="bx bx-right-arrow-alt"></i>Sales By Item</a></li>
@@ -747,21 +749,22 @@
                     <li><a href="{% url 'Fin_purchase_report_vendor' %}"><i class="bx bx-right-arrow-alt"></i>Purchase by Vendor</a></li>
                     <li><a href="{% url 'Fin_purchase_report_item' %}"><i class="bx bx-right-arrow-alt"></i>Purchase By Item</a></li>
                   </ul>
-                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>All Transactions
-                    </a>
-                  </li>
-                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Profit and Loss</a></li>
-                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Balance Sheet</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>All Transactions</a></li>
                   <li><a href="{% url 'Fin_cashFlowReport' %}"><i class="bx bx-right-arrow-alt"></i>Cash Flow</a></li>
                   <li><a href="{% url 'Fin_dayBookReport' %}"><i class="bx bx-right-arrow-alt"></i>Day Book</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Trial Balance</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Profit and Loss</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Balance Sheet</a></li>
                 </ul>
               </li>
               <li id="stock">
                 <a><i class="bx bx-right-arrow-alt"></i>Stock Reports </a>
                 <ul class="px-4">
-                  <li><a href="{% url 'Fin_stockDetailsReport' %}"><i class="bx bx-right-arrow-alt"></i>Stock Details</a></li>
                   <li><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Summary </a></li>
+                  <li><a href="{% url 'Fin_stockDetailsReport' %}"><i class="bx bx-right-arrow-alt"></i>Stock Details</a></li>
                   <li><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Valuation</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i> Low Stock Details</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Sales Item Discount Details</a></li>
                   <li><a href="{% url 'Fin_itemReportByParty' %}"><i class="bx bx-right-arrow-alt"></i>Item Report by Party</a></li>
                 </ul>
               </li>
@@ -773,6 +776,7 @@
                   <li><a href="{% url 'Fin_partyReportByItem' %}"><i class="bx bx-right-arrow-alt"></i>Party Report by Item</a></li>
                 </ul>
               </li>
+
               <li id="gstreports">
                 <a><i class="bx bx-right-arrow-alt"></i>GST Reports</a>
                 <ul class="px-4">
@@ -783,35 +787,63 @@
                   <li><a href=""></i>Sale Summary by HSN</a></li>
                 </ul>
               </li>
-              <li id="profitandloss"><a href=""><i class="bx bx-right-arrow-alt"></i>Profit and Loss</a></li>
-              <li id="balancesheet"><a href=""><i class="bx bx-right-arrow-alt"></i>Balance Sheet</a></li>
-              <li id="trialbalance"><a href=""><i class="bx bx-right-arrow-alt"></i>Trial Balance</a></li>
               <li id="accountsreceivables">
-                <a><i class="bx bx-right-arrow-alt"></i>Accounts Receivables</a>
+                <a><i class="bx bx-right-arrow-alt"></i>Accounts Receivable</a>
                 <ul class="px-4">
-                  <li><a href="{% url 'Fin_Retainer_Report' %}"><i class="bx bx-right-arrow-alt"></i>Retainer Invoice Details </a></li>
                   <li><a href="{% url 'Fin_customerbalence' %}"><i class="bx bx-right-arrow-alt"></i>Customer Balances</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Aging Summary</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Aging Details</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i> Invoice Details </a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Recurring Invoice Details</a></li>
+                  <li><a href="{% url 'Fin_Retainer_Report' %}"><i class="bx bx-right-arrow-alt"></i>Retainer Invoice Details </a></li>
                   <li><a href="{% url 'Fin_salesOrderDetailsReport' %}"><i class="bx bx-right-arrow-alt"></i>Sales Order Details</a></li>
                   <li><a href="{% url 'Fin_estimate_report' %}"><i class="bx bx-right-arrow-alt"></i>Estimate Details</a></li>
-
-                
                 </ul>
               </li>
-              <li><a href=""><i class="bx bx-right-arrow-alt"></i>Creditnote Details</a></li>
-                            <li><a href=""><i class="bx bx-right-arrow-alt"></i>Debitnote Report</a></li>
-              <li id="accountspayables">
-                <a><i class="bx bx-right-arrow-alt"></i>Accounts Payables</a>
+
+              <li id="crd">
+                <a><i class="bx bx-right-arrow-alt"></i>Payments Received </a>
                 <ul class="px-4">
-                  <li><a href="{% url 'Fin_purchaseOrderDetailsReport' %}"><i class="bx bx-right-arrow-alt"></i> Purchase Order Details</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i> Payments Received Summary</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i> Payments Received </a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Credit Note Details</a></li>
                 </ul>
               </li>
 
-              <!-- <li id="stocksummary"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Summary </a></li> -->
-              <!-- <li id="stockvaluation"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Valuation</a></li> -->
-              <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i>Sales Summary Report</a></li>
-              <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i>Purchase Order Details</a></li>
-              <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i>Purchase Order By Vendor</a></li>
-              <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i> Recurring Bill Report</a></li>
+              <li id="accountspayables">
+                <a><i class="bx bx-right-arrow-alt"></i>Accounts Payable</a>
+                <ul class="px-4">
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Vendor Balances</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i> Bill Details</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Recurring Bill Details</a></li>
+                  <li><a href="{% url 'Fin_purchaseOrderDetailsReport' %}"><i class="bx bx-right-arrow-alt"></i> Purchase Order Details</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Payments Made Summary</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i>Payments Made</a></li>
+                  <li><a href=""><i class="bx bx-right-arrow-alt"></i> Debit Note Details</a></li>
+                </ul>
+              </li>
+              
+              <!-- <li id="stocksummary"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Summary </a></li>
+                <li id="stockvaluation"><a href=""><i class="bx bx-right-arrow-alt"></i>Stock Valuation</a></li> -->
+                <!-- <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i>Sales Summary Report</a></li>
+                <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i>Purchase Order Details</a></li>
+                <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i>Purchase Order By Vendor</a></li>
+                <li id="salessummaryreport"><a href=""><i class="bx bx-right-arrow-alt"></i> Recurring Bill Report</a></li> -->
+                <li id="expense">
+                  <a href="{% url 'Fin_expenseReport' %}"><i class="bx bx-right-arrow-alt"></i>Expense Report </a>
+                </li>
+                <li id="ewaybill">
+                  <a href="{% url 'Fin_ewayBillReport' %}"><i class="bx bx-right-arrow-alt"></i>EWay Bill Report </a>
+                </li>
+                <li id="stocksummary"><a href=""><i class="bx bx-right-arrow-alt"></i>Journal Report </a></li>
+                <li id="business">
+                  <a><i class="bx bx-right-arrow-alt"></i>Business Status</a>
+                  <ul class="px-4">
+                    <li><a href=""><i class="bx bx-right-arrow-alt"></i> Bank Statement</a></li>
+                    <li><a href=""><i class="bx bx-right-arrow-alt"></i> Loan Statement</a></li>
+                    <li><a href=""><i class="bx bx-right-arrow-alt"></i> Discount Report</a></li>
+                  </ul>
+                </li>
             </ul>
           </li>
 
